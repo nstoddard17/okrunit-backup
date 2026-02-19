@@ -1,0 +1,48 @@
+// ---------------------------------------------------------------------------
+// Gatekeeper -- API Error Handling
+// ---------------------------------------------------------------------------
+
+import { NextResponse } from "next/server";
+
+/**
+ * Structured API error with an HTTP status code and optional machine-readable
+ * error code. Throw this from any route handler or utility to return a
+ * well-formed JSON error response via `errorResponse()`.
+ */
+export class ApiError extends Error {
+  public readonly statusCode: number;
+  public readonly code: string | undefined;
+
+  constructor(statusCode: number, message: string, code?: string) {
+    super(message);
+    this.name = "ApiError";
+    this.statusCode = statusCode;
+    this.code = code;
+  }
+}
+
+/**
+ * Convert an unknown thrown value into a JSON `NextResponse`.
+ *
+ * - `ApiError` instances produce their own status code and optional code.
+ * - Everything else is treated as an unexpected 500 Internal Server Error.
+ */
+export function errorResponse(error: unknown): NextResponse {
+  if (error instanceof ApiError) {
+    return NextResponse.json(
+      {
+        error: error.message,
+        ...(error.code ? { code: error.code } : {}),
+      },
+      { status: error.statusCode },
+    );
+  }
+
+  // Log unexpected errors for observability; never leak internals to clients.
+  console.error("[API] Unhandled error:", error);
+
+  return NextResponse.json(
+    { error: "Internal server error" },
+    { status: 500 },
+  );
+}

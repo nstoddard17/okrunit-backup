@@ -1,0 +1,259 @@
+// ---------------------------------------------------------------------------
+// Gatekeeper -- Notification Orchestrator
+// ---------------------------------------------------------------------------
+//
+// Central fan-out for all notification channels (web push, email, Slack).
+//
+// Usage:
+//   import { dispatchNotifications } from "@/lib/notifications/orchestrator";
+//   await dispatchNotifications({ type: "approval.created", ... });
+//
+// This module is designed to be called from the approvals API routes (POST for
+// new requests, PATCH for decisions) but never modifies those routes itself.
+// ---------------------------------------------------------------------------
+
+import type { NotificationEvent, NotificationEventType } from "@/lib/notifications/types";
+import {
+  shouldNotify,
+  getOrgNotificationSettings,
+} from "@/lib/notifications/filters";
+import { sendWebPush } from "@/lib/notifications/channels/web-push";
+import {
+  sendApprovalEmail,
+  sendDecisionEmail,
+} from "@/lib/notifications/channels/email";
+import {
+  sendSlackNotification,
+  sendSlackDecisionNotification,
+} from "@/lib/notifications/channels/slack";
+import { generateActionTokens } from "@/lib/notifications/tokens";
+import type { NotificationSettings } from "@/lib/types/database";
+import type { PushPayload } from "@/lib/notifications/channels/web-push";
+
+// ---------------------------------------------------------------------------
+// Default settings applied when a user has not configured preferences
+// ---------------------------------------------------------------------------
+
+const DEFAULT_SETTINGS: Pick<
+  NotificationSettings,
+  | "email_enabled"
+  | "push_enabled"
+  | "slack_enabled"
+  | "slack_webhook_url"
+  | "quiet_hours_enabled"
+  | "quiet_hours_start"
+  | "quiet_hours_end"
+  | "quiet_hours_timezone"
+  | "minimum_priority"
+> = {
+  email_enabled: true,
+  push_enabled: true,
+  slack_enabled: false,
+  slack_webhook_url: null,
+  quiet_hours_enabled: false,
+  quiet_hours_start: null,
+  quiet_hours_end: null,
+  quiet_hours_timezone: "UTC",
+  minimum_priority: "low",
+};
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/**
+ * Dispatch notifications for a lifecycle event to every relevant org member
+ * across all enabled channels.
+ *
+ * Flow:
+ *  1. Load all org members and their notification settings.
+ *  2. For each member, check `shouldNotify` (quiet hours + priority).
+ *  3. Fan out to enabled channels (web push, email, Slack) in parallel.
+ *
+ * This function **never throws**. Individual channel failures are logged but
+ * do not prevent other channels or other users from receiving their
+ * notifications (thanks to `Promise.allSettled`).
+ */
+export async function dispatchNotifications(
+  event: NotificationEvent,
+): Promise<void> {
+  try {
+    const orgUsers = await getOrgNotificationSettings(event.orgId);
+
+    if (orgUsers.length === 0) {
+      return;
+    }
+
+    const promises: Promise<void>[] = [];
+
+    for (const { userId, email, settings } of orgUsers) {
+      // Apply defaults when the user has no saved settings row.
+      const effective = settings ?? (DEFAULT_SETTINGS as NotificationSettings);
+
+      // Gate: quiet hours + priority threshold
+      if (!shouldNotify(effective, event.requestPriority)) {
+        continue;
+      }
+
+      // -- Web Push -----------------------------------------------------------
+      if (effective.push_enabled) {
+        const pushPayload: PushPayload = {
+          title: getNotificationTitle(event),
+          body: getNotificationBody(event),
+          url: "/dashboard",
+          requestId: event.requestId,
+          tag: `gk-${event.requestId}`,
+        };
+        promises.push(
+          sendWebPush(userId, pushPayload).catch((err: unknown) => {
+            console.error(
+              `[Notifications] Web push failed for user ${userId}:`,
+              err,
+            );
+          }),
+        );
+      }
+
+      // -- Email --------------------------------------------------------------
+      if (effective.email_enabled) {
+        if (event.type === "approval.created") {
+          // Generate one-click approve/reject tokens, then send the email.
+          const emailPromise = generateActionTokens(
+            event.requestId,
+            userId,
+          ).then((tokens: { approveToken: string; rejectToken: string }) =>
+            sendApprovalEmail({
+              to: email,
+              subject: `[Gatekeeper] ${event.requestTitle}`,
+              requestId: event.requestId,
+              title: event.requestTitle,
+              description: event.requestDescription,
+              priority: event.requestPriority,
+              approveToken: tokens.approveToken,
+              rejectToken: tokens.rejectToken,
+            }),
+          );
+          promises.push(
+            emailPromise.catch((err: unknown) => {
+              console.error(
+                `[Notifications] Approval email failed for ${email}:`,
+                err,
+              );
+            }),
+          );
+        } else {
+          const decision = extractDecision(event.type);
+          promises.push(
+            sendDecisionEmail({
+              to: email,
+              subject: `[Gatekeeper] ${event.requestTitle} - ${decision}`,
+              requestTitle: event.requestTitle,
+              decision,
+              decidedBy: event.decidedBy,
+              comment: event.decisionComment,
+            }).catch((err: unknown) => {
+              console.error(
+                `[Notifications] Decision email failed for ${email}:`,
+                err,
+              );
+            }),
+          );
+        }
+      }
+
+      // -- Slack --------------------------------------------------------------
+      if (effective.slack_enabled && effective.slack_webhook_url) {
+        if (event.type === "approval.created") {
+          promises.push(
+            sendSlackNotification({
+              webhookUrl: effective.slack_webhook_url,
+              requestId: event.requestId,
+              title: event.requestTitle,
+              description: event.requestDescription,
+              priority: event.requestPriority,
+              connectionName: event.connectionName,
+            }).catch((err: unknown) => {
+              console.error(
+                `[Notifications] Slack notification failed for user ${userId}:`,
+                err,
+              );
+            }),
+          );
+        } else {
+          const decision = extractDecision(event.type);
+          promises.push(
+            sendSlackDecisionNotification({
+              webhookUrl: effective.slack_webhook_url,
+              requestTitle: event.requestTitle,
+              decision,
+              decidedBy: event.decidedBy,
+              comment: event.decisionComment,
+            }).catch((err: unknown) => {
+              console.error(
+                `[Notifications] Slack decision failed for user ${userId}:`,
+                err,
+              );
+            }),
+          );
+        }
+      }
+    }
+
+    // Wait for all channel deliveries. Individual failures have already been
+    // caught above, so allSettled is used purely for awaiting completion.
+    await Promise.allSettled(promises);
+  } catch (error) {
+    console.error("[Notifications] Orchestrator error:", error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Map of event types to human-readable push notification titles. */
+const TITLE_MAP: Record<NotificationEventType, string> = {
+  "approval.created": "New Approval Request",
+  "approval.approved": "Request Approved",
+  "approval.rejected": "Request Rejected",
+  "approval.cancelled": "Request Cancelled",
+  "approval.expired": "Request Expired",
+  "approval.comment": "New Comment",
+};
+
+/**
+ * Build a short title for push notifications / toast headings.
+ */
+function getNotificationTitle(event: NotificationEvent): string {
+  return TITLE_MAP[event.type] ?? "Gatekeeper Notification";
+}
+
+/**
+ * Build a one-line body for push notifications.
+ */
+function getNotificationBody(event: NotificationEvent): string {
+  switch (event.type) {
+    case "approval.created":
+      return `"${event.requestTitle}" needs your review.`;
+    case "approval.approved":
+      return `"${event.requestTitle}" was approved${event.decidedBy ? ` by ${event.decidedBy}` : ""}.`;
+    case "approval.rejected":
+      return `"${event.requestTitle}" was rejected${event.decidedBy ? ` by ${event.decidedBy}` : ""}.`;
+    case "approval.cancelled":
+      return `"${event.requestTitle}" was cancelled.`;
+    case "approval.expired":
+      return `"${event.requestTitle}" has expired.`;
+    case "approval.comment":
+      return `New comment on "${event.requestTitle}".`;
+    default:
+      return event.requestTitle;
+  }
+}
+
+/**
+ * Extract the human-readable decision word from an event type.
+ * e.g. "approval.approved" -> "approved"
+ */
+function extractDecision(type: NotificationEventType): string {
+  return type.split(".")[1] ?? "updated";
+}
