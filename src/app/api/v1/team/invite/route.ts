@@ -13,6 +13,7 @@ import { ApiError, errorResponse } from "@/lib/api/errors";
 import { logAuditEvent } from "@/lib/api/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { INVITE_EXPIRY_DAYS } from "@/lib/constants";
+import { buildInviteEmailHtml } from "@/lib/email/invite";
 import type { OrgInvite } from "@/lib/types/database";
 
 // ---- Validation -----------------------------------------------------------
@@ -136,29 +137,17 @@ export async function POST(request: Request) {
     if (process.env.RESEND_API_KEY) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY);
+        const html = buildInviteEmailHtml({
+          orgName,
+          role: body.role,
+          inviteLink,
+        });
+
         await resend.emails.send({
           from: fromAddress,
           to: normalizedEmail,
           subject: `You've been invited to join ${orgName} on Gatekeeper`,
-          html: `
-            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-              <h2 style="color: #111; margin-bottom: 16px;">You're invited!</h2>
-              <p style="color: #555; line-height: 1.6;">
-                You've been invited to join <strong>${orgName}</strong> on Gatekeeper
-                as ${body.role === "admin" ? "an" : "a"} <strong>${body.role}</strong>.
-              </p>
-              <a
-                href="${inviteLink}"
-                style="display: inline-block; margin-top: 16px; padding: 12px 24px; background-color: #111; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 500;"
-              >
-                Accept Invitation
-              </a>
-              <p style="color: #999; font-size: 13px; margin-top: 24px;">
-                This invitation expires in ${INVITE_EXPIRY_DAYS} days. If you did not
-                expect this email, you can safely ignore it.
-              </p>
-            </div>
-          `,
+          html,
         });
       } catch (emailError) {
         // Log but don't fail the request -- the invite is already created.
