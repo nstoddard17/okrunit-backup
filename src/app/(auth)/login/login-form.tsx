@@ -1,19 +1,36 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+const ERROR_MESSAGES: Record<string, string> = {
+  no_org:
+    "Your account is not associated with any organization. Please contact your administrator or sign up for a new account.",
+};
+
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // Show error from redirect (e.g. no org membership) and sign out stale session
+  useEffect(() => {
+    const errorCode = searchParams.get("error");
+    if (errorCode && ERROR_MESSAGES[errorCode]) {
+      setError(ERROR_MESSAGES[errorCode]);
+      // Sign out the stale session so the user doesn't keep looping
+      const supabase = createClient();
+      supabase.auth.signOut();
+    }
+  }, [searchParams]);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

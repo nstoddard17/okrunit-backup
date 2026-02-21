@@ -8,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { API_KEY_LENGTH, API_KEY_PREFIX } from "@/lib/constants";
 import { ApiError } from "@/lib/api/errors";
-import type { Connection, UserProfile } from "@/lib/types/database";
+import type { Connection, OrgMembership, UserProfile } from "@/lib/types/database";
 
 // ---- Types ----------------------------------------------------------------
 
@@ -22,6 +22,7 @@ export type AuthResult =
       type: "session";
       user: { id: string; email: string };
       profile: UserProfile;
+      membership: OrgMembership;
       orgId: string;
     };
 
@@ -169,7 +170,9 @@ async function authenticateSession(): Promise<AuthResult> {
     throw new ApiError(401, "Authentication required", "UNAUTHENTICATED");
   }
 
-  const { data: profile, error: profileError } = await supabase
+  const admin = createAdminClient();
+
+  const { data: profile, error: profileError } = await admin
     .from("user_profiles")
     .select("*")
     .eq("id", user.id)
@@ -183,10 +186,27 @@ async function authenticateSession(): Promise<AuthResult> {
     );
   }
 
+  // Get active org membership (is_default = true)
+  const { data: membership, error: membershipError } = await admin
+    .from("org_memberships")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("is_default", true)
+    .single();
+
+  if (membershipError || !membership) {
+    throw new ApiError(
+      401,
+      "No organization membership found",
+      "NO_MEMBERSHIP",
+    );
+  }
+
   return {
     type: "session",
     user: { id: user.id, email: user.email! },
     profile: profile as UserProfile,
-    orgId: profile.org_id,
+    membership: membership as OrgMembership,
+    orgId: membership.org_id,
   };
 }

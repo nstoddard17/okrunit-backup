@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getOrgContext } from "@/lib/org-context";
 import { EmergencyStopButton } from "@/components/emergency/emergency-stop-button";
 import { EmergencyStatus } from "@/components/emergency/emergency-status";
-import type { Organization, UserProfile } from "@/lib/types/database";
 
 export const metadata = {
   title: "Emergency Stop - Gatekeeper",
@@ -10,38 +9,9 @@ export const metadata = {
 };
 
 export default async function EmergencyPage() {
-  const supabase = await createClient();
-
-  // Get the authenticated user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Get user profile for org_id
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single<UserProfile>();
-
-  if (!profile) {
-    redirect("/login");
-  }
-
-  // Fetch organization data including emergency stop state
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("*")
-    .eq("id", profile.org_id)
-    .single<Organization>();
-
-  if (!org) {
-    redirect("/login");
-  }
+  const ctx = await getOrgContext();
+  if (!ctx) redirect("/login");
+  const { org } = ctx;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">

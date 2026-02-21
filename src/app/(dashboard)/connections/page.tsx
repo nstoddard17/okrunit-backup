@@ -4,9 +4,11 @@
 
 import { redirect } from "next/navigation";
 
+import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
 import { ConnectionList } from "@/components/connections/connection-list";
-import type { Connection, UserProfile } from "@/lib/types/database";
+import { IntegrationGrid } from "@/components/integrations/integration-grid";
+import type { Connection } from "@/lib/types/database";
 
 export const metadata = {
   title: "Connections - Gatekeeper",
@@ -21,46 +23,50 @@ const CONNECTION_COLUMNS =
   "id, org_id, name, description, api_key_prefix, is_active, rate_limit_per_hour, allowed_action_types, max_priority, scoping_rules, last_used_at, rotated_at, created_by, created_at, updated_at" as const;
 
 export default async function ConnectionsPage() {
+  const ctx = await getOrgContext();
+  if (!ctx) redirect("/login");
+  const { membership } = ctx;
+
   const supabase = await createClient();
-
-  // Authenticate the current user.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Resolve org membership.
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("org_id")
-    .eq("id", user.id)
-    .single<Pick<UserProfile, "org_id">>();
-
-  if (!profile) {
-    redirect("/login");
-  }
 
   // Fetch all connections for this organisation, newest first.
   const { data: connections } = await supabase
     .from("connections")
     .select(CONNECTION_COLUMNS)
-    .eq("org_id", profile.org_id)
+    .eq("org_id", membership.org_id)
     .order("created_at", { ascending: false })
     .returns<Omit<Connection, "api_key_hash">[]>();
 
+  const activeConnections = (connections ?? []).filter((c) => c.is_active);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Connections</h1>
         <p className="text-muted-foreground text-sm">
-          Manage API connections used by your agents and integrations.
+          Connect your automation tools or create a custom API key.
         </p>
       </div>
 
-      <ConnectionList initialConnections={(connections ?? []) as Connection[]} />
+      {/* Quick-start integration cards */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-medium text-muted-foreground">
+          Quick Start
+        </h2>
+        <IntegrationGrid
+          existingConnections={activeConnections as Connection[]}
+        />
+      </div>
+
+      {/* Full connection management */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-medium text-muted-foreground">
+          All Connections
+        </h2>
+        <ConnectionList
+          initialConnections={(connections ?? []) as Connection[]}
+        />
+      </div>
     </div>
   );
 }

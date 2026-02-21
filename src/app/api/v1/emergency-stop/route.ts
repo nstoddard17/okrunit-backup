@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     }
 
     // 2. Must be admin or owner role
-    if (auth.profile.role !== "admin" && auth.profile.role !== "owner") {
+    if (auth.membership.role !== "admin" && auth.membership.role !== "owner") {
       throw new ApiError(
         403,
         "Only admins and owners can toggle the emergency stop",

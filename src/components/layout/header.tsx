@@ -11,7 +11,12 @@ const routeTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/connections": "Connections",
   "/team": "Team",
+  "/organization": "Organization",
+  "/rules": "Rules",
   "/audit-log": "Audit Log",
+  "/webhooks": "Webhooks",
+  "/analytics": "Analytics",
+  "/playground": "Playground",
   "/settings": "Settings",
   "/emergency": "Emergency Controls",
 };

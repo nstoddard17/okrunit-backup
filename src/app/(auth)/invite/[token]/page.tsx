@@ -101,14 +101,15 @@ export default async function InviteAcceptPage({
   }
 
   // Email matches: accept the invite.
-  // 1. Check if user already has a profile in this org (e.g. from signup trigger).
-  const { data: existingProfile } = await admin
-    .from("user_profiles")
-    .select("id, org_id")
-    .eq("id", user.id)
+  // 1. Check if user already has a membership in this org.
+  const { data: existingMembership } = await admin
+    .from("org_memberships")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("org_id", invite.org_id)
     .maybeSingle();
 
-  if (existingProfile && existingProfile.org_id === invite.org_id) {
+  if (existingMembership) {
     // Already in this org, just mark invite as accepted.
     await admin
       .from("org_invites")
@@ -118,27 +119,29 @@ export default async function InviteAcceptPage({
     redirect("/dashboard");
   }
 
-  if (existingProfile) {
-    // User has a profile in a different org -- update to the invited org.
-    await admin
-      .from("user_profiles")
-      .update({
-        org_id: invite.org_id,
-        role: invite.role,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
-  } else {
-    // No profile yet -- create one.
+  // 2. Ensure user profile exists.
+  const { data: existingProfile } = await admin
+    .from("user_profiles")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!existingProfile) {
     await admin.from("user_profiles").insert({
       id: user.id,
-      org_id: invite.org_id,
       email: invite.email,
       full_name: user.user_metadata?.full_name ?? null,
       avatar_url: user.user_metadata?.avatar_url ?? null,
-      role: invite.role,
     });
   }
+
+  // 3. Create membership in the invited org (not default -- keep current active org).
+  await admin.from("org_memberships").insert({
+    user_id: user.id,
+    org_id: invite.org_id,
+    role: invite.role,
+    is_default: false,
+  });
 
   // Mark invite as accepted.
   await admin

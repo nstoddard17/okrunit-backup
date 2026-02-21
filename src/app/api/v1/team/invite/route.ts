@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     // Must be admin or owner.
-    if (auth.profile.role !== "owner" && auth.profile.role !== "admin") {
+    if (auth.membership.role !== "owner" && auth.membership.role !== "admin") {
       throw new ApiError(403, "Insufficient permissions");
     }
 
@@ -61,12 +61,23 @@ export async function POST(request: Request) {
     const normalizedEmail = body.email.toLowerCase().trim();
 
     // Check that the email isn't already a member of the org.
-    const { data: existingMember } = await admin
+    // First find a user profile with this email, then check for membership.
+    const { data: profileWithEmail } = await admin
       .from("user_profiles")
       .select("id")
-      .eq("org_id", auth.orgId)
       .eq("email", normalizedEmail)
       .maybeSingle();
+
+    let existingMember = null;
+    if (profileWithEmail) {
+      const { data: membership } = await admin
+        .from("org_memberships")
+        .select("id")
+        .eq("user_id", profileWithEmail.id)
+        .eq("org_id", auth.orgId)
+        .maybeSingle();
+      existingMember = membership;
+    }
 
     if (existingMember) {
       throw new ApiError(
@@ -194,7 +205,7 @@ export async function DELETE(request: Request) {
     }
 
     // Must be admin or owner.
-    if (auth.profile.role !== "owner" && auth.profile.role !== "admin") {
+    if (auth.membership.role !== "owner" && auth.membership.role !== "admin") {
       throw new ApiError(403, "Insufficient permissions");
     }
 

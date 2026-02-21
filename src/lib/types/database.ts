@@ -49,11 +49,19 @@ export interface Organization {
 
 export interface UserProfile {
   id: string;
-  org_id: string;
   email: string;
   full_name: string | null;
   avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrgMembership {
+  id: string;
+  user_id: string;
+  org_id: string;
   role: UserRole;
+  is_default: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -247,6 +255,7 @@ export interface ApprovalAttachment {
 
 export type OrganizationInsert = Omit<Organization, "id" | "created_at" | "updated_at">;
 export type UserProfileInsert = Omit<UserProfile, "created_at" | "updated_at">;
+export type OrgMembershipInsert = Omit<OrgMembership, "id" | "created_at" | "updated_at">;
 export type ConnectionInsert = Omit<
   Connection,
   "id" | "last_used_at" | "rotated_at" | "previous_key_hash" | "previous_key_expires_at" | "created_at" | "updated_at"
@@ -280,6 +289,7 @@ export type ApprovalAttachmentInsert = Omit<ApprovalAttachment, "id" | "created_
 
 export type OrganizationUpdate = Partial<Omit<Organization, "id" | "created_at">> & { id: string };
 export type UserProfileUpdate = Partial<Omit<UserProfile, "id" | "created_at">> & { id: string };
+export type OrgMembershipUpdate = Partial<Omit<OrgMembership, "id" | "created_at">> & { id: string };
 export type ConnectionUpdate = Partial<Omit<Connection, "id" | "created_at">> & { id: string };
 export type ApprovalRequestUpdate = Partial<Omit<ApprovalRequest, "id" | "created_at">> & { id: string };
 export type NotificationSettingsUpdate = Partial<Omit<NotificationSettings, "id" | "created_at">> & { id: string };

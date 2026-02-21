@@ -9,7 +9,6 @@ import { authenticateRequest } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
 import { logAuditEvent } from "@/lib/api/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { UserProfile } from "@/lib/types/database";
 
 // ---- Validation -----------------------------------------------------------
 
@@ -35,18 +34,43 @@ export async function GET(request: Request) {
 
     const admin = createAdminClient();
 
-    const { data: members, error } = await admin
-      .from("user_profiles")
-      .select("*")
+    // Fetch memberships for this org, joined with user profiles
+    const { data: memberships, error } = await admin
+      .from("org_memberships")
+      .select("id, user_id, org_id, role, is_default, created_at, updated_at")
       .eq("org_id", auth.orgId)
       .order("role", { ascending: true })
-      .order("created_at", { ascending: true })
-      .returns<UserProfile[]>();
+      .order("created_at", { ascending: true });
 
     if (error) {
       console.error("[Team] Failed to list members:", error);
       throw new ApiError(500, "Failed to list members");
     }
+
+    // Fetch the user profiles for these members
+    const userIds = (memberships ?? []).map((m) => m.user_id);
+    const { data: profiles } = await admin
+      .from("user_profiles")
+      .select("id, email, full_name, avatar_url")
+      .in("id", userIds);
+
+    const profileMap = new Map(
+      (profiles ?? []).map((p) => [p.id, p]),
+    );
+
+    // Combine into a flat structure matching what the frontend expects
+    const members = (memberships ?? []).map((m) => {
+      const profile = profileMap.get(m.user_id);
+      return {
+        id: m.user_id,
+        email: profile?.email ?? "",
+        full_name: profile?.full_name ?? null,
+        avatar_url: profile?.avatar_url ?? null,
+        role: m.role,
+        created_at: m.created_at,
+        updated_at: m.updated_at,
+      };
+    });
 
     return NextResponse.json({ data: members });
   } catch (err) {
@@ -65,7 +89,7 @@ export async function PATCH(request: Request) {
       throw new ApiError(403, "Only dashboard users can manage team members");
     }
 
-    if (auth.profile.role !== "owner") {
+    if (auth.membership.role !== "owner") {
       throw new ApiError(403, "Only owners can change member roles");
     }
 
@@ -90,22 +114,22 @@ export async function PATCH(request: Request) {
 
     const admin = createAdminClient();
 
-    // Verify the target user belongs to the same org.
-    const { data: targetUser } = await admin
-      .from("user_profiles")
+    // Verify the target user has a membership in this org.
+    const { data: targetMembership } = await admin
+      .from("org_memberships")
       .select("id, role")
-      .eq("id", body.user_id)
+      .eq("user_id", body.user_id)
       .eq("org_id", auth.orgId)
-      .single<Pick<UserProfile, "id" | "role">>();
+      .single();
 
-    if (!targetUser) {
+    if (!targetMembership) {
       throw new ApiError(404, "Member not found");
     }
 
     // Cannot demote the last owner.
-    if (targetUser.role === "owner") {
+    if (targetMembership.role === "owner") {
       const { count } = await admin
-        .from("user_profiles")
+        .from("org_memberships")
         .select("*", { count: "exact", head: true })
         .eq("org_id", auth.orgId)
         .eq("role", "owner");
@@ -119,16 +143,14 @@ export async function PATCH(request: Request) {
       }
     }
 
-    // Update the role.
-    const { data: updated, error: updateError } = await admin
-      .from("user_profiles")
-      .update({ role: body.role, updated_at: new Date().toISOString() })
-      .eq("id", body.user_id)
-      .eq("org_id", auth.orgId)
-      .select("*")
-      .single<UserProfile>();
+    // Update the role on org_memberships.
+    const { error: updateError } = await admin
+      .from("org_memberships")
+      .update({ role: body.role })
+      .eq("user_id", body.user_id)
+      .eq("org_id", auth.orgId);
 
-    if (updateError || !updated) {
+    if (updateError) {
       console.error("[Team] Failed to update member role:", updateError);
       throw new ApiError(500, "Failed to update member role");
     }
@@ -143,13 +165,13 @@ export async function PATCH(request: Request) {
       orgId: auth.orgId,
       userId: auth.user.id,
       action: "member.role_changed",
-      resourceType: "user_profile",
+      resourceType: "org_membership",
       resourceId: body.user_id,
-      details: { old_role: targetUser.role, new_role: body.role },
+      details: { old_role: targetMembership.role, new_role: body.role },
       ipAddress,
     });
 
-    return NextResponse.json({ data: updated });
+    return NextResponse.json({ success: true });
   } catch (err) {
     return errorResponse(err);
   }
@@ -166,7 +188,7 @@ export async function DELETE(request: Request) {
       throw new ApiError(403, "Only dashboard users can manage team members");
     }
 
-    if (auth.profile.role !== "owner" && auth.profile.role !== "admin") {
+    if (auth.membership.role !== "owner" && auth.membership.role !== "admin") {
       throw new ApiError(403, "Insufficient permissions");
     }
 
@@ -191,22 +213,29 @@ export async function DELETE(request: Request) {
 
     const admin = createAdminClient();
 
-    // Verify the target user belongs to the same org.
-    const { data: targetUser } = await admin
-      .from("user_profiles")
-      .select("id, role, email")
-      .eq("id", body.user_id)
+    // Verify the target user has a membership in this org.
+    const { data: targetMembership } = await admin
+      .from("org_memberships")
+      .select("id, role, user_id")
+      .eq("user_id", body.user_id)
       .eq("org_id", auth.orgId)
-      .single<Pick<UserProfile, "id" | "role" | "email">>();
+      .single();
 
-    if (!targetUser) {
+    if (!targetMembership) {
       throw new ApiError(404, "Member not found");
     }
 
+    // Get the target user's email for audit
+    const { data: targetProfile } = await admin
+      .from("user_profiles")
+      .select("email")
+      .eq("id", body.user_id)
+      .single();
+
     // Cannot remove the last owner.
-    if (targetUser.role === "owner") {
+    if (targetMembership.role === "owner") {
       const { count } = await admin
-        .from("user_profiles")
+        .from("org_memberships")
         .select("*", { count: "exact", head: true })
         .eq("org_id", auth.orgId)
         .eq("role", "owner");
@@ -220,11 +249,11 @@ export async function DELETE(request: Request) {
       }
     }
 
-    // Delete the user profile (removes them from the org, not from auth.users).
+    // Delete the membership (removes them from the org, not from auth.users).
     const { error: deleteError } = await admin
-      .from("user_profiles")
+      .from("org_memberships")
       .delete()
-      .eq("id", body.user_id)
+      .eq("user_id", body.user_id)
       .eq("org_id", auth.orgId);
 
     if (deleteError) {
@@ -242,9 +271,9 @@ export async function DELETE(request: Request) {
       orgId: auth.orgId,
       userId: auth.user.id,
       action: "member.removed",
-      resourceType: "user_profile",
+      resourceType: "org_membership",
       resourceId: body.user_id,
-      details: { email: targetUser.email, role: targetUser.role },
+      details: { email: targetProfile?.email, role: targetMembership.role },
       ipAddress,
     });
 

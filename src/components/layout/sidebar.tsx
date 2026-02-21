@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   BarChart3,
   FlaskConical,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { OrgSwitcher } from "@/components/layout/org-switcher";
 
 interface SidebarProps {
   user: {
@@ -30,7 +32,8 @@ interface SidebarProps {
     full_name: string | null;
     avatar_url: string | null;
   };
-  orgName: string;
+  currentOrgId: string;
+  userOrgs: { id: string; org_id: string; org_name: string; role: string; is_default: boolean }[];
   pendingCount: number;
 }
 
@@ -38,6 +41,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/connections", label: "Connections", icon: Key },
   { href: "/team", label: "Team", icon: Users },
+  { href: "/organization", label: "Organization", icon: Building2 },
   { href: "/rules", label: "Rules", icon: ShieldCheck },
   { href: "/audit-log", label: "Audit Log", icon: FileText },
   { href: "/webhooks", label: "Webhooks", icon: Webhook },
@@ -59,7 +63,7 @@ function getInitials(name: string | null, email: string): string {
   return email.charAt(0).toUpperCase();
 }
 
-export function Sidebar({ user, orgName, pendingCount }: SidebarProps) {
+export function Sidebar({ user, currentOrgId, userOrgs, pendingCount }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -73,13 +77,11 @@ export function Sidebar({ user, orgName, pendingCount }: SidebarProps) {
   return (
     <aside className="bg-card flex h-full w-64 flex-col border-r">
       {/* Logo / Org Header */}
-      <div className="flex h-14 items-center gap-2 border-b px-4">
-        <img src="/logo.png" alt="Gatekeeper" width={20} height={20} className="size-5" />
-        <div className="flex flex-col">
-          <span className="text-sm font-semibold">Gatekeeper</span>
-          <span className="text-muted-foreground text-xs truncate max-w-[180px]">
-            {orgName}
-          </span>
+      <div className="flex h-14 items-center gap-3 border-b px-4">
+        <img src="/logo.png" alt="Gatekeeper" width={28} height={28} className="size-7" />
+        <div className="flex flex-col flex-1 min-w-0">
+          <span className="text-sm font-semibold leading-tight">Gatekeeper</span>
+          <OrgSwitcher currentOrgId={currentOrgId} orgs={userOrgs} />
         </div>
       </div>
 

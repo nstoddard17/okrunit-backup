@@ -9,10 +9,7 @@ export default function AuthLayout({
     <div className="flex min-h-svh">
       {/* Left branding panel -- hidden on mobile */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-muted p-12">
-        <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Gatekeeper" width={48} height={48} />
-          <span className="text-xl font-bold">Gatekeeper</span>
-        </div>
+        <Image src="/logo_text.png" alt="Gatekeeper" width={160} height={120} />
 
         <div className="space-y-6">
           <blockquote className="space-y-2">
@@ -34,9 +31,8 @@ export default function AuthLayout({
       {/* Right form panel */}
       <div className="flex w-full lg:w-1/2 flex-col items-center justify-center px-6 py-12">
         {/* Mobile logo */}
-        <div className="mb-8 flex items-center gap-2 lg:hidden">
-          <Image src="/logo.png" alt="Gatekeeper" width={36} height={36} />
-          <span className="text-lg font-bold">Gatekeeper</span>
+        <div className="mb-8 lg:hidden">
+          <Image src="/logo_text.png" alt="Gatekeeper" width={120} height={90} />
         </div>
 
         <div className="w-full max-w-sm">{children}</div>

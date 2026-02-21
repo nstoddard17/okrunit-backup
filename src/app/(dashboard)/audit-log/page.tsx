@@ -3,9 +3,10 @@
 // ---------------------------------------------------------------------------
 
 import { redirect } from "next/navigation";
+import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
 import { AuditLogTable } from "@/components/audit/audit-log-table";
-import type { AuditLogEntry, UserProfile } from "@/lib/types/database";
+import type { AuditLogEntry } from "@/lib/types/database";
 
 export const metadata = {
   title: "Audit Log - Gatekeeper",
@@ -15,33 +16,17 @@ export const metadata = {
 const PAGE_SIZE = 50;
 
 export default async function AuditLogPage() {
+  const ctx = await getOrgContext();
+  if (!ctx) redirect("/login");
+  const { membership } = ctx;
+
   const supabase = await createClient();
-
-  // Get the authenticated user.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Get user profile for org_id.
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("org_id")
-    .eq("id", user.id)
-    .single<Pick<UserProfile, "org_id">>();
-
-  if (!profile) {
-    redirect("/login");
-  }
 
   // Fetch the first page of audit log entries, most recent first.
   const { data: entries } = await supabase
     .from("audit_log")
     .select("*")
-    .eq("org_id", profile.org_id)
+    .eq("org_id", membership.org_id)
     .order("created_at", { ascending: false })
     .limit(PAGE_SIZE)
     .returns<AuditLogEntry[]>();

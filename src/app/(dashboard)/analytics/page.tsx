@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { StatsCards } from "@/components/analytics/stats-cards";
 import { ResponseTimeChart } from "@/components/analytics/response-time-chart";
@@ -9,7 +9,6 @@ import type { AnalyticsStats } from "@/components/analytics/stats-cards";
 import type { ResponseTimeDataPoint } from "@/components/analytics/response-time-chart";
 import type { VolumeDataPoint } from "@/components/analytics/volume-chart";
 import type { ApprovalRateDataPoint } from "@/components/analytics/approval-rate-chart";
-import type { UserProfile } from "@/lib/types/database";
 
 export const metadata = {
   title: "Analytics - Gatekeeper",
@@ -43,29 +42,11 @@ function getDateRange(days: number): string[] {
 // ---- Page -----------------------------------------------------------------
 
 export default async function AnalyticsPage() {
-  const supabase = await createClient();
+  const ctx = await getOrgContext();
+  if (!ctx) redirect("/login");
+  const { membership } = ctx;
 
-  // Authenticate the user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Get user profile for org_id
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("org_id")
-    .eq("id", user.id)
-    .single<Pick<UserProfile, "org_id">>();
-
-  if (!profile) {
-    redirect("/login");
-  }
-
-  const orgId = profile.org_id;
+  const orgId = membership.org_id;
   const admin = createAdminClient();
 
   // ------ Aggregate Stats (same logic as API route, fetched server-side) ------

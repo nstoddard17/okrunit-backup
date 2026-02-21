@@ -42,7 +42,7 @@ export async function PATCH(
     }
 
     // Must be owner or admin.
-    if (auth.profile.role !== "owner" && auth.profile.role !== "admin") {
+    if (auth.membership.role !== "owner" && auth.membership.role !== "admin") {
       throw new ApiError(403, "Insufficient permissions");
     }
 
@@ -121,7 +121,7 @@ export async function DELETE(
     }
 
     // Must be owner or admin.
-    if (auth.profile.role !== "owner" && auth.profile.role !== "admin") {
+    if (auth.membership.role !== "owner" && auth.membership.role !== "admin") {
       throw new ApiError(403, "Insufficient permissions");
     }
 

@@ -31,7 +31,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { UserProfile } from "@/lib/types/database";
+import type { UserRole } from "@/lib/types/database";
+
+// ---- Types ----------------------------------------------------------------
+
+interface TeamMember {
+  id: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  role: UserRole;
+  created_at: string;
+  updated_at: string;
+}
 
 // ---- Helpers --------------------------------------------------------------
 
@@ -68,7 +80,7 @@ const roleBadgeVariants = {
 // ---- Component ------------------------------------------------------------
 
 interface MemberListProps {
-  members: UserProfile[];
+  members: TeamMember[];
   currentUserId: string;
   currentUserRole: string;
 }
@@ -80,7 +92,7 @@ export function MemberList({
 }: MemberListProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
-  const [removeTarget, setRemoveTarget] = useState<UserProfile | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<TeamMember | null>(null);
 
   const isOwner = currentUserRole === "owner";
   const canRemove = currentUserRole === "owner" || currentUserRole === "admin";

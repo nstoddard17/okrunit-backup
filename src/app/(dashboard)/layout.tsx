@@ -1,50 +1,39 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
-import type { Organization, UserProfile } from "@/lib/types/database";
+import { getOrgContext, getUserOrgs } from "@/lib/org-context";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
+  const ctx = await getOrgContext();
 
-  // Check authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  if (!ctx) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (authError || !user) {
+    if (user) {
+      // User is authenticated but has no org membership
+      redirect("/login?error=no_org");
+    }
+
     redirect("/login");
   }
 
-  // Fetch user profile
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single<UserProfile>();
+  const { profile, membership, org } = ctx;
 
-  if (!profile) {
-    redirect("/login");
-  }
+  // Fetch user's org list for the switcher
+  const userOrgs = await getUserOrgs(profile.id);
 
-  // Fetch organization
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("*")
-    .eq("id", profile.org_id)
-    .single<Organization>();
-
-  if (!org) {
-    redirect("/login");
-  }
-
-  // Fetch pending approval count
-  const { count: pendingCount } = await supabase
+  // Fetch pending approval count for the active org
+  const admin = createAdminClient();
+  const { count: pendingCount } = await admin
     .from("approval_requests")
     .select("*", { count: "exact", head: true })
     .eq("org_id", org.id)
@@ -61,7 +50,8 @@ export default async function DashboardLayout({
             full_name: profile.full_name,
             avatar_url: profile.avatar_url,
           }}
-          orgName={org.name}
+          currentOrgId={org.id}
+          userOrgs={userOrgs}
           pendingCount={pendingCount ?? 0}
         />
       </div>

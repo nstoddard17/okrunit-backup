@@ -4,9 +4,10 @@
 
 import { redirect } from "next/navigation";
 
+import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
 import { RuleList } from "@/components/rules/rule-list";
-import type { ApprovalRule, Connection, UserProfile } from "@/lib/types/database";
+import type { ApprovalRule, Connection } from "@/lib/types/database";
 
 export const metadata = {
   title: "Rules - Gatekeeper",
@@ -20,33 +21,17 @@ const CONNECTION_COLUMNS =
   "id, org_id, name, description, api_key_prefix, is_active, rate_limit_per_hour, allowed_action_types, max_priority, scoping_rules, last_used_at, rotated_at, created_by, created_at, updated_at" as const;
 
 export default async function RulesPage() {
+  const ctx = await getOrgContext();
+  if (!ctx) redirect("/login");
+  const { membership } = ctx;
+
   const supabase = await createClient();
-
-  // Authenticate the current user.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Resolve org membership.
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("org_id")
-    .eq("id", user.id)
-    .single<Pick<UserProfile, "org_id">>();
-
-  if (!profile) {
-    redirect("/login");
-  }
 
   // Fetch all rules for this organisation, ordered by priority.
   const { data: rules } = await supabase
     .from("approval_rules")
     .select("*")
-    .eq("org_id", profile.org_id)
+    .eq("org_id", membership.org_id)
     .order("priority_order", { ascending: true })
     .returns<ApprovalRule[]>();
 
@@ -54,7 +39,7 @@ export default async function RulesPage() {
   const { data: connections } = await supabase
     .from("connections")
     .select(CONNECTION_COLUMNS)
-    .eq("org_id", profile.org_id)
+    .eq("org_id", membership.org_id)
     .eq("is_active", true)
     .order("name", { ascending: true })
     .returns<Omit<Connection, "api_key_hash">[]>();

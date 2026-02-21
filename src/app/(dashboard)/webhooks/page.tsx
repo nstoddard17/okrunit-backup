@@ -5,12 +5,12 @@
 // ---------------------------------------------------------------------------
 
 import { redirect } from "next/navigation";
+import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
 import { DeliveryLogTable } from "@/components/webhooks/delivery-log-table";
 import type {
   WebhookDeliveryLog,
   Connection,
-  UserProfile,
 } from "@/lib/types/database";
 
 export const metadata = {
@@ -22,27 +22,11 @@ export const metadata = {
 const PAGE_SIZE = 50;
 
 export default async function WebhooksPage() {
+  const ctx = await getOrgContext();
+  if (!ctx) redirect("/login");
+  const { membership } = ctx;
+
   const supabase = await createClient();
-
-  // Get the authenticated user.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Get user profile for org_id.
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("org_id")
-    .eq("id", user.id)
-    .single<Pick<UserProfile, "org_id">>();
-
-  if (!profile) {
-    redirect("/login");
-  }
 
   // Fetch webhook delivery log entries and connections in parallel.
   const [deliveryResult, connectionsResult] = await Promise.all([
@@ -55,7 +39,7 @@ export default async function WebhooksPage() {
     supabase
       .from("connections")
       .select("*")
-      .eq("org_id", profile.org_id)
+      .eq("org_id", membership.org_id)
       .order("name", { ascending: true })
       .returns<Connection[]>(),
   ]);

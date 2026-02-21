@@ -4,8 +4,9 @@
 
 import { redirect } from "next/navigation";
 
+import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
-import type { NotificationSettings, UserProfile } from "@/lib/types/database";
+import type { NotificationSettings } from "@/lib/types/database";
 import { NotificationSettingsForm } from "@/components/settings/notification-settings-form";
 
 export const metadata = {
@@ -14,33 +15,17 @@ export const metadata = {
 };
 
 export default async function SettingsPage() {
+  const ctx = await getOrgContext();
+  if (!ctx) redirect("/login");
+  const { profile } = ctx;
+
   const supabase = await createClient();
-
-  // Verify the user is authenticated.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Fetch user profile for display context.
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single<UserProfile>();
-
-  if (!profile) {
-    redirect("/login");
-  }
 
   // Fetch notification settings -- may not exist yet for this user.
   const { data: notificationSettings } = await supabase
     .from("notification_settings")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", profile.id)
     .single<NotificationSettings>();
 
   return (

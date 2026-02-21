@@ -4,12 +4,12 @@
 
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
+import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { MemberList } from "@/components/team/member-list";
 import { InviteForm } from "@/components/team/invite-form";
 import { PendingInvites } from "@/components/team/pending-invites";
-import type { UserProfile, OrgInvite } from "@/lib/types/database";
+import type { OrgInvite } from "@/lib/types/database";
 
 export const metadata = {
   title: "Team - Gatekeeper",
@@ -17,58 +17,65 @@ export const metadata = {
 };
 
 export default async function TeamPage() {
-  const supabase = await createClient();
+  const ctx = await getOrgContext();
+  if (!ctx) redirect("/login");
 
-  // Get the authenticated user.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Get user profile for org_id and role.
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single<UserProfile>();
-
-  if (!profile) {
-    redirect("/login");
-  }
+  const { membership, org } = ctx;
 
   const admin = createAdminClient();
 
-  // Fetch org members ordered by role then created_at.
-  const { data: members } = await admin
-    .from("user_profiles")
-    .select("*")
-    .eq("org_id", profile.org_id)
+  // Fetch org memberships with user profile data
+  const { data: memberships } = await admin
+    .from("org_memberships")
+    .select("id, user_id, org_id, role, created_at, updated_at")
+    .eq("org_id", membership.org_id)
     .order("role", { ascending: true })
-    .order("created_at", { ascending: true })
-    .returns<UserProfile[]>();
+    .order("created_at", { ascending: true });
+
+  // Fetch user profiles for these members
+  const userIds = (memberships ?? []).map((m) => m.user_id);
+  const { data: profiles } = await admin
+    .from("user_profiles")
+    .select("id, email, full_name, avatar_url")
+    .in("id", userIds.length > 0 ? userIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  const profileMap = new Map(
+    (profiles ?? []).map((p) => [p.id, p]),
+  );
+
+  // Combine into the shape MemberList expects
+  const members = (memberships ?? []).map((m) => {
+    const profile = profileMap.get(m.user_id);
+    return {
+      id: m.user_id,
+      email: profile?.email ?? "",
+      full_name: profile?.full_name ?? null,
+      avatar_url: profile?.avatar_url ?? null,
+      role: m.role as "owner" | "admin" | "member",
+      created_at: m.created_at,
+      updated_at: m.updated_at,
+    };
+  });
 
   // Fetch pending invites (not accepted, not expired).
   const { data: pendingInvites } = await admin
     .from("org_invites")
     .select("id, org_id, email, role, invited_by, expires_at, accepted_at, created_at")
-    .eq("org_id", profile.org_id)
+    .eq("org_id", membership.org_id)
     .is("accepted_at", null)
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .returns<Omit<OrgInvite, "token">[]>();
 
   const canManageInvites =
-    profile.role === "owner" || profile.role === "admin";
+    membership.role === "owner" || membership.role === "admin";
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
         <p className="text-muted-foreground text-sm">
-          Manage your organization&apos;s members and invitations.
+          Manage members and invitations for {org.name}.
         </p>
       </div>
 
@@ -85,9 +92,9 @@ export default async function TeamPage() {
 
       {/* Members list */}
       <MemberList
-        members={members ?? []}
-        currentUserId={user.id}
-        currentUserRole={profile.role}
+        members={members}
+        currentUserId={ctx.profile.id}
+        currentUserRole={membership.role}
       />
     </div>
   );
