@@ -11,7 +11,6 @@ import {
   Settings,
   AlertTriangle,
   LogOut,
-  Shield,
   ShieldCheck,
   BarChart3,
   FlaskConical,
@@ -75,7 +74,7 @@ export function Sidebar({ user, orgName, pendingCount }: SidebarProps) {
     <aside className="bg-card flex h-full w-64 flex-col border-r">
       {/* Logo / Org Header */}
       <div className="flex h-14 items-center gap-2 border-b px-4">
-        <Shield className="text-primary size-5" />
+        <img src="/logo.png" alt="Gatekeeper" width={20} height={20} className="size-5" />
         <div className="flex flex-col">
           <span className="text-sm font-semibold">Gatekeeper</span>
           <span className="text-muted-foreground text-xs truncate max-w-[180px]">

@@ -14,8 +14,11 @@ export function escapeHtml(str: string): string {
     .replace(/"/g, "&quot;");
 }
 
-/** SVG shield icon encoded for inline email use. */
-const SHIELD_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>`;
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+/** Hosted logo URL for email use. */
+const LOGO_URL = `${APP_URL}/logo.png`;
 
 /**
  * Wraps email body content in the standard Gatekeeper email layout.
@@ -67,7 +70,7 @@ export function emailLayout(options: {
               <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="vertical-align:middle;padding-right:10px;">
-                    ${SHIELD_ICON_SVG}
+                    <img src="${LOGO_URL}" alt="Gatekeeper" width="28" height="28" style="display:block;border:0;outline:none;" />
                   </td>
                   <td style="vertical-align:middle;">
                     <span style="font-size:22px;font-weight:700;color:#f1f5f9;letter-spacing:-0.5px;">Gatekeeper</span>

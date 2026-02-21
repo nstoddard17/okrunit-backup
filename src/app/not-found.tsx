@@ -1,11 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Shield } from "lucide-react";
 
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4">
-      <Shield className="text-muted-foreground size-12" />
+      <Image src="/logo.png" alt="Gatekeeper" width={48} height={48} />
       <div className="text-center">
         <h1 className="text-4xl font-bold tracking-tight">
           404 - Page Not Found

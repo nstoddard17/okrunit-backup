@@ -4,9 +4,6 @@
 
 import { emailLayout, escapeHtml } from "@/lib/email/layout";
 
-const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
 export interface ConfirmEmailParams {
   fullName: string;
   confirmLink: string;
