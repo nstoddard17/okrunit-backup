@@ -139,34 +139,32 @@ export async function DELETE(
       throw new ApiError(404, "Connection not found");
     }
 
-    // Soft-delete: deactivate rather than removing the row.
-    const { data: connection, error: updateError } = await admin
+    // Hard-delete the connection row.
+    const { error: deleteError } = await admin
       .from("connections")
-      .update({ is_active: false })
+      .delete()
       .eq("id", id)
-      .eq("org_id", auth.orgId)
-      .select(CONNECTION_COLUMNS)
-      .single();
+      .eq("org_id", auth.orgId);
 
-    if (updateError || !connection) {
+    if (deleteError) {
       console.error(
-        "[Connections] Failed to deactivate connection:",
-        updateError,
+        "[Connections] Failed to delete connection:",
+        deleteError,
       );
-      throw new ApiError(500, "Failed to deactivate connection");
+      throw new ApiError(500, "Failed to delete connection");
     }
 
-    // Audit the deactivation.
+    // Audit the deletion.
     await logAuditEvent({
       orgId: auth.orgId,
       userId: auth.user.id,
-      action: "connection.deactivated",
+      action: "connection.deleted",
       resourceType: "connection",
       resourceId: id,
       ipAddress: getIpAddress(request),
     });
 
-    return NextResponse.json({ data: connection });
+    return NextResponse.json({ data: { id } });
   } catch (err) {
     return errorResponse(err);
   }

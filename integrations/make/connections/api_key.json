@@ -1,0 +1,34 @@
+{
+  "label": "Gatekeeper API Key",
+  "type": "apikey",
+  "parameters": [
+    {
+      "name": "apiKey",
+      "type": "text",
+      "label": "API Key",
+      "required": true,
+      "help": "Your Gatekeeper API key (starts with gk_). Find it in your Gatekeeper dashboard under Connections."
+    },
+    {
+      "name": "baseUrl",
+      "type": "url",
+      "label": "Gatekeeper URL",
+      "required": true,
+      "default": "https://gatekeeper.example.com",
+      "help": "The base URL of your Gatekeeper instance (e.g., https://gatekeeper.example.com)."
+    }
+  ],
+  "test": {
+    "url": "/api/v1/approvals",
+    "method": "GET",
+    "qs": {
+      "page_size": "1"
+    },
+    "response": {
+      "valid": "{{ifempty(body.data, '[]')}}",
+      "error": {
+        "message": "{{body.error}}"
+      }
+    }
+  }
+}

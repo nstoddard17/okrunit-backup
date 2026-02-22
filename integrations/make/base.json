@@ -1,0 +1,15 @@
+{
+  "label": "Gatekeeper",
+  "description": "Human-in-the-loop approval gateway for AI agents and automated workflows.",
+  "version": "0.1.0",
+  "language": "en",
+  "baseUrl": "{{connection.baseUrl}}",
+  "headers": {
+    "Authorization": "Bearer {{connection.apiKey}}",
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+  },
+  "log": {
+    "sanitize": ["request.headers.authorization"]
+  }
+}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Key, Pencil, Power, PowerOff } from "lucide-react";
+import { Key, Pencil, Power, PowerOff, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,15 +30,18 @@ interface ConnectionCardProps {
   connection: Connection;
   onDeactivate: (id: string) => Promise<void>;
   onActivate: (id: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }
 
 export function ConnectionCard({
   connection,
   onDeactivate,
   onActivate,
+  onDelete,
 }: ConnectionCardProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const isActive = connection.is_active;
@@ -54,6 +57,16 @@ export function ConnectionCard({
         await onActivate(connection.id);
       }
       setConfirmOpen(false);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDelete() {
+    setLoading(true);
+    try {
+      await onDelete(connection.id);
+      setDeleteOpen(false);
     } finally {
       setLoading(false);
     }
@@ -141,6 +154,16 @@ export function ConnectionCard({
                 </>
               )}
             </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:bg-destructive/10"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 />
+              Delete
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -188,6 +211,34 @@ export function ConnectionCard({
                 : isActive
                   ? "Deactivate"
                   : "Activate"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation dialog for delete */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Connection</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to permanently delete &ldquo;{connection.name}&rdquo;? This action cannot be undone. The API key will be invalidated immediately.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteOpen(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={loading}
+            >
+              {loading ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,0 +1,95 @@
+# Windmill Flow: Create Approval and Wait for Decision
+#
+# This example flow demonstrates:
+# 1. Creating a Gatekeeper approval request
+# 2. Polling until a decision is made
+# 3. Branching on approved vs rejected
+#
+# Import this flow into Windmill and configure the Gatekeeper resource.
+
+summary: "Gatekeeper: Wait for Approval"
+description: >
+  Submits an approval request to Gatekeeper and polls until a human
+  makes a decision. Branches on approved vs rejected.
+
+value:
+  modules:
+    - id: create_approval
+      summary: "Create approval request"
+      value:
+        type: rawscript
+        language: deno
+        content: |
+          import * as wmill from "windmill-client";
+
+          export async function main(
+            title: string,
+            priority: "low" | "medium" | "high" | "critical",
+            description?: string,
+          ) {
+            const gk = await wmill.getResource("u/user/gatekeeper");
+            const res = await fetch(`${gk.api_url}/api/v1/approvals`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${gk.api_key}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ title, priority, description }),
+            });
+            if (!res.ok) throw new Error(`API error: ${res.status}`);
+            return await res.json();
+          }
+
+    - id: poll_decision
+      summary: "Poll until decided"
+      value:
+        type: rawscript
+        language: deno
+        content: |
+          import * as wmill from "windmill-client";
+
+          export async function main(approval_id: string) {
+            const gk = await wmill.getResource("u/user/gatekeeper");
+            const maxAttempts = 60; // 5 minutes at 5s intervals
+            for (let i = 0; i < maxAttempts; i++) {
+              const res = await fetch(
+                `${gk.api_url}/api/v1/approvals/${approval_id}`,
+                { headers: { Authorization: `Bearer ${gk.api_key}` } },
+              );
+              if (!res.ok) throw new Error(`API error: ${res.status}`);
+              const approval = await res.json();
+              if (approval.status !== "pending") return approval;
+              await new Promise((r) => setTimeout(r, 5000));
+            }
+            throw new Error("Approval timed out waiting for decision");
+          }
+
+    - id: branch_on_decision
+      summary: "Branch on approval decision"
+      value:
+        type: branchone
+        branches:
+          - summary: "Approved"
+            expr: "results.poll_decision.status === 'approved'"
+            modules:
+              - id: on_approved
+                summary: "Handle approved"
+                value:
+                  type: rawscript
+                  language: deno
+                  content: |
+                    export async function main(approval: any) {
+                      console.log(`Approved by ${approval.decided_by}: ${approval.title}`);
+                      return { action: "proceed", approval };
+                    }
+        default:
+          - id: on_rejected
+            summary: "Handle rejected"
+            value:
+              type: rawscript
+              language: deno
+              content: |
+                export async function main(approval: any) {
+                  console.log(`Rejected: ${approval.title} - ${approval.decision_comment}`);
+                  return { action: "abort", approval };
+                }

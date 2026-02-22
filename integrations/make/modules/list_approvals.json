@@ -1,0 +1,74 @@
+{
+  "label": "List Approvals",
+  "description": "Search for approval requests with filters.",
+  "actionType": "search",
+  "connection": "api_key",
+  "parameters": [
+    {
+      "name": "status",
+      "type": "select",
+      "label": "Status",
+      "required": false,
+      "options": [
+        { "label": "Any", "value": "" },
+        { "label": "Pending", "value": "pending" },
+        { "label": "Approved", "value": "approved" },
+        { "label": "Rejected", "value": "rejected" },
+        { "label": "Cancelled", "value": "cancelled" },
+        { "label": "Expired", "value": "expired" }
+      ],
+      "help": "Filter by approval status."
+    },
+    {
+      "name": "priority",
+      "type": "select",
+      "label": "Priority",
+      "required": false,
+      "options": [
+        { "label": "Any", "value": "" },
+        { "label": "Low", "value": "low" },
+        { "label": "Medium", "value": "medium" },
+        { "label": "High", "value": "high" },
+        { "label": "Critical", "value": "critical" }
+      ],
+      "help": "Filter by priority level."
+    },
+    {
+      "name": "search",
+      "type": "text",
+      "label": "Search",
+      "required": false,
+      "help": "Full-text search on title and description."
+    },
+    {
+      "name": "page_size",
+      "type": "uinteger",
+      "label": "Max Results",
+      "required": false,
+      "default": 20,
+      "help": "Number of results to return (1-100)."
+    }
+  ],
+  "url": "/api/v1/approvals",
+  "method": "GET",
+  "qs": {
+    "status": "{{ifempty(parameters.status, undefined)}}",
+    "priority": "{{ifempty(parameters.priority, undefined)}}",
+    "search": "{{ifempty(parameters.search, undefined)}}",
+    "page_size": "{{ifempty(parameters.page_size, undefined)}}"
+  },
+  "response": {
+    "output": "{{body.data}}",
+    "iterate": "{{body.data}}"
+  },
+  "samples": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "title": "Deploy v2.3.1 to production",
+    "description": "Release includes new payment flow",
+    "priority": "high",
+    "status": "pending",
+    "action_type": "deploy",
+    "created_at": "2026-02-21T10:00:00.000Z",
+    "updated_at": "2026-02-21T10:00:00.000Z"
+  }
+}

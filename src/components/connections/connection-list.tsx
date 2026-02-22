@@ -64,6 +64,26 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
     }
   }
 
+  async function handleDelete(id: string) {
+    try {
+      const res = await fetch(`/api/v1/connections/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error ?? "Failed to delete connection");
+      }
+
+      toast.success("Connection deleted");
+      router.refresh();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete connection",
+      );
+    }
+  }
+
   // ---- Render -------------------------------------------------------------
 
   return (
@@ -98,6 +118,7 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
               connection={connection}
               onDeactivate={handleDeactivate}
               onActivate={handleActivate}
+              onDelete={handleDelete}
             />
           ))}
         </div>

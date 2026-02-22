@@ -39,3 +39,26 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# integrations — credentials & secrets
+integrations/**/.env
+integrations/**/.env.*
+!integrations/**/.env.example
+integrations/zapier/.zapierapprc
+
+# integrations — build artifacts & dependencies
+integrations/**/node_modules
+integrations/n8n/dist
+
+# secrets & credentials (global catch-all)
+*.secret
+*.secrets
+**/credentials.json
+**/service-account*.json
+**/*-credentials.json
+**/*.p12
+**/*.pfx
+**/*.keystore
+
+# supabase local
+supabase/.temp

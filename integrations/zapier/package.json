@@ -1,0 +1,21 @@
+{
+  "name": "gatekeeper-zapier",
+  "version": "0.1.0",
+  "description": "Zapier integration for Gatekeeper human-in-the-loop approval gateway",
+  "main": "index.js",
+  "scripts": {
+    "test": "zapier test",
+    "validate": "zapier validate",
+    "push": "zapier push"
+  },
+  "dependencies": {
+    "zapier-platform-core": "15.*"
+  },
+  "devDependencies": {
+    "zapier-platform-cli": "15.*"
+  },
+  "zapier": {
+    "id": 0,
+    "key": "gatekeeper"
+  }
+}

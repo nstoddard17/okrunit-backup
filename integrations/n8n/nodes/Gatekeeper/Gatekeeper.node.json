@@ -1,0 +1,17 @@
+{
+  "node": "n8n-nodes-gatekeeper.gatekeeper",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": ["Miscellaneous"],
+  "resources": {
+    "primaryDocumentation": [
+      {
+        "url": "https://github.com/your-org/gatekeeper/tree/main/integrations/n8n"
+      }
+    ]
+  },
+  "alias": ["approval", "human-in-the-loop", "gate", "review"],
+  "subcategories": {
+    "Miscellaneous": ["Other"]
+  }
+}
