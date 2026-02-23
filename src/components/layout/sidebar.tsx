@@ -80,7 +80,9 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole }
     <aside className="bg-card flex h-full w-64 flex-col border-r">
       {/* Logo / Org Header */}
       <div className="flex flex-col gap-2 border-b px-4 py-3">
-        <img src="/logo_text.png" alt="Gatekeeper" className="h-7 w-auto self-start" />
+        <Link href="/" className="flex justify-center">
+          <img src="/logo_text.png" alt="Gatekeeper" className="h-10 w-auto" />
+        </Link>
         <OrgSwitcher currentOrgId={currentOrgId} orgs={userOrgs} />
       </div>
 

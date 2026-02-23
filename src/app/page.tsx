@@ -8,15 +8,17 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   return (
-    <Hero
-      user={
-        user
-          ? {
-              email: user.email ?? "",
-              full_name: user.user_metadata?.full_name ?? null,
-            }
-          : null
-      }
-    />
+    <div className="light" data-theme="light">
+      <Hero
+        user={
+          user
+            ? {
+                email: user.email ?? "",
+                full_name: user.user_metadata?.full_name ?? null,
+              }
+            : null
+        }
+      />
+    </div>
   );
 }

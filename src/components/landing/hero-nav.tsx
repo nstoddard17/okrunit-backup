@@ -29,10 +29,17 @@ export function HeroNav({ user }: HeroNavProps) {
   if (!user) {
     return (
       <div className="flex items-center gap-4">
-        <Button variant="ghost" asChild>
+        <Button
+          variant="ghost"
+          asChild
+          className="text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+        >
           <Link href="/login">Log in</Link>
         </Button>
-        <Button asChild>
+        <Button
+          asChild
+          className="bg-blue-600 text-white shadow-sm hover:bg-blue-700"
+        >
           <Link href="/signup">Sign up</Link>
         </Button>
       </div>
@@ -41,15 +48,19 @@ export function HeroNav({ user }: HeroNavProps) {
 
   return (
     <div className="flex items-center gap-3">
-      <Button asChild>
-        <Link href="/dashboard">
-          Go to Dashboard
-        </Link>
+      <Button
+        asChild
+        className="bg-blue-600 text-white shadow-sm hover:bg-blue-700"
+      >
+        <Link href="/dashboard">Go to Dashboard</Link>
       </Button>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="gap-1.5">
+          <Button
+            variant="ghost"
+            className="gap-1.5 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+          >
             {user.full_name ?? user.email}
             <ChevronDown className="size-4 opacity-50" />
           </Button>
