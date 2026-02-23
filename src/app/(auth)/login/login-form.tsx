@@ -49,7 +49,9 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/dashboard");
+      // If there's a redirect_to param (e.g. from OAuth authorize), go there instead.
+      const redirectTo = searchParams.get("redirect_to");
+      router.push(redirectTo || "/dashboard");
     });
   }
 

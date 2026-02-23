@@ -5,7 +5,7 @@
 // ---------------------------------------------------------------------------
 
 import { useState } from "react";
-import { Shield, Check, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -103,9 +103,11 @@ export function ConsentForm({
   return (
     <Card className="w-full">
       <CardHeader className="text-center">
-        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-          <Shield className="h-6 w-6 text-primary" />
-        </div>
+        <img
+          src="/logo_text.png"
+          alt="Gatekeeper"
+          className="mx-auto mb-4 h-8 w-auto dark:invert"
+        />
         <CardTitle className="text-xl">Authorize {clientName}</CardTitle>
         <CardDescription>
           <strong>{clientName}</strong> is requesting access to your{" "}
