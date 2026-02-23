@@ -17,6 +17,10 @@ export default async function OAuthSettingsPage() {
   const ctx = await getOrgContext();
   if (!ctx) redirect("/login");
 
+  // Only admins and owners can manage OAuth apps.
+  const isAdmin = ctx.membership.role === "owner" || ctx.membership.role === "admin";
+  if (!isAdmin) redirect("/dashboard");
+
   const admin = createAdminClient();
 
   const { data: clients } = await admin

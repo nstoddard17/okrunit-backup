@@ -1,14 +1,19 @@
 // ---------------------------------------------------------------------------
 // Gatekeeper Zapier Integration -- OAuth 2.0 Authentication
 // ---------------------------------------------------------------------------
+// The GATEKEEPER_URL is set via the Zapier Developer Portal environment
+// variables. Users do NOT need to enter any URL — they just click "Connect".
+// ---------------------------------------------------------------------------
+
+const GATEKEEPER_URL =
+  process.env.GATEKEEPER_URL || "https://gkapprove.com";
 
 const authentication = {
   type: "oauth2",
 
   oauth2Config: {
-    // User enters their Gatekeeper URL before the OAuth flow starts.
     authorizeUrl: {
-      url: "{{bundle.inputData.instance_url}}/oauth/authorize",
+      url: `${GATEKEEPER_URL}/oauth/authorize`,
       params: {
         client_id: "{{process.env.CLIENT_ID}}",
         redirect_uri: "{{bundle.inputData.redirect_uri}}",
@@ -19,7 +24,7 @@ const authentication = {
     },
 
     getAccessToken: {
-      url: "{{bundle.inputData.instance_url}}/api/v1/oauth/token",
+      url: `${GATEKEEPER_URL}/api/v1/oauth/token`,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -34,7 +39,7 @@ const authentication = {
     },
 
     refreshAccessToken: {
-      url: "{{bundle.authData.instance_url}}/api/v1/oauth/token",
+      url: `${GATEKEEPER_URL}/api/v1/oauth/token`,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,22 +58,12 @@ const authentication = {
     scope: "approvals:read approvals:write comments:write",
   },
 
-  // Pre-auth fields — collected before the OAuth redirect.
-  fields: [
-    {
-      key: "instance_url",
-      label: "Gatekeeper URL",
-      type: "string",
-      required: true,
-      helpText:
-        "The base URL of your Gatekeeper instance (e.g., https://gatekeeper.example.com).",
-      default: "https://gatekeeper.example.com",
-    },
-  ],
+  // No pre-auth fields — users just click "Connect" and authorize.
+  fields: [],
 
   test: async (z, bundle) => {
     const response = await z.request({
-      url: `${bundle.authData.instance_url}/api/v1/approvals`,
+      url: `${GATEKEEPER_URL}/api/v1/approvals`,
       params: { page_size: 1 },
     });
     return {
@@ -112,4 +107,4 @@ const handleErrors = (response, z) => {
   return response;
 };
 
-module.exports = { authentication, addAuthHeader, handleErrors };
+module.exports = { authentication, addAuthHeader, handleErrors, GATEKEEPER_URL };

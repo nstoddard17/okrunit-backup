@@ -27,6 +27,9 @@ export default async function ConnectionsPage() {
   if (!ctx) redirect("/login");
   const { membership } = ctx;
 
+  // Only admins and owners can manage connections.
+  if (membership.role !== "owner" && membership.role !== "admin") redirect("/dashboard");
+
   const supabase = await createClient();
 
   // Fetch all connections for this organisation, newest first.

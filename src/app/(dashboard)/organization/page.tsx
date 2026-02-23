@@ -19,6 +19,9 @@ export default async function OrganizationPage() {
 
   const { membership, org } = ctx;
 
+  // Only admins and owners can manage organization settings.
+  if (membership.role !== "owner" && membership.role !== "admin") redirect("/dashboard");
+
   // Get member count for display
   const admin = createAdminClient();
   const { count: memberCount } = await admin

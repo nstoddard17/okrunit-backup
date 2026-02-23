@@ -41,7 +41,7 @@ export function Hero({ user }: HeroProps) {
       <header className="border-b">
         <div className="container mx-auto flex h-20 items-center justify-between px-4">
           <Link href="/" className="flex items-center">
-            <Image src="/logo_text.png" alt="Gatekeeper" width={200} height={56} className="h-12 w-auto" />
+            <Image src="/logo_text.png" alt="Gatekeeper" width={440} height={120} className="h-28 w-auto" />
           </Link>
           <HeroNav user={user} />
         </div>

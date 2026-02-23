@@ -2,6 +2,8 @@
 // Gatekeeper Zapier -- Create Approval Request
 // ---------------------------------------------------------------------------
 
+const { GATEKEEPER_URL } = require("../authentication");
+
 const createApproval = {
   key: "create_approval",
   noun: "Approval Request",
@@ -126,7 +128,7 @@ const createApproval = {
 
       const response = await z.request({
         method: "POST",
-        url: `${bundle.authData.instance_url}/api/v1/approvals`,
+        url: `${GATEKEEPER_URL}/api/v1/approvals`,
         body,
       });
 

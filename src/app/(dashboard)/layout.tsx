@@ -53,6 +53,7 @@ export default async function DashboardLayout({
           currentOrgId={org.id}
           userOrgs={userOrgs}
           pendingCount={pendingCount ?? 0}
+          userRole={membership.role}
         />
       </div>
 

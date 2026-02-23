@@ -2,6 +2,8 @@
 // Gatekeeper Zapier -- Get Approval by ID
 // ---------------------------------------------------------------------------
 
+const { GATEKEEPER_URL } = require("../authentication");
+
 const getApproval = {
   key: "get_approval",
   noun: "Approval Request",
@@ -24,7 +26,7 @@ const getApproval = {
 
     perform: async (z, bundle) => {
       const response = await z.request({
-        url: `${bundle.authData.instance_url}/api/v1/approvals/${bundle.inputData.approval_id}`,
+        url: `${GATEKEEPER_URL}/api/v1/approvals/${bundle.inputData.approval_id}`,
       });
 
       return [response.json];

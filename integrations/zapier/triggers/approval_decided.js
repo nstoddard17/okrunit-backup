@@ -2,6 +2,8 @@
 // Gatekeeper Zapier -- Approval Decided Trigger (Polling)
 // ---------------------------------------------------------------------------
 
+const { GATEKEEPER_URL } = require("../authentication");
+
 const approvalDecided = {
   key: "approval_decided",
   noun: "Approval Decision",
@@ -59,7 +61,7 @@ const approvalDecided = {
         }
 
         const response = await z.request({
-          url: `${bundle.authData.instance_url}/api/v1/approvals`,
+          url: `${GATEKEEPER_URL}/api/v1/approvals`,
           params,
         });
 

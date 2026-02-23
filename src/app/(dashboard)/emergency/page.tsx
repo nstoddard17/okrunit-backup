@@ -11,7 +11,10 @@ export const metadata = {
 export default async function EmergencyPage() {
   const ctx = await getOrgContext();
   if (!ctx) redirect("/login");
-  const { org } = ctx;
+  const { membership, org } = ctx;
+
+  // Only admins and owners can access emergency controls.
+  if (membership.role !== "owner" && membership.role !== "admin") redirect("/dashboard");
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">

@@ -43,8 +43,7 @@ export function HeroNav({ user }: HeroNavProps) {
     <div className="flex items-center gap-3">
       <Button asChild>
         <Link href="/dashboard">
-          <LayoutDashboard className="mr-2 size-4" />
-          Dashboard
+          Go to Dashboard
         </Link>
       </Button>
 

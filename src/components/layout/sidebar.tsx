@@ -35,20 +35,21 @@ interface SidebarProps {
   currentOrgId: string;
   userOrgs: { id: string; org_id: string; org_name: string; role: string; is_default: boolean }[];
   pendingCount: number;
+  userRole: string;
 }
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/connections", label: "Connections", icon: Key },
-  { href: "/team", label: "Team", icon: Users },
-  { href: "/organization", label: "Organization", icon: Building2 },
-  { href: "/rules", label: "Rules", icon: ShieldCheck },
-  { href: "/audit-log", label: "Audit Log", icon: FileText },
-  { href: "/webhooks", label: "Webhooks", icon: Webhook },
-  { href: "/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/playground", label: "Playground", icon: FlaskConical },
-  { href: "/settings", label: "Settings", icon: Settings },
-  { href: "/emergency", label: "Emergency", icon: AlertTriangle },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
+  { href: "/connections", label: "Connections", icon: Key, adminOnly: true },
+  { href: "/team", label: "Team", icon: Users, adminOnly: true },
+  { href: "/organization", label: "Organization", icon: Building2, adminOnly: true },
+  { href: "/rules", label: "Rules", icon: ShieldCheck, adminOnly: false },
+  { href: "/audit-log", label: "Audit Log", icon: FileText, adminOnly: false },
+  { href: "/webhooks", label: "Webhooks", icon: Webhook, adminOnly: true },
+  { href: "/analytics", label: "Analytics", icon: BarChart3, adminOnly: false },
+  { href: "/playground", label: "Playground", icon: FlaskConical, adminOnly: false },
+  { href: "/settings", label: "Settings", icon: Settings, adminOnly: false },
+  { href: "/emergency", label: "Emergency", icon: AlertTriangle, adminOnly: true },
 ] as const;
 
 function getInitials(name: string | null, email: string): string {
@@ -63,9 +64,10 @@ function getInitials(name: string | null, email: string): string {
   return email.charAt(0).toUpperCase();
 }
 
-export function Sidebar({ user, currentOrgId, userOrgs, pendingCount }: SidebarProps) {
+export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const isAdmin = userRole === "owner" || userRole === "admin";
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -84,7 +86,9 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount }: SidebarP
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {navItems.map((item) => {
+        {navItems
+          .filter((item) => !item.adminOnly || isAdmin)
+          .map((item) => {
           const isActive =
             pathname === item.href ||
             pathname.startsWith(item.href + "/");

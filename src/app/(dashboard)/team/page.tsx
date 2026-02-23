@@ -22,6 +22,9 @@ export default async function TeamPage() {
 
   const { membership, org } = ctx;
 
+  // Only admins and owners can manage team members.
+  if (membership.role !== "owner" && membership.role !== "admin") redirect("/dashboard");
+
   const admin = createAdminClient();
 
   // Fetch org memberships with user profile data

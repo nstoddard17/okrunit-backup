@@ -2,6 +2,8 @@
 // Gatekeeper Zapier -- List/Search Approvals
 // ---------------------------------------------------------------------------
 
+const { GATEKEEPER_URL } = require("../authentication");
+
 const listApprovals = {
   key: "list_approvals",
   noun: "Approval Request",
@@ -69,7 +71,7 @@ const listApprovals = {
         params.page_size = bundle.inputData.page_size;
 
       const response = await z.request({
-        url: `${bundle.authData.instance_url}/api/v1/approvals`,
+        url: `${GATEKEEPER_URL}/api/v1/approvals`,
         params,
       });
 

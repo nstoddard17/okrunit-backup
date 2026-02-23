@@ -2,6 +2,8 @@
 // Gatekeeper Zapier -- Add Comment to Approval
 // ---------------------------------------------------------------------------
 
+const { GATEKEEPER_URL } = require("../authentication");
+
 const addComment = {
   key: "add_comment",
   noun: "Comment",
@@ -32,7 +34,7 @@ const addComment = {
     perform: async (z, bundle) => {
       const response = await z.request({
         method: "POST",
-        url: `${bundle.authData.instance_url}/api/v1/approvals/${bundle.inputData.approval_id}/comments`,
+        url: `${GATEKEEPER_URL}/api/v1/approvals/${bundle.inputData.approval_id}/comments`,
         body: { body: bundle.inputData.body },
       });
 

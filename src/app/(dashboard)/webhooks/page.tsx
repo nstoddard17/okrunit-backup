@@ -26,6 +26,9 @@ export default async function WebhooksPage() {
   if (!ctx) redirect("/login");
   const { membership } = ctx;
 
+  // Only admins and owners can view webhooks.
+  if (membership.role !== "owner" && membership.role !== "admin") redirect("/dashboard");
+
   const supabase = await createClient();
 
   // Fetch webhook delivery log entries and connections in parallel.
