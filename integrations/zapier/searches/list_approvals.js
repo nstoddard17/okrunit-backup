@@ -69,7 +69,7 @@ const listApprovals = {
         params.page_size = bundle.inputData.page_size;
 
       const response = await z.request({
-        url: `${bundle.authData.baseUrl}/api/v1/approvals`,
+        url: `${bundle.authData.instance_url}/api/v1/approvals`,
         params,
       });
 

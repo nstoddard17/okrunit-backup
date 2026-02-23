@@ -1,0 +1,157 @@
+// ---------------------------------------------------------------------------
+// Gatekeeper -- OAuth 2.0 Authorization / Consent Page
+// ---------------------------------------------------------------------------
+
+import { redirect } from "next/navigation";
+
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { ConsentForm } from "./consent-form";
+
+interface AuthorizePageProps {
+  searchParams: Promise<{
+    response_type?: string;
+    client_id?: string;
+    redirect_uri?: string;
+    scope?: string;
+    state?: string;
+    code_challenge?: string;
+    code_challenge_method?: string;
+  }>;
+}
+
+export default async function AuthorizePage({ searchParams }: AuthorizePageProps) {
+  const params = await searchParams;
+
+  // Validate required parameters.
+  if (params.response_type !== "code") {
+    return (
+      <ErrorDisplay
+        error="unsupported_response_type"
+        description='Only "code" response type is supported.'
+      />
+    );
+  }
+
+  if (!params.client_id) {
+    return (
+      <ErrorDisplay
+        error="invalid_request"
+        description="Missing client_id parameter."
+      />
+    );
+  }
+
+  if (!params.redirect_uri) {
+    return (
+      <ErrorDisplay
+        error="invalid_request"
+        description="Missing redirect_uri parameter."
+      />
+    );
+  }
+
+  // Get the current user.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    // This shouldn't happen — middleware redirects to login.
+    redirect("/login");
+  }
+
+  const admin = createAdminClient();
+
+  // Look up the OAuth client.
+  const { data: client } = await admin
+    .from("oauth_clients")
+    .select("client_id, name, redirect_uris, scopes, is_active, org_id")
+    .eq("client_id", params.client_id)
+    .single();
+
+  if (!client || !client.is_active) {
+    return (
+      <ErrorDisplay
+        error="invalid_client"
+        description="Unknown or inactive application."
+      />
+    );
+  }
+
+  // Verify redirect_uri.
+  if (!client.redirect_uris.includes(params.redirect_uri)) {
+    return (
+      <ErrorDisplay
+        error="invalid_redirect_uri"
+        description="The redirect URI is not registered for this application."
+      />
+    );
+  }
+
+  // Get user's org membership.
+  const { data: membership } = await admin
+    .from("org_memberships")
+    .select("org_id, role")
+    .eq("user_id", user.id)
+    .eq("is_default", true)
+    .single();
+
+  if (!membership) {
+    return (
+      <ErrorDisplay
+        error="no_membership"
+        description="Your account is not associated with any organization."
+      />
+    );
+  }
+
+  // Get org name.
+  const { data: org } = await admin
+    .from("organizations")
+    .select("name")
+    .eq("id", membership.org_id)
+    .single();
+
+  // Parse and validate requested scopes.
+  const requestedScopes = params.scope
+    ? params.scope.split(/\s+/).filter(Boolean)
+    : [...client.scopes];
+  const grantedScopes = requestedScopes.filter((s: string) =>
+    client.scopes.includes(s),
+  );
+
+  return (
+    <ConsentForm
+      clientName={client.name}
+      orgName={org?.name || "Your Organization"}
+      scopes={grantedScopes}
+      clientId={params.client_id}
+      redirectUri={params.redirect_uri}
+      state={params.state || ""}
+      codeChallenge={params.code_challenge || ""}
+      codeChallengeMethod={params.code_challenge_method || ""}
+      userId={user.id}
+      orgId={membership.org_id}
+    />
+  );
+}
+
+function ErrorDisplay({
+  error,
+  description,
+}: {
+  error: string;
+  description: string;
+}) {
+  return (
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">Authorization Error</h1>
+      <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+        <p className="text-sm font-medium text-destructive">{error}</p>
+        <p className="text-sm text-muted-foreground mt-1">{description}</p>
+      </div>
+    </div>
+  );
+}

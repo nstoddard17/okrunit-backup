@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   try {
     const auth = await authenticateRequest(request);
 
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can switch organizations");
     }
 

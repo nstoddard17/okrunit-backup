@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- API Authentication (Dual: API Key + Supabase Session)
+// Gatekeeper -- API Authentication (Triple: API Key + OAuth + Supabase Session)
 // ---------------------------------------------------------------------------
 
 import { createHash, randomBytes } from "crypto";
@@ -24,6 +24,14 @@ export type AuthResult =
       profile: UserProfile;
       membership: OrgMembership;
       orgId: string;
+    }
+  | {
+      type: "oauth";
+      tokenId: string;
+      clientId: string;
+      userId: string;
+      orgId: string;
+      scopes: string[];
     };
 
 // ---- Key Utilities --------------------------------------------------------
@@ -62,25 +70,28 @@ export function generateApiKey(): {
 /**
  * Authenticate an incoming API request.
  *
- * 1. If the `Authorization` header carries a Bearer token, treat it as an API
- *    key: hash it, look it up in the `connections` table, verify the
- *    connection is active, and update `last_used_at`.
- * 2. Otherwise fall back to Supabase cookie-based session authentication:
- *    call `getUser()`, then look up the corresponding `user_profiles` row.
- * 3. If neither method succeeds, throw a 401 `ApiError`.
+ * 1. If the `Authorization` header carries a Bearer token starting with `gk_`,
+ *    treat it as an API key.
+ * 2. If the Bearer token does NOT start with `gk_`, treat it as an OAuth
+ *    access token.
+ * 3. Otherwise fall back to Supabase cookie-based session authentication.
+ * 4. If no method succeeds, throw a 401 `ApiError`.
  */
 export async function authenticateRequest(
   request: Request,
 ): Promise<AuthResult> {
   const authHeader = request.headers.get("authorization");
 
-  // --- API Key authentication ------------------------------------------------
   if (authHeader?.startsWith("Bearer ")) {
     const token = authHeader.slice(7);
 
+    // --- API Key authentication (gk_ prefix) --------------------------------
     if (token.startsWith(API_KEY_PREFIX)) {
       return authenticateApiKey(token);
     }
+
+    // --- OAuth access token (no gk_ prefix) ---------------------------------
+    return authenticateOAuthToken(token);
   }
 
   // --- Supabase session authentication ---------------------------------------
@@ -156,6 +167,45 @@ async function authenticateApiKey(token: string): Promise<AuthResult> {
   }
 
   throw new ApiError(401, "Invalid API key", "INVALID_API_KEY");
+}
+
+async function authenticateOAuthToken(token: string): Promise<AuthResult> {
+  const tokenHash = hashApiKey(token);
+  const admin = createAdminClient();
+
+  const { data: accessToken, error } = await admin
+    .from("oauth_access_tokens")
+    .select("*")
+    .eq("token_hash", tokenHash)
+    .single();
+
+  if (!accessToken || error) {
+    throw new ApiError(401, "Invalid access token", "INVALID_TOKEN");
+  }
+
+  if (accessToken.revoked_at) {
+    throw new ApiError(401, "Access token has been revoked", "TOKEN_REVOKED");
+  }
+
+  if (new Date(accessToken.expires_at) < new Date()) {
+    throw new ApiError(401, "Access token has expired", "TOKEN_EXPIRED");
+  }
+
+  // Fire-and-forget: update last_used_at.
+  admin
+    .from("oauth_access_tokens")
+    .update({ last_used_at: new Date().toISOString() })
+    .eq("id", accessToken.id)
+    .then();
+
+  return {
+    type: "oauth",
+    tokenId: accessToken.id,
+    clientId: accessToken.client_id,
+    userId: accessToken.user_id,
+    orgId: accessToken.org_id,
+    scopes: accessToken.scopes,
+  };
 }
 
 async function authenticateSession(): Promise<AuthResult> {

@@ -2,7 +2,9 @@
 // Gatekeeper -- Settings Page (Notification Preferences)
 // ---------------------------------------------------------------------------
 
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { KeyRound } from "lucide-react";
 
 import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
@@ -38,6 +40,27 @@ export default async function SettingsPage() {
       </div>
 
       <NotificationSettingsForm initialSettings={notificationSettings ?? null} />
+
+      {/* OAuth Apps link */}
+      <div className="border rounded-lg p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <KeyRound className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <h3 className="font-medium">OAuth Apps</h3>
+              <p className="text-sm text-muted-foreground">
+                Manage OAuth 2.0 applications for one-click platform integrations.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/settings/oauth"
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            Manage
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

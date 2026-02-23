@@ -251,6 +251,67 @@ export interface ApprovalAttachment {
   created_at: string;
 }
 
+// ---- OAuth 2.0 Types -----------------------------------------------------
+
+export interface OAuthClient {
+  id: string;
+  org_id: string;
+  name: string;
+  client_id: string;
+  client_secret_hash: string;
+  client_secret_prefix: string;
+  redirect_uris: string[];
+  scopes: string[];
+  is_active: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OAuthAuthorizationCode {
+  id: string;
+  client_id: string;
+  user_id: string;
+  org_id: string;
+  code_hash: string;
+  redirect_uri: string;
+  scopes: string[];
+  code_challenge: string | null;
+  code_challenge_method: string | null;
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
+}
+
+export interface OAuthAccessToken {
+  id: string;
+  client_id: string;
+  user_id: string;
+  org_id: string;
+  token_hash: string;
+  scopes: string[];
+  expires_at: string;
+  revoked_at: string | null;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+export interface OAuthRefreshToken {
+  id: string;
+  access_token_id: string | null;
+  client_id: string;
+  user_id: string;
+  org_id: string;
+  token_hash: string;
+  scopes: string[];
+  expires_at: string;
+  used_at: string | null;
+  revoked_at: string | null;
+  previous_token_hash: string | null;
+  previous_token_expires_at: string | null;
+  created_at: string;
+}
+
 // ---- Insert Types (omit server-generated columns) -------------------------
 
 export type OrganizationInsert = Omit<Organization, "id" | "created_at" | "updated_at">;

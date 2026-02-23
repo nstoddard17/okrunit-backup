@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     const auth = await authenticateRequest(request);
 
     // Only dashboard (session) users may manage connections.
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can manage connections");
     }
 
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     const auth = await authenticateRequest(request);
 
     // Only dashboard (session) users may create connections.
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can manage connections");
     }
 

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Shield, Zap, Bell, GitBranch } from "lucide-react";
+import { HeroNav } from "./hero-nav";
 
 const features = [
   {
@@ -30,23 +31,19 @@ const features = [
   },
 ];
 
-export function Hero() {
+interface HeroProps {
+  user: { email: string; full_name: string | null } | null;
+}
+
+export function Hero({ user }: HeroProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Gatekeeper" width={24} height={24} />
-            <span className="text-xl font-bold">Gatekeeper</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Log in</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">Sign up</Link>
-            </Button>
-          </div>
+        <div className="container mx-auto flex h-20 items-center justify-between px-4">
+          <Link href="/" className="flex items-center">
+            <Image src="/logo_text.png" alt="Gatekeeper" width={200} height={56} className="h-12 w-auto" />
+          </Link>
+          <HeroNav user={user} />
         </div>
       </header>
 
@@ -62,12 +59,20 @@ export function Hero() {
             actions. One API call pauses execution until a human approves.
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
-            <Button size="lg" asChild>
-              <Link href="/signup">Get Started</Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="/login">Log in</Link>
-            </Button>
+            {user ? (
+              <Button size="lg" asChild>
+                <Link href="/dashboard">Go to Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button size="lg" asChild>
+                  <Link href="/signup">Get Started</Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <Link href="/login">Log in</Link>
+                </Button>
+              </>
+            )}
           </div>
         </section>
 
@@ -124,7 +129,7 @@ export function Hero() {
 
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
         <div className="container mx-auto px-4">
-          Gatekeeper &mdash; Human-in-the-loop approval for every automation.
+          Human-in-the-loop approval for every automation.
         </div>
       </footer>
     </div>

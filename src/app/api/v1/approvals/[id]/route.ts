@@ -111,13 +111,15 @@ export async function PATCH(
     // 1. Authenticate -- session auth only
     const auth = await authenticateRequest(request);
 
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(
         403,
         "Only dashboard users can respond to approvals",
         "SESSION_REQUIRED",
       );
     }
+
+    const actorId = auth.user.id;
 
     // 2. Validate body
     const body = await request.json();
@@ -154,7 +156,7 @@ export async function PATCH(
         .from("approval_votes")
         .select("id")
         .eq("request_id", id)
-        .eq("user_id", auth.user.id)
+        .eq("user_id", actorId)
         .maybeSingle();
 
       if (existingVote) {
@@ -170,7 +172,7 @@ export async function PATCH(
         .from("approval_votes")
         .insert({
           request_id: id,
-          user_id: auth.user.id,
+          user_id: actorId,
           vote: validated.decision,
           comment: validated.comment ?? null,
           source: (validated.source as "dashboard" | "email" | "slack" | "push" | "api") ?? "dashboard",
@@ -200,7 +202,7 @@ export async function PATCH(
           .from("approval_requests")
           .update({
             status: "rejected",
-            decided_by: auth.user.id,
+            decided_by: actorId,
             decided_at: decidedAt,
             decision_comment: validated.comment ?? null,
             decision_source: validated.source ?? "dashboard",
@@ -226,7 +228,7 @@ export async function PATCH(
 
         if (thresholdMet) {
           updatePayload.status = "approved";
-          updatePayload.decided_by = auth.user.id;
+          updatePayload.decided_by = actorId;
           updatePayload.decided_at = decidedAt;
           updatePayload.decision_comment = validated.comment ?? null;
           updatePayload.decision_source = validated.source ?? "dashboard";
@@ -250,7 +252,7 @@ export async function PATCH(
       // 6d. Audit log for the vote
       logAuditEvent({
         orgId: auth.orgId,
-        userId: auth.user.id,
+        userId: actorId,
         action: `approval.vote.${validated.decision}`,
         resourceType: "approval_request",
         resourceId: id,
@@ -294,7 +296,7 @@ export async function PATCH(
           requestTitle: updated.title,
           requestPriority: updated.priority,
           connectionId: approval.connection_id,
-          decidedBy: auth.user.id,
+          decidedBy: actorId,
           decisionComment: validated.comment,
         });
       }
@@ -312,7 +314,7 @@ export async function PATCH(
       .from("approval_requests")
       .update({
         status: newStatus,
-        decided_by: auth.user.id,
+        decided_by: actorId,
         decided_at: decidedAt,
         decision_comment: validated.comment ?? null,
         decision_source: validated.source ?? "dashboard",
@@ -331,7 +333,7 @@ export async function PATCH(
 
     logAuditEvent({
       orgId: auth.orgId,
-      userId: auth.user.id,
+      userId: actorId,
       action: `approval.${newStatus}`,
       resourceType: "approval_request",
       resourceId: id,
@@ -372,7 +374,7 @@ export async function PATCH(
       requestTitle: updated.title,
       requestPriority: updated.priority,
       connectionId: approval.connection_id,
-      decidedBy: auth.user.id,
+      decidedBy: actorId,
       decisionComment: validated.comment,
     });
 
@@ -400,7 +402,7 @@ export async function DELETE(
     // 1. Authenticate -- session auth only
     const auth = await authenticateRequest(request);
 
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(
         403,
         "Only dashboard users can cancel approvals",
@@ -408,6 +410,7 @@ export async function DELETE(
       );
     }
 
+    const deleteActorId = auth.user.id;
     const admin = createAdminClient();
 
     // 2. Fetch approval
@@ -440,7 +443,7 @@ export async function DELETE(
 
     logAuditEvent({
       orgId: auth.orgId,
-      userId: auth.user.id,
+      userId: deleteActorId,
       action: "approval.cancelled",
       resourceType: "approval_request",
       resourceId: id,
@@ -476,7 +479,7 @@ export async function DELETE(
       requestTitle: updated.title,
       requestPriority: updated.priority,
       connectionId: approval.connection_id,
-      decidedBy: auth.user.id,
+      decidedBy: deleteActorId,
     });
 
     return NextResponse.json(updated);

@@ -77,12 +77,9 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount }: SidebarP
   return (
     <aside className="bg-card flex h-full w-64 flex-col border-r">
       {/* Logo / Org Header */}
-      <div className="flex h-14 items-center gap-3 border-b px-4">
-        <img src="/logo.png" alt="Gatekeeper" width={28} height={28} className="size-7" />
-        <div className="flex flex-col flex-1 min-w-0">
-          <span className="text-sm font-semibold leading-tight">Gatekeeper</span>
-          <OrgSwitcher currentOrgId={currentOrgId} orgs={userOrgs} />
-        </div>
+      <div className="flex flex-col gap-2 border-b px-4 py-3">
+        <img src="/logo_text.png" alt="Gatekeeper" className="h-7 w-auto self-start" />
+        <OrgSwitcher currentOrgId={currentOrgId} orgs={userOrgs} />
       </div>
 
       {/* Navigation */}

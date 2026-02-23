@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     const auth = await authenticateRequest(request);
 
     // Session-only: API keys cannot list team members.
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can manage team members");
     }
 
@@ -85,7 +85,7 @@ export async function PATCH(request: Request) {
     const auth = await authenticateRequest(request);
 
     // Session-only, owner only.
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can manage team members");
     }
 
@@ -184,7 +184,7 @@ export async function DELETE(request: Request) {
     const auth = await authenticateRequest(request);
 
     // Session-only, admin or owner.
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can manage team members");
     }
 

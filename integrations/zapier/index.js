@@ -4,7 +4,7 @@
 
 const {
   authentication,
-  addApiKeyToHeader,
+  addAuthHeader,
   handleErrors,
 } = require("./authentication");
 const createApproval = require("./creates/create_approval");
@@ -19,7 +19,7 @@ module.exports = {
 
   authentication,
 
-  beforeRequest: [addApiKeyToHeader],
+  beforeRequest: [addAuthHeader],
   afterResponse: [handleErrors],
 
   triggers: {

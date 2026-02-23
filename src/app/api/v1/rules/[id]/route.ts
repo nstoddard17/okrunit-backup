@@ -36,7 +36,7 @@ export async function PATCH(
     const auth = await authenticateRequest(request);
 
     // Only dashboard (session) users may manage rules.
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can manage rules");
     }
 
@@ -115,7 +115,7 @@ export async function DELETE(
     const auth = await authenticateRequest(request);
 
     // Only dashboard (session) users may manage rules.
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can manage rules");
     }
 

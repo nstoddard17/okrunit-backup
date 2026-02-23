@@ -59,7 +59,7 @@ const approvalDecided = {
         }
 
         const response = await z.request({
-          url: `${bundle.authData.baseUrl}/api/v1/approvals`,
+          url: `${bundle.authData.instance_url}/api/v1/approvals`,
           params,
         });
 

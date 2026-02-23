@@ -31,6 +31,25 @@ export const DEFAULT_PAGE_SIZE = 20;
 /** Maximum allowed page size for paginated endpoints. */
 export const MAX_PAGE_SIZE = 100;
 
+/** OAuth 2.0 access token lifetime in seconds (1 hour). */
+export const OAUTH_ACCESS_TOKEN_EXPIRY_SECONDS = 3600;
+
+/** OAuth 2.0 refresh token lifetime in seconds (30 days). */
+export const OAUTH_REFRESH_TOKEN_EXPIRY_SECONDS = 2_592_000;
+
+/** OAuth 2.0 authorization code lifetime in seconds (10 minutes). */
+export const OAUTH_AUTH_CODE_EXPIRY_SECONDS = 600;
+
+/** Grace period for rotated refresh tokens in seconds (30 seconds). */
+export const OAUTH_REFRESH_GRACE_PERIOD_SECONDS = 30;
+
+/** Valid OAuth 2.0 scopes. */
+export const OAUTH_SCOPES = [
+  "approvals:read",
+  "approvals:write",
+  "comments:write",
+] as const;
+
 /** Numeric ordering for approval priorities (used for sorting / comparisons). */
 export const PRIORITY_ORDER = {
   low: 0,

@@ -29,13 +29,15 @@ export async function POST(request: Request) {
     // 1. Authenticate -- session only
     const auth = await authenticateRequest(request);
 
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(
         403,
         "Only dashboard users can batch-process approvals",
         "SESSION_REQUIRED",
       );
     }
+
+    const actorId = auth.user.id;
 
     // 2. Validate body
     const body = await request.json();
@@ -89,7 +91,7 @@ export async function POST(request: Request) {
             .from("approval_votes")
             .select("id")
             .eq("request_id", approvalId)
-            .eq("user_id", auth.user.id)
+            .eq("user_id", actorId)
             .maybeSingle();
 
           if (existingVote) {
@@ -101,7 +103,7 @@ export async function POST(request: Request) {
             .from("approval_votes")
             .insert({
               request_id: approvalId,
-              user_id: auth.user.id,
+              user_id: actorId,
               vote: validated.decision,
               comment: validated.comment ?? null,
               source: "dashboard" as const,
@@ -120,7 +122,7 @@ export async function POST(request: Request) {
               .from("approval_requests")
               .update({
                 status: "rejected",
-                decided_by: auth.user.id,
+                decided_by: actorId,
                 decided_at: decidedAt,
                 decision_comment: validated.comment ?? null,
                 decision_source: "batch",
@@ -146,7 +148,7 @@ export async function POST(request: Request) {
 
             if (thresholdMet) {
               updatePayload.status = "approved";
-              updatePayload.decided_by = auth.user.id;
+              updatePayload.decided_by = actorId;
               updatePayload.decided_at = decidedAt;
               updatePayload.decision_comment = validated.comment ?? null;
               updatePayload.decision_source = "batch";
@@ -174,7 +176,7 @@ export async function POST(request: Request) {
             .from("approval_requests")
             .update({
               status: newStatus,
-              decided_by: auth.user.id,
+              decided_by: actorId,
               decided_at: decidedAt,
               decision_comment: validated.comment ?? null,
               decision_source: "batch",
@@ -193,7 +195,7 @@ export async function POST(request: Request) {
         // 3e. Audit log
         logAuditEvent({
           orgId: auth.orgId,
-          userId: auth.user.id,
+          userId: actorId,
           action: `approval.${updated.status === "pending" ? `vote.${validated.decision}` : updated.status}`,
           resourceType: "approval_request",
           resourceId: approvalId,

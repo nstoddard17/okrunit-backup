@@ -40,7 +40,7 @@ export async function POST(
     const auth = await authenticateRequest(request);
 
     // Only dashboard (session) users may rotate keys.
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can rotate API keys");
     }
 

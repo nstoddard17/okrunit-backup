@@ -47,6 +47,13 @@ export async function updateSession(request: NextRequest) {
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+
+    // For OAuth authorize requests, preserve the full URL so the user
+    // returns to the consent page after login.
+    if (request.nextUrl.pathname.startsWith("/oauth/authorize")) {
+      url.searchParams.set("redirect_to", request.nextUrl.pathname + request.nextUrl.search);
+    }
+
     return NextResponse.redirect(url);
   }
 

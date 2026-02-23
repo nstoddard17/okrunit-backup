@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     const auth = await authenticateRequest(request);
 
     // Session-only: API keys cannot create invites.
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can manage team invites");
     }
 
@@ -200,7 +200,7 @@ export async function DELETE(request: Request) {
     const auth = await authenticateRequest(request);
 
     // Session-only: API keys cannot revoke invites.
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can manage team invites");
     }
 

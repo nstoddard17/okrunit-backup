@@ -24,7 +24,7 @@ const getApproval = {
 
     perform: async (z, bundle) => {
       const response = await z.request({
-        url: `${bundle.authData.baseUrl}/api/v1/approvals/${bundle.inputData.approval_id}`,
+        url: `${bundle.authData.instance_url}/api/v1/approvals/${bundle.inputData.approval_id}`,
       });
 
       return [response.json];

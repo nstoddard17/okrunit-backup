@@ -126,7 +126,7 @@ const createApproval = {
 
       const response = await z.request({
         method: "POST",
-        url: `${bundle.authData.baseUrl}/api/v1/approvals`,
+        url: `${bundle.authData.instance_url}/api/v1/approvals`,
         body,
       });
 

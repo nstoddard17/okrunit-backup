@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     // 1. Authenticate -- session only (dashboard users)
     const auth = await authenticateRequest(request);
 
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(
         403,
         "Only dashboard users can access analytics",

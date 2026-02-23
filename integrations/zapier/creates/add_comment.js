@@ -32,7 +32,7 @@ const addComment = {
     perform: async (z, bundle) => {
       const response = await z.request({
         method: "POST",
-        url: `${bundle.authData.baseUrl}/api/v1/approvals/${bundle.inputData.approval_id}/comments`,
+        url: `${bundle.authData.instance_url}/api/v1/approvals/${bundle.inputData.approval_id}/comments`,
         body: { body: bundle.inputData.body },
       });
 

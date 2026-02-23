@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     // 1. Authenticate -- session auth only (saved filters are per-user)
     const auth = await authenticateRequest(request);
 
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(
         403,
         "Saved filters are only available to dashboard users",
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     // 1. Authenticate -- session auth only
     const auth = await authenticateRequest(request);
 
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(
         403,
         "Saved filters are only available to dashboard users",
@@ -145,7 +145,7 @@ export async function DELETE(request: Request) {
     // 1. Authenticate -- session auth only
     const auth = await authenticateRequest(request);
 
-    if (auth.type === "api_key") {
+    if (auth.type !== "session") {
       throw new ApiError(
         403,
         "Saved filters are only available to dashboard users",
