@@ -26,7 +26,7 @@ export default async function OAuthSettingsPage() {
   const { data: clients } = await admin
     .from("oauth_clients")
     .select(
-      "id, org_id, name, client_id, client_secret_prefix, redirect_uris, scopes, is_active, created_by, created_at, updated_at",
+      "id, org_id, name, logo_url, client_id, client_secret_prefix, redirect_uris, scopes, is_active, created_by, created_at, updated_at",
     )
     .eq("org_id", ctx.org.id)
     .order("created_at", { ascending: false });

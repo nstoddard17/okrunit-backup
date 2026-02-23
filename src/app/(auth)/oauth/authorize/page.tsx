@@ -67,7 +67,7 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
   // Look up the OAuth client.
   const { data: client } = await admin
     .from("oauth_clients")
-    .select("client_id, name, redirect_uris, scopes, is_active, org_id")
+    .select("client_id, name, logo_url, redirect_uris, scopes, is_active, org_id")
     .eq("client_id", params.client_id)
     .single();
 
@@ -115,8 +115,9 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
     .single();
 
   // Parse and validate requested scopes.
+  // Handle both space-separated and +-separated scopes from URL encoding.
   const requestedScopes = params.scope
-    ? params.scope.split(/\s+/).filter(Boolean)
+    ? params.scope.split(/[\s+]+/).filter(Boolean)
     : [...client.scopes];
   const grantedScopes = requestedScopes.filter((s: string) =>
     client.scopes.includes(s),
@@ -125,6 +126,7 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
   return (
     <ConsentForm
       clientName={client.name}
+      clientLogoUrl={client.logo_url || null}
       orgName={org?.name || "Your Organization"}
       scopes={grantedScopes}
       clientId={params.client_id}

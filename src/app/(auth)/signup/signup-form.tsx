@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 
 export function SignupForm() {
   const searchParams = useSearchParams();
@@ -84,6 +85,8 @@ export function SignupForm() {
           Enter your details below to get started
         </p>
       </div>
+
+      <SocialLoginButtons mode="signup" inviteToken={inviteToken} disabled={isPending} />
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {error && (

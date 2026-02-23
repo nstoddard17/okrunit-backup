@@ -21,10 +21,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  const redirectUrl = new URL("/dashboard", origin);
+  // If there's an invite token, route through the invite acceptance page
+  // which handles email verification, profile creation, and org membership.
   if (inviteToken) {
-    redirectUrl.searchParams.set("invite", inviteToken);
+    return NextResponse.redirect(new URL(`/invite/${inviteToken}`, origin));
   }
 
-  return NextResponse.redirect(redirectUrl);
+  return NextResponse.redirect(new URL("/dashboard", origin));
 }

@@ -14,12 +14,13 @@ import { OAUTH_SCOPES } from "@/lib/constants";
 
 // Column allowlist — never return client_secret_hash.
 const CLIENT_COLUMNS =
-  "id, org_id, name, client_id, client_secret_prefix, redirect_uris, scopes, is_active, created_by, created_at, updated_at" as const;
+  "id, org_id, name, logo_url, client_id, client_secret_prefix, redirect_uris, scopes, is_active, created_by, created_at, updated_at" as const;
 
 // ---- Schemas ---------------------------------------------------------------
 
 const createClientSchema = z.object({
   name: z.string().min(1).max(200),
+  logo_url: z.string().url().optional(),
   redirect_uris: z.array(z.string().url()).min(1).max(10),
   scopes: z
     .array(z.string())
@@ -103,6 +104,7 @@ export async function POST(request: Request) {
       .insert({
         org_id: auth.orgId,
         name: body.name,
+        logo_url: body.logo_url || null,
         client_id: clientId,
         client_secret_hash: clientSecretHash,
         client_secret_prefix: clientSecretPrefix,

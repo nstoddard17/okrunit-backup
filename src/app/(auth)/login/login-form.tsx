@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 
 const ERROR_MESSAGES: Record<string, string> = {
   no_org:
@@ -63,6 +64,8 @@ export function LoginForm() {
           Enter your credentials to sign in to your account
         </p>
       </div>
+
+      <SocialLoginButtons mode="login" disabled={isPending} />
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {error && (

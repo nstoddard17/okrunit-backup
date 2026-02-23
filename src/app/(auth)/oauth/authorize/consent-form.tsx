@@ -34,6 +34,7 @@ const SCOPE_LABELS: Record<string, { label: string; description: string }> = {
 
 interface ConsentFormProps {
   clientName: string;
+  clientLogoUrl: string | null;
   orgName: string;
   scopes: string[];
   clientId: string;
@@ -47,6 +48,7 @@ interface ConsentFormProps {
 
 export function ConsentForm({
   clientName,
+  clientLogoUrl,
   orgName,
   scopes,
   clientId,
@@ -103,21 +105,50 @@ export function ConsentForm({
   return (
     <Card className="w-full">
       <CardHeader className="text-center">
-        <img
-          src="/logo_text.png"
-          alt="Gatekeeper"
-          className="mx-auto mb-4 h-8 w-auto dark:invert"
-        />
-        <CardTitle className="text-xl">Authorize {clientName}</CardTitle>
+        <CardTitle className="flex items-center justify-center gap-2 text-xl">
+          Authorize{" "}
+          {clientLogoUrl ? (
+            <img
+              src={clientLogoUrl}
+              alt={clientName}
+              className="inline-block h-6 w-auto"
+            />
+          ) : (
+            clientName
+          )}
+        </CardTitle>
         <CardDescription>
-          <strong>{clientName}</strong> is requesting access to your{" "}
+          {clientLogoUrl ? (
+            <>
+              <img
+                src={clientLogoUrl}
+                alt={clientName}
+                className="inline-block h-4 w-auto align-middle"
+              />{" "}
+            </>
+          ) : (
+            <strong>{clientName}</strong>
+          )}{" "}
+          is requesting access to your{" "}
           <strong>{orgName}</strong> organization on Gatekeeper.
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
         <div className="space-y-1">
-          <p className="text-sm font-medium">This will allow {clientName} to:</p>
+          <p className="text-sm font-medium">
+            This will allow{" "}
+            {clientLogoUrl ? (
+              <img
+                src={clientLogoUrl}
+                alt={clientName}
+                className="inline-block h-4 w-auto align-middle"
+              />
+            ) : (
+              clientName
+            )}{" "}
+            to:
+          </p>
         </div>
 
         <ul className="space-y-3">
