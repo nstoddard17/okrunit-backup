@@ -115,9 +115,9 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
     .single();
 
   // Parse and validate requested scopes.
-  // Handle both space-separated and +-separated scopes from URL encoding.
+  // Handle space-separated, +-separated, and comma-separated scopes.
   const requestedScopes = params.scope
-    ? params.scope.split(/[\s+]+/).filter(Boolean)
+    ? params.scope.split(/[\s,+]+/).filter(Boolean)
     : [...client.scopes];
   const grantedScopes = requestedScopes.filter((s: string) =>
     client.scopes.includes(s),
