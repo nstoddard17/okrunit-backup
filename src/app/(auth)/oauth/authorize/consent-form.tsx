@@ -118,18 +118,7 @@ export function ConsentForm({
           )}
         </CardTitle>
         <CardDescription>
-          {clientLogoUrl ? (
-            <>
-              <img
-                src={clientLogoUrl}
-                alt={clientName}
-                className="inline-block h-5 w-auto align-middle"
-              />{" "}
-            </>
-          ) : (
-            <strong>{clientName}</strong>
-          )}{" "}
-          is requesting access to your{" "}
+          <strong>{clientName}</strong> is requesting access to your{" "}
           <strong>{orgName}</strong> organization on Gatekeeper.
         </CardDescription>
       </CardHeader>
@@ -137,17 +126,7 @@ export function ConsentForm({
       <CardContent className="space-y-4">
         <div className="space-y-1">
           <p className="text-sm font-medium">
-            This will allow{" "}
-            {clientLogoUrl ? (
-              <img
-                src={clientLogoUrl}
-                alt={clientName}
-                className="inline-block h-5 w-auto align-middle"
-              />
-            ) : (
-              clientName
-            )}{" "}
-            to:
+            This will allow <strong>{clientName}</strong> to:
           </p>
         </div>
 

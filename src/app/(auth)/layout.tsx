@@ -29,9 +29,9 @@ export default function AuthLayout({
       </div>
 
       {/* Right form panel */}
-      <div className="flex w-full lg:w-1/2 flex-col items-center justify-center px-6 py-12">
+      <div className="flex w-full lg:w-1/2 flex-col items-center justify-center bg-white px-6 py-12 dark:bg-zinc-100">
         {/* Mobile logo */}
-        <div className="mb-8 rounded-xl bg-white px-4 py-3 shadow-sm lg:hidden">
+        <div className="mb-8 lg:hidden">
           <Image src="/logo_text.png" alt="Gatekeeper" width={160} height={120} />
         </div>
 
