@@ -31,8 +31,8 @@ export default function AuthLayout({
       {/* Right form panel */}
       <div className="flex w-full lg:w-1/2 flex-col items-center justify-center px-6 py-12">
         {/* Mobile logo */}
-        <div className="mb-8 lg:hidden">
-          <Image src="/logo_text.png" alt="Gatekeeper" width={120} height={90} />
+        <div className="mb-8 rounded-xl bg-white px-4 py-3 shadow-sm lg:hidden">
+          <Image src="/logo_text.png" alt="Gatekeeper" width={160} height={120} />
         </div>
 
         <div className="w-full max-w-sm">{children}</div>
