@@ -111,7 +111,7 @@ export function ConsentForm({
             <img
               src={clientLogoUrl}
               alt={clientName}
-              className="inline-block h-6 w-auto"
+              className="inline-block h-8 w-auto"
             />
           ) : (
             clientName
@@ -123,7 +123,7 @@ export function ConsentForm({
               <img
                 src={clientLogoUrl}
                 alt={clientName}
-                className="inline-block h-4 w-auto align-middle"
+                className="inline-block h-5 w-auto align-middle"
               />{" "}
             </>
           ) : (
@@ -142,7 +142,7 @@ export function ConsentForm({
               <img
                 src={clientLogoUrl}
                 alt={clientName}
-                className="inline-block h-4 w-auto align-middle"
+                className="inline-block h-5 w-auto align-middle"
               />
             ) : (
               clientName

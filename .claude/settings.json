@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(echo:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(python3:*)",
+      "WebFetch(domain:brand.zapier.com)"
     ]
   }
 }

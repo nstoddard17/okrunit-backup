@@ -9,7 +9,7 @@ export default function AuthLayout({
     <div className="flex min-h-svh">
       {/* Left branding panel -- hidden on mobile */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-white dark:bg-zinc-900 p-12">
-        <Image src="/logo_text.png" alt="Gatekeeper" width={160} height={120} />
+        <Image src="/logo_text.png" alt="Gatekeeper" width={220} height={165} />
 
         <div className="space-y-6">
           <blockquote className="space-y-2">
