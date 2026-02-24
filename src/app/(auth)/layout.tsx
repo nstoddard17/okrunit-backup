@@ -6,7 +6,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="light flex min-h-svh bg-white text-zinc-950" style={{ colorScheme: "light" }}>
+    <div className="force-light flex min-h-svh bg-white text-zinc-950">
       {/* Left branding panel -- hidden on mobile */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-zinc-50 p-12">
         <Image src="/logo_text.png" alt="Gatekeeper" width={220} height={165} />
