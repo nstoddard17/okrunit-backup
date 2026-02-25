@@ -102,11 +102,10 @@ export function BatchActionsBar({
 
         <div className="flex items-center gap-2">
           <Button
-            variant="default"
+            variant="success"
             size="sm"
             disabled={isLoading}
             onClick={() => handleAction("approve")}
-            className="bg-green-600 text-white hover:bg-green-700"
           >
             {loadingAction === "approve" ? (
               <Loader2 className="size-4 animate-spin" />

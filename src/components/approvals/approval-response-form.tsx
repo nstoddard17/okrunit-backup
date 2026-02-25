@@ -33,9 +33,10 @@ export function ApprovalResponseForm({
 
       <div className="flex gap-3">
         <Button
+          variant="success"
           onClick={() => onRespond("approved", comment)}
           disabled={isLoading}
-          className="flex-1 bg-green-600 text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
+          className="flex-1"
         >
           <CheckCircle className="size-4" />
           Approve

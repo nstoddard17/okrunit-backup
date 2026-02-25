@@ -12,7 +12,6 @@ const approvalDecided = {
     label: "Approval Decided",
     description:
       "Triggers when an approval request is approved or rejected.",
-    important: true,
   },
 
   operation: {
@@ -24,25 +23,23 @@ const approvalDecided = {
         label: "Decision Type",
         type: "string",
         choices: {
-          "": "Any (Approved or Rejected)",
           approved: "Approved Only",
           rejected: "Rejected Only",
         },
-        default: "",
-        helpText: "Filter to only trigger on specific decision types.",
+        required: false,
+        helpText:
+          "Filter to only trigger on specific decision types. Leave empty for any.",
       },
       {
         key: "priority_filter",
         label: "Priority Filter",
         type: "string",
         choices: {
-          "": "Any Priority",
           low: "Low",
           medium: "Medium",
           high: "High",
           critical: "Critical",
         },
-        default: "",
         required: false,
       },
     ],

@@ -8,7 +8,7 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   return (
-    <div className="light" data-theme="light">
+    <div className="force-light">
       <Hero
         user={
           user

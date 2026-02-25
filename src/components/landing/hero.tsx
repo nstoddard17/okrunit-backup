@@ -112,11 +112,7 @@ export function Hero({ user }: HeroProps) {
 
             <div className="mt-10 flex items-center justify-center gap-4">
               {user ? (
-                <Button
-                  size="lg"
-                  asChild
-                  className="bg-blue-600 px-8 text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700"
-                >
+                <Button size="lg" asChild className="px-8">
                   <Link href="/dashboard">
                     Go to Dashboard
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -124,22 +120,13 @@ export function Hero({ user }: HeroProps) {
                 </Button>
               ) : (
                 <>
-                  <Button
-                    size="lg"
-                    asChild
-                    className="bg-blue-600 px-8 text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700"
-                  >
+                  <Button size="lg" asChild className="px-8">
                     <Link href="/signup">
                       Get Started
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    asChild
-                    className="border-slate-300 bg-white px-8 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                  >
+                  <Button size="lg" variant="outline" asChild className="px-8">
                     <Link href="/login">Log in</Link>
                   </Button>
                 </>
@@ -222,22 +209,14 @@ export function Hero({ user }: HeroProps) {
             </p>
             <div className="mt-8">
               {user ? (
-                <Button
-                  size="lg"
-                  asChild
-                  className="bg-blue-500 px-8 text-white shadow-lg shadow-blue-500/25 hover:bg-blue-400"
-                >
+                <Button size="lg" asChild className="px-8">
                   <Link href="/dashboard">
                     Go to Dashboard
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               ) : (
-                <Button
-                  size="lg"
-                  asChild
-                  className="bg-blue-500 px-8 text-white shadow-lg shadow-blue-500/25 hover:bg-blue-400"
-                >
+                <Button size="lg" asChild className="px-8">
                   <Link href="/signup">
                     Get Started Free
                     <ArrowRight className="ml-2 h-4 w-4" />

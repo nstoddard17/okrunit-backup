@@ -70,11 +70,7 @@ export function EmergencyStopButton({
         <Button
           variant="destructive"
           size="lg"
-          className={
-            isActive
-              ? "h-16 w-full text-lg font-bold"
-              : "h-16 w-full text-lg font-bold bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-          }
+          className="h-16 w-full text-lg font-bold"
         >
           {isActive
             ? "DEACTIVATE EMERGENCY STOP"

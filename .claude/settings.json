@@ -4,7 +4,9 @@
       "Bash(echo:*)",
       "Bash(cat:*)",
       "Bash(python3:*)",
-      "WebFetch(domain:brand.zapier.com)"
+      "WebFetch(domain:brand.zapier.com)",
+      "Bash(zapier:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

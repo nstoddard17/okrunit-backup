@@ -22,7 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
+
 import { OrgSwitcher } from "@/components/layout/org-switcher";
 
 interface SidebarProps {
@@ -138,7 +138,6 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole }
               </p>
             )}
           </div>
-          <ThemeToggle />
           <Button
             variant="ghost"
             size="icon-sm"

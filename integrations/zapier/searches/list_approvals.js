@@ -21,14 +21,13 @@ const listApprovals = {
         type: "string",
         required: false,
         choices: {
-          "": "Any",
           pending: "Pending",
           approved: "Approved",
           rejected: "Rejected",
           cancelled: "Cancelled",
           expired: "Expired",
         },
-        default: "",
+        helpText: "Filter by status. Leave empty for any.",
       },
       {
         key: "priority",
@@ -36,13 +35,12 @@ const listApprovals = {
         type: "string",
         required: false,
         choices: {
-          "": "Any",
           low: "Low",
           medium: "Medium",
           high: "High",
           critical: "Critical",
         },
-        default: "",
+        helpText: "Filter by priority. Leave empty for any.",
       },
       {
         key: "search",

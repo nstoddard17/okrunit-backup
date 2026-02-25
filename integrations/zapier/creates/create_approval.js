@@ -11,7 +11,6 @@ const createApproval = {
   display: {
     label: "Create Approval Request",
     description: "Submit a new approval request for human review.",
-    important: true,
   },
 
   operation: {

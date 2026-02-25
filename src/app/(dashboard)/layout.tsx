@@ -40,7 +40,7 @@ export default async function DashboardLayout({
     .eq("status", "pending");
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="force-light flex h-screen overflow-hidden bg-white text-zinc-950">
       {/* Sidebar: hidden on mobile, visible on md+ */}
       <div className="hidden md:flex">
         <Sidebar

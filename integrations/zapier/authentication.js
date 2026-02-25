@@ -6,7 +6,7 @@
 // ---------------------------------------------------------------------------
 
 const GATEKEEPER_URL =
-  process.env.GATEKEEPER_URL || "https://gkapprove.com";
+  process.env.GATEKEEPER_URL || "https://www.gkapprove.com";
 
 const authentication = {
   type: "oauth2",
