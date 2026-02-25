@@ -54,6 +54,8 @@ export async function POST(request: Request) {
 
     const grantType = body.grant_type;
 
+    console.log("[OAuth Token] grant_type:", grantType, "content_type:", contentType, "body_keys:", Object.keys(body));
+
     if (grantType === "authorization_code") {
       return handleAuthorizationCode(body, request);
     }
@@ -83,6 +85,15 @@ async function handleAuthorizationCode(
   request: Request,
 ): Promise<NextResponse> {
   const { code, redirect_uri, client_id, client_secret, code_verifier } = body;
+
+  console.log("[OAuth Token] authorization_code exchange:", {
+    has_code: !!code,
+    has_redirect_uri: !!redirect_uri,
+    has_client_id: !!client_id,
+    has_client_secret: !!client_secret,
+    has_code_verifier: !!code_verifier,
+    redirect_uri,
+  });
 
   if (!code || !redirect_uri || !client_id) {
     return oauthError(
@@ -122,10 +133,21 @@ async function handleAuthorizationCode(
     .single();
 
   if (!authCode) {
+    console.log("[OAuth Token] FAIL: auth code not found for hash");
     return oauthError("invalid_grant", "Invalid authorization code.");
   }
 
+  console.log("[OAuth Token] auth code found:", {
+    id: authCode.id,
+    used_at: authCode.used_at,
+    expires_at: authCode.expires_at,
+    redirect_uri: authCode.redirect_uri,
+    has_code_challenge: !!authCode.code_challenge,
+    code_challenge_method: authCode.code_challenge_method,
+  });
+
   if (authCode.used_at) {
+    console.log("[OAuth Token] FAIL: code already used at", authCode.used_at);
     return oauthError(
       "invalid_grant",
       "Authorization code has already been used.",
@@ -133,16 +155,19 @@ async function handleAuthorizationCode(
   }
 
   if (new Date(authCode.expires_at) < new Date()) {
+    console.log("[OAuth Token] FAIL: code expired at", authCode.expires_at, "now:", new Date().toISOString());
     return oauthError("invalid_grant", "Authorization code has expired.");
   }
 
   if (authCode.redirect_uri !== redirect_uri) {
+    console.log("[OAuth Token] FAIL: redirect_uri mismatch", { expected: authCode.redirect_uri, received: redirect_uri });
     return oauthError("invalid_grant", "Redirect URI mismatch.");
   }
 
   // Verify PKCE if the code was issued with a challenge.
   if (authCode.code_challenge) {
     if (!code_verifier) {
+      console.log("[OAuth Token] FAIL: code has PKCE challenge but no code_verifier provided");
       return oauthError("invalid_grant", "Missing code_verifier for PKCE.");
     }
     if (
@@ -152,6 +177,7 @@ async function handleAuthorizationCode(
         authCode.code_challenge_method || "plain",
       )
     ) {
+      console.log("[OAuth Token] FAIL: PKCE verification failed");
       return oauthError("invalid_grant", "PKCE verification failed.");
     }
   } else if (!client_secret) {
