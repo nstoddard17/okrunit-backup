@@ -165,11 +165,9 @@ async function handleAuthorizationCode(
   }
 
   // Verify PKCE if the code was issued with a challenge.
-  if (authCode.code_challenge) {
-    if (!code_verifier) {
-      console.log("[OAuth Token] FAIL: code has PKCE challenge but no code_verifier provided");
-      return oauthError("invalid_grant", "Missing code_verifier for PKCE.");
-    }
+  // Confidential clients (authenticated via client_secret) can skip PKCE —
+  // it's primarily a protection for public clients that can't store secrets.
+  if (authCode.code_challenge && code_verifier) {
     if (
       !verifyPkceChallenge(
         code_verifier,
@@ -180,7 +178,11 @@ async function handleAuthorizationCode(
       console.log("[OAuth Token] FAIL: PKCE verification failed");
       return oauthError("invalid_grant", "PKCE verification failed.");
     }
-  } else if (!client_secret) {
+  } else if (authCode.code_challenge && !code_verifier && !client_secret) {
+    // Public clients MUST provide code_verifier when a challenge was issued.
+    console.log("[OAuth Token] FAIL: public client missing code_verifier");
+    return oauthError("invalid_grant", "Missing code_verifier for PKCE.");
+  } else if (!authCode.code_challenge && !client_secret) {
     // Public clients MUST use PKCE.
     return oauthError(
       "invalid_request",
