@@ -1,6 +1,6 @@
 {
   "name": "gatekeeper-zapier",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Zapier integration for Gatekeeper human-in-the-loop approval gateway",
   "main": "index.js",
   "scripts": {

@@ -23,19 +23,28 @@ const authentication = {
       },
     },
 
-    getAccessToken: {
-      url: `${GATEKEEPER_URL}/api/v1/oauth/token`,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: {
-        code: "{{bundle.inputData.code}}",
-        client_id: "{{process.env.CLIENT_ID}}",
-        client_secret: "{{process.env.CLIENT_SECRET}}",
-        redirect_uri: "{{bundle.inputData.redirect_uri}}",
+    getAccessToken: async (z, bundle) => {
+      const body = {
+        code: bundle.inputData.code,
+        client_id: process.env.CLIENT_ID,
+        client_secret: process.env.CLIENT_SECRET,
+        redirect_uri: bundle.inputData.redirect_uri,
         grant_type: "authorization_code",
-      },
+      };
+
+      // PKCE: Zapier puts code_verifier in bundle.inputData when enablePkce is true.
+      if (bundle.inputData.code_verifier) {
+        body.code_verifier = bundle.inputData.code_verifier;
+      }
+
+      const response = await z.request({
+        url: `${GATEKEEPER_URL}/api/v1/oauth/token`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+
+      return response.json;
     },
 
     refreshAccessToken: {

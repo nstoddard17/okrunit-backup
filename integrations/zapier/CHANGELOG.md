@@ -1,3 +1,7 @@
+## 1.0.3
+
+- Fix PKCE code_verifier not being sent during OAuth token exchange
+
 ## 1.0.2
 
 - Fix OAuth token exchange failing due to URL redirect from gkapprove.com to www.gkapprove.com
