@@ -6,8 +6,9 @@ import { redirect } from "next/navigation";
 
 import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
+import { getActiveOAuthGrants } from "@/lib/api/oauth-grants";
 import { ConnectionList } from "@/components/connections/connection-list";
-import { IntegrationGrid } from "@/components/integrations/integration-grid";
+import { ConnectedAppsList } from "@/components/connections/connected-apps-list";
 import type { Connection } from "@/lib/types/database";
 
 export const metadata = {
@@ -33,39 +34,42 @@ export default async function ConnectionsPage() {
   const supabase = await createClient();
 
   // Fetch all connections for this organisation, newest first.
-  const { data: connections } = await supabase
-    .from("connections")
-    .select(CONNECTION_COLUMNS)
-    .eq("org_id", membership.org_id)
-    .order("created_at", { ascending: false })
-    .returns<Omit<Connection, "api_key_hash">[]>();
-
-  const activeConnections = (connections ?? []).filter((c) => c.is_active);
+  const [{ data: connections }, oauthGrants] = await Promise.all([
+    supabase
+      .from("connections")
+      .select(CONNECTION_COLUMNS)
+      .eq("org_id", membership.org_id)
+      .order("created_at", { ascending: false })
+      .returns<Omit<Connection, "api_key_hash">[]>(),
+    getActiveOAuthGrants(membership.org_id),
+  ]);
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Connections</h1>
         <p className="text-muted-foreground text-sm">
-          Connect your automation tools or create a custom API key.
+          Manage your API connections, keys, and connected apps.
         </p>
       </div>
 
-      {/* Quick-start integration cards */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          Quick Start
-        </h2>
-        <IntegrationGrid
-          existingConnections={activeConnections as Connection[]}
-        />
-      </div>
+      {/* Connected Apps (OAuth grants from Zapier, etc.) */}
+      {oauthGrants.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            Connected Apps
+          </h2>
+          <ConnectedAppsList grants={oauthGrants} />
+        </div>
+      )}
 
-      {/* Full connection management */}
+      {/* API Key Connections */}
       <div className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          All Connections
-        </h2>
+        {oauthGrants.length > 0 && (
+          <h2 className="text-sm font-medium text-muted-foreground">
+            API Key Connections
+          </h2>
+        )}
         <ConnectionList
           initialConnections={(connections ?? []) as Connection[]}
         />

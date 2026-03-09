@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Check, ExternalLink, Key } from "lucide-react";
+import { Copy, Check, Key } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Connection } from "@/lib/types/database";
-import { PLATFORMS } from "@/lib/integrations/platforms";
 
 // ---- Component --------------------------------------------------------------
 
@@ -38,13 +37,6 @@ export function ConnectionForm({
 }: ConnectionFormProps) {
   const router = useRouter();
   const isEdit = !!connection;
-
-  // Try to match the connection to a known platform for setup instructions.
-  const matchedPlatform = isEdit
-    ? PLATFORMS.find(
-        (p) => p.connectionName.toLowerCase() === connection.name.toLowerCase(),
-      )
-    : null;
 
   // Form state.
   const [name, setName] = useState(connection?.name ?? "");
@@ -238,14 +230,9 @@ export function ConnectionForm({
 
   // ---- Render: Create / Edit Form -----------------------------------------
 
-  const appUrl =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className={matchedPlatform ? "sm:max-w-xl" : undefined}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>
             {isEdit ? "Edit Connection" : "Create Connection"}
@@ -302,61 +289,6 @@ export function ConnectionForm({
               disabled={loading}
             />
           </div>
-
-          {/* Platform setup instructions (edit mode only) */}
-          {matchedPlatform && (
-            <div className="space-y-3 rounded-lg border bg-muted/50 p-4">
-              <div className="flex items-center gap-2">
-                <div
-                  className="flex size-6 items-center justify-center rounded"
-                  style={{ backgroundColor: `${matchedPlatform.color}15` }}
-                  dangerouslySetInnerHTML={{ __html: matchedPlatform.logoSvg }}
-                />
-                <p className="text-sm font-medium">
-                  {matchedPlatform.name} Setup Steps
-                </p>
-              </div>
-
-              {/* Approvals endpoint */}
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">
-                  Approvals Endpoint
-                </p>
-                <div className="rounded border bg-background px-3 py-2">
-                  <code className="block break-all text-xs leading-relaxed">
-                    POST {appUrl}/api/v1/approvals
-                  </code>
-                </div>
-              </div>
-
-              <ol className="space-y-2">
-                {matchedPlatform.setupSteps.map((step, i) => (
-                  <li key={i} className="flex gap-3 text-sm leading-relaxed">
-                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-xs font-medium text-muted-foreground">
-                      {i + 1}
-                    </span>
-                    <span
-                      className="text-muted-foreground"
-                      dangerouslySetInnerHTML={{ __html: step }}
-                    />
-                  </li>
-                ))}
-              </ol>
-
-              {matchedPlatform.connectUrl && (
-                <Button variant="outline" size="sm" asChild>
-                  <a
-                    href={matchedPlatform.connectUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <ExternalLink />
-                    {matchedPlatform.connectLabel}
-                  </a>
-                </Button>
-              )}
-            </div>
-          )}
 
           <DialogFooter>
             <Button
