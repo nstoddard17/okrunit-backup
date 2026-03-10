@@ -15,7 +15,6 @@ const requestApproval = {
     label: "Request Approval",
     description:
       "Pause this Zap until a human approves or rejects. The next step runs only after a decision is made.",
-    important: true,
   },
 
   operation: {
