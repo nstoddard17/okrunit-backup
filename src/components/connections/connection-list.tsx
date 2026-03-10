@@ -90,7 +90,7 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
     <>
       {/* Toolbar */}
       <div className="flex items-center justify-end">
-        <Button onClick={() => setCreateOpen(true)}>
+        <Button variant="outline" onClick={() => setCreateOpen(true)}>
           <Plus />
           Create Connection
         </Button>
@@ -100,14 +100,19 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
       {initialConnections.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
           <Unplug className="text-muted-foreground mb-4 size-10" />
-          <h3 className="text-sm font-medium">No connections yet</h3>
+          <h3 className="text-sm font-medium">No API key connections</h3>
           <p className="text-muted-foreground mt-1 max-w-sm text-sm">
-            Create a connection to generate an API key that your agents and
-            integrations can use to submit approval requests.
+            Most integrations connect automatically through their own app
+            (e.g. Zapier). Create a manual API key connection only if you need
+            direct API access for custom scripts or agents.
           </p>
-          <Button className="mt-4" onClick={() => setCreateOpen(true)}>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => setCreateOpen(true)}
+          >
             <Plus />
-            Create Connection
+            Create Manual Connection
           </Button>
         </div>
       ) : (

@@ -49,7 +49,8 @@ export default async function ConnectionsPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Connections</h1>
         <p className="text-muted-foreground text-sm">
-          Manage your API connections, keys, and connected apps.
+          Connect through your automation tool (Zapier, Make, etc.) or create a
+          manual API key for custom integrations.
         </p>
       </div>
 

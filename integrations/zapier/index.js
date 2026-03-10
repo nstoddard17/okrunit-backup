@@ -7,6 +7,7 @@ const {
   addAuthHeader,
   handleErrors,
 } = require("./authentication");
+const requestApproval = require("./creates/request_approval");
 const createApproval = require("./creates/create_approval");
 const addComment = require("./creates/add_comment");
 const getApproval = require("./searches/get_approval");
@@ -27,6 +28,7 @@ module.exports = {
   },
 
   creates: {
+    [requestApproval.key]: requestApproval,
     [createApproval.key]: createApproval,
     [addComment.key]: addComment,
   },
