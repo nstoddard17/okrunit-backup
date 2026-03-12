@@ -61,6 +61,7 @@ export interface OrgMembership {
   user_id: string;
   org_id: string;
   role: UserRole;
+  can_approve: boolean;
   is_default: boolean;
   created_at: string;
   updated_at: string;
@@ -109,6 +110,8 @@ export interface ApprovalRequest {
   required_approvals: number;
   current_approvals: number;
   auto_approved: boolean;
+  assigned_approvers: string[] | null;
+  assigned_team_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -218,6 +221,23 @@ export interface ApprovalRule {
   updated_at: string;
 }
 
+export interface Team {
+  id: string;
+  org_id: string;
+  name: string;
+  description: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TeamMembership {
+  id: string;
+  team_id: string;
+  user_id: string;
+  created_at: string;
+}
+
 export interface ApprovalVote {
   id: string;
   request_id: string;
@@ -248,6 +268,33 @@ export interface ApprovalAttachment {
   storage_path: string;
   uploaded_by: string | null;
   connection_id: string | null;
+  created_at: string;
+}
+
+// ---- Webhook Tester Types -------------------------------------------------
+
+export interface WebhookTestEndpoint {
+  id: string;
+  org_id: string;
+  token: string;
+  is_active: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WebhookTestRequest {
+  id: string;
+  endpoint_id: string;
+  org_id: string;
+  method: string;
+  url: string;
+  query_params: Record<string, unknown>;
+  headers: Record<string, unknown>;
+  body: string | null;
+  body_json: Record<string, unknown> | null;
+  content_type: string | null;
+  ip_address: string | null;
   created_at: string;
 }
 
@@ -342,9 +389,13 @@ export type EmailActionTokenInsert = Omit<EmailActionToken, "id" | "consumed_at"
 export type ApprovalCommentInsert = Omit<ApprovalComment, "id" | "created_at" | "updated_at">;
 export type WebhookDeliveryLogInsert = Omit<WebhookDeliveryLog, "id" | "created_at">;
 export type ApprovalRuleInsert = Omit<ApprovalRule, "id" | "created_at" | "updated_at">;
+export type TeamInsert = Omit<Team, "id" | "created_at" | "updated_at">;
+export type TeamMembershipInsert = Omit<TeamMembership, "id" | "created_at">;
 export type ApprovalVoteInsert = Omit<ApprovalVote, "id" | "created_at">;
 export type SavedFilterInsert = Omit<SavedFilter, "id" | "created_at" | "updated_at">;
 export type ApprovalAttachmentInsert = Omit<ApprovalAttachment, "id" | "created_at">;
+export type WebhookTestEndpointInsert = Omit<WebhookTestEndpoint, "id" | "created_at" | "updated_at">;
+export type WebhookTestRequestInsert = Omit<WebhookTestRequest, "id" | "created_at">;
 
 // ---- Update Types (all fields optional except id) -------------------------
 

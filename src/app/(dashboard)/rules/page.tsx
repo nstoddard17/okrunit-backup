@@ -44,12 +44,19 @@ export default async function RulesPage() {
     .order("name", { ascending: true })
     .returns<Omit<Connection, "api_key_hash">[]>();
 
+  // Fetch teams for route rule configuration.
+  const { data: teams } = await supabase
+    .from("teams")
+    .select("id, name")
+    .eq("org_id", membership.org_id)
+    .order("name", { ascending: true });
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Rules</h1>
         <p className="text-muted-foreground text-sm">
-          Configure auto-approve rules to automatically handle incoming
+          Configure auto-approve and routing rules for incoming
           approval requests based on conditions you define.
         </p>
       </div>
@@ -57,6 +64,7 @@ export default async function RulesPage() {
       <RuleList
         initialRules={rules ?? []}
         connections={(connections ?? []) as Connection[]}
+        teams={(teams ?? []).map(t => ({ id: t.id, name: t.name }))}
       />
     </div>
   );

@@ -37,6 +37,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check approval permission
+    if (!auth.membership.can_approve) {
+      throw new ApiError(
+        403,
+        "You do not have approval permissions",
+        "NOT_APPROVER",
+      );
+    }
+
     const actorId = auth.user.id;
 
     // 2. Validate body

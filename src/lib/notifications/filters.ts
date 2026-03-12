@@ -102,15 +102,34 @@ export async function getOrgNotificationSettings(
 > {
   const admin = createAdminClient();
 
-  // 1. Fetch every user profile that belongs to this org.
+  // 1. Fetch org members via org_memberships (org_id was removed from
+  //    user_profiles in the multi-org migration).
+  const { data: memberships, error: membershipsError } = await admin
+    .from("org_memberships")
+    .select("user_id")
+    .eq("org_id", orgId);
+
+  if (membershipsError) {
+    console.error(
+      "[Notifications] Failed to load org memberships:",
+      membershipsError.message,
+    );
+    return [];
+  }
+
+  if (!memberships?.length) {
+    return [];
+  }
+
+  const memberUserIds = memberships.map((m) => m.user_id);
   const { data: profiles, error: profilesError } = await admin
     .from("user_profiles")
     .select("id, email")
-    .eq("org_id", orgId);
+    .in("id", memberUserIds);
 
   if (profilesError) {
     console.error(
-      "[Notifications] Failed to load org profiles:",
+      "[Notifications] Failed to load user profiles:",
       profilesError.message,
     );
     return [];

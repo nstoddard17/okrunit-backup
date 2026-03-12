@@ -80,13 +80,19 @@ export async function dispatchNotifications(
   try {
     const orgUsers = await getOrgNotificationSettings(event.orgId);
 
-    if (orgUsers.length === 0) {
+    // If targeted, only notify specific users
+    let recipients = orgUsers;
+    if (event.targetUserIds && event.targetUserIds.length > 0) {
+      recipients = orgUsers.filter(u => event.targetUserIds!.includes(u.userId));
+    }
+
+    if (recipients.length === 0) {
       return;
     }
 
     const promises: Promise<void>[] = [];
 
-    for (const { userId, email, settings } of orgUsers) {
+    for (const { userId, email, settings } of recipients) {
       // Apply defaults when the user has no saved settings row.
       const effective = settings ?? (DEFAULT_SETTINGS as NotificationSettings);
 

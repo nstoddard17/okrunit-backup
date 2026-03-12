@@ -8,10 +8,25 @@
       "Bash(zapier:*)",
       "Bash(npm install:*)",
       "WebFetch(domain:community.zapier.com)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npx zapier push:*)",
+      "Bash(npx zapier validate:*)",
+      "Bash(sips -g all:*)",
+      "Bash(sips:*)",
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)",
+      "Bash(brew install:*)",
+      "Bash(# Find available bold fonts on macOS magick -list font)",
+      "Bash(# Try using font file paths directly on macOS ls /System/Library/Fonts/Supplemental/*Bold*)",
+      "Read(//System/Library/Fonts/**)",
+      "Bash(magick identify:*)",
+      "Bash(zip:*)"
     ],
     "additionalDirectories": [
-      "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants"
+      "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",
+      "/private/tmp",
+      "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/test-webhook"
     ]
   }
 }

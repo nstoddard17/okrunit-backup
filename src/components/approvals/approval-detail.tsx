@@ -24,6 +24,7 @@ interface ApprovalDetailProps {
     comment: string
   ) => void;
   isLoading: boolean;
+  canApprove?: boolean;
 }
 
 const statusConfig: Record<
@@ -43,6 +44,7 @@ export function ApprovalDetail({
   onClose,
   onRespond,
   isLoading,
+  canApprove = true,
 }: ApprovalDetailProps) {
   if (!approval) return null;
 
@@ -97,6 +99,18 @@ export function ApprovalDetail({
                 </p>
               </div>
             )}
+            {approval.assigned_approvers && approval.assigned_approvers.length > 0 && (
+              <div>
+                <p className="text-muted-foreground font-medium">Assigned Approvers</p>
+                <p>{approval.assigned_approvers.length} assigned</p>
+              </div>
+            )}
+            {approval.assigned_team_id && (
+              <div>
+                <p className="text-muted-foreground font-medium">Assigned Team</p>
+                <Badge variant="secondary">Team assigned</Badge>
+              </div>
+            )}
           </div>
 
           {approval.context_html && (
@@ -130,7 +144,7 @@ export function ApprovalDetail({
               </>
             )}
 
-          {approval.status === "pending" && (
+          {approval.status === "pending" && canApprove && (
             <>
               <Separator />
               <ApprovalResponseForm
@@ -139,6 +153,15 @@ export function ApprovalDetail({
                 }
                 isLoading={isLoading}
               />
+            </>
+          )}
+
+          {approval.status === "pending" && !canApprove && (
+            <>
+              <Separator />
+              <p className="text-muted-foreground text-sm">
+                You do not have approval permissions. Contact your admin to get approval access.
+              </p>
             </>
           )}
 

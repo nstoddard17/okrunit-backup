@@ -38,4 +38,6 @@ export interface NotificationEvent {
   decidedBy?: string;
   /** Optional comment left with the decision. */
   decisionComment?: string;
+  /** When set, only notify these specific users instead of all org members. */
+  targetUserIds?: string[];
 }

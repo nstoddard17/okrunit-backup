@@ -25,7 +25,7 @@ const requestApproval = {
         type: "string",
         required: true,
         helpText:
-          "A short description of what you want approved (e.g. 'Send invoice #1234 to client').",
+          "A short description of what you want approved (e.g. 'Send invoice #1234 to client'). Use the + button to insert dynamic data from previous steps.",
       },
       {
         key: "priority",
@@ -47,15 +47,35 @@ const requestApproval = {
         type: "text",
         required: false,
         helpText:
-          "Additional context for the reviewer (optional).",
+          "Additional context for the reviewer (optional). Use the + button to insert dynamic data from previous steps.",
       },
       {
         key: "action_type",
         label: "Action Type",
         type: "string",
         required: false,
+        dynamic: "action_types.id.name",
         helpText:
-          'Category of the action (e.g. "deploy", "send", "delete"). Helps with filtering and rules.',
+          "Category of the action. Options are managed in your Gatekeeper organization settings. You can also type a custom value.",
+      },
+      {
+        key: "assigned_team",
+        label: "Assign to Team",
+        type: "string",
+        required: false,
+        dynamic: "teams.id.name",
+        helpText:
+          "Assign to an entire team. All approvers in the team will be notified. Leave empty to use individual approvers below or your default routing rules.",
+      },
+      {
+        key: "assigned_approvers",
+        label: "Assigned Approvers",
+        type: "string",
+        required: false,
+        dynamic: "team_members.id.name",
+        list: true,
+        helpText:
+          "Select specific team members who must approve. If multiple are selected, ALL must approve. Overrides team assignment if both are set.",
       },
       {
         key: "metadata",
@@ -65,16 +85,28 @@ const requestApproval = {
         helpText:
           'Optional JSON data to attach (e.g. {"order_id": "123"}).',
       },
+      {
+        key: "expires_at",
+        label: "Expires At",
+        type: "datetime",
+        required: false,
+        helpText:
+          "When this request auto-expires if not decided. Leave empty for no expiration.",
+      },
     ],
 
     // -- Step 1: Create the approval and give Gatekeeper the callback URL ---
     perform: async (z, bundle) => {
       const callbackUrl = z.generateCallbackUrl();
 
+      // Auto-generate idempotency key to prevent duplicates
+      const idempotencyKey = `zap-${bundle.meta.zap?.id || "unknown"}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
       const body = {
         title: bundle.inputData.title,
         priority: bundle.inputData.priority || "medium",
         callback_url: callbackUrl,
+        idempotency_key: idempotencyKey,
       };
 
       if (bundle.inputData.description) {
@@ -83,6 +115,22 @@ const requestApproval = {
       if (bundle.inputData.action_type) {
         body.action_type = bundle.inputData.action_type;
       }
+      if (bundle.inputData.expires_at) {
+        body.expires_at = bundle.inputData.expires_at;
+      }
+      if (bundle.inputData.assigned_team) {
+        body.assigned_team_id = bundle.inputData.assigned_team;
+      }
+
+      // Assigned approvers: Zapier sends list fields as arrays
+      if (
+        bundle.inputData.assigned_approvers &&
+        bundle.inputData.assigned_approvers.length > 0
+      ) {
+        body.assigned_approvers = bundle.inputData.assigned_approvers;
+        // required_approvals is derived from the array length server-side
+      }
+
       if (bundle.inputData.metadata) {
         try {
           body.metadata = JSON.parse(bundle.inputData.metadata);
@@ -105,6 +153,7 @@ const requestApproval = {
           priority: body.priority,
           decision: "approved",
           decided_by: "sample-user-id",
+          decided_by_name: "Jane Smith",
           decision_comment: "Looks good!",
           created_at: new Date().toISOString(),
           decided_at: new Date().toISOString(),
@@ -150,6 +199,7 @@ const requestApproval = {
       decision: "approved",
       priority: "high",
       decided_by: "770e8400-e29b-41d4-a716-446655440002",
+      decided_by_name: "Jane Smith",
       decision_comment: "Looks good, ship it!",
       metadata: { environment: "production" },
       created_at: "2026-02-21T10:00:00.000Z",

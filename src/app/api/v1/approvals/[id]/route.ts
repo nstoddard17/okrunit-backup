@@ -119,6 +119,15 @@ export async function PATCH(
       );
     }
 
+    // 1b. Check approval permission
+    if (!auth.membership.can_approve) {
+      throw new ApiError(
+        403,
+        "You do not have approval permissions",
+        "NOT_APPROVER",
+      );
+    }
+
     const actorId = auth.user.id;
 
     // 2. Validate body
@@ -143,6 +152,18 @@ export async function PATCH(
     const expired = await checkAndExpire(admin, approval);
     if (expired) {
       throw new ApiError(409, "Approval has expired", "EXPIRED");
+    }
+
+    // 5b. If assigned_approvers is set, enforce that only listed users can decide
+    const assignedApprovers: string[] | null = approval.assigned_approvers;
+    if (assignedApprovers && assignedApprovers.length > 0) {
+      if (!assignedApprovers.includes(actorId)) {
+        throw new ApiError(
+          403,
+          "You are not an assigned approver for this request",
+          "NOT_ASSIGNED_APPROVER",
+        );
+      }
     }
 
     // 6. Determine if this is a multi-approver workflow

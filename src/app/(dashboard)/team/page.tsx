@@ -30,7 +30,7 @@ export default async function TeamPage() {
   // Fetch org memberships with user profile data
   const { data: memberships } = await admin
     .from("org_memberships")
-    .select("id, user_id, org_id, role, created_at, updated_at")
+    .select("id, user_id, org_id, role, can_approve, created_at, updated_at")
     .eq("org_id", membership.org_id)
     .order("role", { ascending: true })
     .order("created_at", { ascending: true });
@@ -55,6 +55,7 @@ export default async function TeamPage() {
       full_name: profile?.full_name ?? null,
       avatar_url: profile?.avatar_url ?? null,
       role: m.role as "owner" | "admin" | "member",
+      can_approve: m.can_approve ?? false,
       created_at: m.created_at,
       updated_at: m.updated_at,
     };

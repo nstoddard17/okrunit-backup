@@ -14,7 +14,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 const updateRoleSchema = z.object({
   user_id: z.string().uuid("Invalid user ID"),
-  role: z.enum(["admin", "member"]),
+  role: z.enum(["admin", "member"]).optional(),
+  can_approve: z.boolean().optional(),
 });
 
 const removeMemberSchema = z.object({
@@ -27,20 +28,30 @@ export async function GET(request: Request) {
   try {
     const auth = await authenticateRequest(request);
 
-    // Session-only: API keys cannot list team members.
-    if (auth.type !== "session") {
-      throw new ApiError(403, "Only dashboard users can manage team members");
+    // Session or OAuth (Zapier needs this for dynamic dropdowns).
+    // API keys cannot list team members.
+    if (auth.type === "api_key") {
+      throw new ApiError(403, "API key auth not supported for listing team members");
     }
 
     const admin = createAdminClient();
 
+    const { searchParams } = new URL(request.url);
+    const filterApprovers = searchParams.get("can_approve") === "true";
+
     // Fetch memberships for this org, joined with user profiles
-    const { data: memberships, error } = await admin
+    let query = admin
       .from("org_memberships")
-      .select("id, user_id, org_id, role, is_default, created_at, updated_at")
+      .select("id, user_id, org_id, role, can_approve, is_default, created_at, updated_at")
       .eq("org_id", auth.orgId)
       .order("role", { ascending: true })
       .order("created_at", { ascending: true });
+
+    if (filterApprovers) {
+      query = query.eq("can_approve", true);
+    }
+
+    const { data: memberships, error } = await query;
 
     if (error) {
       console.error("[Team] Failed to list members:", error);
@@ -67,6 +78,7 @@ export async function GET(request: Request) {
         full_name: profile?.full_name ?? null,
         avatar_url: profile?.avatar_url ?? null,
         role: m.role,
+        can_approve: m.can_approve,
         created_at: m.created_at,
         updated_at: m.updated_at,
       };
@@ -84,13 +96,13 @@ export async function PATCH(request: Request) {
   try {
     const auth = await authenticateRequest(request);
 
-    // Session-only, owner only.
+    // Session-only, admin or owner.
     if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can manage team members");
     }
 
-    if (auth.membership.role !== "owner") {
-      throw new ApiError(403, "Only owners can change member roles");
+    if (auth.membership.role !== "owner" && auth.membership.role !== "admin") {
+      throw new ApiError(403, "Insufficient permissions");
     }
 
     // Validate request body.
@@ -107,9 +119,9 @@ export async function PATCH(request: Request) {
       throw err;
     }
 
-    // Cannot change own role.
-    if (body.user_id === auth.user.id) {
-      throw new ApiError(400, "You cannot change your own role", "SELF_CHANGE");
+    // Role changes require owner-level permissions.
+    if (body.role && auth.membership.role !== "owner") {
+      throw new ApiError(403, "Only owners can change member roles");
     }
 
     const admin = createAdminClient();
@@ -117,7 +129,7 @@ export async function PATCH(request: Request) {
     // Verify the target user has a membership in this org.
     const { data: targetMembership } = await admin
       .from("org_memberships")
-      .select("id, role")
+      .select("id, role, can_approve")
       .eq("user_id", body.user_id)
       .eq("org_id", auth.orgId)
       .single();
@@ -126,48 +138,75 @@ export async function PATCH(request: Request) {
       throw new ApiError(404, "Member not found");
     }
 
-    // Cannot demote the last owner.
-    if (targetMembership.role === "owner") {
-      const { count } = await admin
-        .from("org_memberships")
-        .select("*", { count: "exact", head: true })
-        .eq("org_id", auth.orgId)
-        .eq("role", "owner");
+    // Role-change specific validation.
+    if (body.role) {
+      // Cannot change own role.
+      if (body.user_id === auth.user.id) {
+        throw new ApiError(400, "You cannot change your own role", "SELF_CHANGE");
+      }
 
-      if ((count ?? 0) <= 1) {
-        throw new ApiError(
-          400,
-          "Cannot demote the last owner",
-          "LAST_OWNER",
-        );
+      // Cannot demote the last owner.
+      if (targetMembership.role === "owner") {
+        const { count } = await admin
+          .from("org_memberships")
+          .select("*", { count: "exact", head: true })
+          .eq("org_id", auth.orgId)
+          .eq("role", "owner");
+
+        if ((count ?? 0) <= 1) {
+          throw new ApiError(
+            400,
+            "Cannot demote the last owner",
+            "LAST_OWNER",
+          );
+        }
       }
     }
 
-    // Update the role on org_memberships.
+    // Build the update payload.
+    const updatePayload: Record<string, unknown> = {};
+    if (body.role) updatePayload.role = body.role;
+    if (body.can_approve !== undefined) updatePayload.can_approve = body.can_approve;
+
+    if (Object.keys(updatePayload).length === 0) {
+      throw new ApiError(400, "Nothing to update");
+    }
+
+    // Apply the update on org_memberships.
     const { error: updateError } = await admin
       .from("org_memberships")
-      .update({ role: body.role })
+      .update(updatePayload)
       .eq("user_id", body.user_id)
       .eq("org_id", auth.orgId);
 
     if (updateError) {
-      console.error("[Team] Failed to update member role:", updateError);
-      throw new ApiError(500, "Failed to update member role");
+      console.error("[Team] Failed to update member:", updateError);
+      throw new ApiError(500, "Failed to update member");
     }
 
-    // Audit the role change.
+    // Audit the change.
     const ipAddress =
       request.headers.get("x-forwarded-for") ??
       request.headers.get("x-real-ip") ??
       "unknown";
 
+    const auditDetails: Record<string, unknown> = {};
+    if (body.role) {
+      auditDetails.old_role = targetMembership.role;
+      auditDetails.new_role = body.role;
+    }
+    if (body.can_approve !== undefined) {
+      auditDetails.old_can_approve = targetMembership.can_approve;
+      auditDetails.new_can_approve = body.can_approve;
+    }
+
     await logAuditEvent({
       orgId: auth.orgId,
       userId: auth.user.id,
-      action: "member.role_changed",
+      action: body.role ? "member.role_changed" : "member.updated",
       resourceType: "org_membership",
       resourceId: body.user_id,
-      details: { old_role: targetMembership.role, new_role: body.role },
+      details: auditDetails,
       ipAddress,
     });
 

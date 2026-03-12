@@ -12,11 +12,13 @@ import type { ApprovalRequest, Connection } from "@/lib/types/database";
 interface ApprovalDashboardProps {
   initialApprovals: ApprovalRequest[];
   connections: Connection[];
+  canApprove?: boolean;
 }
 
 export function ApprovalDashboard({
   initialApprovals,
   connections,
+  canApprove = true,
 }: ApprovalDashboardProps) {
   const [approvals, setApprovals] =
     useState<ApprovalRequest[]>(initialApprovals);
@@ -184,6 +186,7 @@ export function ApprovalDashboard({
         onClose={handleCloseDetail}
         onRespond={handleRespond}
         isLoading={isLoading}
+        canApprove={canApprove}
       />
     </div>
   );

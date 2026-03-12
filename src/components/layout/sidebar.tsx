@@ -15,6 +15,8 @@ import {
   BarChart3,
   FlaskConical,
   Building2,
+  Radio,
+  UsersRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,10 +44,12 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
   { href: "/connections", label: "Connections", icon: Key, adminOnly: true },
   { href: "/team", label: "Team", icon: Users, adminOnly: true },
+  { href: "/teams", label: "Teams", icon: UsersRound, adminOnly: true },
   { href: "/organization", label: "Organization", icon: Building2, adminOnly: true },
   { href: "/rules", label: "Rules", icon: ShieldCheck, adminOnly: false },
   { href: "/audit-log", label: "Audit Log", icon: FileText, adminOnly: false },
   { href: "/webhooks", label: "Webhooks", icon: Webhook, adminOnly: true },
+  { href: "/webhook-tester", label: "Webhook Tester", icon: Radio, adminOnly: true },
   { href: "/analytics", label: "Analytics", icon: BarChart3, adminOnly: false },
   { href: "/playground", label: "Playground", icon: FlaskConical, adminOnly: false },
   { href: "/settings", label: "Settings", icon: Settings, adminOnly: false },

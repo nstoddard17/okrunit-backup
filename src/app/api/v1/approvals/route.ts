@@ -146,7 +146,53 @@ export async function POST(request: Request) {
       metadata: validated.metadata as Record<string, unknown> | undefined,
     });
 
-    // 9. Insert approval request
+    // 9. Determine required_approvals: if assigned_approvers are provided,
+    //    derive the count from the array length (unless explicitly overridden).
+    let assignedApprovers = validated.assigned_approvers ?? null;
+    let requiredApprovals = assignedApprovers
+      ? assignedApprovers.length
+      : (validated.required_approvals ?? 1);
+
+    // 9b. Routing rules fallback: if no approvers were explicitly assigned
+    //     and a "route" rule matched, resolve the route action_config.
+    let assignedTeamId: string | null = validated.assigned_team_id ?? null;
+    if (!assignedApprovers && !assignedTeamId && ruleResult.matched && ruleResult.action === "route" && ruleResult.actionConfig) {
+      const routeConfig = ruleResult.actionConfig as { team_id?: string; user_ids?: string[] };
+      if (routeConfig.team_id) {
+        assignedTeamId = routeConfig.team_id;
+      } else if (routeConfig.user_ids && routeConfig.user_ids.length > 0) {
+        assignedApprovers = routeConfig.user_ids;
+        requiredApprovals = assignedApprovers.length;
+      }
+    }
+
+    // Handle team assignment: resolve team members with can_approve = true
+    if (assignedTeamId && !assignedApprovers) {
+      // Look up team members who can approve
+      const { data: teamMemberships } = await admin
+        .from("team_memberships")
+        .select("user_id")
+        .eq("team_id", assignedTeamId);
+
+      if (teamMemberships && teamMemberships.length > 0) {
+        const teamUserIds = teamMemberships.map(m => m.user_id);
+
+        // Filter to only members with can_approve = true
+        const { data: approverMemberships } = await admin
+          .from("org_memberships")
+          .select("user_id")
+          .eq("org_id", auth.orgId)
+          .eq("can_approve", true)
+          .in("user_id", teamUserIds);
+
+        if (approverMemberships && approverMemberships.length > 0) {
+          assignedApprovers = approverMemberships.map(m => m.user_id);
+          requiredApprovals = assignedApprovers.length;
+        }
+      }
+    }
+
+    // 10. Insert approval request
     const { data: approval, error: insertError } = await admin
       .from("approval_requests")
       .insert({
@@ -163,7 +209,9 @@ export async function POST(request: Request) {
         context_html: validated.context_html ?? null,
         expires_at: validated.expires_at ?? null,
         idempotency_key: validated.idempotency_key ?? null,
-        required_approvals: validated.required_approvals ?? 1,
+        required_approvals: requiredApprovals,
+        assigned_approvers: assignedApprovers,
+        assigned_team_id: assignedTeamId,
         auto_approved: ruleResult.matched && ruleResult.action === "auto_approve",
         decision_source: ruleResult.matched && ruleResult.action === "auto_approve" ? "auto_rule" : null,
         decided_at: ruleResult.matched && ruleResult.action === "auto_approve" ? new Date().toISOString() : null,
@@ -176,7 +224,7 @@ export async function POST(request: Request) {
       throw new ApiError(500, "Failed to create approval request");
     }
 
-    // 10. Audit log
+    // 11. Audit log
     logAuditEvent({
       orgId: auth.orgId,
       connectionId: auth.connection.id,
@@ -193,7 +241,13 @@ export async function POST(request: Request) {
       ipAddress,
     });
 
-    // 11. Dispatch notifications (fire-and-forget)
+    // 12. Dispatch notifications (fire-and-forget)
+    // Determine notification targets
+    let targetUserIds: string[] | undefined;
+    if (assignedApprovers && assignedApprovers.length > 0) {
+      targetUserIds = assignedApprovers;
+    }
+
     dispatchNotifications({
       type: ruleResult.matched && ruleResult.action === "auto_approve"
         ? "approval.approved"
@@ -205,9 +259,10 @@ export async function POST(request: Request) {
       requestPriority: validated.priority,
       connectionId: auth.connection.id,
       connectionName: auth.connection.name,
+      targetUserIds,
     });
 
-    // 12. Return created approval (with rate limit headers)
+    // 13. Return created approval (with rate limit headers)
     const response = NextResponse.json(approval, { status: 201 });
     addRateLimitHeaders(response, rateResult);
     return response;

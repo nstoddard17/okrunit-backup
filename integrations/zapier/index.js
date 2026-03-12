@@ -13,6 +13,9 @@ const addComment = require("./creates/add_comment");
 const getApproval = require("./searches/get_approval");
 const listApprovals = require("./searches/list_approvals");
 const approvalDecided = require("./triggers/approval_decided");
+const actionTypes = require("./triggers/action_types");
+const teamMembers = require("./triggers/team_members");
+const teams = require("./triggers/teams");
 
 module.exports = {
   version: require("./package.json").version,
@@ -25,6 +28,9 @@ module.exports = {
 
   triggers: {
     [approvalDecided.key]: approvalDecided,
+    [actionTypes.key]: actionTypes,
+    [teamMembers.key]: teamMembers,
+    [teams.key]: teams,
   },
 
   creates: {

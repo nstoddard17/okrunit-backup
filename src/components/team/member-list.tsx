@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ interface TeamMember {
   full_name: string | null;
   avatar_url: string | null;
   role: UserRole;
+  can_approve: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -120,6 +122,27 @@ export function MemberList({
     }
   }
 
+  async function handleCanApproveChange(userId: string, canApprove: boolean) {
+    setLoading(userId);
+    try {
+      const res = await fetch("/api/v1/team/members", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, can_approve: canApprove }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to update approval permission");
+      }
+      toast.success(canApprove ? "Approval permission granted" : "Approval permission revoked");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update");
+    } finally {
+      setLoading(null);
+    }
+  }
+
   async function handleRemove() {
     if (!removeTarget) return;
 
@@ -163,6 +186,7 @@ export function MemberList({
               <TableHead>Member</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Can Approve</TableHead>
               {(isOwner || canRemove) && (
                 <TableHead className="w-[100px]">Actions</TableHead>
               )}
@@ -236,6 +260,15 @@ export function MemberList({
                         {roleLabels[member.role]}
                       </Badge>
                     )}
+                  </TableCell>
+
+                  {/* Can Approve */}
+                  <TableCell>
+                    <Switch
+                      checked={member.can_approve}
+                      onCheckedChange={(checked) => handleCanApproveChange(member.id, checked)}
+                      disabled={loading === member.id || isSelf}
+                    />
                   </TableCell>
 
                   {/* Actions */}

@@ -65,12 +65,18 @@ function conditionsSummary(conditions: Record<string, unknown>): string[] {
 
 // ---- Component --------------------------------------------------------------
 
+interface TeamOption {
+  id: string;
+  name: string;
+}
+
 interface RuleListProps {
   initialRules: ApprovalRule[];
   connections: Connection[];
+  teams?: TeamOption[];
 }
 
-export function RuleList({ initialRules, connections }: RuleListProps) {
+export function RuleList({ initialRules, connections, teams = [] }: RuleListProps) {
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<ApprovalRule | null>(null);
@@ -276,6 +282,7 @@ export function RuleList({ initialRules, connections }: RuleListProps) {
       <RuleForm
         open={createOpen}
         connections={connections}
+        teams={teams}
         onClose={() => setCreateOpen(false)}
         onSuccess={() => {
           setCreateOpen(false);
@@ -289,6 +296,7 @@ export function RuleList({ initialRules, connections }: RuleListProps) {
           rule={editingRule}
           open={!!editingRule}
           connections={connections}
+          teams={teams}
           onClose={() => setEditingRule(null)}
           onSuccess={() => {
             setEditingRule(null);

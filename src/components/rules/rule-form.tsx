@@ -39,10 +39,22 @@ const PRIORITY_LABELS: Record<string, string> = {
 
 // ---- Component --------------------------------------------------------------
 
+interface TeamOption {
+  id: string;
+  name: string;
+}
+
+interface MemberOption {
+  id: string;
+  name: string;
+}
+
 interface RuleFormProps {
   /** Pass an existing rule to enter edit mode. */
   rule?: ApprovalRule;
   connections: Connection[];
+  teams?: TeamOption[];
+  approvers?: MemberOption[];
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -51,6 +63,8 @@ interface RuleFormProps {
 export function RuleForm({
   rule,
   connections,
+  teams = [],
+  approvers = [],
   open,
   onClose,
   onSuccess,
@@ -58,8 +72,12 @@ export function RuleForm({
   const router = useRouter();
   const isEdit = !!rule;
 
-  // Parse existing conditions if editing.
+  // Parse existing conditions and action config if editing.
   const existingConditions = (rule?.conditions ?? {}) as Record<
+    string,
+    unknown
+  >;
+  const existingActionConfig = (rule?.action_config ?? {}) as Record<
     string,
     unknown
   >;
@@ -72,6 +90,11 @@ export function RuleForm({
   );
   const [action, setAction] = useState<string>(rule?.action ?? "auto_approve");
   const [isActive, setIsActive] = useState(rule?.is_active ?? true);
+
+  // Route configuration state.
+  const [routeTeamId, setRouteTeamId] = useState<string>(
+    (existingActionConfig.team_id as string) ?? "none",
+  );
 
   // Conditions state.
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>(
@@ -105,6 +128,7 @@ export function RuleForm({
       setSelectedPriorities([]);
       setActionTypes("");
       setTitlePattern("");
+      setRouteTeamId("none");
     }
     setLoading(false);
   }
@@ -145,13 +169,21 @@ export function RuleForm({
       conditions.title_pattern = titlePattern.trim();
     }
 
+    // Build action_config for route rules.
+    const actionConfig: Record<string, unknown> = {};
+    if (action === "route") {
+      if (routeTeamId && routeTeamId !== "none") {
+        actionConfig.team_id = routeTeamId;
+      }
+    }
+
     const payload: Record<string, unknown> = {
       name: trimmedName,
       description: description.trim() || null,
       is_active: isActive,
       conditions,
       action,
-      action_config: {},
+      action_config: actionConfig,
     };
 
     if (connectionId !== "all") {
@@ -288,6 +320,33 @@ export function RuleForm({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Route configuration -- shown when action is "route" */}
+          {action === "route" && (
+            <div className="space-y-2">
+              <Label htmlFor="route-team">Route to Team</Label>
+              <Select
+                value={routeTeamId}
+                onValueChange={setRouteTeamId}
+                disabled={loading}
+              >
+                <SelectTrigger className="w-full" id="route-team">
+                  <SelectValue placeholder="Select a team" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No team selected</SelectItem>
+                  {teams.map((team) => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-muted-foreground text-xs">
+                When this rule matches, the approval will be routed to all approvers in the selected team.
+              </p>
+            </div>
+          )}
 
           {/* Conditions section */}
           <div className="space-y-3">

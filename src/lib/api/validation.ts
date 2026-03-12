@@ -46,6 +46,8 @@ export const createApprovalSchema = z.object({
   expires_at: z.iso.datetime().optional(),
   idempotency_key: z.string().optional(),
   required_approvals: z.int().min(1).max(10).default(1).optional(),
+  assigned_approvers: z.array(z.uuid()).min(1).max(10).optional(),
+  assigned_team_id: z.uuid().optional(),
 });
 
 export type CreateApprovalInput = z.infer<typeof createApprovalSchema>;
@@ -134,3 +136,19 @@ export const createRuleSchema = z.object({
 });
 
 export type CreateRuleInput = z.infer<typeof createRuleSchema>;
+
+// ---- Teams ----------------------------------------------------------------
+
+export const createTeamSchema = z.object({
+  name: z.string().min(1).max(100),
+  description: z.string().max(500).optional(),
+});
+
+export type CreateTeamInput = z.infer<typeof createTeamSchema>;
+
+export const updateTeamSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().max(500).optional(),
+});
+
+export type UpdateTeamInput = z.infer<typeof updateTeamSchema>;

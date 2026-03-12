@@ -145,6 +145,23 @@ export async function GET(
     );
   }
 
+  // 4b. Check approval permission for the user.
+  const { data: membership } = await admin
+    .from("org_memberships")
+    .select("can_approve")
+    .eq("user_id", action.userId)
+    .eq("org_id", approval.org_id)
+    .maybeSingle();
+
+  if (!membership?.can_approve) {
+    return htmlPage(
+      "Permission Denied",
+      "You do not have approval permissions",
+      "Your account does not have permission to approve or reject requests. Please contact your organization admin.",
+      "error",
+    );
+  }
+
   // 5. Apply the decision.
   const newStatus = action.action === "approve" ? "approved" : "rejected";
   const decidedAt = new Date().toISOString();

@@ -20,7 +20,8 @@ const createApproval = {
         label: "Title",
         type: "string",
         required: true,
-        helpText: "Short title for the approval request (max 500 characters).",
+        helpText:
+          "Short title for the approval request (max 500 characters). Use the + button to insert dynamic data from previous steps.",
       },
       {
         key: "priority",
@@ -41,15 +42,36 @@ const createApproval = {
         label: "Description",
         type: "text",
         required: false,
-        helpText: "Detailed description (max 5000 characters).",
+        helpText:
+          "Detailed description (max 5000 characters). Use the + button to insert dynamic data from previous steps.",
       },
       {
         key: "action_type",
         label: "Action Type",
         type: "string",
         required: false,
+        dynamic: "action_types.id.name",
         helpText:
-          'Category of the action (e.g., "deploy", "delete", "transfer").',
+          "Category of the action. Options are managed in your Gatekeeper organization settings. You can also type a custom value.",
+      },
+      {
+        key: "assigned_team",
+        label: "Assign to Team",
+        type: "string",
+        required: false,
+        dynamic: "teams.id.name",
+        helpText:
+          "Assign to an entire team. All approvers in the team will be notified. Leave empty to use individual approvers below or your default routing rules.",
+      },
+      {
+        key: "assigned_approvers",
+        label: "Assigned Approvers",
+        type: "string",
+        required: false,
+        dynamic: "team_members.id.name",
+        list: true,
+        helpText:
+          "Select specific team members who must approve. If multiple are selected, ALL must approve. Overrides team assignment if both are set.",
       },
       {
         key: "callback_url",
@@ -74,27 +96,16 @@ const createApproval = {
         required: false,
         helpText: "When this request auto-expires if not decided.",
       },
-      {
-        key: "idempotency_key",
-        label: "Idempotency Key",
-        type: "string",
-        required: false,
-        helpText: "Unique key to prevent duplicate submissions.",
-      },
-      {
-        key: "required_approvals",
-        label: "Required Approvals",
-        type: "integer",
-        required: false,
-        default: "1",
-        helpText: "Number of approvals needed (1-10).",
-      },
     ],
 
     perform: async (z, bundle) => {
+      // Auto-generate idempotency key to prevent duplicates
+      const idempotencyKey = `zap-${bundle.meta.zap?.id || "unknown"}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
       const body = {
         title: bundle.inputData.title,
         priority: bundle.inputData.priority,
+        idempotency_key: idempotencyKey,
       };
 
       if (bundle.inputData.description)
@@ -105,14 +116,18 @@ const createApproval = {
         body.callback_url = bundle.inputData.callback_url;
       if (bundle.inputData.expires_at)
         body.expires_at = bundle.inputData.expires_at;
-      if (bundle.inputData.idempotency_key)
-        body.idempotency_key = bundle.inputData.idempotency_key;
-      if (bundle.inputData.required_approvals) {
-        body.required_approvals = parseInt(
-          bundle.inputData.required_approvals,
-          10,
-        );
+      if (bundle.inputData.assigned_team)
+        body.assigned_team_id = bundle.inputData.assigned_team;
+
+      // Assigned approvers: Zapier sends list fields as arrays
+      if (
+        bundle.inputData.assigned_approvers &&
+        bundle.inputData.assigned_approvers.length > 0
+      ) {
+        body.assigned_approvers = bundle.inputData.assigned_approvers;
+        // required_approvals is derived from the array length server-side
       }
+
       if (bundle.inputData.metadata) {
         try {
           body.metadata = JSON.parse(bundle.inputData.metadata);
