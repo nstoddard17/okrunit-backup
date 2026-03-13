@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import { SidebarV2 } from "@/components/v2/layout/sidebar-v2";
+import { HeaderV2 } from "@/components/v2/layout/header-v2";
 import { getOrgContext, getUserOrgs } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function DashboardLayout({
+export default async function DashboardV2Layout({
   children,
 }: {
   children: React.ReactNode;
@@ -19,7 +19,6 @@ export default async function DashboardLayout({
     } = await supabase.auth.getUser();
 
     if (user) {
-      // User is authenticated but has no org membership
       redirect("/login?error=no_org");
     }
 
@@ -28,10 +27,8 @@ export default async function DashboardLayout({
 
   const { profile, membership, org } = ctx;
 
-  // Fetch user's org list for the switcher
   const userOrgs = await getUserOrgs(profile.id);
 
-  // Fetch pending approval count for the active org
   const admin = createAdminClient();
   const { count: pendingCount } = await admin
     .from("approval_requests")
@@ -40,10 +37,10 @@ export default async function DashboardLayout({
     .eq("status", "pending");
 
   return (
-    <div className="force-light flex h-screen overflow-hidden bg-white text-zinc-950">
+    <div className="gk-v2 force-light flex h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
       {/* Sidebar: hidden on mobile, visible on md+ */}
       <div className="hidden md:flex">
-        <Sidebar
+        <SidebarV2
           user={{
             id: profile.id,
             email: profile.email,
@@ -60,8 +57,12 @@ export default async function DashboardLayout({
 
       {/* Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header emergencyStopActive={org.emergency_stop_active} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <HeaderV2 emergencyStopActive={org.emergency_stop_active} />
+        <main className="flex-1 overflow-y-auto">
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

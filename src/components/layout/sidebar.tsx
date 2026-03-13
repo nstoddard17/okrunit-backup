@@ -15,8 +15,8 @@ import {
   BarChart3,
   FlaskConical,
   Building2,
-  Radio,
   UsersRound,
+  ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,22 +38,23 @@ interface SidebarProps {
   userOrgs: { id: string; org_id: string; org_name: string; role: string; is_default: boolean }[];
   pendingCount: number;
   userRole: string;
+  isAppAdmin?: boolean;
 }
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
-  { href: "/connections", label: "Connections", icon: Key, adminOnly: true },
-  { href: "/team", label: "Team", icon: Users, adminOnly: true },
-  { href: "/teams", label: "Teams", icon: UsersRound, adminOnly: true },
-  { href: "/organization", label: "Organization", icon: Building2, adminOnly: true },
-  { href: "/rules", label: "Rules", icon: ShieldCheck, adminOnly: false },
-  { href: "/audit-log", label: "Audit Log", icon: FileText, adminOnly: false },
-  { href: "/webhooks", label: "Webhooks", icon: Webhook, adminOnly: true },
-  { href: "/webhook-tester", label: "Webhook Tester", icon: Radio, adminOnly: true },
-  { href: "/analytics", label: "Analytics", icon: BarChart3, adminOnly: false },
-  { href: "/playground", label: "Playground", icon: FlaskConical, adminOnly: false },
-  { href: "/settings", label: "Settings", icon: Settings, adminOnly: false },
-  { href: "/emergency", label: "Emergency", icon: AlertTriangle, adminOnly: true },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: false, appAdminOnly: false },
+  { href: "/connections", label: "Connections", icon: Key, adminOnly: true, appAdminOnly: false },
+  { href: "/team", label: "Team", icon: Users, adminOnly: true, appAdminOnly: false },
+  { href: "/teams", label: "Teams", icon: UsersRound, adminOnly: true, appAdminOnly: false },
+  { href: "/organization", label: "Organization", icon: Building2, adminOnly: true, appAdminOnly: false },
+  { href: "/rules", label: "Rules", icon: ShieldCheck, adminOnly: false, appAdminOnly: false },
+  { href: "/audit-log", label: "Audit Log", icon: FileText, adminOnly: false, appAdminOnly: false },
+  { href: "/webhooks", label: "Webhooks", icon: Webhook, adminOnly: true, appAdminOnly: false },
+  { href: "/analytics", label: "Analytics", icon: BarChart3, adminOnly: false, appAdminOnly: false },
+  { href: "/playground", label: "Playground", icon: FlaskConical, adminOnly: false, appAdminOnly: false },
+  { href: "/settings", label: "Settings", icon: Settings, adminOnly: false, appAdminOnly: false },
+  { href: "/emergency", label: "Emergency", icon: AlertTriangle, adminOnly: true, appAdminOnly: false },
+  { href: "/admin", label: "Admin", icon: ShieldAlert, adminOnly: false, appAdminOnly: true },
 ] as const;
 
 function getInitials(name: string | null, email: string): string {
@@ -68,7 +69,7 @@ function getInitials(name: string | null, email: string): string {
   return email.charAt(0).toUpperCase();
 }
 
-export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole }: SidebarProps) {
+export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, isAppAdmin }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const isAdmin = userRole === "owner" || userRole === "admin";
@@ -93,7 +94,11 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole }
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-4">
         {navItems
-          .filter((item) => !item.adminOnly || isAdmin)
+          .filter((item) => {
+            if (item.appAdminOnly && !isAppAdmin) return false;
+            if (item.adminOnly && !isAdmin) return false;
+            return true;
+          })
           .map((item) => {
           const isActive =
             pathname === item.href ||
