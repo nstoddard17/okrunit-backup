@@ -25,7 +25,7 @@ const requestApproval = {
         type: "string",
         required: false,
         helpText:
-          "A short description of what you want approved (e.g. 'Send invoice #1234 to client'). Leave blank to auto-generate. Use the + button to insert dynamic data from previous steps.",
+          "A short description of what you want approved (e.g. 'Send invoice #1234 to client'). If left blank, you'll need to edit the title in your Gatekeeper dashboard at gkapprove.com. Use the + button to insert dynamic data from previous steps.",
       },
       {
         key: "description",
