@@ -9,7 +9,7 @@ import type { ApprovalRule } from "@/lib/types/database";
 
 export interface RuleEvaluationInput {
   orgId: string;
-  connectionId: string;
+  connectionId?: string;
   actionType?: string;
   priority: string;
   title: string;

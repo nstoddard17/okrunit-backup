@@ -10,7 +10,7 @@ import type { Connection } from "@/lib/types/database";
 
 interface ScopingRequest {
   actionType?: string;
-  priority: string;
+  priority?: string;
   ipAddress?: string;
 }
 

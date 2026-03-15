@@ -13,7 +13,7 @@ import {
 } from "@/lib/api/validation";
 import { logAuditEvent } from "@/lib/api/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { checkRateLimit, addRateLimitHeaders } from "@/lib/api/rate-limiter";
+import { checkRateLimit, addRateLimitHeaders, type RateLimitResult } from "@/lib/api/rate-limiter";
 import { enforceConnectionScoping } from "@/lib/api/connection-scoping";
 import { checkForAnomalies } from "@/lib/api/anomaly-detection";
 import { evaluateRules } from "@/lib/api/rules-engine";
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     const connectionName = auth.type === "api_key" ? auth.connection.name : null;
 
     // 4. Rate limit check (only for API key connections with rate limits)
-    let rateResult: { allowed: boolean } & Record<string, unknown> = { allowed: true };
+    let rateResult: RateLimitResult | null = null;
     if (auth.type === "api_key") {
       rateResult = await checkRateLimit(
         auth.connection.id,
@@ -347,7 +347,7 @@ export async function POST(request: Request) {
 
     // 16. Return created approval (with rate limit headers if applicable)
     const response = NextResponse.json(approval, { status: 201 });
-    if (auth.type === "api_key") {
+    if (rateResult) {
       addRateLimitHeaders(response, rateResult);
     }
     return response;

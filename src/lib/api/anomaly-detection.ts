@@ -12,7 +12,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 interface AnomalyCheckInput {
   orgId: string;
-  connectionId: string;
+  connectionId?: string;
   priority: string;
 }
 
@@ -66,7 +66,7 @@ async function checkCriticalSpike(
   admin: ReturnType<typeof createAdminClient>,
   input: AnomalyCheckInput,
 ): Promise<AnomalyResult> {
-  if (input.priority !== "critical") return { isAnomaly: false };
+  if (input.priority !== "critical" || !input.connectionId) return { isAnomaly: false };
 
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
 
@@ -133,6 +133,8 @@ async function checkRapidFire(
   admin: ReturnType<typeof createAdminClient>,
   input: AnomalyCheckInput,
 ): Promise<AnomalyResult> {
+  if (!input.connectionId) return { isAnomaly: false };
+
   const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString();
 
   const { count } = await admin

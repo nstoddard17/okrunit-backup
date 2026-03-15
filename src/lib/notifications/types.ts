@@ -30,8 +30,8 @@ export interface NotificationEvent {
   requestDescription?: string;
   /** Priority level of the request (low | medium | high | critical). */
   requestPriority: string;
-  /** The connection (integration) that created the request. */
-  connectionId: string;
+  /** The connection (integration) that created the request, if applicable. */
+  connectionId?: string;
   /** Human-readable name of the connection, if available. */
   connectionName?: string;
   /** User ID of whoever made the decision (approve / reject / cancel). */
