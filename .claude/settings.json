@@ -27,7 +27,8 @@
       "WebFetch(domain:cached.google.com)",
       "WebFetch(domain:docs.tesslate.com)",
       "Bash(gh api:*)",
-      "Bash(approval request\" errors for all Zapier requests.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(approval request\" errors for all Zapier requests.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(npx shadcn@latest add:*)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",
