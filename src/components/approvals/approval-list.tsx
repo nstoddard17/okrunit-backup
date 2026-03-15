@@ -39,7 +39,7 @@ export function ApprovalList({
         <ApprovalCard
           key={approval.id}
           approval={approval}
-          connectionName={connectionMap.get(approval.connection_id)}
+          connectionName={approval.connection_id ? connectionMap.get(approval.connection_id) : undefined}
           onClick={() => onSelect(approval)}
         />
       ))}

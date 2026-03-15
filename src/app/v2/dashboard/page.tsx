@@ -45,6 +45,7 @@ export default async function DashboardV2Page() {
         initialApprovals={approvals ?? []}
         connections={connections ?? []}
         canApprove={membership.can_approve ?? true}
+        orgId={membership.org_id}
       />
     </PageContainer>
   );

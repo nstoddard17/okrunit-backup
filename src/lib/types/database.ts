@@ -92,7 +92,9 @@ export interface Connection {
 export interface ApprovalRequest {
   id: string;
   org_id: string;
-  connection_id: string;
+  connection_id: string | null;
+  flow_id: string | null;
+  source: string | null;
   title: string;
   description: string | null;
   action_type: string;
@@ -163,6 +165,7 @@ export interface NotificationSettings {
   quiet_hours_end: string | null;
   quiet_hours_timezone: string | null;
   minimum_priority: ApprovalPriority;
+  skip_approval_confirmation: boolean;
   created_at: string;
   updated_at: string;
 }

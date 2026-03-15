@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ApprovalFiltersV2 } from "@/components/v2/approvals/approval-filters-v2";
 import { ApprovalListV2 } from "@/components/v2/approvals/approval-list-v2";
 import { ApprovalDetailV2 } from "@/components/v2/approvals/approval-detail-v2";
 import { useApprovalFiltersStore } from "@/stores/approval-filters-store";
+import { useRealtime } from "@/hooks/use-realtime";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import type { ApprovalRequest, Connection } from "@/lib/types/database";
@@ -13,12 +14,14 @@ interface ApprovalDashboardV2Props {
   initialApprovals: ApprovalRequest[];
   connections: Connection[];
   canApprove?: boolean;
+  orgId: string;
 }
 
 export function ApprovalDashboardV2({
   initialApprovals,
   connections,
   canApprove = true,
+  orgId,
 }: ApprovalDashboardV2Props) {
   const [approvals, setApprovals] =
     useState<ApprovalRequest[]>(initialApprovals);
@@ -27,9 +30,56 @@ export function ApprovalDashboardV2({
   const [detailOpen, setDetailOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+  const [skipConfirmation, setSkipConfirmation] = useState(false);
 
   const { status, priority, search, setStatus, setPriority, setSearch } =
     useApprovalFiltersStore();
+
+  // Load skip_confirmation preference from notification_settings
+  useEffect(() => {
+    const loadPreference = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("notification_settings")
+        .select("skip_approval_confirmation")
+        .eq("user_id", user.id)
+        .single();
+
+      if (data?.skip_approval_confirmation) {
+        setSkipConfirmation(true);
+      }
+    };
+    loadPreference();
+  }, []);
+
+  // Realtime: listen for new and updated approval requests
+  useRealtime<ApprovalRequest>({
+    table: "approval_requests",
+    filter: `org_id=eq.${orgId}`,
+    onInsert: useCallback((record: ApprovalRequest) => {
+      setApprovals((prev) => {
+        // Don't add duplicates
+        if (prev.some((a) => a.id === record.id)) return prev;
+        return [record, ...prev];
+      });
+      toast.info("New approval request received");
+    }, []),
+    onUpdate: useCallback((record: ApprovalRequest) => {
+      setApprovals((prev) =>
+        prev.map((a) => (a.id === record.id ? record : a))
+      );
+      // Also update selected if it's the same one
+      setSelectedApproval((prev) =>
+        prev?.id === record.id ? record : prev
+      );
+    }, []),
+    onDelete: useCallback((oldRecord: ApprovalRequest) => {
+      setApprovals((prev) => prev.filter((a) => a.id !== oldRecord.id));
+    }, []),
+  });
 
   // Summary stats
   const pendingCount = approvals.filter((a) => a.status === "pending").length;
@@ -95,11 +145,11 @@ export function ApprovalDashboardV2({
     setSelectedApproval(null);
   }, []);
 
-  const handleRespond = useCallback(
+  const submitDecision = useCallback(
     async (
       approvalId: string,
       decision: "approved" | "rejected",
-      comment: string
+      comment?: string,
     ) => {
       setIsLoading(true);
       try {
@@ -107,8 +157,8 @@ export function ApprovalDashboardV2({
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            status: decision,
-            decision_comment: comment || undefined,
+            decision: decision === "approved" ? "approve" : "reject",
+            comment: comment || undefined,
           }),
         });
 
@@ -127,8 +177,8 @@ export function ApprovalDashboardV2({
           )
         );
 
-        setSelectedApproval(
-          updatedApproval.id ? { ...selectedApproval!, ...updatedApproval } : null
+        setSelectedApproval((prev) =>
+          prev?.id === approvalId ? { ...prev, ...updatedApproval } : prev
         );
 
         toast.success(
@@ -146,8 +196,41 @@ export function ApprovalDashboardV2({
         setIsLoading(false);
       }
     },
-    [selectedApproval, handleCloseDetail]
+    [handleCloseDetail]
   );
+
+  const handleRespond = useCallback(
+    async (
+      approvalId: string,
+      decision: "approved" | "rejected",
+      comment: string
+    ) => {
+      await submitDecision(approvalId, decision, comment);
+    },
+    [submitDecision]
+  );
+
+  const handleInlineAction = useCallback(
+    async (approvalId: string, decision: "approved" | "rejected") => {
+      await submitDecision(approvalId, decision);
+    },
+    [submitDecision]
+  );
+
+  const handleSkipConfirmationChange = useCallback(async (skip: boolean) => {
+    setSkipConfirmation(skip);
+    // Persist to database
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await supabase
+      .from("notification_settings")
+      .upsert({
+        user_id: user.id,
+        skip_approval_confirmation: skip,
+      }, { onConflict: "user_id" });
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -189,6 +272,11 @@ export function ApprovalDashboardV2({
           approvals={approvals}
           connections={connections}
           onSelect={handleSelect}
+          canApprove={canApprove}
+          isLoading={isLoading}
+          skipConfirmation={skipConfirmation}
+          onInlineAction={handleInlineAction}
+          onSkipConfirmationChange={handleSkipConfirmationChange}
         />
       </div>
 

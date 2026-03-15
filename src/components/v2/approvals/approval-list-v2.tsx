@@ -9,12 +9,22 @@ interface ApprovalListV2Props {
   approvals: ApprovalRequest[];
   connections: Connection[];
   onSelect: (approval: ApprovalRequest) => void;
+  canApprove?: boolean;
+  isLoading?: boolean;
+  skipConfirmation?: boolean;
+  onInlineAction?: (approvalId: string, decision: "approved" | "rejected") => void;
+  onSkipConfirmationChange?: (skip: boolean) => void;
 }
 
 export function ApprovalListV2({
   approvals,
   connections,
   onSelect,
+  canApprove = true,
+  isLoading = false,
+  skipConfirmation = false,
+  onInlineAction,
+  onSkipConfirmationChange,
 }: ApprovalListV2Props) {
   const connectionMap = new Map(connections.map((c) => [c.id, c.name]));
 
@@ -34,8 +44,13 @@ export function ApprovalListV2({
         <ApprovalCardV2
           key={approval.id}
           approval={approval}
-          connectionName={connectionMap.get(approval.connection_id)}
+          connectionName={approval.connection_id ? connectionMap.get(approval.connection_id) : undefined}
           onClick={() => onSelect(approval)}
+          canApprove={canApprove}
+          isLoading={isLoading}
+          skipConfirmation={skipConfirmation}
+          onInlineAction={onInlineAction}
+          onSkipConfirmationChange={onSkipConfirmationChange}
         />
       ))}
     </div>

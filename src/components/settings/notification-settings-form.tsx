@@ -5,7 +5,7 @@
 // ---------------------------------------------------------------------------
 
 import { useState } from "react";
-import { Bell, Mail, MessageSquare, Clock, Loader2 } from "lucide-react";
+import { Bell, Mail, MessageSquare, Clock, Loader2, ShieldCheck } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import type { NotificationSettings, ApprovalPriority } from "@/lib/types/database";
@@ -66,6 +66,7 @@ const DEFAULT_SETTINGS: Omit<NotificationSettings, "id" | "created_at" | "update
   quiet_hours_end: "08:00",
   quiet_hours_timezone: "UTC",
   minimum_priority: "low",
+  skip_approval_confirmation: false,
 };
 
 // ---------------------------------------------------------------------------
@@ -111,6 +112,9 @@ export function NotificationSettingsForm({
   const [minimumPriority, setMinimumPriority] = useState<ApprovalPriority>(
     initialSettings?.minimum_priority ?? DEFAULT_SETTINGS.minimum_priority
   );
+  const [skipApprovalConfirmation, setSkipApprovalConfirmation] = useState(
+    initialSettings?.skip_approval_confirmation ?? DEFAULT_SETTINGS.skip_approval_confirmation
+  );
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -144,6 +148,7 @@ export function NotificationSettingsForm({
         quiet_hours_end: quietHoursEnabled ? quietHoursEnd : null,
         quiet_hours_timezone: quietHoursEnabled ? quietHoursTimezone : null,
         minimum_priority: minimumPriority,
+        skip_approval_confirmation: skipApprovalConfirmation,
       };
 
       const { error } = await supabase
@@ -390,6 +395,36 @@ export function NotificationSettingsForm({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ---- Approval Behavior ---- */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="size-5" />
+            Approval Behavior
+          </CardTitle>
+          <CardDescription>
+            Customize how approvals work on the dashboard.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="skip-confirmation-toggle" className="text-sm font-medium">
+                Skip confirmation dialog
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Approve or reject requests with a single click, without a confirmation prompt
+              </p>
+            </div>
+            <Switch
+              id="skip-confirmation-toggle"
+              checked={skipApprovalConfirmation}
+              onCheckedChange={setSkipApprovalConfirmation}
+            />
           </div>
         </CardContent>
       </Card>

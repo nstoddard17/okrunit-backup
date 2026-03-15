@@ -284,6 +284,7 @@ export async function POST(request: Request) {
         org_id: auth.orgId,
         connection_id: connectionId,
         flow_id: flowId,
+        source: validated.source ?? null,
         title: validated.title,
         description: validated.description ?? null,
         action_type: effectiveActionType,

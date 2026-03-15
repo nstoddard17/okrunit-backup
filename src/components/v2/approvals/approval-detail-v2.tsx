@@ -72,10 +72,18 @@ export function ApprovalDetailV2({
         <div className="space-y-5 px-4 pb-6">
           {/* Metadata grid */}
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="space-y-1">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Action Type</p>
-              <p className="font-mono text-xs">{approval.action_type}</p>
-            </div>
+            {approval.source && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Source</p>
+                <p className="text-xs capitalize">{approval.source}</p>
+              </div>
+            )}
+            {approval.action_type && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Action Type</p>
+                <p className="font-mono text-xs">{approval.action_type}</p>
+              </div>
+            )}
             <div className="space-y-1">
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Created</p>
               <p className="text-xs">
