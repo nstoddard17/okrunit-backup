@@ -38,7 +38,7 @@ export const createApprovalSchema = z.object({
   title: z.string().min(1).max(500),
   description: z.string().max(5000).optional(),
   action_type: z.string().optional(),
-  priority: priorityEnum,
+  priority: priorityEnum.optional(),
   callback_url: z.url().optional(),
   callback_headers: z.record(z.string(), z.string()).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
@@ -48,6 +48,8 @@ export const createApprovalSchema = z.object({
   required_approvals: z.int().min(1).max(10).default(1).optional(),
   assigned_approvers: z.array(z.uuid()).min(1).max(10).optional(),
   assigned_team_id: z.uuid().optional(),
+  source: z.string().max(50).optional(),
+  source_id: z.string().max(200).optional(),
 });
 
 export type CreateApprovalInput = z.infer<typeof createApprovalSchema>;

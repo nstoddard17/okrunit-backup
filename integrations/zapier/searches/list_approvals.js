@@ -30,43 +30,18 @@ const listApprovals = {
         helpText: "Filter by status. Leave empty for any.",
       },
       {
-        key: "priority",
-        label: "Priority",
-        type: "string",
-        required: false,
-        choices: {
-          low: "Low",
-          medium: "Medium",
-          high: "High",
-          critical: "Critical",
-        },
-        helpText: "Filter by priority. Leave empty for any.",
-      },
-      {
         key: "search",
         label: "Search",
         type: "string",
         required: false,
         helpText: "Full-text search on title and description.",
       },
-      {
-        key: "page_size",
-        label: "Max Results",
-        type: "integer",
-        required: false,
-        default: "20",
-        helpText: "Number of results to return (1-100).",
-      },
     ],
 
     perform: async (z, bundle) => {
       const params = {};
       if (bundle.inputData.status) params.status = bundle.inputData.status;
-      if (bundle.inputData.priority)
-        params.priority = bundle.inputData.priority;
       if (bundle.inputData.search) params.search = bundle.inputData.search;
-      if (bundle.inputData.page_size)
-        params.page_size = bundle.inputData.page_size;
 
       const response = await z.request({
         url: `${GATEKEEPER_URL}/api/v1/approvals`,

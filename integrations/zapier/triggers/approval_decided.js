@@ -17,49 +17,15 @@ const approvalDecided = {
   operation: {
     type: "polling",
 
-    inputFields: [
-      {
-        key: "status_filter",
-        label: "Decision Type",
-        type: "string",
-        choices: {
-          approved: "Approved Only",
-          rejected: "Rejected Only",
-        },
-        required: false,
-        helpText:
-          "Filter to only trigger on specific decision types. Leave empty for any.",
-      },
-      {
-        key: "priority_filter",
-        label: "Priority Filter",
-        type: "string",
-        choices: {
-          low: "Low",
-          medium: "Medium",
-          high: "High",
-          critical: "Critical",
-        },
-        required: false,
-      },
-    ],
+    inputFields: [],
 
     perform: async (z, bundle) => {
-      const statuses = bundle.inputData.status_filter
-        ? [bundle.inputData.status_filter]
-        : ["approved", "rejected"];
-
       const allResults = [];
 
-      for (const status of statuses) {
-        const params = { status, page_size: 50 };
-        if (bundle.inputData.priority_filter) {
-          params.priority = bundle.inputData.priority_filter;
-        }
-
+      for (const status of ["approved", "rejected"]) {
         const response = await z.request({
           url: `${GATEKEEPER_URL}/api/v1/approvals`,
-          params,
+          params: { status, page_size: 50 },
         });
 
         const data = response.json.data || [];

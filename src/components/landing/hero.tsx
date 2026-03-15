@@ -21,8 +21,6 @@ import {
   FlaskConical,
   Clock,
   Search,
-  Pause,
-  CheckCircle,
   OctagonAlert,
   Workflow,
 } from "lucide-react";
@@ -51,70 +49,7 @@ function FadeIn({ children, className = "", delay = 0 }: { children: React.React
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Approval Flow Visual — replaces the API code block                 */
-/* ------------------------------------------------------------------ */
-
-function ApprovalFlowVisual() {
-  return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow-lg)]">
-      {/* Step flow */}
-      <div className="flex flex-col gap-4">
-        {/* Step 1: Trigger */}
-        <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--muted)] p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)]">
-            <Zap className="h-5 w-5" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-[var(--foreground)]">Zapier triggers &quot;Delete user #4821&quot;</p>
-            <p className="text-xs text-[var(--muted-foreground)]">From your automation workflow</p>
-          </div>
-        </div>
-
-        {/* Arrow */}
-        <div className="flex justify-center">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-600">
-            <Pause className="h-4 w-4" />
-          </div>
-        </div>
-
-        {/* Step 2: Approval request */}
-        <div className="rounded-xl border-2 border-amber-300 bg-amber-50/50 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-amber-600" />
-              <span className="text-sm font-semibold text-[var(--foreground)]">Waiting for approval</span>
-            </div>
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">High priority</span>
-          </div>
-          <p className="mt-2 text-xs text-[var(--muted-foreground)]">Permanently remove user and all associated data</p>
-          <div className="mt-3 flex gap-2">
-            <button className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white">Approve</button>
-            <button className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 py-1.5 text-xs font-semibold text-[var(--foreground)]">Reject</button>
-          </div>
-        </div>
-
-        {/* Arrow */}
-        <div className="flex justify-center">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600">
-            <CheckCircle className="h-4 w-4" />
-          </div>
-        </div>
-
-        {/* Step 3: Continues */}
-        <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
-            <ArrowRight className="h-5 w-5" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-[var(--foreground)]">Approved — workflow continues</p>
-            <p className="text-xs text-[var(--muted-foreground)]">Zapier resumes the next step automatically</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+/* (ApprovalFlowVisual removed — MockDashboard is now the hero visual) */
 
 /* ------------------------------------------------------------------ */
 /*  Mock App Dashboard                                                 */
@@ -327,62 +262,53 @@ export function Hero({ user }: HeroProps) {
       </nav>
 
       {/* ── Hero Section ───────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-5 pb-20 pt-20 lg:pt-28 lg:pb-28">
-        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-          {/* Left: copy */}
-          <div>
-            <FadeIn>
-              <p className="mb-4 text-sm font-medium text-[var(--muted-foreground)]">
-                Human-in-the-loop for automations
-              </p>
-            </FadeIn>
+      <section className="mx-auto max-w-6xl px-5 pt-20 lg:pt-28">
+        {/* Centered copy */}
+        <div className="mx-auto max-w-3xl text-center">
+          <FadeIn>
+            <p className="mb-4 text-sm font-medium text-[var(--muted-foreground)]">
+              Human-in-the-loop for automations
+            </p>
+          </FadeIn>
 
-            <FadeIn delay={80}>
-              <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-[var(--foreground)] sm:text-5xl lg:text-[3.25rem]">
-                A safety net for every automation
-              </h1>
-            </FadeIn>
+          <FadeIn delay={80}>
+            <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-[var(--foreground)] sm:text-5xl lg:text-[3.5rem]">
+              A safety net for every automation
+            </h1>
+          </FadeIn>
 
-            <FadeIn delay={160}>
-              <p className="mt-5 max-w-lg text-base leading-relaxed text-[var(--muted-foreground)]">
-                Your Zapier zaps, Make scenarios, and AI agents pause before doing
-                anything dangerous. A human reviews and approves. The workflow
-                continues or stops.
-              </p>
-            </FadeIn>
+          <FadeIn delay={160}>
+            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-[var(--muted-foreground)]">
+              Your Zapier zaps, Make scenarios, and AI agents pause before doing
+              anything dangerous. A human reviews and approves. The workflow
+              continues or stops.
+            </p>
+          </FadeIn>
 
-            <FadeIn delay={240}>
-              <div className="mt-8 flex items-center gap-3">
-                {user ? (
-                  <Link href="/dashboard" className="inline-flex items-center gap-2 rounded-lg bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--primary-foreground)] transition hover:opacity-90">
-                    Go to Dashboard
+          <FadeIn delay={240}>
+            <div className="mt-8 flex items-center justify-center gap-3">
+              {user ? (
+                <Link href="/dashboard" className="inline-flex items-center gap-2 rounded-lg bg-[var(--primary)] px-6 py-3 text-sm font-medium text-[var(--primary-foreground)] transition hover:opacity-90">
+                  Go to Dashboard
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              ) : (
+                <>
+                  <Link href="/signup" className="inline-flex items-center gap-2 rounded-lg bg-[var(--primary)] px-6 py-3 text-sm font-medium text-[var(--primary-foreground)] transition hover:opacity-90">
+                    Start for free
                     <ArrowRight className="h-4 w-4" />
                   </Link>
-                ) : (
-                  <>
-                    <Link href="/signup" className="inline-flex items-center gap-2 rounded-lg bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--primary-foreground)] transition hover:opacity-90">
-                      Start for free
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                    <a href="#how-it-works" className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] px-5 py-2.5 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--muted)]">
-                      See how it works
-                    </a>
-                  </>
-                )}
-              </div>
-            </FadeIn>
-          </div>
-
-          {/* Right: approval flow visual */}
-          <FadeIn delay={300}>
-            <ApprovalFlowVisual />
+                  <a href="#how-it-works" className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--muted)]">
+                    See how it works
+                  </a>
+                </>
+              )}
+            </div>
           </FadeIn>
         </div>
-      </section>
 
-      {/* ── Dashboard Preview ──────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-5 pb-20">
-        <FadeIn>
+        {/* Full-width product screenshot */}
+        <FadeIn delay={350} className="mt-16 pb-20">
           <MockDashboard />
         </FadeIn>
       </section>

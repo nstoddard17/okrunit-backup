@@ -24,20 +24,6 @@ const createApproval = {
           "Short title for the approval request (max 500 characters). Use the + button to insert dynamic data from previous steps.",
       },
       {
-        key: "priority",
-        label: "Priority",
-        type: "string",
-        required: true,
-        choices: {
-          low: "Low",
-          medium: "Medium",
-          high: "High",
-          critical: "Critical",
-        },
-        default: "medium",
-        helpText: "Urgency level of the approval.",
-      },
-      {
         key: "description",
         label: "Description",
         type: "text",
@@ -46,55 +32,12 @@ const createApproval = {
           "Detailed description (max 5000 characters). Use the + button to insert dynamic data from previous steps.",
       },
       {
-        key: "action_type",
-        label: "Action Type",
-        type: "string",
-        required: false,
-        dynamic: "action_types.id.name",
-        helpText:
-          "Category of the action. Options are managed in your Gatekeeper organization settings. You can also type a custom value.",
-      },
-      {
-        key: "assigned_team",
-        label: "Assign to Team",
-        type: "string",
-        required: false,
-        dynamic: "teams.id.name",
-        helpText:
-          "Assign to an entire team. All approvers in the team will be notified. Leave empty to use individual approvers below or your default routing rules.",
-      },
-      {
-        key: "assigned_approvers",
-        label: "Assigned Approvers",
-        type: "string",
-        required: false,
-        dynamic: "team_members.id.name",
-        list: true,
-        helpText:
-          "Select specific team members who must approve. If multiple are selected, ALL must approve. Overrides team assignment if both are set.",
-      },
-      {
-        key: "callback_url",
-        label: "Callback URL",
-        type: "string",
-        required: false,
-        helpText:
-          "URL to POST the decision to when approved/rejected. Use a Zapier Webhook catch URL for powerful flows.",
-      },
-      {
         key: "metadata",
         label: "Metadata (JSON)",
         type: "string",
         required: false,
         helpText:
-          'Arbitrary JSON object for additional context (e.g., {"order_id": "123"}).',
-      },
-      {
-        key: "expires_at",
-        label: "Expires At",
-        type: "datetime",
-        required: false,
-        helpText: "When this request auto-expires if not decided.",
+          'Optional JSON data to attach (e.g. {"order_id": "123"}). Priority, routing, expiration, and approvers are all configured in your Gatekeeper dashboard at gkapprove.com.',
       },
     ],
 
@@ -104,28 +47,13 @@ const createApproval = {
 
       const body = {
         title: bundle.inputData.title,
-        priority: bundle.inputData.priority,
         idempotency_key: idempotencyKey,
+        source: "zapier",
+        source_id: String(bundle.meta.zap?.id || ""),
       };
 
-      if (bundle.inputData.description)
+      if (bundle.inputData.description) {
         body.description = bundle.inputData.description;
-      if (bundle.inputData.action_type)
-        body.action_type = bundle.inputData.action_type;
-      if (bundle.inputData.callback_url)
-        body.callback_url = bundle.inputData.callback_url;
-      if (bundle.inputData.expires_at)
-        body.expires_at = bundle.inputData.expires_at;
-      if (bundle.inputData.assigned_team)
-        body.assigned_team_id = bundle.inputData.assigned_team;
-
-      // Assigned approvers: Zapier sends list fields as arrays
-      if (
-        bundle.inputData.assigned_approvers &&
-        bundle.inputData.assigned_approvers.length > 0
-      ) {
-        body.assigned_approvers = bundle.inputData.assigned_approvers;
-        // required_approvals is derived from the array length server-side
       }
 
       if (bundle.inputData.metadata) {

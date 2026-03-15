@@ -23,14 +23,14 @@ import { dispatchNotifications } from "@/lib/notifications/orchestrator";
 
 export async function POST(request: Request) {
   try {
-    // 1. Authenticate -- must be API key auth
+    // 1. Authenticate -- API key or OAuth (for integrations like Zapier)
     const auth = await authenticateRequest(request);
 
-    if (auth.type !== "api_key") {
+    if (auth.type === "session") {
       throw new ApiError(
         403,
-        "Only API key authentication is allowed for creating approvals",
-        "API_KEY_REQUIRED",
+        "Session authentication is not allowed for creating approvals. Use an API key or OAuth.",
+        "API_KEY_OR_OAUTH_REQUIRED",
       );
     }
 
@@ -55,49 +55,131 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Rate limit check
-    const rateResult = await checkRateLimit(
-      auth.connection.id,
-      auth.connection.rate_limit_per_hour,
-    );
+    // 3. Extract connection info (API key auth has connection; OAuth does not)
+    const connectionId = auth.type === "api_key" ? auth.connection.id : null;
+    const connectionName = auth.type === "api_key" ? auth.connection.name : null;
 
-    if (!rateResult.allowed) {
-      const response = NextResponse.json(
-        { error: "Rate limit exceeded", code: "RATE_LIMIT_EXCEEDED" },
-        { status: 429 },
+    // 4. Rate limit check (only for API key connections with rate limits)
+    let rateResult: { allowed: boolean } & Record<string, unknown> = { allowed: true };
+    if (auth.type === "api_key") {
+      rateResult = await checkRateLimit(
+        auth.connection.id,
+        auth.connection.rate_limit_per_hour,
       );
-      addRateLimitHeaders(response, rateResult);
-      return response;
+
+      if (!rateResult.allowed) {
+        const response = NextResponse.json(
+          { error: "Rate limit exceeded", code: "RATE_LIMIT_EXCEEDED" },
+          { status: 429 },
+        );
+        addRateLimitHeaders(response, rateResult);
+        return response;
+      }
     }
 
-    // 4. Validate request body
+    // 5. Validate request body
     const body = await request.json();
     const validated = createApprovalSchema.parse(body);
 
-    // 5. Connection scoping enforcement
+    // 6. Connection scoping enforcement (API key auth only)
     const ipAddress =
       request.headers.get("x-forwarded-for") ??
       request.headers.get("x-real-ip") ??
       "unknown";
 
-    enforceConnectionScoping(auth.connection, {
-      actionType: validated.action_type,
-      priority: validated.priority,
-      ipAddress,
-    });
+    if (auth.type === "api_key") {
+      enforceConnectionScoping(auth.connection, {
+        actionType: validated.action_type,
+        priority: validated.priority,
+        ipAddress,
+      });
+    }
 
-    // 6. Anomaly detection
+    // 7. Approval flow lookup: if source + source_id provided, find or create
+    //    the matching flow and apply its saved defaults.
+    let flowId: string | null = null;
+    let flowPriority: string | undefined;
+    let flowExpiresAt: string | undefined;
+    let flowRequiredApprovals: number | undefined;
+    let flowActionType: string | undefined;
+    let flowAssignedTeamId: string | undefined;
+    let flowAssignedApprovers: string[] | undefined;
+
+    if (validated.source && validated.source_id) {
+      const { data: existingFlow } = await admin
+        .from("approval_flows")
+        .select("*")
+        .eq("org_id", auth.orgId)
+        .eq("source", validated.source)
+        .eq("source_id", validated.source_id)
+        .maybeSingle();
+
+      if (existingFlow) {
+        flowId = existingFlow.id;
+
+        // Apply configured defaults (only if the flow has been customized)
+        if (existingFlow.is_configured) {
+          flowPriority = existingFlow.default_priority ?? undefined;
+          flowActionType = existingFlow.default_action_type ?? undefined;
+          flowAssignedTeamId = existingFlow.assigned_team_id ?? undefined;
+          flowAssignedApprovers = existingFlow.assigned_approvers ?? undefined;
+          flowRequiredApprovals = existingFlow.default_required_approvals ?? undefined;
+
+          if (existingFlow.default_expiration_hours) {
+            const expiresAt = new Date();
+            expiresAt.setHours(expiresAt.getHours() + existingFlow.default_expiration_hours);
+            flowExpiresAt = expiresAt.toISOString();
+          }
+        }
+
+        // Fire-and-forget: bump request_count and last_request_at
+        admin
+          .from("approval_flows")
+          .update({
+            request_count: existingFlow.request_count + 1,
+            last_request_at: new Date().toISOString(),
+          })
+          .eq("id", existingFlow.id)
+          .then();
+      } else {
+        // Auto-create a new unconfigured flow
+        const { data: newFlow } = await admin
+          .from("approval_flows")
+          .insert({
+            org_id: auth.orgId,
+            source: validated.source,
+            source_id: validated.source_id,
+            name: `${validated.source} flow ${validated.source_id}`,
+            is_configured: false,
+            request_count: 1,
+            last_request_at: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+
+        if (newFlow) {
+          flowId = newFlow.id;
+        }
+      }
+    }
+
+    // 8. Merge flow defaults with request values (request values take precedence)
+    const effectivePriority = validated.priority ?? flowPriority ?? "medium";
+    const effectiveActionType = validated.action_type ?? flowActionType ?? null;
+    const effectiveExpiresAt = validated.expires_at ?? flowExpiresAt ?? null;
+
+    // 9. Anomaly detection
     const anomaly = await checkForAnomalies({
       orgId: auth.orgId,
-      connectionId: auth.connection.id,
-      priority: validated.priority,
+      connectionId: connectionId ?? undefined,
+      priority: effectivePriority,
     });
 
     if (anomaly.isAnomaly) {
       console.warn(`[Approvals] Anomaly detected: ${anomaly.reason}`);
       logAuditEvent({
         orgId: auth.orgId,
-        connectionId: auth.connection.id,
+        connectionId: connectionId ?? undefined,
         action: "anomaly.detected",
         resourceType: "approval_request",
         details: { reason: anomaly.reason, shouldEmergencyStop: anomaly.shouldEmergencyStop },
@@ -105,7 +187,6 @@ export async function POST(request: Request) {
       });
 
       if (anomaly.shouldEmergencyStop) {
-        // Auto-activate emergency stop
         await admin
           .from("organizations")
           .update({
@@ -122,40 +203,44 @@ export async function POST(request: Request) {
       }
     }
 
-    // 7. Idempotency check
+    // 10. Idempotency check
     if (validated.idempotency_key) {
-      const { data: existing } = await admin
+      let idempotencyQuery = admin
         .from("approval_requests")
         .select("*")
-        .eq("connection_id", auth.connection.id)
-        .eq("idempotency_key", validated.idempotency_key)
-        .maybeSingle();
+        .eq("org_id", auth.orgId)
+        .eq("idempotency_key", validated.idempotency_key);
+
+      if (connectionId) {
+        idempotencyQuery = idempotencyQuery.eq("connection_id", connectionId);
+      }
+
+      const { data: existing } = await idempotencyQuery.maybeSingle();
 
       if (existing) {
         return NextResponse.json(existing, { status: 200 });
       }
     }
 
-    // 8. Auto-approve rules check
+    // 11. Auto-approve rules check
     const ruleResult = await evaluateRules({
       orgId: auth.orgId,
-      connectionId: auth.connection.id,
-      actionType: validated.action_type,
-      priority: validated.priority,
+      connectionId: connectionId ?? undefined,
+      actionType: effectiveActionType ?? undefined,
+      priority: effectivePriority,
       title: validated.title,
       metadata: validated.metadata as Record<string, unknown> | undefined,
     });
 
-    // 9. Determine required_approvals: if assigned_approvers are provided,
-    //    derive the count from the array length (unless explicitly overridden).
-    let assignedApprovers = validated.assigned_approvers ?? null;
+    // 12. Determine approvers: flow defaults → request values → rule routing
+    let assignedApprovers: string[] | null = validated.assigned_approvers ?? flowAssignedApprovers ?? null;
     let requiredApprovals = assignedApprovers
       ? assignedApprovers.length
-      : (validated.required_approvals ?? 1);
+      : (validated.required_approvals ?? flowRequiredApprovals ?? 1);
 
-    // 9b. Routing rules fallback: if no approvers were explicitly assigned
-    //     and a "route" rule matched, resolve the route action_config.
-    let assignedTeamId: string | null = validated.assigned_team_id ?? null;
+    let assignedTeamId: string | null = validated.assigned_team_id ?? flowAssignedTeamId ?? null;
+
+    // 12b. Routing rules fallback
     if (!assignedApprovers && !assignedTeamId && ruleResult.matched && ruleResult.action === "route" && ruleResult.actionConfig) {
       const routeConfig = ruleResult.actionConfig as { team_id?: string; user_ids?: string[] };
       if (routeConfig.team_id) {
@@ -168,7 +253,6 @@ export async function POST(request: Request) {
 
     // Handle team assignment: resolve team members with can_approve = true
     if (assignedTeamId && !assignedApprovers) {
-      // Look up team members who can approve
       const { data: teamMemberships } = await admin
         .from("team_memberships")
         .select("user_id")
@@ -177,7 +261,6 @@ export async function POST(request: Request) {
       if (teamMemberships && teamMemberships.length > 0) {
         const teamUserIds = teamMemberships.map(m => m.user_id);
 
-        // Filter to only members with can_approve = true
         const { data: approverMemberships } = await admin
           .from("org_memberships")
           .select("user_id")
@@ -192,29 +275,32 @@ export async function POST(request: Request) {
       }
     }
 
-    // 10. Insert approval request
+    // 13. Insert approval request
+    const isAutoApproved = ruleResult.matched && ruleResult.action === "auto_approve";
+
     const { data: approval, error: insertError } = await admin
       .from("approval_requests")
       .insert({
         org_id: auth.orgId,
-        connection_id: auth.connection.id,
+        connection_id: connectionId,
+        flow_id: flowId,
         title: validated.title,
         description: validated.description ?? null,
-        action_type: validated.action_type ?? null,
-        priority: validated.priority,
-        status: ruleResult.matched && ruleResult.action === "auto_approve" ? "approved" : "pending",
+        action_type: effectiveActionType,
+        priority: effectivePriority,
+        status: isAutoApproved ? "approved" : "pending",
         callback_url: validated.callback_url ?? null,
         callback_headers: validated.callback_headers ?? null,
         metadata: validated.metadata ?? null,
         context_html: validated.context_html ?? null,
-        expires_at: validated.expires_at ?? null,
+        expires_at: effectiveExpiresAt,
         idempotency_key: validated.idempotency_key ?? null,
         required_approvals: requiredApprovals,
         assigned_approvers: assignedApprovers,
         assigned_team_id: assignedTeamId,
-        auto_approved: ruleResult.matched && ruleResult.action === "auto_approve",
-        decision_source: ruleResult.matched && ruleResult.action === "auto_approve" ? "auto_rule" : null,
-        decided_at: ruleResult.matched && ruleResult.action === "auto_approve" ? new Date().toISOString() : null,
+        auto_approved: isAutoApproved,
+        decision_source: isAutoApproved ? "auto_rule" : null,
+        decided_at: isAutoApproved ? new Date().toISOString() : null,
       })
       .select("*")
       .single();
@@ -224,47 +310,46 @@ export async function POST(request: Request) {
       throw new ApiError(500, "Failed to create approval request");
     }
 
-    // 11. Audit log
+    // 14. Audit log
     logAuditEvent({
       orgId: auth.orgId,
-      connectionId: auth.connection.id,
-      action: ruleResult.matched && ruleResult.action === "auto_approve"
-        ? "approval.auto_approved"
-        : "approval.created",
+      connectionId: connectionId ?? undefined,
+      action: isAutoApproved ? "approval.auto_approved" : "approval.created",
       resourceType: "approval_request",
       resourceId: approval.id,
       details: {
         title: validated.title,
-        priority: validated.priority,
+        priority: effectivePriority,
+        ...(flowId ? { flow_id: flowId } : {}),
+        ...(validated.source ? { source: validated.source } : {}),
         ...(ruleResult.rule ? { rule_id: ruleResult.rule.id, rule_name: ruleResult.rule.name } : {}),
       },
       ipAddress,
     });
 
-    // 12. Dispatch notifications (fire-and-forget)
-    // Determine notification targets
+    // 15. Dispatch notifications (fire-and-forget)
     let targetUserIds: string[] | undefined;
     if (assignedApprovers && assignedApprovers.length > 0) {
       targetUserIds = assignedApprovers;
     }
 
     dispatchNotifications({
-      type: ruleResult.matched && ruleResult.action === "auto_approve"
-        ? "approval.approved"
-        : "approval.created",
+      type: isAutoApproved ? "approval.approved" : "approval.created",
       orgId: auth.orgId,
       requestId: approval.id,
       requestTitle: validated.title,
       requestDescription: validated.description,
-      requestPriority: validated.priority,
-      connectionId: auth.connection.id,
-      connectionName: auth.connection.name,
+      requestPriority: effectivePriority,
+      connectionId: connectionId ?? undefined,
+      connectionName: connectionName ?? undefined,
       targetUserIds,
     });
 
-    // 13. Return created approval (with rate limit headers)
+    // 16. Return created approval (with rate limit headers if applicable)
     const response = NextResponse.json(approval, { status: 201 });
-    addRateLimitHeaders(response, rateResult);
+    if (auth.type === "api_key") {
+      addRateLimitHeaders(response, rateResult);
+    }
     return response;
   } catch (error) {
     if (error instanceof z.ZodError) {

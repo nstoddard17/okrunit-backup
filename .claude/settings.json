@@ -31,7 +31,8 @@
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",
       "/private/tmp",
-      "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/test-webhook"
+      "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/test-webhook",
+      "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/flows"
     ]
   }
 }
