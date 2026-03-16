@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { formatDistanceToNow } from "date-fns";
-import { Clock, CheckCircle, XCircle, Zap, Globe } from "lucide-react";
+import { Clock, CheckCircle, XCircle, Zap, Globe, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ApprovalRequest } from "@/lib/types/database";
 
@@ -65,6 +65,22 @@ const sourceConfig: Record<string, { label: string; icon: typeof Zap }> = {
   api: { label: "API", icon: Globe },
 };
 
+function getSourceDisplay(approval: ApprovalRequest, connectionName?: string) {
+  // Explicit source field
+  if (approval.source && sourceConfig[approval.source]) {
+    return sourceConfig[approval.source];
+  }
+  // Has a connection — came via API key
+  if (connectionName) {
+    return { label: connectionName, icon: Link2 };
+  }
+  if (approval.connection_id) {
+    return { label: "API Connection", icon: Link2 };
+  }
+  // No source and no connection — likely OAuth (Zapier/integration)
+  return { label: "Integration", icon: Globe };
+}
+
 export function ApprovalCardV2({
   approval,
   connectionName,
@@ -85,9 +101,8 @@ export function ApprovalCardV2({
   const borderColor = statusBorderColors[approval.status] ?? "border-l-zinc-300";
   const glowColor = statusGlowColors[approval.status] ?? "card-interactive";
 
-  // Determine source
-  const sourceInfo = approval.source ? sourceConfig[approval.source] : null;
-  const SourceIcon = sourceInfo?.icon ?? Globe;
+  const sourceDisplay = getSourceDisplay(approval, connectionName);
+  const SourceIcon = sourceDisplay.icon;
 
   const isPending = approval.status === "pending";
 
@@ -126,72 +141,78 @@ export function ApprovalCardV2({
       >
         <CardHeader className="pb-0 pt-4 px-4">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="line-clamp-1 text-sm font-medium">
-              {approval.title}
-            </CardTitle>
+            <div className="min-w-0 flex-1">
+              <CardTitle className="line-clamp-1 text-sm font-medium">
+                {approval.title}
+              </CardTitle>
+              {approval.description && (
+                <p className="text-muted-foreground line-clamp-1 text-xs leading-relaxed mt-0.5">
+                  {approval.description}
+                </p>
+              )}
+            </div>
             <div className="flex shrink-0 items-center gap-1.5">
               <PriorityBadge priority={approval.priority} />
               <Badge variant={status.variant} className="text-[11px]">{status.label}</Badge>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="px-4 pb-4 pt-2">
-          <div className="flex flex-col gap-2">
-            {approval.description && (
-              <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
-                {approval.description}
-              </p>
-            )}
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-muted-foreground flex items-center gap-3 text-[11px]">
-                {approval.action_type && (
+        <CardContent className="px-4 pb-3 pt-2">
+          <div className="flex items-center justify-between gap-3">
+            {/* Info row */}
+            <div className="text-muted-foreground flex items-center gap-2.5 text-[11px]">
+              <span className="flex items-center gap-1">
+                <SourceIcon className="size-3" />
+                {sourceDisplay.label}
+              </span>
+              {approval.action_type && (
+                <>
+                  <span className="text-muted-foreground/40">|</span>
                   <span className="rounded bg-muted/60 px-1.5 py-0.5 font-mono text-[10px]">
                     {approval.action_type}
                   </span>
-                )}
-                {sourceInfo && (
-                  <span className="flex items-center gap-1">
-                    <SourceIcon className="size-3" />
-                    {sourceInfo.label}
-                  </span>
-                )}
-                {connectionName && (
-                  <span className="truncate">{connectionName}</span>
-                )}
-                <span className="flex items-center gap-1">
-                  <Clock className="size-3" />
-                  {formatDistanceToNow(new Date(approval.created_at), {
-                    addSuffix: true,
-                  })}
-                </span>
-              </div>
-
-              {/* Inline approve/reject buttons */}
-              {isPending && canApprove && onInlineAction && (
-                <div className="flex shrink-0 items-center gap-1.5">
-                  <Button
-                    size="sm"
-                    variant="success"
-                    className="h-7 gap-1 px-2.5 text-xs"
-                    disabled={isLoading}
-                    onClick={(e) => handleInlineClick(e, "approved")}
-                  >
-                    <CheckCircle className="size-3.5" />
-                    Approve
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="h-7 gap-1 px-2.5 text-xs"
-                    disabled={isLoading}
-                    onClick={(e) => handleInlineClick(e, "rejected")}
-                  >
-                    <XCircle className="size-3.5" />
-                    Reject
-                  </Button>
-                </div>
+                </>
               )}
+              {approval.source && connectionName && (
+                <>
+                  <span className="text-muted-foreground/40">|</span>
+                  <span className="truncate">{connectionName}</span>
+                </>
+              )}
+              <span className="text-muted-foreground/40">|</span>
+              <span className="flex items-center gap-1">
+                <Clock className="size-3" />
+                {formatDistanceToNow(new Date(approval.created_at), {
+                  addSuffix: true,
+                })}
+              </span>
             </div>
+
+            {/* Inline approve/reject buttons */}
+            {isPending && canApprove && onInlineAction && (
+              <div className="flex shrink-0 items-center gap-1.5">
+                <Button
+                  size="sm"
+                  variant="success"
+                  className="h-7 gap-1 px-2.5 text-xs"
+                  disabled={isLoading}
+                  onClick={(e) => handleInlineClick(e, "approved")}
+                >
+                  <CheckCircle className="size-3.5" />
+                  Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="h-7 gap-1 px-2.5 text-xs"
+                  disabled={isLoading}
+                  onClick={(e) => handleInlineClick(e, "rejected")}
+                >
+                  <XCircle className="size-3.5" />
+                  Reject
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
