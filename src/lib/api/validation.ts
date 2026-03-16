@@ -50,6 +50,7 @@ export const createApprovalSchema = z.object({
   assigned_team_id: z.uuid().optional(),
   source: z.string().max(50).optional(),
   source_id: z.string().max(200).optional(),
+  is_sequential: z.boolean().optional(),
 });
 
 export type CreateApprovalInput = z.infer<typeof createApprovalSchema>;

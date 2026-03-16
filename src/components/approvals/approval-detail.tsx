@@ -14,7 +14,8 @@ import { ApprovalResponseForm } from "@/components/approvals/approval-response-f
 import { formatDistanceToNow, format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { SourceBadge } from "@/components/approvals/source-icons";
-import type { ApprovalRequest } from "@/lib/types/database";
+import { Users, UserCheck, CheckCircle, Circle, ArrowRight, Shield } from "lucide-react";
+import type { ApprovalRequest, UserProfile, CreatedByInfo } from "@/lib/types/database";
 
 interface ApprovalDetailProps {
   approval: ApprovalRequest | null;
@@ -27,6 +28,7 @@ interface ApprovalDetailProps {
   ) => void;
   isLoading: boolean;
   canApprove?: boolean;
+  userProfiles?: Map<string, UserProfile>;
 }
 
 const statusConfig: Record<
@@ -40,6 +42,19 @@ const statusConfig: Record<
   expired: { label: "Expired", variant: "secondary" },
 };
 
+function getUserDisplayName(userId: string, profiles?: Map<string, UserProfile>): string {
+  const profile = profiles?.get(userId);
+  if (profile?.full_name) return profile.full_name;
+  if (profile?.email) return profile.email;
+  return userId.slice(0, 8) + "...";
+}
+
+function getCreatedByDisplay(createdBy: CreatedByInfo): string {
+  if (createdBy.connection_name) return createdBy.connection_name;
+  if (createdBy.client_name) return createdBy.client_name;
+  return createdBy.type === "api_key" ? "API Key" : "OAuth Client";
+}
+
 export function ApprovalDetail({
   approval,
   open,
@@ -47,6 +62,7 @@ export function ApprovalDetail({
   onRespond,
   isLoading,
   canApprove = true,
+  userProfiles,
 }: ApprovalDetailProps) {
   if (!approval) return null;
 
@@ -58,11 +74,7 @@ export function ApprovalDetail({
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader className="space-y-3">
-          <div className="flex items-center gap-2">
-            <PriorityBadge priority={approval.priority} />
-            <Badge variant={status.variant}>{status.label}</Badge>
-          </div>
+        <SheetHeader className="space-y-2">
           <SheetTitle className="text-lg">{approval.title}</SheetTitle>
           {approval.description && (
             <SheetDescription className="text-sm leading-relaxed">
@@ -74,6 +86,14 @@ export function ApprovalDetail({
         <div className="space-y-5 px-4 pb-6">
           {/* Metadata grid */}
           <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="space-y-1">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Status</p>
+              <Badge variant={status.variant}>{status.label}</Badge>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Priority</p>
+              <PriorityBadge priority={approval.priority} />
+            </div>
             <div className="space-y-1">
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Source</p>
               <SourceBadge approval={approval} className="text-xs" />
@@ -102,18 +122,24 @@ export function ApprovalDetail({
                 </p>
               </div>
             )}
-            {approval.required_approvals > 1 && (
+            {approval.created_by && (
               <div className="space-y-1">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Approvals</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Created By</p>
                 <p className="text-xs">
-                  {approval.current_approvals} / {approval.required_approvals}
+                  {getCreatedByDisplay(approval.created_by as CreatedByInfo)}
                 </p>
               </div>
             )}
-            {approval.assigned_approvers && approval.assigned_approvers.length > 0 && (
+            {approval.decided_by && (
               <div className="space-y-1">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Assigned Approvers</p>
-                <p className="text-xs">{approval.assigned_approvers.length} assigned</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Decided By</p>
+                <p className="text-xs">{getUserDisplayName(approval.decided_by, userProfiles)}</p>
+              </div>
+            )}
+            {approval.required_role && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Required Role</p>
+                <Badge variant="secondary" className="text-[11px] capitalize">{approval.required_role}+</Badge>
               </div>
             )}
             {approval.assigned_team_id && (
@@ -123,6 +149,90 @@ export function ApprovalDetail({
               </div>
             )}
           </div>
+
+          {/* Approval progress — multi-approval or sequential requests */}
+          {(approval.required_approvals > 1 || (approval.is_sequential && approval.assigned_approvers && approval.assigned_approvers.length > 0)) && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Users className="size-3.5 text-muted-foreground" />
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    {approval.is_sequential ? "Approval Chain" : "Approval Progress"}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span>{approval.current_approvals} of {approval.required_approvals} approvals</span>
+                    <span className="text-muted-foreground">
+                      {Math.round((approval.current_approvals / approval.required_approvals) * 100)}%
+                    </span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-emerald-500 transition-all"
+                      style={{ width: `${(approval.current_approvals / approval.required_approvals) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                {approval.assigned_approvers && approval.assigned_approvers.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      {approval.is_sequential ? "Sequential approval order:" : "Assigned approvers:"}
+                    </p>
+                    <div className="space-y-1.5">
+                      {approval.assigned_approvers.map((userId, index) => {
+                        const isCompleted = index < approval.current_approvals;
+                        const isNext = index === approval.current_approvals && approval.status === "pending";
+                        return (
+                          <div key={userId} className="flex items-center gap-2">
+                            {approval.is_sequential ? (
+                              isCompleted ? (
+                                <CheckCircle className="size-3 text-emerald-500" />
+                              ) : isNext ? (
+                                <ArrowRight className="size-3 text-blue-500" />
+                              ) : (
+                                <Circle className="size-3 text-muted-foreground/40" />
+                              )
+                            ) : (
+                              <UserCheck className="size-3 text-muted-foreground" />
+                            )}
+                            <span className={cn("text-xs", isNext && "font-medium")}>
+                              {getUserDisplayName(userId, userProfiles)}
+                              {approval.is_sequential && isNext && " (next)"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Assigned approvers — single-approval, non-sequential requests */}
+          {approval.required_approvals <= 1 && !approval.is_sequential && approval.assigned_approvers && approval.assigned_approvers.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Users className="size-3.5 text-muted-foreground" />
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Assigned Approvers
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  {approval.assigned_approvers.map((userId) => (
+                    <div key={userId} className="flex items-center gap-2">
+                      <UserCheck className="size-3 text-muted-foreground" />
+                      <span className="text-xs">{getUserDisplayName(userId, userProfiles)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
 
           {approval.context_html && (
             <>
@@ -234,6 +344,11 @@ export function ApprovalDetail({
                     <p className="text-sm font-medium capitalize">{approval.status}</p>
                     <p className="text-xs text-muted-foreground">
                       {format(new Date(approval.decided_at), "PPp")}
+                      {approval.decided_by && (
+                        <span className="ml-1">
+                          by {getUserDisplayName(approval.decided_by, userProfiles)}
+                        </span>
+                      )}
                       {approval.decision_source && (
                         <span className="ml-1">via {approval.decision_source}</span>
                       )}

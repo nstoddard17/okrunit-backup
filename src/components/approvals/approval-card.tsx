@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { PriorityBadge } from "@/components/approvals/priority-badge";
 import {
   AlertDialog,
@@ -29,7 +30,7 @@ interface ApprovalCardProps {
   canApprove?: boolean;
   isLoading?: boolean;
   skipConfirmation?: boolean;
-  onInlineAction?: (approvalId: string, decision: "approved" | "rejected") => void;
+  onInlineAction?: (approvalId: string, decision: "approved" | "rejected", comment?: string) => void;
   onSkipConfirmationChange?: (skip: boolean) => void;
   isNew?: boolean;
 }
@@ -72,6 +73,7 @@ export function ApprovalCard({
 }: ApprovalCardProps) {
   const [confirmDialog, setConfirmDialog] = useState<"approved" | "rejected" | null>(null);
   const [dontAskAgain, setDontAskAgain] = useState(false);
+  const [comment, setComment] = useState("");
 
   const status = statusConfig[approval.status] ?? {
     label: approval.status,
@@ -99,9 +101,10 @@ export function ApprovalCard({
       if (dontAskAgain) {
         onSkipConfirmationChange?.(true);
       }
-      onInlineAction?.(approval.id, confirmDialog);
+      onInlineAction?.(approval.id, confirmDialog, comment || undefined);
       setConfirmDialog(null);
       setDontAskAgain(false);
+      setComment("");
     }
   };
 
@@ -212,7 +215,7 @@ export function ApprovalCard({
       </Card>
 
       {/* Confirmation dialog */}
-      <AlertDialog open={confirmDialog !== null} onOpenChange={(open) => !open && setConfirmDialog(null)}>
+      <AlertDialog open={confirmDialog !== null} onOpenChange={(open) => { if (!open) { setConfirmDialog(null); setComment(""); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -223,7 +226,18 @@ export function ApprovalCard({
               &quot;{approval.title}&quot;. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="flex items-center space-x-2 py-2">
+          <Textarea
+            placeholder={
+              confirmDialog === "rejected"
+                ? "Why is this request being rejected?"
+                : "Add a comment (optional)..."
+            }
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            rows={2}
+            className="resize-none"
+          />
+          <div className="flex items-center space-x-2">
             <Checkbox
               id={`dont-ask-${approval.id}`}
               checked={dontAskAgain}

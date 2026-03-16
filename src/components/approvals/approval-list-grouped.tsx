@@ -12,7 +12,7 @@ interface ApprovalListGroupedProps {
   canApprove?: boolean;
   isLoading?: boolean;
   skipConfirmation?: boolean;
-  onInlineAction?: (approvalId: string, decision: "approved" | "rejected") => void;
+  onInlineAction?: (approvalId: string, decision: "approved" | "rejected", comment?: string) => void;
   onSkipConfirmationChange?: (skip: boolean) => void;
   newIds?: Set<string>;
 }

@@ -17,15 +17,50 @@ const approvalDecided = {
   operation: {
     type: "polling",
 
-    inputFields: [],
+    inputFields: [
+      {
+        key: "status_filter",
+        label: "Decision",
+        type: "string",
+        required: false,
+        choices: {
+          approved: "Approved",
+          rejected: "Rejected",
+        },
+        helpText: "Only trigger for this decision type. Leave empty for both.",
+      },
+      {
+        key: "priority_filter",
+        label: "Priority",
+        type: "string",
+        required: false,
+        choices: {
+          low: "Low",
+          medium: "Medium",
+          high: "High",
+          critical: "Critical",
+        },
+        helpText: "Only trigger for approvals with this priority. Leave empty for all.",
+      },
+    ],
 
     perform: async (z, bundle) => {
+      const statuses =
+        bundle.inputData.status_filter
+          ? [bundle.inputData.status_filter]
+          : ["approved", "rejected"];
+
       const allResults = [];
 
-      for (const status of ["approved", "rejected"]) {
+      for (const status of statuses) {
+        const params = { status, page_size: 50 };
+        if (bundle.inputData.priority_filter) {
+          params.priority = bundle.inputData.priority_filter;
+        }
+
         const response = await z.request({
           url: `${GATEKEEPER_URL}/api/v1/approvals`,
-          params: { status, page_size: 50 },
+          params,
         });
 
         const data = response.json.data || [];
@@ -54,6 +89,18 @@ const approvalDecided = {
       created_at: "2026-02-21T10:00:00.000Z",
       updated_at: "2026-02-21T10:30:00.000Z",
     },
+
+    outputFields: [
+      { key: "id", label: "Approval ID" },
+      { key: "title", label: "Title" },
+      { key: "description", label: "Description" },
+      { key: "status", label: "Decision" },
+      { key: "priority", label: "Priority" },
+      { key: "decided_by", label: "Decided By (User ID)" },
+      { key: "decided_at", label: "Decided At", type: "datetime" },
+      { key: "decision_comment", label: "Comment" },
+      { key: "created_at", label: "Created At", type: "datetime" },
+    ],
   },
 };
 

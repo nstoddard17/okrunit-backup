@@ -122,7 +122,7 @@ export async function dispatchNotifications(
 
       // -- Email --------------------------------------------------------------
       if (effective.email_enabled) {
-        if (event.type === "approval.created") {
+        if (event.type === "approval.created" || event.type === "approval.next_approver") {
           // Generate one-click approve/reject tokens, then send the email.
           const emailPromise = generateActionTokens(
             event.requestId,
@@ -169,7 +169,7 @@ export async function dispatchNotifications(
 
       // -- Slack --------------------------------------------------------------
       if (effective.slack_enabled && effective.slack_webhook_url) {
-        if (event.type === "approval.created") {
+        if (event.type === "approval.created" || event.type === "approval.next_approver") {
           promises.push(
             sendSlackNotification({
               webhookUrl: effective.slack_webhook_url,
@@ -225,6 +225,7 @@ const TITLE_MAP: Record<NotificationEventType, string> = {
   "approval.cancelled": "Request Cancelled",
   "approval.expired": "Request Expired",
   "approval.comment": "New Comment",
+  "approval.next_approver": "Your Approval Needed",
 };
 
 /**
@@ -251,6 +252,8 @@ function getNotificationBody(event: NotificationEvent): string {
       return `"${event.requestTitle}" has expired.`;
     case "approval.comment":
       return `New comment on "${event.requestTitle}".`;
+    case "approval.next_approver":
+      return `Your approval is now needed for "${event.requestTitle}".`;
     default:
       return event.requestTitle;
   }

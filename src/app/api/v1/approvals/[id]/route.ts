@@ -166,6 +166,41 @@ export async function PATCH(
       }
     }
 
+    // 5c. If required_role is set, enforce role hierarchy
+    const requiredRole: string | null = approval.required_role;
+    if (requiredRole) {
+      const roleLevel: Record<string, number> = { member: 0, admin: 1, owner: 2 };
+      const userRoleLevel = roleLevel[auth.membership.role] ?? 0;
+      const requiredRoleLevel = roleLevel[requiredRole] ?? 0;
+
+      if (userRoleLevel < requiredRoleLevel) {
+        throw new ApiError(
+          403,
+          `This request requires approval from someone with the "${requiredRole}" role or higher`,
+          "INSUFFICIENT_ROLE",
+        );
+      }
+    }
+
+    // 5d. If sequential, only the next-in-line approver can vote
+    if (approval.is_sequential && assignedApprovers && assignedApprovers.length > 0) {
+      const { data: priorVotes } = await admin
+        .from("approval_votes")
+        .select("user_id")
+        .eq("request_id", id);
+
+      const votedUserIds = new Set((priorVotes ?? []).map((v: { user_id: string }) => v.user_id));
+      const nextApprover = assignedApprovers.find((uid: string) => !votedUserIds.has(uid));
+
+      if (nextApprover && nextApprover !== actorId) {
+        throw new ApiError(
+          403,
+          "It is not your turn to approve this request yet",
+          "NOT_YOUR_TURN",
+        );
+      }
+    }
+
     // 6. Determine if this is a multi-approver workflow
     const isMultiApprover = approval.required_approvals > 1;
 
@@ -320,6 +355,30 @@ export async function PATCH(
           decidedBy: actorId,
           decisionComment: validated.comment,
         });
+      }
+
+      // 6f. Sequential chain: notify next approver if vote didn't finalize
+      if (updated.status === "pending" && approval.is_sequential && assignedApprovers) {
+        // Collect all user IDs that have voted (including current actor)
+        const { data: allVotes } = await admin
+          .from("approval_votes")
+          .select("user_id")
+          .eq("request_id", id);
+
+        const votedSet = new Set((allVotes ?? []).map((v: { user_id: string }) => v.user_id));
+        const nextApprover = assignedApprovers.find((uid: string) => !votedSet.has(uid));
+
+        if (nextApprover) {
+          dispatchNotifications({
+            type: "approval.next_approver",
+            orgId: auth.orgId,
+            requestId: id,
+            requestTitle: updated.title,
+            requestPriority: updated.priority,
+            connectionId: approval.connection_id ?? undefined,
+            targetUserIds: [nextApprover],
+          });
+        }
       }
 
       return NextResponse.json(updated);

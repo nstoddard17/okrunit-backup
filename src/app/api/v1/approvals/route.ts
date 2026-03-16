@@ -19,6 +19,18 @@ import { checkForAnomalies } from "@/lib/api/anomaly-detection";
 import { evaluateRules } from "@/lib/api/rules-engine";
 import { dispatchNotifications } from "@/lib/notifications/orchestrator";
 
+// ---- Helpers ---------------------------------------------------------------
+
+/** Return all roles that satisfy a minimum role requirement. */
+function getRoleHierarchy(minRole: string): string[] {
+  switch (minRole) {
+    case "member": return ["member", "admin", "owner"];
+    case "admin": return ["admin", "owner"];
+    case "owner": return ["owner"];
+    default: return [minRole];
+  }
+}
+
 // ---- POST /api/v1/approvals -----------------------------------------------
 
 export async function POST(request: Request) {
@@ -83,20 +95,39 @@ export async function POST(request: Request) {
 
     // 5b. Auto-detect source from OAuth client name when not explicitly provided
     let autoDetectedSource: string | null = null;
-    if (auth.type === "oauth" && !validated.source) {
+    let oauthClientName: string | null = null;
+    if (auth.type === "oauth") {
       const { data: oauthClient } = await admin
         .from("oauth_clients")
         .select("name")
         .eq("client_id", auth.clientId)
         .single();
 
-      if (oauthClient?.name) {
-        const clientNameLower = oauthClient.name.toLowerCase();
+      oauthClientName = oauthClient?.name ?? null;
+
+      if (oauthClientName && !validated.source) {
+        const clientNameLower = oauthClientName.toLowerCase();
         if (clientNameLower.includes("zapier")) autoDetectedSource = "zapier";
         else if (clientNameLower.includes("make")) autoDetectedSource = "make";
         else if (clientNameLower.includes("n8n")) autoDetectedSource = "n8n";
         else if (clientNameLower.includes("windmill")) autoDetectedSource = "windmill";
       }
+    }
+
+    // 5c. Build created_by info
+    let createdBy: Record<string, unknown> | null = null;
+    if (auth.type === "api_key") {
+      createdBy = {
+        type: "api_key",
+        connection_id: auth.connection.id,
+        connection_name: auth.connection.name,
+      };
+    } else if (auth.type === "oauth") {
+      createdBy = {
+        type: "oauth",
+        client_id: auth.clientId,
+        client_name: oauthClientName,
+      };
     }
 
     // 6. Connection scoping enforcement (API key auth only)
@@ -122,6 +153,9 @@ export async function POST(request: Request) {
     let flowActionType: string | undefined;
     let flowAssignedTeamId: string | undefined;
     let flowAssignedApprovers: string[] | undefined;
+    let flowApproverMode: string | undefined;
+    let flowRequiredRole: string | undefined;
+    let flowIsSequential: boolean | undefined;
 
     if (validated.source && validated.source_id) {
       const { data: existingFlow } = await admin
@@ -142,6 +176,9 @@ export async function POST(request: Request) {
           flowAssignedTeamId = existingFlow.assigned_team_id ?? undefined;
           flowAssignedApprovers = existingFlow.assigned_approvers ?? undefined;
           flowRequiredApprovals = existingFlow.default_required_approvals ?? undefined;
+          flowApproverMode = existingFlow.approver_mode ?? undefined;
+          flowRequiredRole = existingFlow.required_role ?? undefined;
+          flowIsSequential = existingFlow.is_sequential ?? undefined;
 
           if (existingFlow.default_expiration_hours) {
             const expiresAt = new Date();
@@ -260,12 +297,18 @@ export async function POST(request: Request) {
 
     // 12b. Routing rules fallback
     if (!assignedApprovers && !assignedTeamId && ruleResult.matched && ruleResult.action === "route" && ruleResult.actionConfig) {
-      const routeConfig = ruleResult.actionConfig as { team_id?: string; user_ids?: string[] };
+      const routeConfig = ruleResult.actionConfig as { team_id?: string; user_ids?: string[]; required_role?: string; is_sequential?: boolean };
       if (routeConfig.team_id) {
         assignedTeamId = routeConfig.team_id;
       } else if (routeConfig.user_ids && routeConfig.user_ids.length > 0) {
         assignedApprovers = routeConfig.user_ids;
         requiredApprovals = assignedApprovers.length;
+      }
+      if (routeConfig.required_role) {
+        flowRequiredRole = routeConfig.required_role;
+      }
+      if (routeConfig.is_sequential !== undefined) {
+        flowIsSequential = routeConfig.is_sequential;
       }
     }
 
@@ -293,6 +336,25 @@ export async function POST(request: Request) {
       }
     }
 
+    // 12d. Role-based approver resolution
+    const effectiveRequiredRole: string | null = flowRequiredRole ?? null;
+    const effectiveIsSequential: boolean = validated.is_sequential ?? flowIsSequential ?? false;
+
+    if (flowApproverMode === "role_based" && effectiveRequiredRole && !assignedApprovers) {
+      const roleHierarchy = getRoleHierarchy(effectiveRequiredRole);
+      const { data: roleMemberships } = await admin
+        .from("org_memberships")
+        .select("user_id")
+        .eq("org_id", auth.orgId)
+        .eq("can_approve", true)
+        .in("role", roleHierarchy);
+
+      if (roleMemberships && roleMemberships.length > 0) {
+        assignedApprovers = roleMemberships.map(m => m.user_id);
+        requiredApprovals = 1; // Any one of them can approve
+      }
+    }
+
     // 13. Insert approval request
     const isAutoApproved = ruleResult.matched && ruleResult.action === "auto_approve";
 
@@ -317,6 +379,9 @@ export async function POST(request: Request) {
         required_approvals: requiredApprovals,
         assigned_approvers: assignedApprovers,
         assigned_team_id: assignedTeamId,
+        created_by: createdBy,
+        required_role: effectiveRequiredRole,
+        is_sequential: effectiveIsSequential,
         auto_approved: isAutoApproved,
         decision_source: isAutoApproved ? "auto_rule" : null,
         decided_at: isAutoApproved ? new Date().toISOString() : null,
@@ -349,7 +414,12 @@ export async function POST(request: Request) {
     // 15. Dispatch notifications (fire-and-forget)
     let targetUserIds: string[] | undefined;
     if (assignedApprovers && assignedApprovers.length > 0) {
-      targetUserIds = assignedApprovers;
+      if (effectiveIsSequential) {
+        // Sequential chain: only notify the first approver
+        targetUserIds = [assignedApprovers[0]];
+      } else {
+        targetUserIds = assignedApprovers;
+      }
     }
 
     dispatchNotifications({

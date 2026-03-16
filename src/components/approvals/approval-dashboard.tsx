@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { ApprovalFilters } from "@/components/approvals/approval-filters";
 import { ApprovalList } from "@/components/approvals/approval-list";
 import { ApprovalListGrouped } from "@/components/approvals/approval-list-grouped";
@@ -14,7 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { ApprovalRequest, Connection, DashboardLayout } from "@/lib/types/database";
+import type { ApprovalRequest, Connection, DashboardLayout, UserProfile } from "@/lib/types/database";
 
 interface ApprovalDashboardProps {
   initialApprovals: ApprovalRequest[];
@@ -38,9 +38,46 @@ export function ApprovalDashboard({
   const [layout, setLayout] = useState<DashboardLayout>("cards");
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const newIdTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const [userProfiles, setUserProfiles] = useState<Map<string, UserProfile>>(new Map());
 
   const { status, priority, search, source, setStatus, setPriority, setSearch, setSource } =
     useApprovalFiltersStore();
+
+  // Collect all user IDs referenced in approvals and fetch their profiles
+  const referencedUserIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const a of approvals) {
+      if (a.decided_by) ids.add(a.decided_by);
+      if (a.assigned_approvers) {
+        for (const id of a.assigned_approvers) ids.add(id);
+      }
+    }
+    return ids;
+  }, [approvals]);
+
+  useEffect(() => {
+    const idsToFetch = [...referencedUserIds].filter((id) => !userProfiles.has(id));
+    if (idsToFetch.length === 0) return;
+
+    const fetchProfiles = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("user_profiles")
+        .select("id, email, full_name, avatar_url")
+        .in("id", idsToFetch);
+
+      if (data && data.length > 0) {
+        setUserProfiles((prev) => {
+          const next = new Map(prev);
+          for (const profile of data) {
+            next.set(profile.id, profile as UserProfile);
+          }
+          return next;
+        });
+      }
+    };
+    fetchProfiles();
+  }, [referencedUserIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load preferences from notification_settings
   useEffect(() => {
@@ -215,7 +252,38 @@ export function ApprovalDashboard({
       decision: "approved" | "rejected",
       comment?: string,
     ) => {
-      setIsLoading(true);
+      // Optimistic update: apply decision immediately in local state
+      const optimisticUpdate = {
+        status: decision,
+        decided_at: new Date().toISOString(),
+        decision_comment: comment || null,
+        decision_source: "dashboard" as const,
+      };
+
+      // Snapshot current state for rollback
+      const previousApprovals = approvals;
+      const previousSelected = selectedApproval;
+
+      setApprovals((prev) =>
+        prev.map((a) =>
+          a.id === approvalId ? { ...a, ...optimisticUpdate } : a
+        )
+      );
+      setSelectedApproval((prev) =>
+        prev?.id === approvalId ? { ...prev, ...optimisticUpdate } : prev
+      );
+
+      toast.success(
+        decision === "approved"
+          ? "Request approved successfully"
+          : "Request rejected"
+      );
+
+      if (layout !== "split") {
+        handleCloseDetail();
+      }
+
+      // Fire the API call in the background
       try {
         const response = await fetch(`/api/v1/approvals/${approvalId}`, {
           method: "PATCH",
@@ -233,36 +301,26 @@ export function ApprovalDashboard({
           );
         }
 
+        // Apply the real server response to get accurate timestamps etc.
         const updatedApproval = await response.json();
-
         setApprovals((prev) =>
           prev.map((a) =>
             a.id === approvalId ? { ...a, ...updatedApproval } : a
           )
         );
-
         setSelectedApproval((prev) =>
           prev?.id === approvalId ? { ...prev, ...updatedApproval } : prev
         );
-
-        toast.success(
-          decision === "approved"
-            ? "Request approved successfully"
-            : "Request rejected"
-        );
-
-        if (layout !== "split") {
-          handleCloseDetail();
-        }
       } catch (err) {
+        // Revert optimistic update on failure
+        setApprovals(previousApprovals);
+        setSelectedApproval(previousSelected);
         toast.error(
           err instanceof Error ? err.message : "Failed to submit decision"
         );
-      } finally {
-        setIsLoading(false);
       }
     },
-    [handleCloseDetail, layout]
+    [handleCloseDetail, layout, approvals, selectedApproval]
   );
 
   const handleRespond = useCallback(
@@ -277,8 +335,8 @@ export function ApprovalDashboard({
   );
 
   const handleInlineAction = useCallback(
-    async (approvalId: string, decision: "approved" | "rejected") => {
-      await submitDecision(approvalId, decision);
+    async (approvalId: string, decision: "approved" | "rejected", comment?: string) => {
+      await submitDecision(approvalId, decision, comment);
     },
     [submitDecision]
   );
@@ -381,6 +439,7 @@ export function ApprovalDashboard({
           <ApprovalListMasterDetail
             {...sharedListProps}
             onRespond={handleRespond}
+            userProfiles={userProfiles}
           />
         )}
       </div>
@@ -394,6 +453,7 @@ export function ApprovalDashboard({
           onRespond={handleRespond}
           isLoading={isLoading}
           canApprove={canApprove}
+          userProfiles={userProfiles}
         />
       )}
     </div>

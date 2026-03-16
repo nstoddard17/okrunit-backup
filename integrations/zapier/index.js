@@ -7,11 +7,24 @@ const {
   addAuthHeader,
   handleErrors,
 } = require("./authentication");
+
+// Triggers (user-facing)
+const newApproval = require("./triggers/new_approval");
+const approvalDecided = require("./triggers/approval_decided");
+
+// Triggers (hidden — power dynamic dropdowns in the Zap editor)
+const actionTypes = require("./triggers/action_types");
+const teamMembers = require("./triggers/team_members");
+const teams = require("./triggers/teams");
+
+// Actions
 const requestApproval = require("./creates/request_approval");
+const createApproval = require("./creates/create_approval");
 const addComment = require("./creates/add_comment");
+
+// Searches
 const getApproval = require("./searches/get_approval");
 const listApprovals = require("./searches/list_approvals");
-const approvalDecided = require("./triggers/approval_decided");
 
 module.exports = {
   version: require("./package.json").version,
@@ -23,11 +36,16 @@ module.exports = {
   afterResponse: [handleErrors],
 
   triggers: {
+    [newApproval.key]: newApproval,
     [approvalDecided.key]: approvalDecided,
+    [actionTypes.key]: actionTypes,
+    [teamMembers.key]: teamMembers,
+    [teams.key]: teams,
   },
 
   creates: {
     [requestApproval.key]: requestApproval,
+    [createApproval.key]: createApproval,
     [addComment.key]: addComment,
   },
 

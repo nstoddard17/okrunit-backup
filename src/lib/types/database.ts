@@ -37,6 +37,16 @@ export type VoteValue = "approve" | "reject";
 
 export type VoteSource = "dashboard" | "email" | "slack" | "push" | "api";
 
+export type ApproverMode = "any" | "designated" | "role_based";
+
+export interface CreatedByInfo {
+  type: "api_key" | "oauth";
+  connection_id?: string;
+  connection_name?: string;
+  client_id?: string;
+  client_name?: string;
+}
+
 // ---- Table Row Interfaces -------------------------------------------------
 
 export interface Organization {
@@ -117,6 +127,31 @@ export interface ApprovalRequest {
   auto_approved: boolean;
   assigned_approvers: string[] | null;
   assigned_team_id: string | null;
+  created_by: CreatedByInfo | null;
+  required_role: UserRole | null;
+  is_sequential: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApprovalFlow {
+  id: string;
+  org_id: string;
+  source: string;
+  source_id: string;
+  name: string;
+  is_configured: boolean;
+  default_priority: ApprovalPriority | null;
+  default_expiration_hours: number | null;
+  default_required_approvals: number | null;
+  default_action_type: string | null;
+  assigned_team_id: string | null;
+  assigned_approvers: string[] | null;
+  approver_mode: ApproverMode;
+  required_role: UserRole | null;
+  is_sequential: boolean;
+  request_count: number;
+  last_request_at: string | null;
   created_at: string;
   updated_at: string;
 }

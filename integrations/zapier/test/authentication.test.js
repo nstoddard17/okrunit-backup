@@ -9,49 +9,26 @@ const appTester = zapier.createAppTester(App);
 zapier.tools.env.inject();
 
 describe("Authentication", () => {
-  it("passes authentication with valid API key", async () => {
+  it("adds Authorization header via beforeRequest middleware", () => {
     const bundle = {
       authData: {
-        apiKey: process.env.API_KEY || "gk_test_1234567890abcdef",
-        baseUrl: process.env.BASE_URL || "http://localhost:3000",
-      },
-    };
-
-    const result = await appTester(App.authentication.test, bundle);
-    expect(result).toBeDefined();
-    expect(result.id).toContain("gk_");
-  });
-
-  it("generates correct connection label", async () => {
-    const bundle = {
-      authData: {
-        apiKey: "gk_test_1234567890abcdef",
-        baseUrl: "http://localhost:3000",
-      },
-    };
-
-    const result = await appTester(
-      App.authentication.connectionLabel,
-      bundle,
-    );
-    expect(result).toContain("Gatekeeper");
-    expect(result).toContain("gk_test_123");
-  });
-
-  it("adds Authorization header via beforeRequest middleware", async () => {
-    const bundle = {
-      authData: {
-        apiKey: "gk_test_1234567890abcdef",
-        baseUrl: "http://localhost:3000",
+        access_token: "test_access_token_abc123",
       },
     };
 
     const request = { headers: {} };
     const result = App.beforeRequest[0](request, null, bundle);
     expect(result.headers["Authorization"]).toBe(
-      "Bearer gk_test_1234567890abcdef",
+      "Bearer test_access_token_abc123",
     );
     expect(result.headers["Content-Type"]).toBe("application/json");
+  });
+
+  it("does not add auth header when no access_token", () => {
+    const bundle = { authData: {} };
+    const request = { headers: {} };
+    const result = App.beforeRequest[0](request, null, bundle);
+    expect(result.headers["Authorization"]).toBeUndefined();
   });
 
   it("throws RefreshAuthError on 401", () => {
@@ -68,7 +45,7 @@ describe("Authentication", () => {
 
     const response = { status: 401, json: {} };
     expect(() => App.afterResponse[0](response, mockZ)).toThrow(
-      "Invalid API key",
+      "Token expired or invalid",
     );
   });
 
@@ -89,6 +66,27 @@ describe("Authentication", () => {
     expect(() => App.afterResponse[0](response, mockZ)).toThrow(
       "Rate limit exceeded",
     );
+  });
+
+  it("throws on 4xx/5xx with error message from body", () => {
+    const mockZ = {
+      errors: {
+        Error: class extends Error {
+          constructor(msg, code, status) {
+            super(msg);
+            this.name = "Error";
+            this.code = code;
+            this.status = status;
+          }
+        },
+      },
+    };
+
+    const response = {
+      status: 403,
+      json: { error: "Forbidden", code: "FORBIDDEN" },
+    };
+    expect(() => App.afterResponse[0](response, mockZ)).toThrow("Forbidden");
   });
 
   it("passes through successful responses", () => {

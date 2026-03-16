@@ -28,7 +28,13 @@
       "WebFetch(domain:docs.tesslate.com)",
       "Bash(gh api:*)",
       "Bash(approval request\" errors for all Zapier requests.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(npx shadcn@latest add:*)"
+      "Bash(npx shadcn@latest add:*)",
+      "WebFetch(domain:developer.zapier.com)",
+      "WebFetch(domain:unpkg.com)",
+      "WebFetch(domain:marconijr.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(npx jest --no-cache)",
+      "Bash(npx zapier:*)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",

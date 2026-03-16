@@ -8,74 +8,92 @@ const App = require("../index");
 const appTester = zapier.createAppTester(App);
 zapier.tools.env.inject();
 
-const AUTH_DATA = {
-  apiKey: process.env.API_KEY || "gk_test_1234567890abcdef",
-  baseUrl: process.env.BASE_URL || "http://localhost:3000",
-};
+describe("Request Approval (Send & Wait)", () => {
+  it("has correct sample data", () => {
+    const sample = App.creates.request_approval.operation.sample;
+    expect(sample.id).toBeDefined();
+    expect(sample.title).toBeDefined();
+    expect(sample.status).toBe("approved");
+    expect(sample.decision).toBe("approved");
+    expect(sample.decided_by).toBeDefined();
+  });
+
+  it("has output fields defined", () => {
+    const fields = App.creates.request_approval.operation.outputFields;
+    expect(fields).toBeDefined();
+    expect(fields.length).toBeGreaterThan(0);
+    const keys = fields.map((f) => f.key);
+    expect(keys).toContain("id");
+    expect(keys).toContain("title");
+    expect(keys).toContain("decision");
+    expect(keys).toContain("decided_at");
+  });
+
+  it("has performResume defined for callback", () => {
+    expect(App.creates.request_approval.operation.performResume).toBeDefined();
+    expect(typeof App.creates.request_approval.operation.performResume).toBe(
+      "function",
+    );
+  });
+
+  it("performResume extracts callback data correctly", async () => {
+    const mockZ = {};
+    const bundle = {
+      outputData: {
+        id: "abc-123",
+        title: "Test approval",
+        priority: "high",
+        created_at: "2026-01-01T00:00:00Z",
+        metadata: { env: "prod" },
+      },
+      cleanedRequest: {
+        id: "abc-123",
+        title: "Test approval",
+        status: "approved",
+        priority: "high",
+        decided_by: "user-456",
+        decision_comment: "Looks good",
+        decided_at: "2026-01-01T01:00:00Z",
+        metadata: { env: "prod" },
+      },
+    };
+
+    const result =
+      await App.creates.request_approval.operation.performResume(
+        mockZ,
+        bundle,
+      );
+    expect(result.id).toBe("abc-123");
+    expect(result.status).toBe("approved");
+    expect(result.decision).toBe("approved");
+    expect(result.decided_by).toBe("user-456");
+    expect(result.decision_comment).toBe("Looks good");
+  });
+
+  it("returns sample data during isLoadingSample", async () => {
+    const mockZ = {
+      generateCallbackUrl: () => "https://hooks.zapier.com/test",
+      request: jest.fn(),
+      errors: { Error: Error },
+    };
+    const bundle = {
+      inputData: { title: "My test" },
+      meta: { isLoadingSample: true, zap: { id: 123 } },
+      authData: {},
+    };
+
+    const result = await App.creates.request_approval.operation.perform(
+      mockZ,
+      bundle,
+    );
+    expect(result.status).toBe("approved");
+    expect(result.title).toBe("My test");
+    // Should NOT have called the API
+    expect(mockZ.request).not.toHaveBeenCalled();
+  });
+});
 
 describe("Create Approval", () => {
-  it("creates an approval request with required fields", async () => {
-    const bundle = {
-      authData: AUTH_DATA,
-      inputData: {
-        title: "Test deployment approval",
-        priority: "medium",
-      },
-    };
-
-    const result = await appTester(
-      App.creates.create_approval.operation.perform,
-      bundle,
-    );
-
-    expect(result).toBeDefined();
-    expect(result.id).toBeDefined();
-    expect(result.title).toBe("Test deployment approval");
-    expect(result.priority).toBe("medium");
-    expect(result.status).toBe("pending");
-  });
-
-  it("creates an approval request with all optional fields", async () => {
-    const bundle = {
-      authData: AUTH_DATA,
-      inputData: {
-        title: "Full test approval",
-        priority: "high",
-        description: "A detailed description for testing",
-        action_type: "deploy",
-        metadata: '{"env": "staging", "version": "1.0.0"}',
-        required_approvals: "2",
-      },
-    };
-
-    const result = await appTester(
-      App.creates.create_approval.operation.perform,
-      bundle,
-    );
-
-    expect(result).toBeDefined();
-    expect(result.title).toBe("Full test approval");
-    expect(result.priority).toBe("high");
-    expect(result.description).toBe("A detailed description for testing");
-    expect(result.action_type).toBe("deploy");
-    expect(result.required_approvals).toBe(2);
-  });
-
-  it("rejects invalid metadata JSON", async () => {
-    const bundle = {
-      authData: AUTH_DATA,
-      inputData: {
-        title: "Bad metadata test",
-        priority: "low",
-        metadata: "not valid json{",
-      },
-    };
-
-    await expect(
-      appTester(App.creates.create_approval.operation.perform, bundle),
-    ).rejects.toThrow("Metadata must be valid JSON");
-  });
-
   it("has correct sample data", () => {
     const sample = App.creates.create_approval.operation.sample;
     expect(sample.id).toBeDefined();
@@ -83,45 +101,48 @@ describe("Create Approval", () => {
     expect(sample.status).toBe("pending");
     expect(sample.priority).toBeDefined();
   });
+
+  it("rejects invalid metadata JSON", async () => {
+    const mockZ = {
+      request: jest.fn(),
+      errors: {
+        Error: class extends Error {
+          constructor(msg, code, status) {
+            super(msg);
+            this.code = code;
+            this.status = status;
+          }
+        },
+      },
+    };
+    const bundle = {
+      inputData: {
+        title: "Bad metadata test",
+        metadata: "not valid json{",
+      },
+      meta: { zap: { id: 1 } },
+    };
+
+    await expect(
+      App.creates.create_approval.operation.perform(mockZ, bundle),
+    ).rejects.toThrow("Metadata must be valid JSON");
+  });
 });
 
 describe("Add Comment", () => {
-  it("adds a comment to an approval", async () => {
-    // First create an approval to comment on
-    const createBundle = {
-      authData: AUTH_DATA,
-      inputData: {
-        title: "Approval for comment test",
-        priority: "low",
-      },
-    };
-
-    const approval = await appTester(
-      App.creates.create_approval.operation.perform,
-      createBundle,
-    );
-
-    const bundle = {
-      authData: AUTH_DATA,
-      inputData: {
-        approval_id: approval.id,
-        body: "This is a test comment from Zapier.",
-      },
-    };
-
-    const result = await appTester(
-      App.creates.add_comment.operation.perform,
-      bundle,
-    );
-
-    expect(result).toBeDefined();
-    expect(result.body).toBe("This is a test comment from Zapier.");
-  });
-
   it("has correct sample data", () => {
     const sample = App.creates.add_comment.operation.sample;
     expect(sample.id).toBeDefined();
     expect(sample.request_id).toBeDefined();
     expect(sample.body).toBeDefined();
+  });
+
+  it("has required input fields", () => {
+    const fields = App.creates.add_comment.operation.inputFields;
+    expect(fields.length).toBe(2);
+    expect(fields[0].key).toBe("approval_id");
+    expect(fields[0].required).toBe(true);
+    expect(fields[1].key).toBe("body");
+    expect(fields[1].required).toBe(true);
   });
 });

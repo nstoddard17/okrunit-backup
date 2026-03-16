@@ -30,6 +30,19 @@ const listApprovals = {
         helpText: "Filter by status. Leave empty for any.",
       },
       {
+        key: "priority",
+        label: "Priority",
+        type: "string",
+        required: false,
+        choices: {
+          low: "Low",
+          medium: "Medium",
+          high: "High",
+          critical: "Critical",
+        },
+        helpText: "Filter by priority. Leave empty for any.",
+      },
+      {
         key: "search",
         label: "Search",
         type: "string",
@@ -41,6 +54,7 @@ const listApprovals = {
     perform: async (z, bundle) => {
       const params = {};
       if (bundle.inputData.status) params.status = bundle.inputData.status;
+      if (bundle.inputData.priority) params.priority = bundle.inputData.priority;
       if (bundle.inputData.search) params.search = bundle.inputData.search;
 
       const response = await z.request({
