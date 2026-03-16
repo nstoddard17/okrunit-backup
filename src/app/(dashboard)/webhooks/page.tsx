@@ -1,22 +1,14 @@
-// ---------------------------------------------------------------------------
-// Gatekeeper -- Webhook Delivery Log Page (Server Component)
-// Displays a chronological log of all webhook delivery attempts for the
-// authenticated user's organization.
-// ---------------------------------------------------------------------------
-
 import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
+import { PageContainer } from "@/components/ui/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { DeliveryLogTable } from "@/components/webhooks/delivery-log-table";
-import type {
-  WebhookDeliveryLog,
-  Connection,
-} from "@/lib/types/database";
+import type { WebhookDeliveryLog, Connection } from "@/lib/types/database";
 
 export const metadata = {
   title: "Webhook Deliveries - Gatekeeper",
-  description:
-    "View a log of all webhook delivery attempts for your organization.",
+  description: "View a log of all webhook delivery attempts for your organization.",
 };
 
 const PAGE_SIZE = 50;
@@ -26,12 +18,10 @@ export default async function WebhooksPage() {
   if (!ctx) redirect("/login");
   const { membership } = ctx;
 
-  // Only admins and owners can view webhooks.
   if (membership.role !== "owner" && membership.role !== "admin") redirect("/dashboard");
 
   const supabase = await createClient();
 
-  // Fetch webhook delivery log entries and connections in parallel.
   const [deliveryResult, connectionsResult] = await Promise.all([
     supabase
       .from("webhook_delivery_log")
@@ -47,25 +37,16 @@ export default async function WebhooksPage() {
       .returns<Connection[]>(),
   ]);
 
-  const entries = deliveryResult.data ?? [];
-  const connections = connectionsResult.data ?? [];
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Webhook Deliveries
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          A log of all callback webhook delivery attempts across your
-          connections.
-        </p>
-      </div>
-
-      <DeliveryLogTable
-        initialEntries={entries}
-        connections={connections}
+    <PageContainer wide>
+      <PageHeader
+        title="Webhook Deliveries"
+        description="A log of all callback webhook delivery attempts across your connections."
       />
-    </div>
+      <DeliveryLogTable
+        initialEntries={deliveryResult.data ?? []}
+        connections={connectionsResult.data ?? []}
+      />
+    </PageContainer>
   );
 }

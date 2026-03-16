@@ -1,10 +1,8 @@
-// ---------------------------------------------------------------------------
-// Gatekeeper -- Audit Log Page (Server Component)
-// ---------------------------------------------------------------------------
-
 import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
+import { PageContainer } from "@/components/ui/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { AuditLogTable } from "@/components/audit/audit-log-table";
 import type { AuditLogEntry } from "@/lib/types/database";
 
@@ -22,7 +20,6 @@ export default async function AuditLogPage() {
 
   const supabase = await createClient();
 
-  // Fetch the first page of audit log entries, most recent first.
   const { data: entries } = await supabase
     .from("audit_log")
     .select("*")
@@ -32,15 +29,12 @@ export default async function AuditLogPage() {
     .returns<AuditLogEntry[]>();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Audit Log</h1>
-        <p className="text-muted-foreground text-sm">
-          A chronological record of all actions performed in your organization.
-        </p>
-      </div>
-
+    <PageContainer wide>
+      <PageHeader
+        title="Audit Log"
+        description="A chronological record of all actions performed in your organization."
+      />
       <AuditLogTable initialEntries={entries ?? []} pageSize={PAGE_SIZE} />
-    </div>
+    </PageContainer>
   );
 }

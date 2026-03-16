@@ -13,6 +13,7 @@ interface StatCardProps {
   trend?: { value: number; label: string };
   iconColor?: string;
   className?: string;
+  onClick?: () => void;
 }
 
 export function StatCard({
@@ -23,11 +24,15 @@ export function StatCard({
   trend,
   iconColor = "text-muted-foreground",
   className,
+  onClick,
 }: StatCardProps) {
   const trendIsPositive = trend && trend.value >= 0;
 
   return (
-    <Card className={cn("card-interactive border-0 shadow-[var(--shadow-card)]", className)}>
+    <Card
+      className={cn("card-interactive border-0 shadow-[var(--shadow-card)]", onClick && "cursor-pointer", className)}
+      onClick={onClick}
+    >
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div className="space-y-2">

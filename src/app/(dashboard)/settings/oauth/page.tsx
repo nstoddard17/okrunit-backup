@@ -1,11 +1,8 @@
-// ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth Apps Settings Page
-// ---------------------------------------------------------------------------
-
 import { redirect } from "next/navigation";
-
 import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { PageContainer } from "@/components/ui/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { OAuthClientList } from "@/components/settings/oauth-client-list";
 
 export const metadata = {
@@ -17,7 +14,6 @@ export default async function OAuthSettingsPage() {
   const ctx = await getOrgContext();
   if (!ctx) redirect("/login");
 
-  // Only admins and owners can manage OAuth apps.
   const isAdmin = ctx.membership.role === "owner" || ctx.membership.role === "admin";
   if (!isAdmin) redirect("/dashboard");
 
@@ -32,20 +28,15 @@ export default async function OAuthSettingsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">OAuth Apps</h1>
-        <p className="text-muted-foreground text-sm">
-          Register and manage OAuth 2.0 applications that can access your
-          Gatekeeper organization. OAuth apps enable one-click integration with
-          platforms like Zapier, Make, and n8n.
-        </p>
-      </div>
-
+    <PageContainer>
+      <PageHeader
+        title="OAuth Apps"
+        description="Register and manage OAuth 2.0 applications that can access your Gatekeeper organization. OAuth apps enable one-click integration with platforms like Zapier, Make, and n8n."
+      />
       <OAuthClientList
         clients={clients || []}
         role={ctx.membership.role}
       />
-    </div>
+    </PageContainer>
   );
 }

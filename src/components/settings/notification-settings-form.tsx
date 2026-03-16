@@ -67,6 +67,7 @@ const DEFAULT_SETTINGS: Omit<NotificationSettings, "id" | "created_at" | "update
   quiet_hours_timezone: "UTC",
   minimum_priority: "low",
   skip_approval_confirmation: false,
+  dashboard_layout: "cards",
 };
 
 // ---------------------------------------------------------------------------

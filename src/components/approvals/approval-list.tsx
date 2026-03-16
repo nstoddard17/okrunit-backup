@@ -1,6 +1,7 @@
 "use client";
 
 import { ApprovalCard } from "@/components/approvals/approval-card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { InboxIcon } from "lucide-react";
 import type { ApprovalRequest, Connection } from "@/lib/types/database";
 
@@ -8,28 +9,34 @@ interface ApprovalListProps {
   approvals: ApprovalRequest[];
   connections: Connection[];
   onSelect: (approval: ApprovalRequest) => void;
+  canApprove?: boolean;
+  isLoading?: boolean;
+  skipConfirmation?: boolean;
+  onInlineAction?: (approvalId: string, decision: "approved" | "rejected") => void;
+  onSkipConfirmationChange?: (skip: boolean) => void;
+  newIds?: Set<string>;
 }
 
 export function ApprovalList({
   approvals,
   connections,
   onSelect,
+  canApprove = true,
+  isLoading = false,
+  skipConfirmation = false,
+  onInlineAction,
+  onSkipConfirmationChange,
+  newIds,
 }: ApprovalListProps) {
   const connectionMap = new Map(connections.map((c) => [c.id, c.name]));
 
   if (approvals.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16">
-        <InboxIcon className="text-muted-foreground size-12" />
-        <div className="text-center">
-          <p className="text-muted-foreground text-lg font-medium">
-            No approval requests found
-          </p>
-          <p className="text-muted-foreground text-sm">
-            Approval requests from your connected services will appear here.
-          </p>
-        </div>
-      </div>
+      <EmptyState
+        icon={InboxIcon}
+        title="No approval requests found"
+        description="Approval requests from your connected services will appear here."
+      />
     );
   }
 
@@ -41,6 +48,12 @@ export function ApprovalList({
           approval={approval}
           connectionName={approval.connection_id ? connectionMap.get(approval.connection_id) : undefined}
           onClick={() => onSelect(approval)}
+          canApprove={canApprove}
+          isLoading={isLoading}
+          skipConfirmation={skipConfirmation}
+          onInlineAction={onInlineAction}
+          onSkipConfirmationChange={onSkipConfirmationChange}
+          isNew={newIds?.has(approval.id)}
         />
       ))}
     </div>

@@ -40,7 +40,7 @@ export default async function DashboardLayout({
     .eq("status", "pending");
 
   return (
-    <div className="force-light flex h-screen overflow-hidden bg-white text-zinc-950">
+    <div className="gk-v2 force-light flex h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
       {/* Sidebar: hidden on mobile, visible on md+ */}
       <div className="hidden md:flex">
         <Sidebar
@@ -61,7 +61,11 @@ export default async function DashboardLayout({
       {/* Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header emergencyStopActive={org.emergency_stop_active} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto">
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

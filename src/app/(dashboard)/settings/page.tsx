@@ -1,15 +1,12 @@
-// ---------------------------------------------------------------------------
-// Gatekeeper -- Settings Page (Notification Preferences)
-// ---------------------------------------------------------------------------
-
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { KeyRound } from "lucide-react";
-
 import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
-import type { NotificationSettings } from "@/lib/types/database";
+import { PageContainer } from "@/components/ui/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { NotificationSettingsForm } from "@/components/settings/notification-settings-form";
+import type { NotificationSettings } from "@/lib/types/database";
 
 export const metadata = {
   title: "Settings - Gatekeeper",
@@ -24,7 +21,6 @@ export default async function SettingsPage() {
 
   const supabase = await createClient();
 
-  // Fetch notification settings -- may not exist yet for this user.
   const { data: notificationSettings } = await supabase
     .from("notification_settings")
     .select("*")
@@ -32,22 +28,21 @@ export default async function SettingsPage() {
     .single<NotificationSettings>();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground text-sm">
-          Manage your notification preferences and account settings.
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Settings"
+        description="Manage your notification preferences and account settings."
+      />
 
       <NotificationSettingsForm initialSettings={notificationSettings ?? null} />
 
-      {/* OAuth Apps link -- admin/owner only */}
       {isAdmin && (
-        <div className="border rounded-lg p-6">
+        <div className="mt-6 rounded-xl border border-[var(--border)] bg-card p-6 shadow-[var(--shadow-card)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <KeyRound className="h-5 w-5 text-muted-foreground" />
+              <div className="rounded-lg bg-muted/50 p-2.5">
+                <KeyRound className="size-5 text-muted-foreground" />
+              </div>
               <div>
                 <h3 className="font-medium">OAuth Apps</h3>
                 <p className="text-sm text-muted-foreground">
@@ -57,13 +52,13 @@ export default async function SettingsPage() {
             </div>
             <Link
               href="/settings/oauth"
-              className="text-sm font-medium text-primary hover:underline"
+              className="text-sm font-medium text-[var(--primary)] hover:underline"
             >
               Manage
             </Link>
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

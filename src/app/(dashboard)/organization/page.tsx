@@ -1,11 +1,8 @@
-// ---------------------------------------------------------------------------
-// Gatekeeper -- Organization Settings Page
-// ---------------------------------------------------------------------------
-
 import { redirect } from "next/navigation";
-
 import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { PageContainer } from "@/components/ui/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { OrgSettingsForm } from "@/components/organization/org-settings-form";
 
 export const metadata = {
@@ -16,13 +13,10 @@ export const metadata = {
 export default async function OrganizationPage() {
   const ctx = await getOrgContext();
   if (!ctx) redirect("/login");
-
   const { membership, org } = ctx;
 
-  // Only admins and owners can manage organization settings.
   if (membership.role !== "owner" && membership.role !== "admin") redirect("/dashboard");
 
-  // Get member count for display
   const admin = createAdminClient();
   const { count: memberCount } = await admin
     .from("org_memberships")
@@ -30,19 +24,16 @@ export default async function OrganizationPage() {
     .eq("org_id", org.id);
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Organization</h1>
-        <p className="text-muted-foreground text-sm">
-          View and manage your organization settings.
-        </p>
-      </div>
-
+    <PageContainer>
+      <PageHeader
+        title="Organization"
+        description="View and manage your organization settings."
+      />
       <OrgSettingsForm
         org={org}
         role={membership.role}
         memberCount={memberCount ?? 0}
       />
-    </div>
+    </PageContainer>
   );
 }

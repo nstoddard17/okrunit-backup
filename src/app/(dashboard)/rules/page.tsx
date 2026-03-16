@@ -1,11 +1,8 @@
-// ---------------------------------------------------------------------------
-// Gatekeeper -- Auto-Approve Rules Management Page
-// ---------------------------------------------------------------------------
-
 import { redirect } from "next/navigation";
-
 import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
+import { PageContainer } from "@/components/ui/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { RuleList } from "@/components/rules/rule-list";
 import type { ApprovalRule, Connection } from "@/lib/types/database";
 
@@ -14,9 +11,6 @@ export const metadata = {
   description: "Manage auto-approve rules for incoming approval requests.",
 };
 
-/**
- * Columns fetched for connections (exclude sensitive fields).
- */
 const CONNECTION_COLUMNS =
   "id, org_id, name, description, api_key_prefix, is_active, rate_limit_per_hour, allowed_action_types, max_priority, scoping_rules, last_used_at, rotated_at, created_by, created_at, updated_at" as const;
 
@@ -27,7 +21,6 @@ export default async function RulesPage() {
 
   const supabase = await createClient();
 
-  // Fetch all rules for this organisation, ordered by priority.
   const { data: rules } = await supabase
     .from("approval_rules")
     .select("*")
@@ -35,7 +28,6 @@ export default async function RulesPage() {
     .order("priority_order", { ascending: true })
     .returns<ApprovalRule[]>();
 
-  // Fetch connections for the connection scope selector.
   const { data: connections } = await supabase
     .from("connections")
     .select(CONNECTION_COLUMNS)
@@ -44,7 +36,6 @@ export default async function RulesPage() {
     .order("name", { ascending: true })
     .returns<Omit<Connection, "api_key_hash">[]>();
 
-  // Fetch teams for route rule configuration.
   const { data: teams } = await supabase
     .from("teams")
     .select("id, name")
@@ -52,20 +43,16 @@ export default async function RulesPage() {
     .order("name", { ascending: true });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Rules</h1>
-        <p className="text-muted-foreground text-sm">
-          Configure auto-approve and routing rules for incoming
-          approval requests based on conditions you define.
-        </p>
-      </div>
-
+    <PageContainer>
+      <PageHeader
+        title="Rules"
+        description="Configure auto-approve and routing rules for incoming approval requests based on conditions you define."
+      />
       <RuleList
         initialRules={rules ?? []}
         connections={(connections ?? []) as Connection[]}
         teams={(teams ?? []).map(t => ({ id: t.id, name: t.name }))}
       />
-    </div>
+    </PageContainer>
   );
 }

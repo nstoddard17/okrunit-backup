@@ -15,16 +15,14 @@ import {
   BarChart3,
   FlaskConical,
   Building2,
-  UsersRound,
   ShieldAlert,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-
 import { OrgSwitcher } from "@/components/layout/org-switcher";
 
 interface SidebarProps {
@@ -41,21 +39,58 @@ interface SidebarProps {
   isAppAdmin?: boolean;
 }
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: false, appAdminOnly: false },
-  { href: "/connections", label: "Connections", icon: Key, adminOnly: true, appAdminOnly: false },
-  { href: "/team", label: "Team", icon: Users, adminOnly: true, appAdminOnly: false },
-  { href: "/teams", label: "Teams", icon: UsersRound, adminOnly: true, appAdminOnly: false },
-  { href: "/organization", label: "Organization", icon: Building2, adminOnly: true, appAdminOnly: false },
-  { href: "/rules", label: "Rules", icon: ShieldCheck, adminOnly: false, appAdminOnly: false },
-  { href: "/audit-log", label: "Audit Log", icon: FileText, adminOnly: false, appAdminOnly: false },
-  { href: "/webhooks", label: "Webhooks", icon: Webhook, adminOnly: true, appAdminOnly: false },
-  { href: "/analytics", label: "Analytics", icon: BarChart3, adminOnly: false, appAdminOnly: false },
-  { href: "/playground", label: "Playground", icon: FlaskConical, adminOnly: false, appAdminOnly: false },
-  { href: "/settings", label: "Settings", icon: Settings, adminOnly: false, appAdminOnly: false },
-  { href: "/emergency", label: "Emergency", icon: AlertTriangle, adminOnly: true, appAdminOnly: false },
-  { href: "/admin", label: "Admin", icon: ShieldAlert, adminOnly: false, appAdminOnly: true },
-] as const;
+interface NavItem {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  adminOnly?: boolean;
+  appAdminOnly?: boolean;
+}
+
+interface NavSection {
+  label: string | null;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
+  {
+    label: null,
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Configuration",
+    items: [
+      { href: "/connections", label: "Connections", icon: Key, adminOnly: true },
+      { href: "/rules", label: "Rules", icon: ShieldCheck },
+      { href: "/team", label: "Team", icon: Users, adminOnly: true },
+      { href: "/organization", label: "Organization", icon: Building2, adminOnly: true },
+    ],
+  },
+  {
+    label: "Monitoring",
+    items: [
+      { href: "/analytics", label: "Analytics", icon: BarChart3 },
+      { href: "/audit-log", label: "Audit Log", icon: FileText },
+      { href: "/webhooks", label: "Webhooks", icon: Webhook, adminOnly: true },
+    ],
+  },
+  {
+    label: "Developer",
+    items: [
+      { href: "/playground", label: "Playground", icon: FlaskConical },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { href: "/settings", label: "Settings", icon: Settings },
+      { href: "/emergency", label: "Emergency", icon: AlertTriangle, adminOnly: true },
+      { href: "/admin", label: "Admin", icon: ShieldAlert, appAdminOnly: true },
+    ],
+  },
+];
 
 function getInitials(name: string | null, email: string): string {
   if (name) {
@@ -82,58 +117,86 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, 
   };
 
   return (
-    <aside className="bg-card flex h-full w-64 flex-col border-r">
+    <aside className="flex h-full w-64 flex-col border-r border-[var(--sidebar-border)] bg-[var(--sidebar)]">
       {/* Logo / Org Header */}
-      <div className="flex flex-col gap-2 border-b px-4 py-3">
-        <Link href="/" className="flex justify-center">
+      <div className="flex flex-col gap-2 border-b border-[var(--sidebar-border)] px-4 py-3">
+        <Link href="/dashboard" className="flex justify-center">
           <img src="/logo_text.png" alt="Gatekeeper" className="h-10 w-auto" />
         </Link>
         <OrgSwitcher currentOrgId={currentOrgId} orgs={userOrgs} />
       </div>
 
+      {/* Search trigger */}
+      <div className="px-3 pt-3">
+        <button
+          className="flex w-full items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[var(--ring)] hover:text-foreground"
+          onClick={() => {/* Command palette — future enhancement */}}
+        >
+          <Search className="size-3.5" />
+          <span className="flex-1 text-left">Search...</span>
+          <kbd className="hidden rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium sm:inline-block">
+            ⌘K
+          </kbd>
+        </button>
+      </div>
+
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
-        {navItems
-          .filter((item) => {
+      <nav className="flex-1 overflow-y-auto px-3 py-2">
+        {navSections.map((section, sectionIndex) => {
+          const visibleItems = section.items.filter((item) => {
             if (item.appAdminOnly && !isAppAdmin) return false;
             if (item.adminOnly && !isAdmin) return false;
             return true;
-          })
-          .map((item) => {
-          const isActive =
-            pathname === item.href ||
-            pathname.startsWith(item.href + "/");
-          const Icon = item.icon;
+          });
+
+          if (visibleItems.length === 0) return null;
 
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+            <div key={sectionIndex} className={sectionIndex > 0 ? "mt-5" : ""}>
+              {section.label && (
+                <p className="mb-1.5 px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {section.label}
+                </p>
               )}
-            >
-              <Icon className="size-4 shrink-0" />
-              <span className="flex-1">{item.label}</span>
-              {item.href === "/dashboard" && pendingCount > 0 && (
-                <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-xs">
-                  {pendingCount > 99 ? "99+" : pendingCount}
-                </Badge>
-              )}
-            </Link>
+              <div className="space-y-0.5">
+                {visibleItems.map((item) => {
+                  const isActive =
+                    pathname === item.href ||
+                    pathname.startsWith(item.href + "/");
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150",
+                        isActive
+                          ? "border-l-2 border-l-[var(--sidebar-primary)] bg-[var(--sidebar-accent)] font-medium text-foreground"
+                          : "border-l-2 border-l-transparent text-muted-foreground hover:bg-[var(--sidebar-accent)]/60 hover:text-foreground"
+                      )}
+                    >
+                      <Icon className="size-4 shrink-0" />
+                      <span className="flex-1">{item.label}</span>
+                      {item.href === "/dashboard" && pendingCount > 0 && (
+                        <Badge className="h-5 min-w-5 bg-[var(--primary)] px-1.5 text-[10px] font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary)]">
+                          {pendingCount > 99 ? "99+" : pendingCount}
+                        </Badge>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </nav>
 
       {/* User section */}
-      <Separator />
-      <div className="p-3">
-        <div className="flex items-center gap-3 rounded-md px-3 py-2">
-          <Avatar size="sm">
-            <AvatarFallback>
+      <div className="border-t border-[var(--sidebar-border)] p-3">
+        <div className="flex items-center gap-3 rounded-lg px-3 py-2">
+          <Avatar className="size-8">
+            <AvatarFallback className="bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-medium">
               {getInitials(user.full_name, user.email)}
             </AvatarFallback>
           </Avatar>
@@ -142,7 +205,7 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, 
               {user.full_name ?? user.email}
             </p>
             {user.full_name && (
-              <p className="text-muted-foreground truncate text-xs">
+              <p className="truncate text-xs text-muted-foreground">
                 {user.email}
               </p>
             )}
@@ -152,6 +215,7 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, 
             size="icon-sm"
             onClick={handleSignOut}
             title="Sign out"
+            className="text-muted-foreground hover:text-foreground"
           >
             <LogOut className="size-4" />
           </Button>

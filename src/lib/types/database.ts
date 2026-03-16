@@ -31,6 +31,8 @@ export type EmailAction = "approve" | "reject";
 
 export type ApprovalRuleAction = "auto_approve" | "route";
 
+export type DashboardLayout = "cards" | "grouped" | "split";
+
 export type VoteValue = "approve" | "reject";
 
 export type VoteSource = "dashboard" | "email" | "slack" | "push" | "api";
@@ -166,6 +168,7 @@ export interface NotificationSettings {
   quiet_hours_timezone: string | null;
   minimum_priority: ApprovalPriority;
   skip_approval_confirmation: boolean;
+  dashboard_layout: DashboardLayout;
   created_at: string;
   updated_at: string;
 }

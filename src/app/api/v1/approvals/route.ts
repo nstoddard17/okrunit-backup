@@ -81,6 +81,24 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validated = createApprovalSchema.parse(body);
 
+    // 5b. Auto-detect source from OAuth client name when not explicitly provided
+    let autoDetectedSource: string | null = null;
+    if (auth.type === "oauth" && !validated.source) {
+      const { data: oauthClient } = await admin
+        .from("oauth_clients")
+        .select("name")
+        .eq("client_id", auth.clientId)
+        .single();
+
+      if (oauthClient?.name) {
+        const clientNameLower = oauthClient.name.toLowerCase();
+        if (clientNameLower.includes("zapier")) autoDetectedSource = "zapier";
+        else if (clientNameLower.includes("make")) autoDetectedSource = "make";
+        else if (clientNameLower.includes("n8n")) autoDetectedSource = "n8n";
+        else if (clientNameLower.includes("windmill")) autoDetectedSource = "windmill";
+      }
+    }
+
     // 6. Connection scoping enforcement (API key auth only)
     const ipAddress =
       request.headers.get("x-forwarded-for") ??
@@ -284,7 +302,7 @@ export async function POST(request: Request) {
         org_id: auth.orgId,
         connection_id: connectionId,
         flow_id: flowId,
-        source: validated.source ?? null,
+        source: validated.source ?? autoDetectedSource,
         title: validated.title,
         description: validated.description ?? null,
         action_type: effectiveActionType,

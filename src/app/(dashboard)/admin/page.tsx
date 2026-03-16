@@ -1,15 +1,11 @@
-// ---------------------------------------------------------------------------
-// Gatekeeper -- App Admin Dashboard Page (Server Component)
-// Fetches cross-org data and passes to the client tabs component.
-// ---------------------------------------------------------------------------
-
 import { redirect } from "next/navigation";
 import { randomBytes } from "crypto";
-
 import { getAppAdminContext } from "@/lib/app-admin";
 import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { PageContainer } from "@/components/ui/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import type {
   Organization,
@@ -24,10 +20,6 @@ export const metadata = {
   title: "Admin Dashboard - Gatekeeper",
   description: "App-level admin dashboard with cross-org oversight.",
 };
-
-// ---------------------------------------------------------------------------
-// Types for aggregated org data
-// ---------------------------------------------------------------------------
 
 export interface OrgWithCounts extends Organization {
   member_count: number;
@@ -50,10 +42,6 @@ export interface SystemStats {
   emergency_stops_active: number;
 }
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 const PAGE_SIZE = 50;
 
 export default async function AdminPage() {
@@ -62,7 +50,6 @@ export default async function AdminPage() {
 
   const admin = createAdminClient();
 
-  // Fetch all data in parallel
   const [
     orgsResult,
     usersResult,
@@ -74,59 +61,28 @@ export default async function AdminPage() {
     connectionsResult,
     emergencyResult,
   ] = await Promise.all([
-    admin
-      .from("organizations")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .returns<Organization[]>(),
-    admin
-      .from("user_profiles")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .returns<UserProfile[]>(),
-    admin
-      .from("org_memberships")
-      .select("*")
-      .returns<OrgMembership[]>(),
-    admin
-      .from("approval_requests")
-      .select("*", { count: "exact", head: true }),
-    admin
-      .from("approval_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "pending"),
-    admin
-      .from("approval_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "approved"),
-    admin
-      .from("approval_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "rejected"),
-    admin
-      .from("connections")
-      .select("*", { count: "exact", head: true })
-      .eq("is_active", true),
-    admin
-      .from("organizations")
-      .select("*", { count: "exact", head: true })
-      .eq("emergency_stop_active", true),
+    admin.from("organizations").select("*").order("created_at", { ascending: false }).returns<Organization[]>(),
+    admin.from("user_profiles").select("*").order("created_at", { ascending: false }).returns<UserProfile[]>(),
+    admin.from("org_memberships").select("*").returns<OrgMembership[]>(),
+    admin.from("approval_requests").select("*", { count: "exact", head: true }),
+    admin.from("approval_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
+    admin.from("approval_requests").select("*", { count: "exact", head: true }).eq("status", "approved"),
+    admin.from("approval_requests").select("*", { count: "exact", head: true }).eq("status", "rejected"),
+    admin.from("connections").select("*", { count: "exact", head: true }).eq("is_active", true),
+    admin.from("organizations").select("*", { count: "exact", head: true }).eq("emergency_stop_active", true),
   ]);
 
   const orgs = orgsResult.data ?? [];
   const users = usersResult.data ?? [];
   const memberships = membershipsResult.data ?? [];
 
-  // Build org name lookup
   const orgNameMap = new Map(orgs.map((o) => [o.id, o.name]));
 
-  // Count members, approvals, connections per org
   const memberCountMap = new Map<string, number>();
   for (const m of memberships) {
     memberCountMap.set(m.org_id, (memberCountMap.get(m.org_id) ?? 0) + 1);
   }
 
-  // We need per-org approval and connection counts. Fetch them.
   const [approvalCountsResult, connectionCountsResult] = await Promise.all([
     admin.from("approval_requests").select("org_id"),
     admin.from("connections").select("org_id").eq("is_active", true),
@@ -134,18 +90,12 @@ export default async function AdminPage() {
 
   const approvalCountMap = new Map<string, number>();
   for (const row of approvalCountsResult.data ?? []) {
-    approvalCountMap.set(
-      row.org_id,
-      (approvalCountMap.get(row.org_id) ?? 0) + 1,
-    );
+    approvalCountMap.set(row.org_id, (approvalCountMap.get(row.org_id) ?? 0) + 1);
   }
 
   const connectionCountMap = new Map<string, number>();
   for (const row of connectionCountsResult.data ?? []) {
-    connectionCountMap.set(
-      row.org_id,
-      (connectionCountMap.get(row.org_id) ?? 0) + 1,
-    );
+    connectionCountMap.set(row.org_id, (connectionCountMap.get(row.org_id) ?? 0) + 1);
   }
 
   const orgsWithCounts: OrgWithCounts[] = orgs.map((org) => ({
@@ -155,7 +105,6 @@ export default async function AdminPage() {
     connection_count: connectionCountMap.get(org.id) ?? 0,
   }));
 
-  // Build users with their memberships
   const usersWithMemberships: UserWithMemberships[] = users.map((user) => {
     const userMemberships = memberships
       .filter((m) => m.user_id === user.id)
@@ -164,7 +113,6 @@ export default async function AdminPage() {
         org_name: orgNameMap.get(m.org_id) ?? "Unknown",
         role: m.role,
       }));
-
     return { ...user, memberships: userMemberships };
   });
 
@@ -179,7 +127,6 @@ export default async function AdminPage() {
     emergency_stops_active: emergencyResult.count ?? 0,
   };
 
-  // Webhook tester data for the current admin's org context
   const orgContext = await getOrgContext();
   let webhookEndpoint: WebhookTestEndpoint | null = null;
   let webhookTestRequests: WebhookTestRequest[] = [];
@@ -189,7 +136,6 @@ export default async function AdminPage() {
   if (orgContext) {
     webhookOrgId = orgContext.org.id;
 
-    // Get or create test endpoint
     const { data: existingEndpoint } = await admin
       .from("webhook_test_endpoints")
       .select("*")
@@ -216,7 +162,6 @@ export default async function AdminPage() {
       webhookEndpoint = created as WebhookTestEndpoint;
     }
 
-    // Fetch test requests and audit log
     const supabase = await createClient();
     const [testReqResult, auditResult] = await Promise.all([
       admin
@@ -240,16 +185,11 @@ export default async function AdminPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Admin Dashboard
-        </h1>
-        <p className="text-muted-foreground">
-          Cross-organization overview and system management tools.
-        </p>
-      </div>
-
+    <PageContainer wide>
+      <PageHeader
+        title="Admin Dashboard"
+        description="Cross-organization overview and system management tools."
+      />
       <AdminDashboard
         systemStats={systemStats}
         organizations={orgsWithCounts}
@@ -259,6 +199,6 @@ export default async function AdminPage() {
         webhookTestRequests={webhookTestRequests}
         auditEntries={auditEntries}
       />
-    </div>
+    </PageContainer>
   );
 }
