@@ -130,6 +130,7 @@ export interface ApprovalRequest {
   created_by: CreatedByInfo | null;
   required_role: UserRole | null;
   is_sequential: boolean;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 }

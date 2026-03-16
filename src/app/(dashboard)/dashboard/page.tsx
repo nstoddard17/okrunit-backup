@@ -22,6 +22,7 @@ export default async function DashboardPage() {
     .from("approval_requests")
     .select("*")
     .eq("org_id", membership.org_id)
+    .is("archived_at", null)
     .order("status", { ascending: true })
     .order("created_at", { ascending: false })
     .limit(50)

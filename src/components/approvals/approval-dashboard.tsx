@@ -12,8 +12,11 @@ import { useApprovalFiltersStore } from "@/stores/approval-filters-store";
 import { useRealtime } from "@/hooks/use-realtime";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { Clock, CheckCircle, XCircle, RefreshCw, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { BatchActionsBar } from "@/components/approvals/batch-actions-bar";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { ApprovalRequest, Connection, DashboardLayout, UserProfile } from "@/lib/types/database";
 
 interface ApprovalDashboardProps {
@@ -39,8 +42,9 @@ export function ApprovalDashboard({
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const newIdTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const [userProfiles, setUserProfiles] = useState<Map<string, UserProfile>>(new Map());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const { status, priority, search, source, setStatus, setPriority, setSearch, setSource } =
+  const { status, priority, search, source, showArchived, setStatus, setPriority, setSearch, setSource, setShowArchived } =
     useApprovalFiltersStore();
 
   // Collect all user IDs referenced in approvals and fetch their profiles
@@ -179,6 +183,7 @@ export function ApprovalDashboard({
       search?: string;
       connectionId?: string;
       source?: string;
+      showArchived?: boolean;
     }) => {
       setIsFetching(true);
       try {
@@ -190,6 +195,11 @@ export function ApprovalDashboard({
           .order("created_at", { ascending: false })
           .limit(50);
 
+        if (filters.showArchived) {
+          query = query.not("archived_at", "is", null);
+        } else {
+          query = query.is("archived_at", null);
+        }
         if (filters.status) query = query.eq("status", filters.status);
         if (filters.priority) query = query.eq("priority", filters.priority);
         if (filters.search) query = query.ilike("title", `%${filters.search}%`);
@@ -215,24 +225,26 @@ export function ApprovalDashboard({
       search?: string;
       connectionId?: string;
       source?: string;
+      showArchived?: boolean;
     }) => {
       setStatus(filters.status);
       setPriority(filters.priority);
       setSearch(filters.search ?? "");
       setSource(filters.source);
+      if (filters.showArchived !== undefined) setShowArchived(filters.showArchived);
       fetchApprovals(filters);
     },
-    [fetchApprovals, setStatus, setPriority, setSearch, setSource]
+    [fetchApprovals, setStatus, setPriority, setSearch, setSource, setShowArchived]
   );
 
   const handleRefresh = useCallback(() => {
-    fetchApprovals({ status, priority, search, source });
-  }, [fetchApprovals, status, priority, search, source]);
+    fetchApprovals({ status, priority, search, source, showArchived });
+  }, [fetchApprovals, status, priority, search, source, showArchived]);
 
   // Stat card click-to-filter
   const handleStatClick = useCallback((filterStatus: string | undefined) => {
-    handleFilterChange({ status: filterStatus, priority, search, source });
-  }, [handleFilterChange, priority, search, source]);
+    handleFilterChange({ status: filterStatus, priority, search, source, showArchived });
+  }, [handleFilterChange, priority, search, source, showArchived]);
 
   const handleSelect = useCallback((approval: ApprovalRequest) => {
     setSelectedApproval(approval);
@@ -355,6 +367,92 @@ export function ApprovalDashboard({
       }, { onConflict: "user_id" });
   }, []);
 
+  // ---- Selection handlers ---------------------------------------------------
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds((prev) =>
+      prev.size === approvals.length
+        ? new Set()
+        : new Set(approvals.map((a) => a.id))
+    );
+  }, [approvals]);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  // Clear selection when filters change or data refreshes
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [status, priority, search, source, showArchived]);
+
+  // ---- Batch archive -------------------------------------------------------
+
+  const handleBatchArchive = useCallback(async () => {
+    const ids = [...selectedIds];
+    const previousApprovals = approvals;
+
+    // Optimistic: remove from local list (unless showing archived)
+    if (!showArchived) {
+      setApprovals((prev) => prev.filter((a) => !selectedIds.has(a.id)));
+    }
+    clearSelection();
+
+    try {
+      const res = await fetch("/api/v1/approvals/batch/archive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, action: "archive" }),
+      });
+      if (!res.ok) throw new Error("Failed to archive");
+      const result = await res.json();
+      toast.success(`Archived ${result.processed} request(s)`);
+      if (showArchived) handleRefresh();
+    } catch {
+      setApprovals(previousApprovals);
+      toast.error("Failed to archive requests");
+    }
+  }, [selectedIds, approvals, showArchived, clearSelection, handleRefresh]);
+
+  const handleBatchUnarchive = useCallback(async () => {
+    const ids = [...selectedIds];
+    clearSelection();
+
+    try {
+      const res = await fetch("/api/v1/approvals/batch/archive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, action: "unarchive" }),
+      });
+      if (!res.ok) throw new Error("Failed to unarchive");
+      const result = await res.json();
+      toast.success(`Unarchived ${result.processed} request(s)`);
+      handleRefresh();
+    } catch {
+      toast.error("Failed to unarchive requests");
+    }
+  }, [selectedIds, clearSelection, handleRefresh]);
+
+  const handleBatchAction = useCallback(
+    (decision: "approve" | "reject") => {
+      clearSelection();
+      handleRefresh();
+    },
+    [clearSelection, handleRefresh]
+  );
+
+  // Check if any selected items are archived (for showing unarchive button)
+  const hasArchivedSelected = useMemo(
+    () => [...selectedIds].some((id) => approvals.find((a) => a.id === id)?.archived_at),
+    [selectedIds, approvals]
+  );
+
   const sharedListProps = {
     approvals,
     connections,
@@ -365,6 +463,8 @@ export function ApprovalDashboard({
     onInlineAction: handleInlineAction,
     onSkipConfirmationChange: handleSkipConfirmationChange,
     newIds,
+    selectedIds,
+    onToggleSelect: toggleSelect,
   };
 
   return (
@@ -428,20 +528,48 @@ export function ApprovalDashboard({
       <ApprovalFilters
         onFilterChange={handleFilterChange}
         connections={connections}
-        currentFilters={{ status, priority, search, source }}
+        currentFilters={{ status, priority, search, source, showArchived }}
       />
+
+      {/* Select all bar */}
+      {approvals.length > 0 && (
+        <div className="flex items-center gap-2 px-1">
+          <Checkbox
+            checked={selectedIds.size === approvals.length && approvals.length > 0}
+            onCheckedChange={toggleSelectAll}
+          />
+          <span className="text-xs text-muted-foreground">
+            {selectedIds.size > 0
+              ? `${selectedIds.size} of ${approvals.length} selected`
+              : "Select all"}
+          </span>
+        </div>
+      )}
+
+      {/* Archived empty state */}
+      {showArchived && approvals.length === 0 && !isFetching && (
+        <EmptyState
+          icon={Archive}
+          title="No archived requests"
+          description="Requests you archive will appear here. Select requests and click Archive to move them out of your main view."
+        />
+      )}
 
       {/* Approval list — conditional by layout */}
       <div className={isFetching ? "pointer-events-none opacity-60 transition-opacity" : "transition-opacity"}>
-        {layout === "cards" && <ApprovalList {...sharedListProps} />}
-        {layout === "grouped" && <ApprovalListGrouped {...sharedListProps} />}
-        {layout === "split" && (
-          <ApprovalListMasterDetail
-            {...sharedListProps}
-            onRespond={handleRespond}
-            userProfiles={userProfiles}
-          />
-        )}
+        {!showArchived || approvals.length > 0 ? (
+          <>
+            {layout === "cards" && <ApprovalList {...sharedListProps} />}
+            {layout === "grouped" && <ApprovalListGrouped {...sharedListProps} />}
+            {layout === "split" && (
+              <ApprovalListMasterDetail
+                {...sharedListProps}
+                onRespond={handleRespond}
+                userProfiles={userProfiles}
+              />
+            )}
+          </>
+        ) : null}
       </div>
 
       {/* Detail slide-in panel (Cards & Grouped only) */}
@@ -456,6 +584,15 @@ export function ApprovalDashboard({
           userProfiles={userProfiles}
         />
       )}
+
+      {/* Batch actions bar */}
+      <BatchActionsBar
+        selectedIds={[...selectedIds]}
+        onClear={clearSelection}
+        onBatchAction={handleBatchAction}
+        onArchive={handleBatchArchive}
+        onUnarchive={hasArchivedSelected ? handleBatchUnarchive : undefined}
+      />
     </div>
   );
 }

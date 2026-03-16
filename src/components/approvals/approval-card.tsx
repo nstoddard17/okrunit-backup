@@ -33,6 +33,8 @@ interface ApprovalCardProps {
   onInlineAction?: (approvalId: string, decision: "approved" | "rejected", comment?: string) => void;
   onSkipConfirmationChange?: (skip: boolean) => void;
   isNew?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -70,6 +72,8 @@ export function ApprovalCard({
   onInlineAction,
   onSkipConfirmationChange,
   isNew = false,
+  isSelected = false,
+  onToggleSelect,
 }: ApprovalCardProps) {
   const [confirmDialog, setConfirmDialog] = useState<"approved" | "rejected" | null>(null);
   const [dontAskAgain, setDontAskAgain] = useState(false);
@@ -121,6 +125,14 @@ export function ApprovalCard({
       >
         <CardHeader className="pb-0 pt-4 px-4">
           <div className="flex items-start justify-between gap-2">
+            {onToggleSelect && (
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={() => onToggleSelect(approval.id)}
+                onClick={(e) => e.stopPropagation()}
+                className="mt-0.5 shrink-0"
+              />
+            )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 {isPending && (
@@ -141,6 +153,9 @@ export function ApprovalCard({
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
               <PriorityBadge priority={approval.priority} />
+              {approval.archived_at && (
+                <Badge variant="secondary" className="text-[11px]">Archived</Badge>
+              )}
               <Badge variant={status.variant} className="text-[11px]">{status.label}</Badge>
             </div>
           </div>

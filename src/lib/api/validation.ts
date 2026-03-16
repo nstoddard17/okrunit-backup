@@ -125,6 +125,13 @@ export const batchApprovalSchema = z.object({
 
 export type BatchApprovalInput = z.infer<typeof batchApprovalSchema>;
 
+export const batchArchiveSchema = z.object({
+  ids: z.array(z.uuid()).min(1).max(50),
+  action: z.enum(["archive", "unarchive"]),
+});
+
+export type BatchArchiveInput = z.infer<typeof batchArchiveSchema>;
+
 // ---- Approval Rules -------------------------------------------------------
 
 export const createRuleSchema = z.object({

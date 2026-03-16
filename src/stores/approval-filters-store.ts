@@ -6,12 +6,14 @@ interface ApprovalFiltersState {
   search: string;
   connectionId: string | undefined;
   source: string | undefined;
+  showArchived: boolean;
   page: number;
   setStatus: (status: string | undefined) => void;
   setPriority: (priority: string | undefined) => void;
   setSearch: (search: string) => void;
   setConnectionId: (connectionId: string | undefined) => void;
   setSource: (source: string | undefined) => void;
+  setShowArchived: (showArchived: boolean) => void;
   setPage: (page: number) => void;
   resetFilters: () => void;
 }
@@ -22,6 +24,7 @@ const initialState = {
   search: "",
   connectionId: undefined as string | undefined,
   source: undefined as string | undefined,
+  showArchived: false,
   page: 1,
 };
 
@@ -32,6 +35,7 @@ export const useApprovalFiltersStore = create<ApprovalFiltersState>((set) => ({
   setSearch: (search) => set({ search, page: 1 }),
   setConnectionId: (connectionId) => set({ connectionId, page: 1 }),
   setSource: (source) => set({ source, page: 1 }),
+  setShowArchived: (showArchived) => set({ showArchived, page: 1 }),
   setPage: (page) => set({ page }),
   resetFilters: () => set(initialState),
 }));

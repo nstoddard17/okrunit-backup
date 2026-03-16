@@ -1,14 +1,14 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Batch Actions Bar: Sticky bottom bar for bulk approve/reject
+// Gatekeeper -- Batch Actions Bar: Sticky bottom bar for bulk actions
 // ---------------------------------------------------------------------------
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, X, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, X, Loader2, Archive, ArchiveRestore } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -18,6 +18,8 @@ interface BatchActionsBarProps {
   selectedIds: string[];
   onClear: () => void;
   onBatchAction: (decision: "approve" | "reject") => void;
+  onArchive?: () => void;
+  onUnarchive?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -28,10 +30,12 @@ export function BatchActionsBar({
   selectedIds,
   onClear,
   onBatchAction,
+  onArchive,
+  onUnarchive,
 }: BatchActionsBarProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState<
-    "approve" | "reject" | null
+    "approve" | "reject" | "archive" | "unarchive" | null
   >(null);
 
   if (selectedIds.length === 0) return null;
@@ -91,6 +95,28 @@ export function BatchActionsBar({
     }
   }
 
+  async function handleArchive() {
+    setIsLoading(true);
+    setLoadingAction("archive");
+    try {
+      await onArchive?.();
+    } finally {
+      setIsLoading(false);
+      setLoadingAction(null);
+    }
+  }
+
+  async function handleUnarchive() {
+    setIsLoading(true);
+    setLoadingAction("unarchive");
+    try {
+      await onUnarchive?.();
+    } finally {
+      setIsLoading(false);
+      setLoadingAction(null);
+    }
+  }
+
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/80 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
@@ -128,6 +154,38 @@ export function BatchActionsBar({
             )}
             Reject All
           </Button>
+
+          {onArchive && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isLoading}
+              onClick={handleArchive}
+            >
+              {loadingAction === "archive" ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Archive className="size-4" />
+              )}
+              Archive
+            </Button>
+          )}
+
+          {onUnarchive && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isLoading}
+              onClick={handleUnarchive}
+            >
+              {loadingAction === "unarchive" ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <ArchiveRestore className="size-4" />
+              )}
+              Unarchive
+            </Button>
+          )}
 
           <Button
             variant="outline"

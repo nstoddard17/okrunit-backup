@@ -15,6 +15,8 @@ interface ApprovalListGroupedProps {
   onInlineAction?: (approvalId: string, decision: "approved" | "rejected", comment?: string) => void;
   onSkipConfirmationChange?: (skip: boolean) => void;
   newIds?: Set<string>;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }
 
 export function ApprovalListGrouped({
@@ -27,6 +29,8 @@ export function ApprovalListGrouped({
   onInlineAction,
   onSkipConfirmationChange,
   newIds,
+  selectedIds,
+  onToggleSelect,
 }: ApprovalListGroupedProps) {
   const connectionMap = new Map(connections.map((c) => [c.id, c.name]));
 
@@ -72,6 +76,8 @@ export function ApprovalListGrouped({
                 onInlineAction={onInlineAction}
                 onSkipConfirmationChange={onSkipConfirmationChange}
                 isNew={newIds?.has(approval.id)}
+                isSelected={selectedIds?.has(approval.id)}
+                onToggleSelect={onToggleSelect}
               />
             ))}
           </div>
@@ -105,6 +111,8 @@ export function ApprovalListGrouped({
                   onInlineAction={onInlineAction}
                   onSkipConfirmationChange={onSkipConfirmationChange}
                   isNew={newIds?.has(approval.id)}
+                  isSelected={selectedIds?.has(approval.id)}
+                  onToggleSelect={onToggleSelect}
                 />
               </div>
             ))}

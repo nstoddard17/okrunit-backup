@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, X } from "lucide-react";
+import { Search, X, Archive } from "lucide-react";
 import { SOURCE_CONFIG } from "@/components/approvals/source-icons";
 import type { Connection } from "@/lib/types/database";
 
@@ -20,6 +20,7 @@ interface ApprovalFiltersProps {
     search?: string;
     connectionId?: string;
     source?: string;
+    showArchived?: boolean;
   }) => void;
   connections: Connection[];
   currentFilters: {
@@ -28,6 +29,7 @@ interface ApprovalFiltersProps {
     search?: string;
     connectionId?: string;
     source?: string;
+    showArchived?: boolean;
   };
 }
 
@@ -36,12 +38,12 @@ export function ApprovalFilters({
   connections,
   currentFilters,
 }: ApprovalFiltersProps) {
-  const hasActiveFilters = currentFilters.status || currentFilters.priority || currentFilters.search || currentFilters.connectionId || currentFilters.source;
+  const hasActiveFilters = currentFilters.status || currentFilters.priority || currentFilters.search || currentFilters.connectionId || currentFilters.source || currentFilters.showArchived;
 
   return (
     <div className="rounded-xl bg-muted/30 p-3">
-      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:flex-wrap">
+        <div className="relative flex-1 min-w-[180px]">
           <Search className="text-muted-foreground absolute top-1/2 left-3 size-3.5 -translate-y-1/2" />
           <Input
             placeholder="Search approvals..."
@@ -142,6 +144,21 @@ export function ApprovalFilters({
           </Select>
         )}
 
+        <Button
+          variant={currentFilters.showArchived ? "secondary" : "ghost"}
+          size="sm"
+          onClick={() =>
+            onFilterChange({
+              ...currentFilters,
+              showArchived: !currentFilters.showArchived,
+            })
+          }
+          className="h-9 gap-1.5 text-xs"
+        >
+          <Archive className="size-3.5" />
+          {currentFilters.showArchived ? "Showing Archived" : "Show Archived"}
+        </Button>
+
         {hasActiveFilters && (
           <Button
             variant="ghost"
@@ -153,6 +170,7 @@ export function ApprovalFilters({
                 search: undefined,
                 connectionId: undefined,
                 source: undefined,
+                showArchived: false,
               })
             }
             className="h-9 gap-1 text-xs"

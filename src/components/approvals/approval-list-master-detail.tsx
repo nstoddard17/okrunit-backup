@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ApprovalCard } from "@/components/approvals/approval-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PriorityBadge } from "@/components/approvals/priority-badge";
 import { ApprovalResponseForm } from "@/components/approvals/approval-response-form";
 import { Separator } from "@/components/ui/separator";
@@ -25,6 +26,8 @@ interface ApprovalListMasterDetailProps {
   onRespond?: (approvalId: string, decision: "approved" | "rejected", comment: string) => void;
   newIds?: Set<string>;
   userProfiles?: Map<string, UserProfile>;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }
 
 function getUserDisplayName(userId: string, profiles?: Map<string, UserProfile>): string {
@@ -63,6 +66,8 @@ export function ApprovalListMasterDetail({
   onRespond,
   newIds,
   userProfiles,
+  selectedIds,
+  onToggleSelect,
 }: ApprovalListMasterDetailProps) {
   const [selectedId, setSelectedId] = useState<string | null>(
     approvals[0]?.id ?? null,
@@ -96,8 +101,9 @@ export function ApprovalListMasterDetail({
       {/* Left panel — scrollable list */}
       <div className="w-[380px] shrink-0 overflow-y-auto max-h-[calc(100vh-300px)] rounded-xl border border-[var(--border)] bg-card">
         {approvals.map((approval) => {
-          const isSelected = approval.id === selectedId;
+          const isActive = approval.id === selectedId;
           const isNew = newIds?.has(approval.id) ?? false;
+          const isChecked = selectedIds?.has(approval.id) ?? false;
           const status = statusConfig[approval.status] ?? {
             label: approval.status,
             variant: "outline" as const,
@@ -108,33 +114,48 @@ export function ApprovalListMasterDetail({
               key={approval.id}
               className={cn(
                 "px-4 py-3 cursor-pointer border-b border-[var(--border)] last:border-b-0 transition-colors",
-                isSelected && "bg-accent/50",
+                isActive && "bg-accent/50",
                 isNew && "ring-2 ring-emerald-400/50",
               )}
               onClick={() => handleItemClick(approval)}
             >
-              <p className="text-sm font-medium line-clamp-1">{approval.title}</p>
-              {approval.description && (
-                <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
-                  {approval.description}
-                </p>
-              )}
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <Badge variant={status.variant} className="text-[11px]">
-                  {status.label}
-                </Badge>
-                <PriorityBadge priority={approval.priority} />
-                <SourceBadge
-                  approval={approval}
-                  connectionName={approval.connection_id ? connectionMap.get(approval.connection_id) : undefined}
-                  className="text-[11px] text-muted-foreground"
-                />
-                <span className="flex items-center gap-1 text-[11px] text-muted-foreground ml-auto">
-                  <Clock className="size-3" />
-                  {formatDistanceToNow(new Date(approval.created_at), {
-                    addSuffix: true,
-                  })}
-                </span>
+              <div className="flex items-start gap-2">
+                {onToggleSelect && (
+                  <Checkbox
+                    checked={isChecked}
+                    onCheckedChange={() => onToggleSelect(approval.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-0.5 shrink-0"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium line-clamp-1">{approval.title}</p>
+                  {approval.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                      {approval.description}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <Badge variant={status.variant} className="text-[11px]">
+                      {status.label}
+                    </Badge>
+                    <PriorityBadge priority={approval.priority} />
+                    {approval.archived_at && (
+                      <Badge variant="secondary" className="text-[11px]">Archived</Badge>
+                    )}
+                    <SourceBadge
+                      approval={approval}
+                      connectionName={approval.connection_id ? connectionMap.get(approval.connection_id) : undefined}
+                      className="text-[11px] text-muted-foreground"
+                    />
+                    <span className="flex items-center gap-1 text-[11px] text-muted-foreground ml-auto">
+                      <Clock className="size-3" />
+                      {formatDistanceToNow(new Date(approval.created_at), {
+                        addSuffix: true,
+                      })}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           );
