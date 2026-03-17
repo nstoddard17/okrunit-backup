@@ -198,7 +198,7 @@ export function SavedFilters({ currentFilters, onApply }: SavedFiltersProps) {
                     e.stopPropagation();
                     handleDelete(filter.id, filter.name);
                   }}
-                  className="text-muted-foreground hover:text-destructive mr-2 p-1 transition-colors"
+                  className="cursor-pointer text-muted-foreground hover:text-destructive mr-2 p-1 transition-colors"
                   aria-label={`Delete filter "${filter.name}"`}
                 >
                   <Trash2 className="size-3" />

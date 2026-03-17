@@ -44,7 +44,7 @@ export function OrgSwitcher({ currentOrgId, orgs }: OrgSwitcherProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-1 text-[11px] leading-tight text-muted-foreground hover:text-foreground transition-colors outline-none max-w-[170px]">
+      <DropdownMenuTrigger className="flex cursor-pointer items-center gap-1 text-[11px] leading-tight text-muted-foreground hover:text-foreground transition-colors outline-none max-w-[170px]">
         <span className="truncate">{currentOrg?.org_name}</span>
         <ChevronsUpDown className="size-3 shrink-0 opacity-50" />
       </DropdownMenuTrigger>

@@ -142,7 +142,7 @@ export function ResponseViewer({
           <button
             type="button"
             onClick={() => setHeadersOpen((prev) => !prev)}
-            className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs font-medium transition-colors"
+            className="cursor-pointer text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs font-medium transition-colors"
           >
             {headersOpen ? (
               <ChevronDown className="size-3.5" />

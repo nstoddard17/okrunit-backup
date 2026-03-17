@@ -28,7 +28,7 @@ export function LayoutToggle({ layout, onChange }: LayoutToggleProps) {
           type="button"
           onClick={() => onChange(value)}
           className={cn(
-            "inline-flex items-center rounded-md px-3 py-1.5 text-xs font-medium transition",
+            "inline-flex cursor-pointer items-center rounded-md px-3 py-1.5 text-xs font-medium transition",
             layout === value
               ? "bg-background shadow-sm text-foreground"
               : "text-muted-foreground hover:text-foreground"

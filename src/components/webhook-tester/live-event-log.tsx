@@ -208,7 +208,7 @@ export function LiveEventLog({
                         <button
                           type="button"
                           onClick={() => toggleRow(entry.id)}
-                          className="text-muted-foreground hover:text-foreground rounded p-0.5 transition-colors"
+                          className="cursor-pointer text-muted-foreground hover:text-foreground rounded p-0.5 transition-colors"
                           aria-label={
                             isExpanded
                               ? "Collapse details"

@@ -129,7 +129,7 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, 
       {/* Search trigger */}
       <div className="px-3 pt-3">
         <button
-          className="flex w-full items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[var(--ring)] hover:text-foreground"
+          className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[var(--ring)] hover:text-foreground"
           onClick={() => {/* Command palette — future enhancement */}}
         >
           <Search className="size-3.5" />
