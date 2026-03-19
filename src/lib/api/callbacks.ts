@@ -16,7 +16,7 @@ import {
 
 export interface CallbackParams {
   requestId: string;
-  connectionId: string;
+  connectionId: string | null;
   callbackUrl: string;
   callbackHeaders?: Record<string, string>;
   payload: Record<string, unknown>;

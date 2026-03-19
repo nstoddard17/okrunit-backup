@@ -45,6 +45,7 @@ export interface CreatedByInfo {
   connection_name?: string;
   client_id?: string;
   client_name?: string;
+  user_id?: string;
 }
 
 // ---- Table Row Interfaces -------------------------------------------------

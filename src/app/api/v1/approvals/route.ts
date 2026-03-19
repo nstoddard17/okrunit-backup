@@ -127,6 +127,7 @@ export async function POST(request: Request) {
         type: "oauth",
         client_id: auth.clientId,
         client_name: oauthClientName,
+        user_id: auth.userId,
       };
     }
 

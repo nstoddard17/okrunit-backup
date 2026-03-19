@@ -37,7 +37,7 @@ export default async function DashboardPage() {
     .returns<Connection[]>();
 
   // Build a map of approval_id → creator display name
-  // Works for both API key (connection_id) and OAuth (created_by.client_id) requests
+  // Works for both API key (connection_id) and OAuth (created_by.user_id) requests
   const approvalCreators: Record<string, string> = {};
   const allApprovals = approvals ?? [];
   const allConnections = connections ?? [];
@@ -54,24 +54,10 @@ export default async function DashboardPage() {
     }
   }
 
-  // 2. OAuth client creators (for OAuth requests)
-  const oauthClientIds = allApprovals
-    .filter((a) => a.created_by?.type === "oauth" && a.created_by?.client_id)
-    .map((a) => a.created_by!.client_id!);
-  const uniqueOauthClientIds = [...new Set(oauthClientIds)];
-
-  const oauthClientCreatorMap = new Map<string, string>(); // client_id → user_id
-  if (uniqueOauthClientIds.length > 0) {
-    const { data: oauthClients } = await supabase
-      .from("oauth_clients")
-      .select("client_id, created_by")
-      .in("client_id", uniqueOauthClientIds);
-
-    for (const oc of oauthClients ?? []) {
-      if (oc.created_by) {
-        oauthClientCreatorMap.set(oc.client_id, oc.created_by);
-        userIdsToResolve.add(oc.created_by);
-      }
+  // 2. OAuth user IDs (stored directly on the approval's created_by)
+  for (const approval of allApprovals) {
+    if (approval.created_by?.user_id) {
+      userIdsToResolve.add(approval.created_by.user_id);
     }
   }
 
@@ -87,16 +73,16 @@ export default async function DashboardPage() {
 
     // 4. Map each approval to its creator name
     for (const approval of allApprovals) {
-      if (approval.connection_id && connectionCreatorMap.has(approval.connection_id)) {
+      // OAuth: use the user who authorized the integration
+      if (approval.created_by?.user_id) {
+        const name = profileMap.get(approval.created_by.user_id);
+        if (name) approvalCreators[approval.id] = name;
+      }
+      // API key: use the user who created the connection
+      else if (approval.connection_id && connectionCreatorMap.has(approval.connection_id)) {
         const userId = connectionCreatorMap.get(approval.connection_id)!;
         const name = profileMap.get(userId);
         if (name) approvalCreators[approval.id] = name;
-      } else if (approval.created_by?.type === "oauth" && approval.created_by?.client_id) {
-        const userId = oauthClientCreatorMap.get(approval.created_by.client_id);
-        if (userId) {
-          const name = profileMap.get(userId);
-          if (name) approvalCreators[approval.id] = name;
-        }
       }
     }
   }
