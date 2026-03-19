@@ -8,7 +8,7 @@ import type { ApprovalRequest, Connection } from "@/lib/types/database";
 interface ApprovalListGroupedProps {
   approvals: ApprovalRequest[];
   connections: Connection[];
-  connectionCreators?: Record<string, string>;
+  approvalCreators?: Record<string, string>;
   onSelect: (approval: ApprovalRequest) => void;
   canApprove?: boolean;
   isLoading?: boolean;
@@ -23,7 +23,7 @@ interface ApprovalListGroupedProps {
 export function ApprovalListGrouped({
   approvals,
   connections,
-  connectionCreators = {},
+  approvalCreators = {},
   onSelect,
   canApprove = true,
   isLoading = false,
@@ -71,7 +71,7 @@ export function ApprovalListGrouped({
                     ? connectionMap.get(approval.connection_id)
                     : undefined
                 }
-                creatorName={approval.connection_id ? connectionCreators[approval.connection_id] : undefined}
+                creatorName={approvalCreators[approval.id]}
                 onClick={() => onSelect(approval)}
                 canApprove={canApprove}
                 isLoading={isLoading}

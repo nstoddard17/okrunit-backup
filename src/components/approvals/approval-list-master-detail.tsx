@@ -17,7 +17,7 @@ import type { ApprovalRequest, Connection, UserProfile, CreatedByInfo } from "@/
 interface ApprovalListMasterDetailProps {
   approvals: ApprovalRequest[];
   connections: Connection[];
-  connectionCreators?: Record<string, string>;
+  approvalCreators?: Record<string, string>;
   onSelect: (approval: ApprovalRequest) => void;
   canApprove?: boolean;
   isLoading?: boolean;
@@ -67,7 +67,7 @@ export function ApprovalListMasterDetail({
   onRespond,
   newIds,
   userProfiles,
-  connectionCreators = {},
+  approvalCreators = {},
   selectedIds,
   onToggleSelect,
 }: ApprovalListMasterDetailProps) {

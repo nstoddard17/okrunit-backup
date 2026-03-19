@@ -36,20 +36,69 @@ export default async function DashboardPage() {
     .order("name")
     .returns<Connection[]>();
 
-  // Build a map of connection_id → creator display name
-  const creatorIds = [...new Set((connections ?? []).map((c) => c.created_by).filter(Boolean))];
-  let connectionCreators: Record<string, string> = {};
-  if (creatorIds.length > 0) {
+  // Build a map of approval_id → creator display name
+  // Works for both API key (connection_id) and OAuth (created_by.client_id) requests
+  const approvalCreators: Record<string, string> = {};
+  const allApprovals = approvals ?? [];
+  const allConnections = connections ?? [];
+
+  // Collect all user IDs we need to resolve
+  const userIdsToResolve = new Set<string>();
+
+  // 1. Connection creators (for API key requests)
+  const connectionCreatorMap = new Map<string, string>(); // connection_id → user_id
+  for (const conn of allConnections) {
+    if (conn.created_by) {
+      connectionCreatorMap.set(conn.id, conn.created_by);
+      userIdsToResolve.add(conn.created_by);
+    }
+  }
+
+  // 2. OAuth client creators (for OAuth requests)
+  const oauthClientIds = allApprovals
+    .filter((a) => a.created_by?.type === "oauth" && a.created_by?.client_id)
+    .map((a) => a.created_by!.client_id!);
+  const uniqueOauthClientIds = [...new Set(oauthClientIds)];
+
+  const oauthClientCreatorMap = new Map<string, string>(); // client_id → user_id
+  if (uniqueOauthClientIds.length > 0) {
+    const { data: oauthClients } = await supabase
+      .from("oauth_clients")
+      .select("client_id, created_by")
+      .in("client_id", uniqueOauthClientIds);
+
+    for (const oc of oauthClients ?? []) {
+      if (oc.created_by) {
+        oauthClientCreatorMap.set(oc.client_id, oc.created_by);
+        userIdsToResolve.add(oc.created_by);
+      }
+    }
+  }
+
+  // 3. Resolve all user IDs to display names in one query
+  if (userIdsToResolve.size > 0) {
     const { data: profiles } = await supabase
       .from("user_profiles")
       .select("id, full_name, email")
-      .in("id", creatorIds)
+      .in("id", [...userIdsToResolve])
       .returns<Pick<UserProfile, "id" | "full_name" | "email">[]>();
 
     const profileMap = new Map((profiles ?? []).map((p) => [p.id, p.full_name || p.email]));
-    connectionCreators = Object.fromEntries(
-      (connections ?? []).map((c) => [c.id, profileMap.get(c.created_by) ?? ""])
-    );
+
+    // 4. Map each approval to its creator name
+    for (const approval of allApprovals) {
+      if (approval.connection_id && connectionCreatorMap.has(approval.connection_id)) {
+        const userId = connectionCreatorMap.get(approval.connection_id)!;
+        const name = profileMap.get(userId);
+        if (name) approvalCreators[approval.id] = name;
+      } else if (approval.created_by?.type === "oauth" && approval.created_by?.client_id) {
+        const userId = oauthClientCreatorMap.get(approval.created_by.client_id);
+        if (userId) {
+          const name = profileMap.get(userId);
+          if (name) approvalCreators[approval.id] = name;
+        }
+      }
+    }
   }
 
   return (
@@ -61,7 +110,7 @@ export default async function DashboardPage() {
       <ApprovalDashboard
         initialApprovals={approvals ?? []}
         connections={connections ?? []}
-        connectionCreators={connectionCreators}
+        approvalCreators={approvalCreators}
         canApprove={membership.can_approve ?? true}
         orgId={membership.org_id}
       />
