@@ -1,25 +1,24 @@
 {
-  "label": "Gatekeeper OAuth2",
+  "label": "Gatekeeper",
   "type": "oauth2",
-  "parameters": [
+  "parameters": [],
+  "common": [
     {
       "name": "baseUrl",
-      "type": "url",
-      "label": "Gatekeeper URL",
-      "required": true,
-      "default": "https://gatekeeper.example.com",
-      "help": "The base URL of your Gatekeeper instance."
+      "type": "hidden",
+      "default": "https://www.gkapprove.com"
     }
   ],
   "oauth2": {
-    "authorizeUrl": "{{parameters.baseUrl}}/oauth/authorize",
-    "tokenUrl": "{{parameters.baseUrl}}/api/v1/oauth/token",
+    "authorizeUrl": "https://www.gkapprove.com/oauth/authorize",
+    "tokenUrl": "https://www.gkapprove.com/api/v1/oauth/token",
     "scope": ["approvals:read", "approvals:write", "comments:write"],
     "scopeSeparator": " ",
-    "authStyle": "body"
+    "authStyle": "body",
+    "pkce": true
   },
   "test": {
-    "url": "{{parameters.baseUrl}}/api/v1/approvals",
+    "url": "https://www.gkapprove.com/api/v1/approvals",
     "method": "GET",
     "headers": {
       "Authorization": "Bearer {{connection.accessToken}}"

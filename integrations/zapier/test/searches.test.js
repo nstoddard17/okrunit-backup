@@ -22,6 +22,18 @@ describe("Get Approval", () => {
     expect(fields[0].key).toBe("approval_id");
     expect(fields[0].required).toBe(true);
   });
+
+  it("has output fields defined", () => {
+    const fields = App.searches.get_approval.operation.outputFields;
+    expect(fields).toBeDefined();
+    expect(fields.length).toBeGreaterThan(0);
+    const keys = fields.map((f) => f.key);
+    expect(keys).toContain("id");
+    expect(keys).toContain("title");
+    expect(keys).toContain("status");
+    expect(keys).toContain("decided_by");
+    expect(keys).toContain("decided_by_name");
+  });
 });
 
 describe("List Approvals", () => {
@@ -39,6 +51,18 @@ describe("List Approvals", () => {
     expect(keys).toContain("status");
     expect(keys).toContain("priority");
     expect(keys).toContain("search");
+  });
+
+  it("has output fields defined", () => {
+    const fields = App.searches.list_approvals.operation.outputFields;
+    expect(fields).toBeDefined();
+    expect(fields.length).toBeGreaterThan(0);
+    const keys = fields.map((f) => f.key);
+    expect(keys).toContain("id");
+    expect(keys).toContain("title");
+    expect(keys).toContain("status");
+    expect(keys).toContain("decided_by");
+    expect(keys).toContain("decided_by_name");
   });
 
   it("has priority filter with correct choices", () => {

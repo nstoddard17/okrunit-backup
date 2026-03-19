@@ -16,6 +16,7 @@ import { Clock, CheckCircle, XCircle, RefreshCw, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BatchActionsBar } from "@/components/approvals/batch-actions-bar";
+import { FlowConfigDialog } from "@/components/approvals/flow-config-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { ApprovalRequest, Connection, DashboardLayout, UserProfile } from "@/lib/types/database";
 
@@ -57,6 +58,7 @@ export function ApprovalDashboard({
       if (a.assigned_approvers) {
         for (const id of a.assigned_approvers) ids.add(id);
       }
+      if (a.created_by?.user_id) ids.add(a.created_by.user_id);
     }
     return ids;
   }, [approvals]);
@@ -449,16 +451,80 @@ export function ApprovalDashboard({
     [clearSelection, handleRefresh]
   );
 
+  // ---- Flow config dialog ---------------------------------------------------
+
+  const [flowConfigApproval, setFlowConfigApproval] = useState<ApprovalRequest | null>(null);
+
+  const handleConfigureFlow = useCallback((approval: ApprovalRequest) => {
+    setFlowConfigApproval(approval);
+  }, []);
+
+  const handleCloseFlowConfig = useCallback(() => {
+    setFlowConfigApproval(null);
+  }, []);
+
+  // ---- Single archive/unarchive (from card menu) ---------------------------
+
+  const handleSingleArchive = useCallback(async (approvalId: string) => {
+    const previousApprovals = approvals;
+    if (!showArchived) {
+      setApprovals((prev) => prev.filter((a) => a.id !== approvalId));
+    }
+
+    try {
+      const res = await fetch("/api/v1/approvals/batch/archive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [approvalId], action: "archive" }),
+      });
+      if (!res.ok) throw new Error("Failed to archive");
+      toast.success("Request archived");
+      if (showArchived) handleRefresh();
+    } catch {
+      setApprovals(previousApprovals);
+      toast.error("Failed to archive request");
+    }
+  }, [approvals, showArchived, handleRefresh]);
+
+  const handleSingleUnarchive = useCallback(async (approvalId: string) => {
+    try {
+      const res = await fetch("/api/v1/approvals/batch/archive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [approvalId], action: "unarchive" }),
+      });
+      if (!res.ok) throw new Error("Failed to unarchive");
+      toast.success("Request unarchived");
+      handleRefresh();
+    } catch {
+      toast.error("Failed to unarchive request");
+    }
+  }, [handleRefresh]);
+
   // Check if any selected items are archived (for showing unarchive button)
   const hasArchivedSelected = useMemo(
     () => [...selectedIds].some((id) => approvals.find((a) => a.id === id)?.archived_at),
     [selectedIds, approvals]
   );
 
+  // Merge server-provided creator names with client-resolved ones (for realtime inserts)
+  const allCreatorNames = useMemo(() => {
+    const merged: Record<string, string> = { ...approvalCreators };
+    for (const a of approvals) {
+      if (!merged[a.id] && a.created_by?.user_id) {
+        const profile = userProfiles.get(a.created_by.user_id);
+        if (profile) {
+          merged[a.id] = profile.full_name || profile.email;
+        }
+      }
+    }
+    return merged;
+  }, [approvalCreators, approvals, userProfiles]);
+
   const sharedListProps = {
     approvals,
     connections,
-    approvalCreators,
+    approvalCreators: allCreatorNames,
     onSelect: handleSelect,
     canApprove,
     isLoading,
@@ -468,6 +534,9 @@ export function ApprovalDashboard({
     newIds,
     selectedIds,
     onToggleSelect: toggleSelect,
+    onArchive: handleSingleArchive,
+    onUnarchive: handleSingleUnarchive,
+    onConfigureFlow: handleConfigureFlow,
   };
 
   return (
@@ -595,6 +664,14 @@ export function ApprovalDashboard({
         onBatchAction={handleBatchAction}
         onArchive={handleBatchArchive}
         onUnarchive={hasArchivedSelected ? handleBatchUnarchive : undefined}
+      />
+
+      {/* Flow config dialog */}
+      <FlowConfigDialog
+        approval={flowConfigApproval}
+        open={flowConfigApproval !== null}
+        onClose={handleCloseFlowConfig}
+        orgId={orgId}
       />
     </div>
   );

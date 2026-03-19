@@ -25,6 +25,7 @@ const updateFlowSchema = z.object({
   approver_mode: z.enum(["any", "designated", "role_based"]).optional(),
   required_role: z.enum(["owner", "admin", "member"]).nullable().optional(),
   is_sequential: z.boolean().optional(),
+  apply_for_next: z.number().int().min(1).max(10000).nullable().optional(),
 });
 
 // ---- Helpers --------------------------------------------------------------

@@ -1,7 +1,7 @@
 {
   "name": "gatekeeper-zapier",
-  "version": "1.5.0",
-  "description": "Zapier integration for Gatekeeper human-in-the-loop approval gateway",
+  "version": "1.6.0",
+  "description": "Gatekeeper Approvals is a human-in-the-loop approval gateway that pauses automated workflows until a human approves or rejects.",
   "main": "index.js",
   "scripts": {
     "test": "zapier test",
@@ -9,10 +9,10 @@
     "push": "zapier push"
   },
   "dependencies": {
-    "zapier-platform-core": "18.2.1"
+    "zapier-platform-core": "18.3.0"
   },
   "devDependencies": {
-    "zapier-platform-cli": "18.2.1"
+    "zapier-platform-cli": "18.3.0"
   },
   "zapier": {
     "id": 0,

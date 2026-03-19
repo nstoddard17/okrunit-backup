@@ -2,7 +2,7 @@
   "label": "Create Approval Request",
   "description": "Submit a new approval request for human review.",
   "actionType": "create",
-  "connection": "api_key",
+  "connection": "oauth2",
   "parameters": [
     {
       "name": "title",
@@ -12,20 +12,6 @@
       "help": "Short title for the approval request (max 500 characters)."
     },
     {
-      "name": "priority",
-      "type": "select",
-      "label": "Priority",
-      "required": true,
-      "default": "medium",
-      "options": [
-        { "label": "Low", "value": "low" },
-        { "label": "Medium", "value": "medium" },
-        { "label": "High", "value": "high" },
-        { "label": "Critical", "value": "critical" }
-      ],
-      "help": "Urgency level of the approval."
-    },
-    {
       "name": "description",
       "type": "text",
       "label": "Description",
@@ -33,61 +19,22 @@
       "help": "Detailed description (max 5000 characters)."
     },
     {
-      "name": "action_type",
-      "type": "text",
-      "label": "Action Type",
-      "required": false,
-      "help": "Category of the action (e.g., \"deploy\", \"delete\", \"transfer\")."
-    },
-    {
-      "name": "callback_url",
-      "type": "url",
-      "label": "Callback URL",
-      "required": false,
-      "help": "URL to POST the decision to when approved/rejected."
-    },
-    {
       "name": "metadata",
       "type": "text",
       "label": "Metadata (JSON)",
       "required": false,
-      "help": "Arbitrary JSON object for additional context (e.g., {\"order_id\": \"123\"})."
-    },
-    {
-      "name": "expires_at",
-      "type": "date",
-      "label": "Expires At",
-      "required": false,
-      "help": "When this request auto-expires if not decided."
-    },
-    {
-      "name": "idempotency_key",
-      "type": "text",
-      "label": "Idempotency Key",
-      "required": false,
-      "help": "Unique key to prevent duplicate submissions."
-    },
-    {
-      "name": "required_approvals",
-      "type": "uinteger",
-      "label": "Required Approvals",
-      "required": false,
-      "default": 1,
-      "help": "Number of approvals needed (1-10)."
+      "help": "Optional JSON data to attach (e.g. {\"order_id\": \"123\"}). Priority, routing, expiration, and approvers are all configured in your Gatekeeper dashboard at gkapprove.com."
     }
   ],
   "url": "/api/v1/approvals",
   "method": "POST",
   "body": {
     "title": "{{parameters.title}}",
-    "priority": "{{parameters.priority}}",
     "description": "{{ifempty(parameters.description, undefined)}}",
-    "action_type": "{{ifempty(parameters.action_type, undefined)}}",
-    "callback_url": "{{ifempty(parameters.callback_url, undefined)}}",
     "metadata": "{{ifempty(parameters.metadata, undefined)}}",
-    "expires_at": "{{ifempty(parameters.expires_at, undefined)}}",
-    "idempotency_key": "{{ifempty(parameters.idempotency_key, undefined)}}",
-    "required_approvals": "{{ifempty(parameters.required_approvals, undefined)}}"
+    "source": "make",
+    "source_id": "{{scenario.id}}",
+    "idempotency_key": "make-{{scenario.id}}-{{execution.id}}"
   },
   "response": {
     "output": "{{body}}"

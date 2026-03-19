@@ -23,6 +23,21 @@ function getIpAddress(request: Request): string {
   );
 }
 
+/** Look up a user's display name (full_name or email) by ID. */
+async function getUserDisplayName(
+  admin: ReturnType<typeof createAdminClient>,
+  userId: string | null,
+): Promise<string | null> {
+  if (!userId) return null;
+  const { data } = await admin
+    .from("user_profiles")
+    .select("full_name, email")
+    .eq("id", userId)
+    .single();
+  if (!data) return null;
+  return data.full_name || data.email || null;
+}
+
 /**
  * Fetch a single approval by id scoped to the org. Throws 404 if not found.
  */
@@ -89,11 +104,13 @@ export async function GET(
     const expired = await checkAndExpire(admin, approval);
     if (expired) {
       return NextResponse.json(
-        { ...approval, status: "expired" },
+        { ...approval, status: "expired", decided_by_name: null },
       );
     }
 
-    return NextResponse.json(approval);
+    // 4. Enrich with decided_by_name
+    const decidedByName = await getUserDisplayName(admin, approval.decided_by);
+    return NextResponse.json({ ...approval, decided_by_name: decidedByName });
   } catch (error) {
     return errorResponse(error);
   }
@@ -326,6 +343,7 @@ export async function PATCH(
       // 6e. Callback delivery + notifications only when a final decision is reached
       if (updated.status !== "pending") {
         if (approval.callback_url) {
+          const decidedByName = await getUserDisplayName(admin, updated.decided_by);
           after(
             deliverCallback({
               requestId: id,
@@ -337,6 +355,7 @@ export async function PATCH(
                 id: updated.id,
                 status: updated.status,
                 decided_by: updated.decided_by,
+                decided_by_name: decidedByName,
                 decided_at: updated.decided_at,
                 decision_comment: updated.decision_comment,
                 title: updated.title,
@@ -433,6 +452,7 @@ export async function PATCH(
 
     // 8. Callback delivery (use after() so Vercel keeps the function alive)
     if (approval.callback_url) {
+      const decidedByName = await getUserDisplayName(admin, actorId);
       after(
         deliverCallback({
           requestId: id,
@@ -444,6 +464,7 @@ export async function PATCH(
             id: updated.id,
             status: updated.status,
             decided_by: updated.decided_by,
+            decided_by_name: decidedByName,
             decided_at: updated.decided_at,
             decision_comment: updated.decision_comment,
             title: updated.title,

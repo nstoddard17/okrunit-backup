@@ -16,6 +16,7 @@ describe("Request Approval (Send & Wait)", () => {
     expect(sample.status).toBe("approved");
     expect(sample.decision).toBe("approved");
     expect(sample.decided_by).toBeDefined();
+    expect(sample.decided_by_name).toBeDefined();
   });
 
   it("has output fields defined", () => {
@@ -26,6 +27,7 @@ describe("Request Approval (Send & Wait)", () => {
     expect(keys).toContain("id");
     expect(keys).toContain("title");
     expect(keys).toContain("decision");
+    expect(keys).toContain("decided_by_name");
     expect(keys).toContain("decided_at");
   });
 
@@ -37,7 +39,9 @@ describe("Request Approval (Send & Wait)", () => {
   });
 
   it("performResume extracts callback data correctly", async () => {
-    const mockZ = {};
+    const mockZ = {
+      errors: { HaltedError: class extends Error { constructor(msg) { super(msg); } } },
+    };
     const bundle = {
       outputData: {
         id: "abc-123",
@@ -52,6 +56,7 @@ describe("Request Approval (Send & Wait)", () => {
         status: "approved",
         priority: "high",
         decided_by: "user-456",
+        decided_by_name: "Jane Smith",
         decision_comment: "Looks good",
         decided_at: "2026-01-01T01:00:00Z",
         metadata: { env: "prod" },
@@ -67,7 +72,46 @@ describe("Request Approval (Send & Wait)", () => {
     expect(result.status).toBe("approved");
     expect(result.decision).toBe("approved");
     expect(result.decided_by).toBe("user-456");
+    expect(result.decided_by_name).toBe("Jane Smith");
     expect(result.decision_comment).toBe("Looks good");
+  });
+
+  it("performResume halts the Zap on rejection", async () => {
+    class HaltedError extends Error {
+      constructor(msg) { super(msg); this.name = "HaltedError"; }
+    }
+    const mockZ = {
+      errors: { HaltedError },
+    };
+    const bundle = {
+      outputData: { id: "abc-123", title: "Test approval" },
+      cleanedRequest: {
+        id: "abc-123",
+        status: "rejected",
+        decision_comment: "Not ready",
+      },
+    };
+
+    await expect(
+      App.creates.request_approval.operation.performResume(mockZ, bundle),
+    ).rejects.toThrow("Request rejected: Not ready");
+  });
+
+  it("performResume halts with default message when no comment", async () => {
+    class HaltedError extends Error {
+      constructor(msg) { super(msg); this.name = "HaltedError"; }
+    }
+    const mockZ = {
+      errors: { HaltedError },
+    };
+    const bundle = {
+      outputData: { id: "abc-123", title: "Test approval" },
+      cleanedRequest: { id: "abc-123", status: "rejected" },
+    };
+
+    await expect(
+      App.creates.request_approval.operation.performResume(mockZ, bundle),
+    ).rejects.toThrow("Request was rejected");
   });
 
   it("returns sample data during isLoadingSample", async () => {

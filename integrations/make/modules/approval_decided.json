@@ -3,7 +3,7 @@
   "description": "Triggers when an approval request is approved or rejected.",
   "actionType": "trigger",
   "type": "polling",
-  "connection": "api_key",
+  "connection": "oauth2",
   "parameters": [
     {
       "name": "status_filter",
@@ -35,7 +35,7 @@
   "url": "/api/v1/approvals",
   "method": "GET",
   "qs": {
-    "status": "{{if(parameters.status_filter, parameters.status_filter, 'approved')}}",
+    "status": "{{ifempty(parameters.status_filter, 'approved,rejected')}}",
     "page_size": "50",
     "priority": "{{ifempty(parameters.priority_filter, undefined)}}"
   },
@@ -54,6 +54,7 @@
     "status": "approved",
     "priority": "high",
     "decided_by": "770e8400-e29b-41d4-a716-446655440002",
+    "decided_by_name": "Jane Smith",
     "decided_at": "2026-02-21T10:30:00.000Z",
     "decision_comment": "Looks good, approved!",
     "metadata": { "environment": "production" },

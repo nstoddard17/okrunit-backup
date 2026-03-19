@@ -18,6 +18,9 @@ interface ApprovalListProps {
   newIds?: Set<string>;
   selectedIds?: Set<string>;
   onToggleSelect?: (id: string) => void;
+  onArchive?: (approvalId: string) => void;
+  onUnarchive?: (approvalId: string) => void;
+  onConfigureFlow?: (approval: ApprovalRequest) => void;
 }
 
 export function ApprovalList({
@@ -33,6 +36,9 @@ export function ApprovalList({
   newIds,
   selectedIds,
   onToggleSelect,
+  onArchive,
+  onUnarchive,
+  onConfigureFlow,
 }: ApprovalListProps) {
   const connectionMap = new Map(connections.map((c) => [c.id, c.name]));
 
@@ -63,6 +69,9 @@ export function ApprovalList({
           isNew={newIds?.has(approval.id)}
           isSelected={selectedIds?.has(approval.id)}
           onToggleSelect={onToggleSelect}
+          onArchive={onArchive}
+          onUnarchive={onUnarchive}
+          onConfigureFlow={onConfigureFlow}
         />
       ))}
     </div>

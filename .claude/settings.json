@@ -38,7 +38,10 @@
       "Bash(identify:*)",
       "Bash(convert:*)",
       "Bash(magick:*)",
-      "WebFetch(domain:www.vectorlogo.zone)"
+      "WebFetch(domain:www.vectorlogo.zone)",
+      "Bash(source /Users/nathanielstoddard/gatekeeper/.env.local)",
+      "Bash(zapier-platform help:*)",
+      "Bash(ls -la /Users/nathanielstoddard/gatekeeper/src/app/\\\\\\(dashboard\\\\\\)/*/)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",

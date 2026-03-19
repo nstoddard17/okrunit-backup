@@ -1,16 +1,18 @@
-# Gatekeeper Make (Integromat) Integration
+# Gatekeeper Make.com Integration
 
-Native Make integration for the [Gatekeeper](https://github.com/your-org/gatekeeper) human-in-the-loop approval gateway.
+Native Make.com custom app for the [Gatekeeper](https://www.gkapprove.com) human-in-the-loop approval gateway.
 
 ## Features
 
 ### Triggers
 
+- **New Approval Request** — Fires when a new approval request is created. Supports filtering by status and priority.
 - **Approval Decided** — Fires when an approval request is approved or rejected. Supports filtering by decision type and priority.
 
 ### Actions
 
-- **Create Approval Request** — Submit a new approval request for human review with title, priority, description, metadata, and more.
+- **Request Approval** — Create an approval and optionally pause your workflow until a human decides. Pair with a Make webhook to build a pause-and-wait pattern.
+- **Create Approval Request** — Submit a new approval request for human review (fire-and-forget).
 - **Get Approval Request** — Fetch a single approval by its UUID.
 - **Add Comment** — Add a comment to an existing approval request.
 
@@ -22,7 +24,7 @@ Native Make integration for the [Gatekeeper](https://github.com/your-org/gatekee
 
 ### Prerequisites
 
-- A running Gatekeeper instance with an API key
+- A [Gatekeeper](https://www.gkapprove.com) account
 - A [Make Developer](https://www.make.com/en/developer) account
 
 ### Installation
@@ -31,16 +33,23 @@ Native Make integration for the [Gatekeeper](https://github.com/your-org/gatekee
 2. Create a new app or import from these JSON files
 3. Import each file into the appropriate section:
    - `base.json` → App settings
-   - `connections/api_key.json` → Connections
+   - `connections/oauth2.json` → Connections
    - `rpcs/check_auth.json` → RPCs
    - `modules/*.json` → Modules
 
 ### Configuration
 
-When adding the Gatekeeper connection in Make:
+Users just click **Connect** and authorize via OAuth2 — no API keys or URLs to enter.
 
-- **API Key**: Your Gatekeeper API key (starts with `gk_`)
-- **Gatekeeper URL**: The base URL of your Gatekeeper instance
+## Pause-and-Wait Pattern
+
+Make.com doesn't have a native "send and wait" like Zapier, but you can achieve the same result:
+
+1. **Scenario A** — Use the **Request Approval** module with a Make webhook URL as the callback
+2. **Scenario B** — Use a **Custom Webhook** trigger that receives the decision from Gatekeeper
+3. When a human approves or rejects in the Gatekeeper dashboard, Gatekeeper POSTs the decision to the webhook, triggering Scenario B
+
+This gives you the same human-in-the-loop workflow as the Zapier "Send & Wait" pattern.
 
 ## Project Structure
 
@@ -48,15 +57,17 @@ When adding the Gatekeeper connection in Make:
 make/
 ├── base.json                    # App metadata and default headers
 ├── connections/
-│   └── api_key.json             # Connection definition with auth test
+│   └── oauth2.json              # OAuth2 connection with PKCE
 ├── rpcs/
 │   └── check_auth.json          # Remote procedure call for auth validation
 ├── modules/
-│   ├── create_approval.json     # Create Approval action
-│   ├── get_approval.json        # Get Approval action
+│   ├── request_approval.json    # Request Approval (pause & wait via webhook)
+│   ├── create_approval.json     # Create Approval (fire-and-forget)
+│   ├── get_approval.json        # Get Approval by ID
 │   ├── list_approvals.json      # List/Search Approvals
-│   ├── add_comment.json         # Add Comment action
-│   └── approval_decided.json    # Polling trigger for decisions
+│   ├── add_comment.json         # Add Comment
+│   ├── new_approval.json        # Trigger: New Approval Request
+│   └── approval_decided.json    # Trigger: Approval Decided
 └── README.md
 ```
 
@@ -64,7 +75,7 @@ make/
 
 | Operation | Method | Endpoint |
 |-----------|--------|----------|
-| Create Approval | POST | `/api/v1/approvals` |
+| Create / Request Approval | POST | `/api/v1/approvals` |
 | Get Approval | GET | `/api/v1/approvals/:id` |
 | List Approvals | GET | `/api/v1/approvals` |
 | Add Comment | POST | `/api/v1/approvals/:id/comments` |
@@ -72,15 +83,17 @@ make/
 
 ## Authentication
 
-The integration uses API Key authentication. The key is sent as a Bearer token in the `Authorization` header on every request. Sensitive headers are automatically sanitized in Make's request logs.
+The integration uses OAuth 2.0 with PKCE. Users click "Connect" in Make, authorize in the Gatekeeper dashboard, and tokens are managed automatically. Sensitive headers are sanitized in Make's request logs.
 
 ## Testing
 
 1. Import the JSON files into the Make Developer Portal
-2. Create a connection using your Gatekeeper API key and URL
+2. Create a connection (click Connect, authorize via OAuth)
 3. Test each module in a scenario:
    - Create an approval, verify it appears in the Gatekeeper dashboard
    - Get the approval by ID, verify all fields
    - List approvals with filters, verify results
    - Add a comment, verify it appears
-   - Set up the trigger, approve/reject via dashboard, verify the trigger fires
+   - Set up the New Approval trigger, create a request, verify it fires
+   - Set up the Approval Decided trigger, approve/reject via dashboard, verify it fires
+   - Test the pause-and-wait pattern with Request Approval + webhook callback

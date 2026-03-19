@@ -17,8 +17,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
-import { Clock, CheckCircle, XCircle, User2 } from "lucide-react";
+import { Clock, CheckCircle, XCircle, User2, MoreVertical, Archive, ArchiveRestore, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SourceAvatar, getSourceDisplay } from "@/components/approvals/source-icons";
 import type { ApprovalRequest } from "@/lib/types/database";
@@ -36,6 +43,9 @@ interface ApprovalCardProps {
   isNew?: boolean;
   isSelected?: boolean;
   onToggleSelect?: (id: string) => void;
+  onArchive?: (approvalId: string) => void;
+  onUnarchive?: (approvalId: string) => void;
+  onConfigureFlow?: (approval: ApprovalRequest) => void;
 }
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -76,6 +86,9 @@ export function ApprovalCard({
   isNew = false,
   isSelected = false,
   onToggleSelect,
+  onArchive,
+  onUnarchive,
+  onConfigureFlow,
 }: ApprovalCardProps) {
   const [confirmDialog, setConfirmDialog] = useState<"approved" | "rejected" | null>(null);
   const [dontAskAgain, setDontAskAgain] = useState(false);
@@ -226,6 +239,47 @@ export function ApprovalCard({
               <Badge variant="secondary" className="text-[11px]">Archived</Badge>
             )}
             <Badge variant={status.variant} className="text-[11px]">{status.label}</Badge>
+
+            {/* Three-dot menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="size-7 p-0 opacity-0 transition-opacity group-hover/card:opacity-100 data-[state=open]:opacity-100"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreVertical className="size-4" />
+                  <span className="sr-only">More actions</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                {approval.flow_id && onConfigureFlow && (
+                  <>
+                    <DropdownMenuItem onClick={() => onConfigureFlow(approval)}>
+                      <Settings2 className="size-4" />
+                      Configure Flow
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                {approval.archived_at ? (
+                  onUnarchive && (
+                    <DropdownMenuItem onClick={() => onUnarchive(approval.id)}>
+                      <ArchiveRestore className="size-4" />
+                      Unarchive
+                    </DropdownMenuItem>
+                  )
+                ) : (
+                  onArchive && (
+                    <DropdownMenuItem onClick={() => onArchive(approval.id)}>
+                      <Archive className="size-4" />
+                      Archive
+                    </DropdownMenuItem>
+                  )
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </Card>

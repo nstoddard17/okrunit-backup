@@ -21,6 +21,7 @@ const getApproval = {
         type: "string",
         required: true,
         helpText: "The UUID of the approval request.",
+        dynamic: "new_approval.id.title",
       },
     ],
 
@@ -40,11 +41,26 @@ const getApproval = {
       status: "pending",
       action_type: "deploy",
       decided_by: null,
+      decided_by_name: null,
       decided_at: null,
       decision_comment: null,
       created_at: "2026-02-21T10:00:00.000Z",
       updated_at: "2026-02-21T10:00:00.000Z",
     },
+
+    outputFields: [
+      { key: "id", label: "Approval ID" },
+      { key: "title", label: "Title" },
+      { key: "description", label: "Description" },
+      { key: "status", label: "Status" },
+      { key: "priority", label: "Priority" },
+      { key: "action_type", label: "Action Type" },
+      { key: "decided_by", label: "Decided By (User ID)" },
+      { key: "decided_by_name", label: "Decided By (Name)" },
+      { key: "decided_at", label: "Decided At", type: "datetime" },
+      { key: "decision_comment", label: "Comment" },
+      { key: "created_at", label: "Created At", type: "datetime" },
+    ],
   },
 };
 

@@ -1,11 +1,11 @@
 {
   "label": "Gatekeeper",
-  "description": "Human-in-the-loop approval gateway for AI agents and automated workflows.",
-  "version": "0.1.0",
+  "description": "Human-in-the-loop approval gateway for AI agents and automated workflows. Pause any scenario until a human approves or rejects.",
+  "version": "1.0.0",
   "language": "en",
-  "baseUrl": "{{connection.baseUrl}}",
+  "baseUrl": "https://www.gkapprove.com",
   "headers": {
-    "Authorization": "Bearer {{connection.apiKey}}",
+    "Authorization": "Bearer {{connection.accessToken}}",
     "Content-Type": "application/json",
     "Accept": "application/json"
   },

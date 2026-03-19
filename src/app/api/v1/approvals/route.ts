@@ -170,8 +170,13 @@ export async function POST(request: Request) {
       if (existingFlow) {
         flowId = existingFlow.id;
 
-        // Apply configured defaults (only if the flow has been customized)
-        if (existingFlow.is_configured) {
+        // Apply configured defaults (only if the flow has been customized
+        // and apply_for_next has not been exhausted)
+        const flowStillActive =
+          existingFlow.is_configured &&
+          (existingFlow.apply_for_next === null || existingFlow.apply_for_next > 0);
+
+        if (flowStillActive) {
           flowPriority = existingFlow.default_priority ?? undefined;
           flowActionType = existingFlow.default_action_type ?? undefined;
           flowAssignedTeamId = existingFlow.assigned_team_id ?? undefined;
@@ -188,13 +193,20 @@ export async function POST(request: Request) {
           }
         }
 
-        // Fire-and-forget: bump request_count and last_request_at
+        // Fire-and-forget: bump request_count, last_request_at, and
+        // decrement apply_for_next when it is a positive integer.
+        const flowUpdate: Record<string, unknown> = {
+          request_count: existingFlow.request_count + 1,
+          last_request_at: new Date().toISOString(),
+        };
+
+        if (flowStillActive && typeof existingFlow.apply_for_next === "number" && existingFlow.apply_for_next > 0) {
+          flowUpdate.apply_for_next = existingFlow.apply_for_next - 1;
+        }
+
         admin
           .from("approval_flows")
-          .update({
-            request_count: existingFlow.request_count + 1,
-            last_request_at: new Date().toISOString(),
-          })
+          .update(flowUpdate)
           .eq("id", existingFlow.id)
           .then();
       } else {
@@ -558,8 +570,37 @@ export async function GET(request: Request) {
         .then();
     }
 
+    // 8. Enrich with decided_by_name for decided approvals
+    const decidedByIds = [
+      ...new Set(
+        activeApprovals
+          .map((a) => a.decided_by)
+          .filter((id): id is string => !!id),
+      ),
+    ];
+
+    let nameMap: Map<string, string> = new Map();
+    if (decidedByIds.length > 0) {
+      const { data: profiles } = await admin
+        .from("user_profiles")
+        .select("id, full_name, email")
+        .in("id", decidedByIds);
+
+      nameMap = new Map(
+        (profiles ?? []).map((p: { id: string; full_name: string | null; email: string }) => [
+          p.id,
+          p.full_name || p.email,
+        ]),
+      );
+    }
+
+    const enrichedApprovals = activeApprovals.map((a) => ({
+      ...a,
+      decided_by_name: a.decided_by ? (nameMap.get(a.decided_by) ?? null) : null,
+    }));
+
     return NextResponse.json({
-      data: activeApprovals,
+      data: enrichedApprovals,
       total: (count ?? 0) - expiredIds.length,
       page,
       page_size: pageSize,

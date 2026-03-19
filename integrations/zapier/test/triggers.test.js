@@ -47,6 +47,7 @@ describe("Approval Decided Trigger", () => {
     expect(sample.id).toBeDefined();
     expect(sample.status).toBe("approved");
     expect(sample.decided_by).toBeDefined();
+    expect(sample.decided_by_name).toBeDefined();
     expect(sample.decided_at).toBeDefined();
     expect(sample.decision_comment).toBeDefined();
   });
@@ -59,6 +60,7 @@ describe("Approval Decided Trigger", () => {
     expect(keys).toContain("id");
     expect(keys).toContain("status");
     expect(keys).toContain("decided_by");
+    expect(keys).toContain("decided_by_name");
     expect(keys).toContain("decided_at");
   });
 

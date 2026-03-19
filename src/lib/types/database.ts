@@ -152,6 +152,7 @@ export interface ApprovalFlow {
   approver_mode: ApproverMode;
   required_role: UserRole | null;
   is_sequential: boolean;
+  apply_for_next: number | null;
   request_count: number;
   last_request_at: string | null;
   created_at: string;

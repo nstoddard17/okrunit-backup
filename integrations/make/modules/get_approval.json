@@ -2,7 +2,7 @@
   "label": "Get Approval Request",
   "description": "Fetch a single approval request by its ID.",
   "actionType": "get",
-  "connection": "api_key",
+  "connection": "oauth2",
   "parameters": [
     {
       "name": "approval_id",

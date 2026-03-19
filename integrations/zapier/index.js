@@ -35,6 +35,11 @@ module.exports = {
   beforeRequest: [addAuthHeader],
   afterResponse: [handleErrors],
 
+  // Disable automatic input cleaning for predictable behavior
+  flags: {
+    cleanInputData: false,
+  },
+
   triggers: {
     [newApproval.key]: newApproval,
     [approvalDecided.key]: approvalDecided,

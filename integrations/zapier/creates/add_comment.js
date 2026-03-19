@@ -21,6 +21,7 @@ const addComment = {
         type: "string",
         required: true,
         helpText: "The UUID of the approval request to comment on.",
+        dynamic: "new_approval.id.title",
       },
       {
         key: "body",
