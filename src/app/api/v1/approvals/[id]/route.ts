@@ -2,7 +2,7 @@
 // Gatekeeper -- Approvals API: GET (single) + PATCH (respond) + DELETE (cancel)
 // ---------------------------------------------------------------------------
 
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
 
 import { authenticateRequest } from "@/lib/api/auth";
@@ -326,35 +326,39 @@ export async function PATCH(
       // 6e. Callback delivery + notifications only when a final decision is reached
       if (updated.status !== "pending") {
         if (approval.callback_url) {
-          deliverCallback({
-            requestId: id,
-            connectionId: approval.connection_id,
-            callbackUrl: approval.callback_url,
-            callbackHeaders:
-              (approval.callback_headers as Record<string, string>) ?? undefined,
-            payload: {
-              id: updated.id,
-              status: updated.status,
-              decided_by: updated.decided_by,
-              decided_at: updated.decided_at,
-              decision_comment: updated.decision_comment,
-              title: updated.title,
-              priority: updated.priority,
-              metadata: updated.metadata,
-            },
-          });
+          after(
+            deliverCallback({
+              requestId: id,
+              connectionId: approval.connection_id,
+              callbackUrl: approval.callback_url,
+              callbackHeaders:
+                (approval.callback_headers as Record<string, string>) ?? undefined,
+              payload: {
+                id: updated.id,
+                status: updated.status,
+                decided_by: updated.decided_by,
+                decided_at: updated.decided_at,
+                decision_comment: updated.decision_comment,
+                title: updated.title,
+                priority: updated.priority,
+                metadata: updated.metadata,
+              },
+            })
+          );
         }
 
-        dispatchNotifications({
-          type: updated.status === "approved" ? "approval.approved" : "approval.rejected",
-          orgId: auth.orgId,
-          requestId: id,
-          requestTitle: updated.title,
-          requestPriority: updated.priority,
-          connectionId: approval.connection_id,
-          decidedBy: actorId,
-          decisionComment: validated.comment,
-        });
+        after(
+          dispatchNotifications({
+            type: updated.status === "approved" ? "approval.approved" : "approval.rejected",
+            orgId: auth.orgId,
+            requestId: id,
+            requestTitle: updated.title,
+            requestPriority: updated.priority,
+            connectionId: approval.connection_id,
+            decidedBy: actorId,
+            decisionComment: validated.comment,
+          })
+        );
       }
 
       // 6f. Sequential chain: notify next approver if vote didn't finalize
@@ -369,15 +373,17 @@ export async function PATCH(
         const nextApprover = assignedApprovers.find((uid: string) => !votedSet.has(uid));
 
         if (nextApprover) {
-          dispatchNotifications({
-            type: "approval.next_approver",
-            orgId: auth.orgId,
-            requestId: id,
-            requestTitle: updated.title,
-            requestPriority: updated.priority,
-            connectionId: approval.connection_id ?? undefined,
-            targetUserIds: [nextApprover],
-          });
+          after(
+            dispatchNotifications({
+              type: "approval.next_approver",
+              orgId: auth.orgId,
+              requestId: id,
+              requestTitle: updated.title,
+              requestPriority: updated.priority,
+              connectionId: approval.connection_id ?? undefined,
+              targetUserIds: [nextApprover],
+            })
+          );
         }
       }
 
@@ -425,38 +431,42 @@ export async function PATCH(
       ipAddress,
     });
 
-    // 8. Callback delivery
+    // 8. Callback delivery (use after() so Vercel keeps the function alive)
     if (approval.callback_url) {
-      deliverCallback({
-        requestId: id,
-        connectionId: approval.connection_id,
-        callbackUrl: approval.callback_url,
-        callbackHeaders:
-          (approval.callback_headers as Record<string, string>) ?? undefined,
-        payload: {
-          id: updated.id,
-          status: updated.status,
-          decided_by: updated.decided_by,
-          decided_at: updated.decided_at,
-          decision_comment: updated.decision_comment,
-          title: updated.title,
-          priority: updated.priority,
-          metadata: updated.metadata,
-        },
-      });
+      after(
+        deliverCallback({
+          requestId: id,
+          connectionId: approval.connection_id,
+          callbackUrl: approval.callback_url,
+          callbackHeaders:
+            (approval.callback_headers as Record<string, string>) ?? undefined,
+          payload: {
+            id: updated.id,
+            status: updated.status,
+            decided_by: updated.decided_by,
+            decided_at: updated.decided_at,
+            decision_comment: updated.decision_comment,
+            title: updated.title,
+            priority: updated.priority,
+            metadata: updated.metadata,
+          },
+        })
+      );
     }
 
     // 9. Dispatch notifications
-    dispatchNotifications({
-      type: newStatus === "approved" ? "approval.approved" : "approval.rejected",
-      orgId: auth.orgId,
-      requestId: id,
-      requestTitle: updated.title,
-      requestPriority: updated.priority,
-      connectionId: approval.connection_id,
-      decidedBy: actorId,
-      decisionComment: validated.comment,
-    });
+    after(
+      dispatchNotifications({
+        type: newStatus === "approved" ? "approval.approved" : "approval.rejected",
+        orgId: auth.orgId,
+        requestId: id,
+        requestTitle: updated.title,
+        requestPriority: updated.priority,
+        connectionId: approval.connection_id,
+        decidedBy: actorId,
+        decisionComment: validated.comment,
+      })
+    );
 
     return NextResponse.json(updated);
   } catch (error) {
@@ -530,37 +540,41 @@ export async function DELETE(
       ipAddress,
     });
 
-    // 6. Callback delivery
+    // 6. Callback delivery (use after() so Vercel keeps the function alive)
     if (approval.callback_url) {
-      deliverCallback({
-        requestId: id,
-        connectionId: approval.connection_id,
-        callbackUrl: approval.callback_url,
-        callbackHeaders:
-          (approval.callback_headers as Record<string, string>) ?? undefined,
-        payload: {
-          id: updated.id,
-          status: updated.status,
-          decided_by: null,
-          decided_at: null,
-          decision_comment: null,
-          title: updated.title,
-          priority: updated.priority,
-          metadata: updated.metadata,
-        },
-      });
+      after(
+        deliverCallback({
+          requestId: id,
+          connectionId: approval.connection_id,
+          callbackUrl: approval.callback_url,
+          callbackHeaders:
+            (approval.callback_headers as Record<string, string>) ?? undefined,
+          payload: {
+            id: updated.id,
+            status: updated.status,
+            decided_by: null,
+            decided_at: null,
+            decision_comment: null,
+            title: updated.title,
+            priority: updated.priority,
+            metadata: updated.metadata,
+          },
+        })
+      );
     }
 
     // 7. Dispatch notifications
-    dispatchNotifications({
-      type: "approval.cancelled",
-      orgId: auth.orgId,
-      requestId: id,
-      requestTitle: updated.title,
-      requestPriority: updated.priority,
-      connectionId: approval.connection_id,
-      decidedBy: deleteActorId,
-    });
+    after(
+      dispatchNotifications({
+        type: "approval.cancelled",
+        orgId: auth.orgId,
+        requestId: id,
+        requestTitle: updated.title,
+        requestPriority: updated.priority,
+        connectionId: approval.connection_id,
+        decidedBy: deleteActorId,
+      })
+    );
 
     return NextResponse.json(updated);
   } catch (error) {
