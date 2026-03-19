@@ -115,6 +115,15 @@ const requestApproval = {
       const callback = bundle.cleanedRequest;
       const original = bundle.outputData || {};
 
+      // If the request was rejected, halt the Zap so downstream steps don't run.
+      if (callback.status === "rejected") {
+        throw new z.errors.HaltedError(
+          callback.decision_comment
+            ? `Request rejected: ${callback.decision_comment}`
+            : "Request was rejected",
+        );
+      }
+
       return {
         id: callback.id || original.id,
         title: callback.title || original.title,
