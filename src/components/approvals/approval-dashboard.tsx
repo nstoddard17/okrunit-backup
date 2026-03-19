@@ -22,6 +22,7 @@ import type { ApprovalRequest, Connection, DashboardLayout, UserProfile } from "
 interface ApprovalDashboardProps {
   initialApprovals: ApprovalRequest[];
   connections: Connection[];
+  connectionCreators?: Record<string, string>;
   canApprove?: boolean;
   orgId: string;
 }
@@ -29,6 +30,7 @@ interface ApprovalDashboardProps {
 export function ApprovalDashboard({
   initialApprovals,
   connections,
+  connectionCreators = {},
   canApprove = true,
   orgId,
 }: ApprovalDashboardProps) {
@@ -456,6 +458,7 @@ export function ApprovalDashboard({
   const sharedListProps = {
     approvals,
     connections,
+    connectionCreators,
     onSelect: handleSelect,
     canApprove,
     isLoading,

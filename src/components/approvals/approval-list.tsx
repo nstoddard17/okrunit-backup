@@ -8,6 +8,7 @@ import type { ApprovalRequest, Connection } from "@/lib/types/database";
 interface ApprovalListProps {
   approvals: ApprovalRequest[];
   connections: Connection[];
+  connectionCreators?: Record<string, string>;
   onSelect: (approval: ApprovalRequest) => void;
   canApprove?: boolean;
   isLoading?: boolean;
@@ -22,6 +23,7 @@ interface ApprovalListProps {
 export function ApprovalList({
   approvals,
   connections,
+  connectionCreators = {},
   onSelect,
   canApprove = true,
   isLoading = false,
@@ -51,6 +53,7 @@ export function ApprovalList({
           key={approval.id}
           approval={approval}
           connectionName={approval.connection_id ? connectionMap.get(approval.connection_id) : undefined}
+          creatorName={approval.connection_id ? connectionCreators[approval.connection_id] : undefined}
           onClick={() => onSelect(approval)}
           canApprove={canApprove}
           isLoading={isLoading}

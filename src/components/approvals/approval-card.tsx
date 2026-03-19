@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,14 +18,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { formatDistanceToNow } from "date-fns";
-import { Clock, CheckCircle, XCircle } from "lucide-react";
+import { Clock, CheckCircle, XCircle, User2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SourceBadge } from "@/components/approvals/source-icons";
+import { SourceAvatar, getSourceDisplay } from "@/components/approvals/source-icons";
 import type { ApprovalRequest } from "@/lib/types/database";
 
 interface ApprovalCardProps {
   approval: ApprovalRequest;
   connectionName?: string;
+  creatorName?: string;
   onClick: () => void;
   canApprove?: boolean;
   isLoading?: boolean;
@@ -65,6 +66,7 @@ const statusGlowColors: Record<string, string> = {
 export function ApprovalCard({
   approval,
   connectionName,
+  creatorName,
   onClick,
   canApprove = true,
   isLoading = false,
@@ -116,71 +118,62 @@ export function ApprovalCard({
     <>
       <Card
         className={cn(
-          "cursor-pointer border-0 border-l-4 transition-all",
+          "group/card cursor-pointer border-0 border-l-4 transition-all",
           borderColor,
           glowColor,
           isNew && "ring-2 ring-emerald-400/60 animate-in fade-in slide-in-from-bottom-1 duration-500",
         )}
         onClick={onClick}
       >
-        <CardHeader className="pb-0 pt-4 px-4">
-          <div className="flex items-start justify-between gap-2">
-            {onToggleSelect && (
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={() => onToggleSelect(approval.id)}
-                onClick={(e) => e.stopPropagation()}
-                className="mt-0.5 shrink-0"
-              />
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                {isPending && (
-                  <span className="relative flex size-2 shrink-0">
-                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                    <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
+        <div className="flex items-center gap-3 px-4 py-3">
+          {/* Checkbox */}
+          {onToggleSelect && (
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={() => onToggleSelect(approval.id)}
+              onClick={(e) => e.stopPropagation()}
+              className="shrink-0"
+            />
+          )}
+
+          {/* Source avatar */}
+          <SourceAvatar approval={approval} connectionName={connectionName} size="md" />
+
+          {/* Main content */}
+          <div className="min-w-0 flex-1">
+            {/* Title row */}
+            <div className="flex items-center gap-2">
+              {isPending && (
+                <span className="relative flex size-2 shrink-0">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
+                </span>
+              )}
+              <CardTitle className="line-clamp-1 text-sm font-medium">
+                {approval.title}
+              </CardTitle>
+            </div>
+
+            {/* Metadata row */}
+            <div className="text-muted-foreground mt-0.5 flex items-center gap-2 text-[11px]">
+              {/* Source label (text only — avatar already shows the icon) */}
+              <span>{getSourceDisplay(approval, connectionName).label}</span>
+              {/* Show the account owner who created the connection */}
+              {creatorName && (
+                <>
+                  <span className="text-muted-foreground/40">|</span>
+                  <span className="flex items-center gap-1 truncate">
+                    <User2 className="size-3 shrink-0" />
+                    {creatorName}
                   </span>
-                )}
-                <CardTitle className="line-clamp-1 text-sm font-medium">
-                  {approval.title}
-                </CardTitle>
-              </div>
-              {approval.description && (
-                <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed mt-0.5">
-                  {approval.description}
-                </p>
+                </>
               )}
-            </div>
-            <div className="flex shrink-0 items-center gap-1.5">
-              <PriorityBadge priority={approval.priority} />
-              {approval.archived_at && (
-                <Badge variant="secondary" className="text-[11px]">Archived</Badge>
-              )}
-              <Badge variant={status.variant} className="text-[11px]">{status.label}</Badge>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="px-4 pb-3 pt-2">
-          <div className="flex items-center justify-between gap-3">
-            {/* Info row */}
-            <div className="text-muted-foreground flex items-center gap-2.5 text-[11px]">
-              <SourceBadge
-                approval={approval}
-                connectionName={connectionName}
-                className="text-[11px]"
-              />
               {approval.action_type && (
                 <>
                   <span className="text-muted-foreground/40">|</span>
                   <span className="rounded bg-muted/60 px-1.5 py-0.5 font-mono text-[10px]">
                     {approval.action_type}
                   </span>
-                </>
-              )}
-              {approval.source && connectionName && (
-                <>
-                  <span className="text-muted-foreground/40">|</span>
-                  <span className="truncate">{connectionName}</span>
                 </>
               )}
               <span className="text-muted-foreground/40">|</span>
@@ -199,10 +192,13 @@ export function ApprovalCard({
                 </>
               )}
             </div>
+          </div>
 
-            {/* Inline approve/reject buttons */}
+          {/* Right side: badges + hover actions */}
+          <div className="flex shrink-0 items-center gap-1.5">
+            {/* Inline approve/reject — visible on hover */}
             {isPending && canApprove && onInlineAction && (
-              <div className="flex shrink-0 items-center gap-1.5">
+              <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover/card:opacity-100">
                 <Button
                   size="sm"
                   variant="success"
@@ -225,8 +221,13 @@ export function ApprovalCard({
                 </Button>
               </div>
             )}
+            <PriorityBadge priority={approval.priority} />
+            {approval.archived_at && (
+              <Badge variant="secondary" className="text-[11px]">Archived</Badge>
+            )}
+            <Badge variant={status.variant} className="text-[11px]">{status.label}</Badge>
           </div>
-        </CardContent>
+        </div>
       </Card>
 
       {/* Confirmation dialog */}

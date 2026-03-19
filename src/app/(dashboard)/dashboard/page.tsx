@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ApprovalDashboard } from "@/components/approvals/approval-dashboard";
-import type { ApprovalRequest, Connection } from "@/lib/types/database";
+import type { ApprovalRequest, Connection, UserProfile } from "@/lib/types/database";
 
 export const metadata = {
   title: "Dashboard - Gatekeeper",
@@ -36,6 +36,22 @@ export default async function DashboardPage() {
     .order("name")
     .returns<Connection[]>();
 
+  // Build a map of connection_id → creator display name
+  const creatorIds = [...new Set((connections ?? []).map((c) => c.created_by).filter(Boolean))];
+  let connectionCreators: Record<string, string> = {};
+  if (creatorIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", creatorIds)
+      .returns<Pick<UserProfile, "id" | "full_name" | "email">[]>();
+
+    const profileMap = new Map((profiles ?? []).map((p) => [p.id, p.full_name || p.email]));
+    connectionCreators = Object.fromEntries(
+      (connections ?? []).map((c) => [c.id, profileMap.get(c.created_by) ?? ""])
+    );
+  }
+
   return (
     <PageContainer>
       <PageHeader
@@ -45,6 +61,7 @@ export default async function DashboardPage() {
       <ApprovalDashboard
         initialApprovals={approvals ?? []}
         connections={connections ?? []}
+        connectionCreators={connectionCreators}
         canApprove={membership.can_approve ?? true}
         orgId={membership.org_id}
       />

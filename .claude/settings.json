@@ -34,7 +34,11 @@
       "WebFetch(domain:marconijr.com)",
       "WebFetch(domain:www.npmjs.com)",
       "Bash(npx jest --no-cache)",
-      "Bash(npx zapier:*)"
+      "Bash(npx zapier:*)",
+      "Bash(identify:*)",
+      "Bash(convert:*)",
+      "Bash(magick:*)",
+      "WebFetch(domain:www.vectorlogo.zone)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",
