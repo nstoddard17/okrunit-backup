@@ -41,13 +41,19 @@
       "WebFetch(domain:www.vectorlogo.zone)",
       "Bash(source /Users/nathanielstoddard/gatekeeper/.env.local)",
       "Bash(zapier-platform help:*)",
-      "Bash(ls -la /Users/nathanielstoddard/gatekeeper/src/app/\\\\\\(dashboard\\\\\\)/*/)"
+      "Bash(ls -la /Users/nathanielstoddard/gatekeeper/src/app/\\\\\\(dashboard\\\\\\)/*/)",
+      "WebSearch",
+      "WebFetch(domain:developers.make.com)",
+      "WebFetch(domain:help.make.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:community.make.com)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",
       "/private/tmp",
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/test-webhook",
-      "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/flows"
+      "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/flows",
+      "/Users/nathanielstoddard/gatekeeper/integrations/make/modules"
     ]
   }
 }

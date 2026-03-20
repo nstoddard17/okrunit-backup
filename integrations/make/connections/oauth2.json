@@ -15,7 +15,8 @@
     "scope": ["approvals:read", "approvals:write", "comments:write"],
     "scopeSeparator": " ",
     "authStyle": "body",
-    "pkce": true
+    "pkce": true,
+    "autoRefresh": true
   },
   "test": {
     "url": "https://www.gkapprove.com/api/v1/approvals",

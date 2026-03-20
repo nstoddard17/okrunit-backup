@@ -21,9 +21,9 @@
     {
       "name": "callback_url",
       "type": "url",
-      "label": "Callback URL (Make Webhook)",
+      "label": "Callback URL",
       "required": false,
-      "help": "Paste the URL from a Make 'Custom Webhook' trigger module. Gatekeeper will POST the decision to this URL, resuming your second scenario. This enables the pause-and-wait pattern."
+      "help": "To receive the approval decision: 1) Create a second scenario with the Gatekeeper 'Approval Decision Received' trigger. 2) Copy the webhook URL it generates. 3) Paste it here. When someone approves or rejects, Gatekeeper will POST the decision to that URL and your second scenario will continue automatically."
     },
     {
       "name": "metadata",

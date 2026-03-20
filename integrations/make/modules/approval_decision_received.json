@@ -1,0 +1,34 @@
+{
+  "label": "Approval Decision Received",
+  "description": "Instantly triggers when Gatekeeper sends an approval decision to this webhook. Use this as the trigger for your second scenario in the pause-and-wait pattern.",
+  "type": "instant",
+  "connection": "oauth2",
+  "webhook": "approvalDecisionWebhook",
+  "parameters": [],
+  "response": {
+    "output": "{{body}}",
+    "type": "object",
+    "spec": [
+      { "name": "id", "type": "text", "label": "Approval ID" },
+      { "name": "title", "type": "text", "label": "Title" },
+      { "name": "status", "type": "text", "label": "Decision (approved/rejected)" },
+      { "name": "priority", "type": "text", "label": "Priority" },
+      { "name": "decided_by", "type": "text", "label": "Decided By (User ID)" },
+      { "name": "decided_by_name", "type": "text", "label": "Decided By (Name)" },
+      { "name": "decision_comment", "type": "text", "label": "Comment" },
+      { "name": "metadata", "type": "text", "label": "Metadata (JSON)" },
+      { "name": "decided_at", "type": "date", "label": "Decided At" }
+    ]
+  },
+  "samples": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "title": "Deploy v2.3.1 to production",
+    "status": "approved",
+    "priority": "high",
+    "decided_by": "770e8400-e29b-41d4-a716-446655440002",
+    "decided_by_name": "Jane Smith",
+    "decision_comment": "Looks good, approved!",
+    "metadata": "{\"environment\": \"production\"}",
+    "decided_at": "2026-02-21T10:30:00.000Z"
+  }
+}

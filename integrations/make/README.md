@@ -12,7 +12,6 @@ Native Make.com custom app for the [Gatekeeper](https://www.gkapprove.com) human
 ### Actions
 
 - **Request Approval** — Create an approval and optionally pause your workflow until a human decides. Pair with a Make webhook to build a pause-and-wait pattern.
-- **Create Approval Request** — Submit a new approval request for human review (fire-and-forget).
 - **Get Approval Request** — Fetch a single approval by its UUID.
 - **Add Comment** — Add a comment to an existing approval request.
 
@@ -62,7 +61,6 @@ make/
 │   └── check_auth.json          # Remote procedure call for auth validation
 ├── modules/
 │   ├── request_approval.json    # Request Approval (pause & wait via webhook)
-│   ├── create_approval.json     # Create Approval (fire-and-forget)
 │   ├── get_approval.json        # Get Approval by ID
 │   ├── list_approvals.json      # List/Search Approvals
 │   ├── add_comment.json         # Add Comment
