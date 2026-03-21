@@ -56,7 +56,13 @@
       "Bash(rsvg-convert /tmp/okrunit_icon.svg -w 256 -h 256 -o /tmp/okrunit_icon_256.png)",
       "Bash(__NEW_LINE_8c22b87a3c8c892a__ rsvg-convert:*)",
       "Bash(__NEW_LINE_2ce1648e5efa0e8e__ rsvg-convert:*)",
-      "Read(//Users/nathanielstoddard/okrunit/okrunit/**)"
+      "Read(//Users/nathanielstoddard/okrunit/okrunit/**)",
+      "Bash(npx tsc:*)",
+      "Bash(npx next:*)",
+      "Bash(ln -s /Users/nathanielstoddard/okrunit/.env.local /Users/nathanielstoddard/okrunit/okrunit/.env.local)",
+      "Bash(cp favicon.ico favicon.ico.bak)",
+      "Bash(rm temp_favicon.png)",
+      "WebFetch(domain:localhost)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",

@@ -291,3 +291,61 @@
 .gk-v2 .card-enter {
   animation: gk-card-enter 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* ── Tesslate-inspired Dark Landing Theme ────────────────────────────── */
+
+.tess-dark {
+  --tess-bg: #050505;
+  --tess-bg-elevated: #0a0a0a;
+  --tess-bg-card: #111111;
+  --tess-bg-card-hover: #161616;
+  --tess-border: rgba(255, 255, 255, 0.08);
+  --tess-border-strong: rgba(255, 255, 255, 0.14);
+  --tess-text: #ffffff;
+  --tess-text-secondary: #a3a3a3;
+  --tess-text-muted: #6b6b6b;
+  --tess-accent: #ff911d;
+  --tess-accent-soft: rgba(255, 145, 29, 0.12);
+  --tess-glow: rgba(255, 145, 29, 0.06);
+  font-family: var(--font-dm-sans), 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+/* Infinite horizontal scroll for logo ticker */
+@keyframes tess-scroll-x {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes tess-scroll-x-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+/* Subtle glow pulse for accent elements */
+@keyframes tess-glow-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Grid background pattern */
+.tess-grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Radial hero glow */
+.tess-hero-glow {
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255, 145, 29, 0.08), transparent 70%);
+}
+
+/* Card hover glow */
+.tess-card {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+.tess-card:hover {
+  border-color: var(--tess-border-strong);
+  box-shadow: 0 0 30px rgba(255, 145, 29, 0.04);
+  transform: translateY(-2px);
+}
