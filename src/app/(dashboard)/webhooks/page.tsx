@@ -7,7 +7,7 @@ import { DeliveryLogTable } from "@/components/webhooks/delivery-log-table";
 import type { WebhookDeliveryLog, Connection } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Webhook Deliveries - Gatekeeper",
+  title: "Webhook Deliveries - OKRunit",
   description: "View a log of all webhook delivery attempts for your organization.",
 };
 

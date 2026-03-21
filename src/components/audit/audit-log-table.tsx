@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Audit Log Table (Client Component)
+// OKRunit -- Audit Log Table (Client Component)
 // Paginated, filterable table displaying organization audit log entries.
 // ---------------------------------------------------------------------------
 

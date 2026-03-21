@@ -1,11 +1,11 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier -- Teams (Hidden Trigger for Dynamic Dropdown)
+// OKRunit Zapier -- Teams (Hidden Trigger for Dynamic Dropdown)
 // ---------------------------------------------------------------------------
 // This trigger is NOT user-facing. It powers the dynamic dropdown for the
 // "Assign to Team" field in create/request approval actions.
 // ---------------------------------------------------------------------------
 
-const { GATEKEEPER_URL } = require("../authentication");
+const { OKRUNIT_URL } = require("../authentication");
 
 const teams = {
   key: "teams",
@@ -13,7 +13,7 @@ const teams = {
 
   display: {
     label: "Teams",
-    description: "Lists the teams in your Gatekeeper organization.",
+    description: "Lists the teams in your OKRunit organization.",
     hidden: true,
   },
 
@@ -22,7 +22,7 @@ const teams = {
 
     perform: async (z) => {
       const response = await z.request({
-        url: `${GATEKEEPER_URL}/api/v1/teams`,
+        url: `${OKRUNIT_URL}/api/v1/teams`,
       });
 
       const teamsData = response.json.data || [];

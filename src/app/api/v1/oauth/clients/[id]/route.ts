@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth Client Management: Get, Update, Delete
+// OKRunit -- OAuth Client Management: Get, Update, Delete
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

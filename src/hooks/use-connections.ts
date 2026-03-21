@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Connection Data Hook
+// OKRunit -- Connection Data Hook
 // ---------------------------------------------------------------------------
 
 import { useState, useEffect } from "react";

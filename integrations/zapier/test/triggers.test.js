@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier -- Triggers Tests
+// OKRunit Zapier -- Triggers Tests
 // ---------------------------------------------------------------------------
 
 const zapier = require("zapier-platform-core");

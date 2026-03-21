@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Webhook Delivery Log Filters (Client Component)
+// OKRunit -- Webhook Delivery Log Filters (Client Component)
 // Filter controls for narrowing down delivery log entries by status,
 // connection, and (eventually) date range.
 // ---------------------------------------------------------------------------

@@ -1,15 +1,15 @@
 # Windmill Flow: Create Approval and Wait for Decision
 #
 # This example flow demonstrates:
-# 1. Creating a Gatekeeper approval request
+# 1. Creating a OKRunit approval request
 # 2. Polling until a decision is made
 # 3. Branching on approved vs rejected
 #
-# Import this flow into Windmill and configure the Gatekeeper resource.
+# Import this flow into Windmill and configure the OKRunit resource.
 
-summary: "Gatekeeper: Wait for Approval"
+summary: "OKRunit: Wait for Approval"
 description: >
-  Submits an approval request to Gatekeeper and polls until a human
+  Submits an approval request to OKRunit and polls until a human
   makes a decision. Branches on approved vs rejected.
 
 value:

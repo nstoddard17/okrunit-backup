@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Approval-Specific Realtime Hook
+// OKRunit -- Approval-Specific Realtime Hook
 // ---------------------------------------------------------------------------
 
 import { useState, useCallback } from "react";

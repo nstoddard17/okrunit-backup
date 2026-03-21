@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier -- Create Approval Request
+// OKRunit Zapier -- Create Approval Request
 // ---------------------------------------------------------------------------
 
-const { GATEKEEPER_URL } = require("../authentication");
+const { OKRUNIT_URL } = require("../authentication");
 
 const createApproval = {
   key: "create_approval",
@@ -37,7 +37,7 @@ const createApproval = {
         type: "string",
         required: false,
         helpText:
-          'Optional JSON data to attach (e.g. {"order_id": "123"}). Priority, routing, expiration, and approvers are all configured in your Gatekeeper dashboard at gkapprove.com.',
+          'Optional JSON data to attach (e.g. {"order_id": "123"}). Priority, routing, expiration, and approvers are all configured in your OKRunit dashboard at okrunit.com.',
       },
     ],
 
@@ -70,7 +70,7 @@ const createApproval = {
 
       const response = await z.request({
         method: "POST",
-        url: `${GATEKEEPER_URL}/api/v1/approvals`,
+        url: `${OKRUNIT_URL}/api/v1/approvals`,
         body,
       });
 

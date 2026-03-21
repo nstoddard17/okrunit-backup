@@ -1,12 +1,12 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier -- Team Members (Hidden Trigger for Dynamic Dropdown)
+// OKRunit Zapier -- Team Members (Hidden Trigger for Dynamic Dropdown)
 // ---------------------------------------------------------------------------
 // This trigger is NOT user-facing. It powers the dynamic dropdown for the
 // "Assigned Approvers" field in create/request approval actions.
 // Only returns members with approval permissions (can_approve = true).
 // ---------------------------------------------------------------------------
 
-const { GATEKEEPER_URL } = require("../authentication");
+const { OKRUNIT_URL } = require("../authentication");
 
 const teamMembers = {
   key: "team_members",
@@ -14,7 +14,7 @@ const teamMembers = {
 
   display: {
     label: "Team Members",
-    description: "Lists the team members in your Gatekeeper organization.",
+    description: "Lists the team members in your OKRunit organization.",
     hidden: true,
   },
 
@@ -23,7 +23,7 @@ const teamMembers = {
 
     perform: async (z) => {
       const response = await z.request({
-        url: `${GATEKEEPER_URL}/api/v1/team/members`,
+        url: `${OKRUNIT_URL}/api/v1/team/members`,
         params: { can_approve: "true" },
       });
 

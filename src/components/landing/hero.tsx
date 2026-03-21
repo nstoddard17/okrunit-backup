@@ -89,7 +89,7 @@ function MockDashboard() {
         {/* Sidebar */}
         <div className="hidden w-48 shrink-0 border-r border-[var(--border)] bg-[var(--sidebar)] sm:flex sm:flex-col">
           <div className="flex items-center justify-center border-b border-[var(--border)] px-3 py-2.5">
-            <Image src="/logo_text.png" alt="Gatekeeper" width={220} height={60} className="h-7 w-auto" />
+            <Image src="/logo_text.png" alt="OKRunit" width={220} height={60} className="h-7 w-auto" />
           </div>
           <div className="flex-1 space-y-0.5 px-2 py-2">
             {sidebarItems.map((item) => (
@@ -114,7 +114,7 @@ function MockDashboard() {
           <div className="border-t border-[var(--border)] px-2 py-2">
             <div className="flex items-center gap-2 px-2">
               <div className="flex h-5 w-5 items-center justify-center rounded-full text-[7px] font-bold text-white" style={{ backgroundColor: "oklch(0.45 0.15 265)" }}>NS</div>
-              <span className="text-[9px] text-[var(--muted-foreground)]">nathaniel@gk.com</span>
+              <span className="text-[9px] text-[var(--muted-foreground)]">nathaniel@okrunit.com</span>
             </div>
           </div>
         </div>
@@ -162,9 +162,9 @@ function MockDashboard() {
 
 const features = [
   { icon: Shield, title: "Pause before anything dangerous happens", description: "Your automation pauses and waits for a human to approve before executing sensitive actions like deletes, transfers, or deployments." },
-  { icon: Zap, title: "Works with Zapier, Make, n8n, and more", description: "Connect Gatekeeper to any automation platform. Use the Zapier Send-and-Wait action, or connect via Make, n8n, or the REST API." },
+  { icon: Zap, title: "Works with Zapier, Make, n8n, and more", description: "Connect OKRunit to any automation platform. Use the Zapier Send-and-Wait action, or connect via Make, n8n, or the REST API." },
   { icon: Bell, title: "Approve from email, Slack, or your phone", description: "Get notified the moment an action needs your attention. Approve or reject with one click — from wherever you are." },
-  { icon: Workflow, title: "Your automation resumes instantly", description: "Once you approve, Gatekeeper notifies your automation and the workflow picks up right where it left off. No manual follow-up." },
+  { icon: Workflow, title: "Your automation resumes instantly", description: "Once you approve, OKRunit notifies your automation and the workflow picks up right where it left off. No manual follow-up." },
 ];
 
 const gridCards = [
@@ -175,12 +175,12 @@ const gridCards = [
 
 const bigCard = {
   title: "Built for Zapier Send-and-Wait",
-  description: "Gatekeeper works natively with Zapier's Send-and-Wait action. Your Zap pauses, a human reviews the request, and the Zap continues automatically once approved. No code, no webhooks to configure, no polling.",
+  description: "OKRunit works natively with Zapier's Send-and-Wait action. Your Zap pauses, a human reviews the request, and the Zap continues automatically once approved. No code, no webhooks to configure, no polling.",
 };
 
 const howItWorks = [
-  { step: "01", title: "Connect your tools", description: "Link Gatekeeper to Zapier, Make, n8n, or any automation platform. Create a connection in the dashboard — no code required." },
-  { step: "02", title: "Automations pause automatically", description: "When a sensitive action triggers, Gatekeeper holds it and notifies your team via email, Slack, or push notification." },
+  { step: "01", title: "Connect your tools", description: "Link OKRunit to Zapier, Make, n8n, or any automation platform. Create a connection in the dashboard — no code required." },
+  { step: "02", title: "Automations pause automatically", description: "When a sensitive action triggers, OKRunit holds it and notifies your team via email, Slack, or push notification." },
   { step: "03", title: "Approve and continue", description: "Review the request, approve or reject with one click, and the workflow picks up right where it left off." },
 ];
 
@@ -207,7 +207,7 @@ export function Hero({ user }: HeroProps) {
       <nav className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
           <Link href="/" className="flex items-center">
-            <Image src="/logo_text.png" alt="Gatekeeper" width={440} height={120} className="h-10 w-auto" />
+            <Image src="/logo_text.png" alt="OKRunit" width={440} height={120} className="h-10 w-auto" />
           </Link>
 
           {/* Desktop nav */}
@@ -423,7 +423,7 @@ export function Hero({ user }: HeroProps) {
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
             <div>
               <Link href="/" className="flex items-center">
-                <Image src="/logo_text.png" alt="Gatekeeper" width={220} height={60} className="h-8 w-auto" />
+                <Image src="/logo_text.png" alt="OKRunit" width={220} height={60} className="h-8 w-auto" />
               </Link>
               <p className="mt-3 text-xs text-[var(--muted-foreground)]">
                 Human-in-the-loop approval for every automation.
@@ -441,7 +441,7 @@ export function Hero({ user }: HeroProps) {
             ))}
           </div>
           <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-[var(--border)] pt-8 sm:flex-row">
-            <p className="text-xs text-[var(--muted-foreground)]">&copy; {new Date().getFullYear()} Gatekeeper</p>
+            <p className="text-xs text-[var(--muted-foreground)]">&copy; {new Date().getFullYear()} OKRunit</p>
             <div className="flex gap-4 text-xs text-[var(--muted-foreground)]">
               <a href="#" className="transition hover:text-[var(--foreground)]">Terms</a>
               <a href="#" className="transition hover:text-[var(--foreground)]">Privacy</a>

@@ -1,11 +1,11 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier -- Action Types (Hidden Trigger for Dynamic Dropdown)
+// OKRunit Zapier -- Action Types (Hidden Trigger for Dynamic Dropdown)
 // ---------------------------------------------------------------------------
 // This trigger is NOT user-facing. It powers the dynamic dropdown for the
 // "Action Type" field in create/request approval actions.
 // ---------------------------------------------------------------------------
 
-const { GATEKEEPER_URL } = require("../authentication");
+const { OKRUNIT_URL } = require("../authentication");
 
 const actionTypes = {
   key: "action_types",
@@ -13,7 +13,7 @@ const actionTypes = {
 
   display: {
     label: "Action Types",
-    description: "Lists the action types configured in your Gatekeeper organization.",
+    description: "Lists the action types configured in your OKRunit organization.",
     hidden: true,
   },
 
@@ -22,7 +22,7 @@ const actionTypes = {
 
     perform: async (z) => {
       const response = await z.request({
-        url: `${GATEKEEPER_URL}/api/v1/org/action-types`,
+        url: `${OKRUNIT_URL}/api/v1/org/action-types`,
       });
 
       const types = response.json.data || [];

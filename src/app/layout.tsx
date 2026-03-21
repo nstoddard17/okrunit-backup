@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gatekeeper - Human-in-the-Loop Approval Gateway",
+  title: "OKRunit - Human-in-the-Loop Approval Gateway",
   description:
     "Universal approval gateway for AI agents and automation platforms. Get human approval before destructive actions execute.",
 };

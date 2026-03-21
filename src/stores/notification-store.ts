@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Notification Store (Zustand)
+// OKRunit -- Notification Store (Zustand)
 // ---------------------------------------------------------------------------
 //
 // Client-side store for tracking the unread notification count. This store

@@ -1,9 +1,9 @@
 {
-  "label": "Gatekeeper",
+  "label": "OKRunit",
   "description": "Human-in-the-loop approval gateway for AI agents and automated workflows. Pause any scenario until a human approves or rejects.",
   "version": "1.0.0",
   "language": "en",
-  "baseUrl": "https://www.gkapprove.com",
+  "baseUrl": "https://www.okrunit.com",
   "headers": {
     "Authorization": "Bearer {{connection.accessToken}}",
     "Content-Type": "application/json",

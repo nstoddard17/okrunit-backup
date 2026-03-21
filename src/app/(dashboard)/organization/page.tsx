@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { OrgSettingsForm } from "@/components/organization/org-settings-form";
 
 export const metadata = {
-  title: "Organization - Gatekeeper",
+  title: "Organization - OKRunit",
   description: "Manage your organization settings.",
 };
 

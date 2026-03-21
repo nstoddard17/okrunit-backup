@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth 2.0 Authorization / Consent Page
+// OKRunit -- OAuth 2.0 Authorization / Consent Page
 // ---------------------------------------------------------------------------
 
 import { redirect } from "next/navigation";

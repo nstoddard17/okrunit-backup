@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth 2.0 Authorization Code Issuance
+// OKRunit -- OAuth 2.0 Authorization Code Issuance
 // POST /api/v1/oauth/authorize
 // ---------------------------------------------------------------------------
 // Called by the consent form to generate an authorization code and return the

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Saved Filters API: GET (list) + POST (create) + DELETE (remove)
+// OKRunit -- Saved Filters API: GET (list) + POST (create) + DELETE (remove)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

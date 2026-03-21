@@ -1,4 +1,4 @@
-// Windmill Script: List/Search Gatekeeper Approvals
+// Windmill Script: List/Search OKRunit Approvals
 // Resource type: gatekeeper
 
 type Gatekeeper = {
@@ -34,7 +34,7 @@ export async function main(
   if (!response.ok) {
     const err = await response.json();
     throw new Error(
-      `Gatekeeper API error (${response.status}): ${err.error ?? JSON.stringify(err)}`,
+      `OKRunit API error (${response.status}): ${err.error ?? JSON.stringify(err)}`,
     );
   }
 

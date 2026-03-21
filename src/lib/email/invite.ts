@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Team Invite Email Template
+// OKRunit -- Team Invite Email Template
 // ---------------------------------------------------------------------------
 
 import { emailLayout, escapeHtml } from "@/lib/email/layout";
@@ -28,7 +28,7 @@ export function buildInviteEmailHtml(params: InviteEmailParams): string {
           </div>
           <h1 style="margin:0 0 6px;font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.3px;text-align:center;">You&rsquo;re Invited!</h1>
           <p style="margin:0;font-size:15px;color:#64748b;line-height:24px;text-align:center;">
-            You&rsquo;ve been invited to join <strong style="color:#0f172a;">${escapeHtml(orgName)}</strong> on Gatekeeper as ${roleArticle} <strong style="color:#0f172a;">${escapeHtml(role)}</strong>.
+            You&rsquo;ve been invited to join <strong style="color:#0f172a;">${escapeHtml(orgName)}</strong> on OKRunit as ${roleArticle} <strong style="color:#0f172a;">${escapeHtml(role)}</strong>.
           </p>
         </td>
       </tr>
@@ -39,7 +39,7 @@ export function buildInviteEmailHtml(params: InviteEmailParams): string {
       <tr><td style="border-top:1px solid #e2e8f0;"></td></tr>
     </table>
 
-    <!-- What is Gatekeeper -->
+    <!-- What is OKRunit -->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
       <tr>
         <td style="padding:20px 24px;">
@@ -91,7 +91,7 @@ export function buildInviteEmailHtml(params: InviteEmailParams): string {
 
   return emailLayout({
     body,
-    preheader: `You've been invited to join ${orgName} on Gatekeeper`,
+    preheader: `You've been invited to join ${orgName} on OKRunit`,
     footerText: `This invitation expires in ${INVITE_EXPIRY_DAYS} days. If you did not expect this email, you can safely ignore it.`,
   });
 }

@@ -7,7 +7,7 @@ import { RuleList } from "@/components/rules/rule-list";
 import type { ApprovalRule, Connection } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Rules - Gatekeeper",
+  title: "Rules - OKRunit",
   description: "Manage auto-approve rules for incoming approval requests.",
 };
 

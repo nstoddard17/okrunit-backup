@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Live Event Log Tab
+// OKRunit -- Live Event Log Tab
 // Real-time stream of all audit log activity across the org, with expandable
 // detail rows. Uses Supabase Realtime to prepend new entries as they arrive.
 // ---------------------------------------------------------------------------

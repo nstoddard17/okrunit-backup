@@ -1,12 +1,12 @@
 {
-  "node": "n8n-nodes-gatekeeper.gatekeeper",
+  "node": "n8n-nodes-okrunit.okrunit",
   "nodeVersion": "1.0",
   "codexVersion": "1.0",
   "categories": ["Miscellaneous"],
   "resources": {
     "primaryDocumentation": [
       {
-        "url": "https://github.com/your-org/gatekeeper/tree/main/integrations/n8n"
+        "url": "https://github.com/your-org/okrunit/tree/main/integrations/n8n"
       }
     ]
   },

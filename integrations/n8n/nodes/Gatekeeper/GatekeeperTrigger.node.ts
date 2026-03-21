@@ -13,13 +13,13 @@ interface ApprovalRecord {
 
 export class GatekeeperTrigger implements INodeType {
   description: INodeTypeDescription = {
-    displayName: "Gatekeeper Trigger",
-    name: "gatekeeperTrigger",
+    displayName: "OKRunit Trigger",
+    name: "okrunitTrigger",
     icon: "file:gatekeeper.svg",
     group: ["trigger"],
     version: 1,
     description: "Fires when an approval is decided (approved or rejected)",
-    defaults: { name: "Gatekeeper Trigger" },
+    defaults: { name: "OKRunit Trigger" },
     inputs: [],
     outputs: ["main"],
     polling: true,

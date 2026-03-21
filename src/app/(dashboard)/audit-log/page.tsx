@@ -7,7 +7,7 @@ import { AuditLogTable } from "@/components/audit/audit-log-table";
 import type { AuditLogEntry } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Audit Log - Gatekeeper",
+  title: "Audit Log - OKRunit",
   description: "View a chronological log of all actions in your organization.",
 };
 

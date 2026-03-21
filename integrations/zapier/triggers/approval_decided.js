@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier -- Approval Decided Trigger (Polling)
+// OKRunit Zapier -- Approval Decided Trigger (Polling)
 // ---------------------------------------------------------------------------
 
-const { GATEKEEPER_URL } = require("../authentication");
+const { OKRUNIT_URL } = require("../authentication");
 
 const approvalDecided = {
   key: "approval_decided",
@@ -59,7 +59,7 @@ const approvalDecided = {
         }
 
         const response = await z.request({
-          url: `${GATEKEEPER_URL}/api/v1/approvals`,
+          url: `${OKRUNIT_URL}/api/v1/approvals`,
           params,
         });
 

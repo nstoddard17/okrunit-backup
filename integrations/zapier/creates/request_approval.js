@@ -1,11 +1,11 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier -- Request Approval (Send & Wait)
+// OKRunit Zapier -- Request Approval (Send & Wait)
 // ---------------------------------------------------------------------------
 // This action creates an approval request and PAUSES the Zap until a human
 // approves or rejects. Zapier resumes via the callback URL.
 // ---------------------------------------------------------------------------
 
-const { GATEKEEPER_URL } = require("../authentication");
+const { OKRUNIT_URL } = require("../authentication");
 
 const requestApproval = {
   key: "request_approval",
@@ -25,7 +25,7 @@ const requestApproval = {
         type: "string",
         required: false,
         helpText:
-          "A short description of what you want approved (e.g. 'Send invoice #1234 to client'). If left blank, you'll need to edit the title in your Gatekeeper dashboard at gkapprove.com. Use the + button to insert dynamic data from previous steps.",
+          "A short description of what you want approved (e.g. 'Send invoice #1234 to client'). If left blank, you'll need to edit the title in your OKRunit dashboard at okrunit.com. Use the + button to insert dynamic data from previous steps.",
       },
       {
         key: "description",
@@ -41,11 +41,11 @@ const requestApproval = {
         type: "string",
         required: false,
         helpText:
-          'Optional JSON data to attach (e.g. {"order_id": "123"}). Routing rules, priority, expiration, and approvers are all configured in your Gatekeeper dashboard at gkapprove.com.',
+          'Optional JSON data to attach (e.g. {"order_id": "123"}). Routing rules, priority, expiration, and approvers are all configured in your OKRunit dashboard at okrunit.com.',
       },
     ],
 
-    // -- Step 1: Create the approval and give Gatekeeper the callback URL ---
+    // -- Step 1: Create the approval and give OKRunit the callback URL ---
     perform: async (z, bundle) => {
       const callbackUrl = z.generateCallbackUrl();
 
@@ -99,7 +99,7 @@ const requestApproval = {
 
       const response = await z.request({
         method: "POST",
-        url: `${GATEKEEPER_URL}/api/v1/approvals`,
+        url: `${OKRUNIT_URL}/api/v1/approvals`,
         body,
       });
 
@@ -108,10 +108,10 @@ const requestApproval = {
       return response.json;
     },
 
-    // -- Step 2: Resume when Gatekeeper POSTs the decision back ------------
+    // -- Step 2: Resume when OKRunit POSTs the decision back ------------
     performResume: async (z, bundle) => {
       // bundle.outputData = what perform() returned (the approval)
-      // bundle.cleanedRequest = the POST body from Gatekeeper's callback
+      // bundle.cleanedRequest = the POST body from OKRunit's callback
       const callback = bundle.cleanedRequest;
       const original = bundle.outputData || {};
 

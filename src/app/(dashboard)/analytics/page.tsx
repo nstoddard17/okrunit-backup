@@ -13,7 +13,7 @@ import type { VolumeDataPoint } from "@/components/analytics/volume-chart";
 import type { ApprovalRateDataPoint } from "@/components/analytics/approval-rate-chart";
 
 export const metadata = {
-  title: "Analytics - Gatekeeper",
+  title: "Analytics - OKRunit",
   description: "Dashboard analytics and approval statistics.",
 };
 

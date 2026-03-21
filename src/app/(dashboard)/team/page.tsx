@@ -7,7 +7,7 @@ import { TeamPageTabs } from "@/components/team/team-page-tabs";
 import type { OrgInvite } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Team - Gatekeeper",
+  title: "Team - OKRunit",
   description: "Manage your organization's team members, invitations, and team groups.",
 };
 

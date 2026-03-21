@@ -1,29 +1,29 @@
-# n8n-nodes-gatekeeper
+# n8n-nodes-okrunit
 
-n8n community node for [Gatekeeper](https://github.com/your-org/gatekeeper) — a human-in-the-loop approval gateway for AI agents and automation platforms.
+n8n community node for [OKRunit](https://github.com/your-org/okrunit) — a human-in-the-loop approval gateway for AI agents and automation platforms.
 
 ## Installation
 
 ### Community Node (recommended)
 
 1. In n8n, go to **Settings > Community Nodes**
-2. Enter `n8n-nodes-gatekeeper`
+2. Enter `n8n-nodes-okrunit`
 3. Click **Install**
 
 ### Manual Installation
 
 ```bash
 cd ~/.n8n
-npm install n8n-nodes-gatekeeper
+npm install n8n-nodes-okrunit
 ```
 
 ## Credentials
 
-1. In Gatekeeper, go to **Connections** and create a new API connection
+1. In OKRunit, go to **Connections** and create a new API connection
 2. Copy the API key (shown only once)
-3. In n8n, create a new **Gatekeeper API** credential with:
+3. In n8n, create a new **OKRunit API** credential with:
    - **API Key**: Your `gk_...` key
-   - **Base URL**: Your Gatekeeper instance URL
+   - **Base URL**: Your OKRunit instance URL
 
 ## Operations
 
@@ -58,7 +58,7 @@ npm run build
 # Link to local n8n for testing
 npm link
 cd ~/.n8n
-npm link n8n-nodes-gatekeeper
+npm link n8n-nodes-okrunit
 # Restart n8n
 ```
 

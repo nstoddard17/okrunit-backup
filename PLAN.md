@@ -1,15 +1,15 @@
-# Gatekeeper - Implementation Plan
+# OKRunit - Implementation Plan
 
 ## Context
 
-Gatekeeper is a universal human-in-the-loop approval gateway. AI agents and automation platforms (Zapier, Make, n8n, custom scripts) call Gatekeeper's API when they need human approval for destructive/sensitive actions. Gatekeeper notifies the right humans, collects their decision, and calls back the automation with the result.
+OKRunit is a universal human-in-the-loop approval gateway. AI agents and automation platforms (Zapier, Make, n8n, custom scripts) call OKRunit's API when they need human approval for destructive/sensitive actions. OKRunit notifies the right humans, collects their decision, and calls back the automation with the result.
 
-The repo at `/Users/nathanielstoddard/gatekeeper` is a fresh git repo with no code. We are building Weeks 1-2 of the spec: core infrastructure + notifications + real-time updates.
+The repo at `/Users/nathanielstoddard/okrunit` is a fresh git repo with no code. We are building Weeks 1-2 of the spec: core infrastructure + notifications + real-time updates.
 
 **Tech stack:** Next.js 15, React 19, Tailwind CSS, shadcn/ui, Supabase (hosted), Resend, Web Push, Slack webhooks, npm.
 
 **Key decisions made:**
-- Project name: `gatekeeper` (not SEAP)
+- Project name: `okrunit` (not SEAP)
 - Package manager: npm
 - Database: hosted Supabase (URL/keys ready)
 - Resend: account and verified domain ready
@@ -126,7 +126,7 @@ The repo at `/Users/nathanielstoddard/gatekeeper` is a fresh git repo with no co
 ### Phase 11: Callback Delivery
 - [ ] Implement `deliverCallback()` in `src/lib/api/callbacks.ts`
   - [ ] POST to callback_url with decision payload
-  - [ ] HMAC-SHA256 signature in `X-Gatekeeper-Signature` header
+  - [ ] HMAC-SHA256 signature in `X-OKRunit-Signature` header
   - [ ] 10-second timeout per attempt
   - [ ] 3 retries with exponential backoff (1s, 2s, 4s)
 - [ ] Wire callback delivery into approval response flow (PATCH) and lazy expiration
@@ -369,10 +369,10 @@ curl "http://localhost:3000/api/v1/approvals?status=pending" \
 - [ ] **SSO/SAML** - enterprise single sign-on (Supabase Auth supports SAML)
 - [ ] **Audit log export** - CSV/JSON export of audit logs for compliance
 - [ ] **Data retention policies** - auto-delete old approval data after configurable period
-- [ ] **Webhook signature verification docs** - guide for external systems to verify Gatekeeper callbacks
+- [ ] **Webhook signature verification docs** - guide for external systems to verify OKRunit callbacks
 
 ### Developer Experience (extended)
-- [ ] **SDK packages** - `@gatekeeper/node`, `@gatekeeper/python` client libraries with typed methods
+- [ ] **SDK packages** - `@okrunit/node`, `@okrunit/python` client libraries with typed methods
 - [ ] **Approval request dry-run** - validate without creating (useful for testing integrations)
 - [ ] **OpenAPI spec** - auto-generated or hand-written OpenAPI 3.0 spec
 
@@ -386,9 +386,9 @@ curl "http://localhost:3000/api/v1/approvals?status=pending" \
 ### Platform Integrations
 - [ ] **Zapier app** - native Zapier integration on the marketplace
 - [ ] **Make.com module** - custom module for Make scenarios
-- [ ] **n8n community node** - `n8n-nodes-gatekeeper` npm package
+- [ ] **n8n community node** - `n8n-nodes-okrunit` npm package
 - [ ] **GitHub Actions** - action that pauses a workflow for human approval
-- [ ] **Terraform provider** - `terraform-provider-gatekeeper` for infrastructure approval gates
+- [ ] **Terraform provider** - `terraform-provider-okrunit` for infrastructure approval gates
 
 ### Advanced Features
 - [ ] **Approval groups/categories** - organize approvals by type (deploys, access, financial)

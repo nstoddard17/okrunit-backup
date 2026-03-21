@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth Grant Type
+// OKRunit -- OAuth Grant Type
 // ---------------------------------------------------------------------------
 // Aggregated view of an active OAuth connection — one entry per OAuth client
 // that has at least one non-revoked, non-expired refresh token in the org.

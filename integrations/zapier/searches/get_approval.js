@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier -- Get Approval by ID
+// OKRunit Zapier -- Get Approval by ID
 // ---------------------------------------------------------------------------
 
-const { GATEKEEPER_URL } = require("../authentication");
+const { OKRUNIT_URL } = require("../authentication");
 
 const getApproval = {
   key: "get_approval",
@@ -27,7 +27,7 @@ const getApproval = {
 
     perform: async (z, bundle) => {
       const response = await z.request({
-        url: `${GATEKEEPER_URL}/api/v1/approvals/${bundle.inputData.approval_id}`,
+        url: `${OKRUNIT_URL}/api/v1/approvals/${bundle.inputData.approval_id}`,
       });
 
       return [response.json];

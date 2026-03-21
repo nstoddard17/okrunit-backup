@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Approval Rules API: Update + Delete (single rule)
+// OKRunit -- Approval Rules API: Update + Delete (single rule)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

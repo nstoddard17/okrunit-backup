@@ -1,12 +1,12 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier -- New Approval Request Trigger (Polling)
+// OKRunit Zapier -- New Approval Request Trigger (Polling)
 // ---------------------------------------------------------------------------
 // Triggers when a new approval request is created in your organization.
 // Zapier deduplicates by `id`, so returning newest first ensures only truly
 // new items fire the trigger.
 // ---------------------------------------------------------------------------
 
-const { GATEKEEPER_URL } = require("../authentication");
+const { OKRUNIT_URL } = require("../authentication");
 
 const newApproval = {
   key: "new_approval",
@@ -15,7 +15,7 @@ const newApproval = {
   display: {
     label: "New Approval Request",
     description:
-      "Triggers when a new approval request is created in your Gatekeeper organization.",
+      "Triggers when a new approval request is created in your OKRunit organization.",
   },
 
   operation: {
@@ -62,7 +62,7 @@ const newApproval = {
       }
 
       const response = await z.request({
-        url: `${GATEKEEPER_URL}/api/v1/approvals`,
+        url: `${OKRUNIT_URL}/api/v1/approvals`,
         params,
       });
 

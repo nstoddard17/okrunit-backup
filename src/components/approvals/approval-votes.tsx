@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Approval Votes: Progress display with live updates
+// OKRunit -- Approval Votes: Progress display with live updates
 // ---------------------------------------------------------------------------
 
 import { useCallback, useState } from "react";

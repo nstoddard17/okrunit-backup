@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- API Authentication (Triple: API Key + OAuth + Supabase Session)
+// OKRunit -- API Authentication (Triple: API Key + OAuth + Supabase Session)
 // ---------------------------------------------------------------------------
 
 import { createHash, randomBytes } from "crypto";

@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Admin Webhook Tester Tab
+// OKRunit -- Admin Webhook Tester Tab
 // Wraps the existing WebhookCatcher and LiveEventLog components.
 // ---------------------------------------------------------------------------
 

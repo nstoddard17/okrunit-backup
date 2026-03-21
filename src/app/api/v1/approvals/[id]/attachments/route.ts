@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Approval Attachments API: GET (list) + POST (upload)
+// OKRunit -- Approval Attachments API: GET (list) + POST (upload)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

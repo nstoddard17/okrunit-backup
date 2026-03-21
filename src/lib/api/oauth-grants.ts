@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth Grants Query Utility
+// OKRunit -- OAuth Grants Query Utility
 // ---------------------------------------------------------------------------
 // Fetches and aggregates active OAuth grants for an organization. A "grant"
 // is an OAuth client that holds at least one non-revoked, non-expired refresh

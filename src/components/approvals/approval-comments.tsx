@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Approval Comments: Threaded Comment List + Reply Form
+// OKRunit -- Approval Comments: Threaded Comment List + Reply Form
 // ---------------------------------------------------------------------------
 
 import { useState, useCallback } from "react";

@@ -1,5 +1,5 @@
 -- ---------------------------------------------------------------------------
--- Gatekeeper -- OAuth 2.0 Support
+-- OKRunit -- OAuth 2.0 Support
 -- ---------------------------------------------------------------------------
 -- Adds tables for OAuth 2.0 Authorization Server:
 --   1. oauth_clients          – registered OAuth applications

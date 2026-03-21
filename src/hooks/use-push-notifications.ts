@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Client Hook for Web Push Subscription Management
+// OKRunit -- Client Hook for Web Push Subscription Management
 // ---------------------------------------------------------------------------
 
 import { useState, useEffect, useCallback } from "react";

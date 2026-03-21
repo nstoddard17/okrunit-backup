@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Webhook Tester Client (Tabs Wrapper)
+// OKRunit -- Webhook Tester Client (Tabs Wrapper)
 // ---------------------------------------------------------------------------
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

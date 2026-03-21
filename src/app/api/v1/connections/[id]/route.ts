@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Connections API: Update + Deactivate (single connection)
+// OKRunit -- Connections API: Update + Deactivate (single connection)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

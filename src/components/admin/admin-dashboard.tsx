@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Admin Dashboard Client (Tabs Wrapper)
+// OKRunit -- Admin Dashboard Client (Tabs Wrapper)
 // ---------------------------------------------------------------------------
 
 import {

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Organization Action Types API: GET + PUT
+// OKRunit -- Organization Action Types API: GET + PUT
 // ---------------------------------------------------------------------------
 // Manages the org-level list of action types used for dynamic dropdowns
 // in Zapier and for filtering/rules in the dashboard.

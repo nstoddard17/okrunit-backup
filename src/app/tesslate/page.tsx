@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { TesslateHero } from "@/components/landing/tesslate-hero";
 
 export const metadata = {
-  title: "Gatekeeper - Human Approval for Every Automation",
+  title: "OKRunit - Human Approval for Every Automation",
   description:
     "Universal approval gateway for AI agents and automation platforms. Get human approval before destructive actions execute.",
 };

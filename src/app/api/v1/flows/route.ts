@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Approval Flows API: GET (list)
+// OKRunit -- Approval Flows API: GET (list)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Audit Logging
+// OKRunit -- Audit Logging
 // ---------------------------------------------------------------------------
 
 import { createAdminClient } from "@/lib/supabase/admin";

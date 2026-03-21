@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth Client List Component
+// OKRunit -- OAuth Client List Component
 // ---------------------------------------------------------------------------
 
 import { useState } from "react";

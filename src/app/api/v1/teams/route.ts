@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Teams API: List + Create
+// OKRunit -- Teams API: List + Create
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

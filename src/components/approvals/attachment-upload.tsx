@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Attachment Upload: Drag-and-drop + file input upload zone
+// OKRunit -- Attachment Upload: Drag-and-drop + file input upload zone
 // ---------------------------------------------------------------------------
 
 import { useState, useRef, useCallback } from "react";

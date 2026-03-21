@@ -7,8 +7,8 @@ import { RequestBuilder } from "@/components/playground/request-builder";
 import type { Connection } from "@/lib/types/database";
 
 export const metadata = {
-  title: "API Playground - Gatekeeper",
-  description: "Interactively test the Gatekeeper API with pre-built templates and live request/response inspection.",
+  title: "API Playground - OKRunit",
+  description: "Interactively test the OKRunit API with pre-built templates and live request/response inspection.",
 };
 
 const CONNECTION_COLUMNS =
@@ -33,7 +33,7 @@ export default async function PlaygroundPage() {
     <PageContainer wide>
       <PageHeader
         title="API Playground"
-        description="Build and send requests to the Gatekeeper API. Select a template to get started or construct a custom request."
+        description="Build and send requests to the OKRunit API. Select a template to get started or construct a custom request."
       />
       <RequestBuilder connections={connections ?? []} />
     </PageContainer>

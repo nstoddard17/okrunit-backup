@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth 2.0 Consent Form
+// OKRunit -- OAuth 2.0 Consent Form
 // ---------------------------------------------------------------------------
 
 import { useState } from "react";
@@ -119,7 +119,7 @@ export function ConsentForm({
         </CardTitle>
         <CardDescription>
           <strong>{clientName}</strong> is requesting access to your{" "}
-          <strong>{orgName}</strong> organization on Gatekeeper.
+          <strong>{orgName}</strong> organization on OKRunit.
         </CardDescription>
       </CardHeader>
 

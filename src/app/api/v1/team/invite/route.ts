@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Team Invite API: Create Invite + Send Email
+// OKRunit -- Team Invite API: Create Invite + Send Email
 // ---------------------------------------------------------------------------
 
 import { randomBytes } from "crypto";
@@ -143,7 +143,7 @@ export async function POST(request: Request) {
       process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     const inviteLink = `${appUrl}/invite/${token}`;
     const fromAddress =
-      process.env.RESEND_FROM_EMAIL ?? "Gatekeeper <noreply@gatekeeper.app>";
+      process.env.RESEND_FROM_EMAIL ?? "OKRunit <noreply@okrunit.com>";
 
     if (process.env.RESEND_API_KEY) {
       try {
@@ -157,7 +157,7 @@ export async function POST(request: Request) {
         await resend.emails.send({
           from: fromAddress,
           to: normalizedEmail,
-          subject: `You've been invited to join ${orgName} on Gatekeeper`,
+          subject: `You've been invited to join ${orgName} on OKRunit`,
           html,
         });
       } catch (emailError) {

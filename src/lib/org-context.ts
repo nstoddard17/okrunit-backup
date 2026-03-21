@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Organization Context Helper
+// OKRunit -- Organization Context Helper
 // Server-side utilities for resolving the active org for the current user.
 // ---------------------------------------------------------------------------
 

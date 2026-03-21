@@ -9,7 +9,7 @@ import { NotificationSettingsForm } from "@/components/settings/notification-set
 import type { NotificationSettings } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Settings - Gatekeeper",
+  title: "Settings - OKRunit",
   description: "Manage your notification preferences and account settings.",
 };
 

@@ -1,4 +1,4 @@
-// Windmill Script: Poll for Decided Gatekeeper Approvals
+// Windmill Script: Poll for Decided OKRunit Approvals
 // Use as a trigger in a Windmill flow to detect new approval decisions.
 // Resource type: gatekeeper
 
@@ -50,7 +50,7 @@ export async function main(
     if (!response.ok) {
       const err = await response.json();
       throw new Error(
-        `Gatekeeper API error (${response.status}): ${err.error ?? JSON.stringify(err)}`,
+        `OKRunit API error (${response.status}): ${err.error ?? JSON.stringify(err)}`,
       );
     }
 

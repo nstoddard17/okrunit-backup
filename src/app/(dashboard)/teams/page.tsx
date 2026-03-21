@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Teams Management Dashboard Page
+// OKRunit -- Teams Management Dashboard Page
 // ---------------------------------------------------------------------------
 
 import { redirect } from "next/navigation";
@@ -9,7 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { TeamList } from "@/components/teams/team-list";
 
 export const metadata = {
-  title: "Teams - Gatekeeper",
+  title: "Teams - OKRunit",
   description: "Manage teams within your organization.",
 };
 

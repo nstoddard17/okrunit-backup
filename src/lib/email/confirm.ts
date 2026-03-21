@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Email Confirmation Template
+// OKRunit -- Email Confirmation Template
 // ---------------------------------------------------------------------------
 
 import { emailLayout, escapeHtml } from "@/lib/email/layout";
@@ -20,7 +20,7 @@ export function buildConfirmEmailHtml(params: ConfirmEmailParams): string {
           <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#eef2ff,#e0e7ff);border:1px solid #c7d2fe;text-align:center;line-height:56px;margin:0 auto 20px;">
             <span style="font-size:28px;">&#128737;</span>
           </div>
-          <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f172a;letter-spacing:-0.3px;text-align:center;">Welcome to Gatekeeper</h1>
+          <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f172a;letter-spacing:-0.3px;text-align:center;">Welcome to OKRunit</h1>
           <p style="margin:0;font-size:15px;color:#64748b;line-height:24px;text-align:center;">
             Hey ${escapeHtml(fullName)}, thanks for signing up!<br>
             Please confirm your email to get started.
@@ -108,8 +108,8 @@ export function buildConfirmEmailHtml(params: ConfirmEmailParams): string {
 
   return emailLayout({
     body,
-    preheader: "Confirm your email to start using Gatekeeper",
+    preheader: "Confirm your email to start using OKRunit",
     footerText:
-      "If you did not create a Gatekeeper account, you can safely ignore this email.",
+      "If you did not create a OKRunit account, you can safely ignore this email.",
   });
 }

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Analytics API: GET (aggregate stats for dashboard)
+// OKRunit -- Analytics API: GET (aggregate stats for dashboard)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

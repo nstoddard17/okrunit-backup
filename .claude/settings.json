@@ -46,14 +46,25 @@
       "WebFetch(domain:developers.make.com)",
       "WebFetch(domain:help.make.com)",
       "WebFetch(domain:medium.com)",
-      "WebFetch(domain:community.make.com)"
+      "WebFetch(domain:community.make.com)",
+      "Read(//Users/nathanielstoddard/okrunit/**)",
+      "Bash(ls /System/Library/Fonts/Supplemental/*Bold*)",
+      "Bash(ls /System/Library/Fonts/*Bold*)",
+      "Bash(ls /System/Library/Fonts/*.ttf)",
+      "Bash(ls /System/Library/Fonts/SF*)",
+      "Bash(/tmp/okrunit_icon.svg:*)",
+      "Bash(rsvg-convert /tmp/okrunit_icon.svg -w 256 -h 256 -o /tmp/okrunit_icon_256.png)",
+      "Bash(__NEW_LINE_8c22b87a3c8c892a__ rsvg-convert:*)",
+      "Bash(__NEW_LINE_2ce1648e5efa0e8e__ rsvg-convert:*)",
+      "Read(//Users/nathanielstoddard/okrunit/okrunit/**)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",
       "/private/tmp",
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/test-webhook",
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/flows",
-      "/Users/nathanielstoddard/gatekeeper/integrations/make/modules"
+      "/Users/nathanielstoddard/gatekeeper/integrations/make/modules",
+      "/Users/nathanielstoddard/okrunit"
     ]
   }
 }

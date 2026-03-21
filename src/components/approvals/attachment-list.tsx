@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Attachment List: Display uploaded files with download links
+// OKRunit -- Attachment List: Display uploaded files with download links
 // ---------------------------------------------------------------------------
 
 import { useState, useCallback } from "react";

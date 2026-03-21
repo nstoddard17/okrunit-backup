@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Organization API: Update Organization
+// OKRunit -- Organization API: Update Organization
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

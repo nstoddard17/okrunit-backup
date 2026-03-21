@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Emergency Stop API: POST (toggle)
+// OKRunit -- Emergency Stop API: POST (toggle)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

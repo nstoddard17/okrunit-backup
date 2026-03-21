@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Approvals API: GET (single) + PATCH (respond) + DELETE (cancel)
+// OKRunit -- Approvals API: GET (single) + PATCH (respond) + DELETE (cancel)
 // ---------------------------------------------------------------------------
 
 import { NextResponse, after } from "next/server";

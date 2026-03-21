@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- API Key Rotation Endpoint
+// OKRunit -- API Key Rotation Endpoint
 // POST /api/v1/connections/[id]/rotate
 // ---------------------------------------------------------------------------
 

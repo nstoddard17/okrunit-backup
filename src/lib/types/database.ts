@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Database Types
+// OKRunit -- Database Types
 // Generated TypeScript types for all Supabase/Postgres tables and enums.
 // ---------------------------------------------------------------------------
 

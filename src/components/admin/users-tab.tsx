@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Admin Users Tab
+// OKRunit -- Admin Users Tab
 // Table of all users with their org memberships and app admin status.
 // ---------------------------------------------------------------------------
 

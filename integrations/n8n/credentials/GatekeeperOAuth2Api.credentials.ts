@@ -2,19 +2,19 @@ import type { ICredentialType, INodeProperties } from "n8n-workflow";
 
 export class GatekeeperOAuth2Api implements ICredentialType {
   name = "gatekeeperOAuth2Api";
-  displayName = "Gatekeeper OAuth2 API";
+  displayName = "OKRunit OAuth2 API";
   extends = ["oAuth2Api"];
   documentationUrl =
-    "https://github.com/your-org/gatekeeper/tree/main/integrations/n8n";
+    "https://github.com/your-org/okrunit/tree/main/integrations/n8n";
 
   properties: INodeProperties[] = [
     {
       displayName: "Base URL",
       name: "baseUrl",
       type: "string",
-      default: "https://gatekeeper.example.com",
-      placeholder: "https://gatekeeper.example.com",
-      description: "The base URL of your Gatekeeper instance",
+      default: "https://okrunit.example.com",
+      placeholder: "https://okrunit.example.com",
+      description: "The base URL of your OKRunit instance",
     },
     {
       displayName: "Grant Type",

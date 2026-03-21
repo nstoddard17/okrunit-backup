@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Sliding Window Rate Limiter
+// OKRunit -- Sliding Window Rate Limiter
 // ---------------------------------------------------------------------------
 
 import { createAdminClient } from "@/lib/supabase/admin";

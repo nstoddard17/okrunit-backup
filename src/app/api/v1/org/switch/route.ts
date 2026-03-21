@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Org Switch API: Switch Active Organization
+// OKRunit -- Org Switch API: Switch Active Organization
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

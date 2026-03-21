@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { OAuthClientList } from "@/components/settings/oauth-client-list";
 
 export const metadata = {
-  title: "OAuth Apps - Gatekeeper",
+  title: "OAuth Apps - OKRunit",
   description: "Manage OAuth 2.0 applications for your organization.",
 };
 
@@ -31,7 +31,7 @@ export default async function OAuthSettingsPage() {
     <PageContainer>
       <PageHeader
         title="OAuth Apps"
-        description="Register and manage OAuth 2.0 applications that can access your Gatekeeper organization. OAuth apps enable one-click integration with platforms like Zapier, Make, and n8n."
+        description="Register and manage OAuth 2.0 applications that can access your OKRunit organization. OAuth apps enable one-click integration with platforms like Zapier, Make, and n8n."
       />
       <OAuthClientList
         clients={clients || []}

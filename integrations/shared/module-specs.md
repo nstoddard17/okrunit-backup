@@ -1,4 +1,4 @@
-# Gatekeeper Integration Module Specifications
+# OKRunit Integration Module Specifications
 
 Canonical reference for all platform integrations (Zapier, Make, n8n, etc.).
 Every integration must implement these modules with matching fields, filters, and behavior.
@@ -191,7 +191,7 @@ Every integration must implement these modules with matching fields, filters, an
 
 ### Callback Response Fields (sent back when decision is made)
 
-When the approval is decided, Gatekeeper POSTs to the callback URL with:
+When the approval is decided, OKRunit POSTs to the callback URL with:
 
 | Field            | Description                        |
 |------------------|------------------------------------|

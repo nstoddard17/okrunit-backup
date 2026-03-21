@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Team Members API: List, Update Role, Remove
+// OKRunit -- Team Members API: List, Update Role, Remove
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

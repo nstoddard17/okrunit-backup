@@ -1,4 +1,4 @@
--- Gatekeeper: Initial Schema Migration
+-- OKRunit: Initial Schema Migration
 -- All tables, enums, triggers, RLS policies, indexes, and realtime config
 
 -- ============================================================

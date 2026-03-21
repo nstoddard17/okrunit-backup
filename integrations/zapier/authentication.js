@@ -1,19 +1,19 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier Integration -- OAuth 2.0 Authentication
+// OKRunit Zapier Integration -- OAuth 2.0 Authentication
 // ---------------------------------------------------------------------------
-// The GATEKEEPER_URL is set via the Zapier Developer Portal environment
+// The OKRUNIT_URL is set via the Zapier Developer Portal environment
 // variables. Users do NOT need to enter any URL — they just click "Connect".
 // ---------------------------------------------------------------------------
 
-const GATEKEEPER_URL =
-  process.env.GATEKEEPER_URL || "https://www.gkapprove.com";
+const OKRUNIT_URL =
+  process.env.OKRUNIT_URL || "https://www.okrunit.com";
 
 const authentication = {
   type: "oauth2",
 
   oauth2Config: {
     authorizeUrl: {
-      url: `${GATEKEEPER_URL}/oauth/authorize`,
+      url: `${OKRUNIT_URL}/oauth/authorize`,
       params: {
         client_id: "{{process.env.CLIENT_ID}}",
         redirect_uri: "{{bundle.inputData.redirect_uri}}",
@@ -38,7 +38,7 @@ const authentication = {
       }
 
       const response = await z.request({
-        url: `${GATEKEEPER_URL}/api/v1/oauth/token`,
+        url: `${OKRUNIT_URL}/api/v1/oauth/token`,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body,
@@ -48,7 +48,7 @@ const authentication = {
     },
 
     refreshAccessToken: {
-      url: `${GATEKEEPER_URL}/api/v1/oauth/token`,
+      url: `${OKRUNIT_URL}/api/v1/oauth/token`,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -72,7 +72,7 @@ const authentication = {
 
   test: async (z, bundle) => {
     const response = await z.request({
-      url: `${GATEKEEPER_URL}/api/v1/approvals`,
+      url: `${OKRUNIT_URL}/api/v1/approvals`,
       params: { page_size: 1 },
     });
     return {
@@ -82,9 +82,9 @@ const authentication = {
 
   connectionLabel: (z, bundle) => {
     if (bundle.authData.org_name) {
-      return `Gatekeeper (${bundle.authData.org_name})`;
+      return `OKRunit (${bundle.authData.org_name})`;
     }
-    return "Gatekeeper";
+    return "OKRunit";
   },
 };
 
@@ -116,4 +116,4 @@ const handleErrors = (response, z) => {
   return response;
 };
 
-module.exports = { authentication, addAuthHeader, handleErrors, GATEKEEPER_URL };
+module.exports = { authentication, addAuthHeader, handleErrors, OKRUNIT_URL };

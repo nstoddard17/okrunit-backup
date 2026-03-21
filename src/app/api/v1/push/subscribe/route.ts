@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Push Subscribe API: POST (store push subscription)
+// OKRunit -- Push Subscribe API: POST (store push subscription)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

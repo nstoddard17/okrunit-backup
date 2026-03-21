@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Webhook Delivery Log Table (Client Component)
+// OKRunit -- Webhook Delivery Log Table (Client Component)
 // Paginated, filterable table with expandable rows showing full request/
 // response details for each webhook delivery attempt.
 // ---------------------------------------------------------------------------

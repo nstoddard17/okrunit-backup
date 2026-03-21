@@ -1,6 +1,6 @@
-# Gatekeeper Windmill Integration
+# OKRunit Windmill Integration
 
-Windmill scripts and resource type for integrating [Gatekeeper](https://github.com/your-org/gatekeeper) into Windmill workflows.
+Windmill scripts and resource type for integrating [OKRunit](https://github.com/your-org/okrunit) into Windmill workflows.
 
 ## Setup
 
@@ -12,8 +12,8 @@ In your Windmill instance, go to **Resources > Resource Types > New Resource Typ
 
 Create a new resource of type `gatekeeper` with:
 
-- **api_key**: Your Gatekeeper API key (starts with `gk_`)
-- **api_url**: Your Gatekeeper instance URL (e.g., `https://gatekeeper.example.com`)
+- **api_key**: Your OKRunit API key (starts with `gk_`)
+- **api_url**: Your OKRunit instance URL (e.g., `https://okrunit.example.com`)
 
 ### 3. Import Scripts
 

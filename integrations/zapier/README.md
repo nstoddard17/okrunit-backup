@@ -1,6 +1,6 @@
-# Gatekeeper Zapier Integration
+# OKRunit Zapier Integration
 
-Native Zapier integration for the [Gatekeeper](https://github.com/your-org/gatekeeper) human-in-the-loop approval gateway.
+Native Zapier integration for the [OKRunit](https://www.okrunit.com) human-in-the-loop approval gateway.
 
 ## Features
 
@@ -22,7 +22,7 @@ Native Zapier integration for the [Gatekeeper](https://github.com/your-org/gatek
 
 ### Prerequisites
 
-- A running Gatekeeper instance with an API key
+- A running OKRunit instance with an API key
 - [Zapier CLI](https://github.com/zapier/zapier-platform/tree/main/packages/cli) installed globally: `npm install -g zapier-platform-cli`
 - Node.js 18+
 
@@ -66,8 +66,8 @@ zapier validate
 
 ### Local Development
 
-1. Start your Gatekeeper dev server: `npm run dev` (from the project root)
-2. Create a test connection in the Gatekeeper dashboard to get an API key
+1. Start your OKRunit dev server: `npm run dev` (from the project root)
+2. Create a test connection in the OKRunit dashboard to get an API key
 3. Run tests: `npm test`
 4. Test interactively: `zapier invoke trigger approval_decided`
 
@@ -78,7 +78,7 @@ zapier validate
 zapier login
 
 # Register the integration (first time only)
-zapier register "Gatekeeper"
+zapier register "OKRunit"
 
 # Push to Zapier
 zapier push
@@ -88,8 +88,8 @@ zapier push
 
 The integration uses API Key authentication:
 
-- **API Key**: Your Gatekeeper API key (starts with `gk_`)
-- **Gatekeeper URL**: The base URL of your Gatekeeper instance
+- **API Key**: Your OKRunit API key (starts with `gk_`)
+- **OKRunit URL**: The base URL of your OKRunit instance
 
 The API key is sent as a Bearer token in the `Authorization` header on every request.
 

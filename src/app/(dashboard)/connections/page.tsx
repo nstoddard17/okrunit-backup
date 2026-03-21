@@ -9,7 +9,7 @@ import { ConnectedAppsList } from "@/components/connections/connected-apps-list"
 import type { Connection } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Connections - Gatekeeper",
+  title: "Connections - OKRunit",
   description: "Manage your API connections and keys.",
 };
 

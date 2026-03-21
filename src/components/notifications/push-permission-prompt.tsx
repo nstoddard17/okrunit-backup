@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Push Permission Prompt Component
+// OKRunit -- Push Permission Prompt Component
 // ---------------------------------------------------------------------------
 
 import { Bell, BellOff, BellRing, Loader2 } from "lucide-react";

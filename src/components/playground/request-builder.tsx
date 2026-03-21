@@ -1,9 +1,9 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- API Request Builder
+// OKRunit -- API Request Builder
 // Interactive form for constructing and sending HTTP requests against the
-// Gatekeeper API. Includes pre-built request templates, connection-based
+// OKRunit API. Includes pre-built request templates, connection-based
 // auth pre-fill, and live code snippet generation.
 // ---------------------------------------------------------------------------
 

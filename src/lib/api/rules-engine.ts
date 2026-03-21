@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Rule Evaluation Engine
+// OKRunit -- Rule Evaluation Engine
 // ---------------------------------------------------------------------------
 
 import { createAdminClient } from "@/lib/supabase/admin";

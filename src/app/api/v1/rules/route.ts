@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Approval Rules API: List + Create
+// OKRunit -- Approval Rules API: List + Create
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

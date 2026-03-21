@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Push Unsubscribe API: POST (remove push subscription)
+// OKRunit -- Push Unsubscribe API: POST (remove push subscription)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

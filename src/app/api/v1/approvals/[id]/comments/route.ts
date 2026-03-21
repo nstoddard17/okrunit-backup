@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Approval Comments API: GET (list) + POST (create)
+// OKRunit -- Approval Comments API: GET (list) + POST (create)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

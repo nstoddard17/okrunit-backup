@@ -1,6 +1,6 @@
-# Gatekeeper Make.com Integration
+# OKRunit Make.com Integration
 
-Native Make.com custom app for the [Gatekeeper](https://www.gkapprove.com) human-in-the-loop approval gateway.
+Native Make.com custom app for the [OKRunit](https://www.okrunit.com) human-in-the-loop approval gateway.
 
 ## Features
 
@@ -23,7 +23,7 @@ Native Make.com custom app for the [Gatekeeper](https://www.gkapprove.com) human
 
 ### Prerequisites
 
-- A [Gatekeeper](https://www.gkapprove.com) account
+- A [OKRunit](https://www.okrunit.com) account
 - A [Make Developer](https://www.make.com/en/developer) account
 
 ### Installation
@@ -45,8 +45,8 @@ Users just click **Connect** and authorize via OAuth2 — no API keys or URLs to
 Make.com doesn't have a native "send and wait" like Zapier, but you can achieve the same result:
 
 1. **Scenario A** — Use the **Request Approval** module with a Make webhook URL as the callback
-2. **Scenario B** — Use a **Custom Webhook** trigger that receives the decision from Gatekeeper
-3. When a human approves or rejects in the Gatekeeper dashboard, Gatekeeper POSTs the decision to the webhook, triggering Scenario B
+2. **Scenario B** — Use a **Custom Webhook** trigger that receives the decision from OKRunit
+3. When a human approves or rejects in the OKRunit dashboard, OKRunit POSTs the decision to the webhook, triggering Scenario B
 
 This gives you the same human-in-the-loop workflow as the Zapier "Send & Wait" pattern.
 
@@ -81,14 +81,14 @@ make/
 
 ## Authentication
 
-The integration uses OAuth 2.0 with PKCE. Users click "Connect" in Make, authorize in the Gatekeeper dashboard, and tokens are managed automatically. Sensitive headers are sanitized in Make's request logs.
+The integration uses OAuth 2.0 with PKCE. Users click "Connect" in Make, authorize in the OKRunit dashboard, and tokens are managed automatically. Sensitive headers are sanitized in Make's request logs.
 
 ## Testing
 
 1. Import the JSON files into the Make Developer Portal
 2. Create a connection (click Connect, authorize via OAuth)
 3. Test each module in a scenario:
-   - Create an approval, verify it appears in the Gatekeeper dashboard
+   - Create an approval, verify it appears in the OKRunit dashboard
    - Get the approval by ID, verify all fields
    - List approvals with filters, verify results
    - Add a comment, verify it appears

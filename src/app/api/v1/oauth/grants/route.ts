@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth Grants API: List active OAuth connections
+// OKRunit -- OAuth Grants API: List active OAuth connections
 // GET /api/v1/oauth/grants
 // ---------------------------------------------------------------------------
 

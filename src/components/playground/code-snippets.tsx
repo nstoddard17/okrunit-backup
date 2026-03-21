@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Code Snippets Generator
+// OKRunit -- Code Snippets Generator
 // Auto-generates curl, JavaScript fetch, and Python requests code snippets
 // from the current playground request configuration.
 // ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Connection Scoping Enforcement
+// OKRunit -- Connection Scoping Enforcement
 // ---------------------------------------------------------------------------
 
 import { PRIORITY_ORDER } from "@/lib/constants";

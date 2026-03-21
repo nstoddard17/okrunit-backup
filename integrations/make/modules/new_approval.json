@@ -1,6 +1,6 @@
 {
   "label": "New Approval Request",
-  "description": "Triggers when a new approval request is created in your Gatekeeper organization.",
+  "description": "Triggers when a new approval request is created in your OKRunit organization.",
   "actionType": "trigger",
   "type": "polling",
   "connection": "oauth2",

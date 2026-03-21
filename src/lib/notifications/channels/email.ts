@@ -1,12 +1,12 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Email Notification Channel (Resend)
+// OKRunit -- Email Notification Channel (Resend)
 // ---------------------------------------------------------------------------
 
 import { Resend } from "resend";
 import { emailLayout, escapeHtml } from "@/lib/email/layout";
 
 const FROM_EMAIL =
-  process.env.EMAIL_FROM || "Gatekeeper <noreply@gatekeeper.app>";
+  process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -281,7 +281,7 @@ export function buildDecisionEmailHtml(params: DecisionEmailParams): string {
     body,
     preheader: `${params.requestTitle} has been ${params.decision}`,
     footerText:
-      "You received this email because you are a member of this Gatekeeper organization.",
+      "You received this email because you are a member of this OKRunit organization.",
   });
 }
 

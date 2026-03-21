@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth 2.0 Scope Enforcement
+// OKRunit -- OAuth 2.0 Scope Enforcement
 // ---------------------------------------------------------------------------
 
 import { ApiError } from "@/lib/api/errors";

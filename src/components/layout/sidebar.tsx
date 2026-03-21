@@ -121,7 +121,7 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, 
       {/* Logo / Org Header */}
       <div className="flex flex-col gap-2 border-b border-[var(--sidebar-border)] px-4 py-3">
         <Link href="/dashboard" className="flex justify-center">
-          <img src="/logo_text.png" alt="Gatekeeper" className="h-10 w-auto" />
+          <img src="/logo_text.png" alt="OKRunit" className="h-10 w-auto" />
         </Link>
         <OrgSwitcher currentOrgId={currentOrgId} orgs={userOrgs} />
       </div>

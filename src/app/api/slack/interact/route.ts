@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Slack Interactive Callback Route
+// OKRunit -- Slack Interactive Callback Route
 // ---------------------------------------------------------------------------
 //
 // Receives interactive message payloads from Slack when a user clicks an
@@ -165,12 +165,12 @@ export async function POST(request: Request) {
 
   // 5. Determine the action type from the action_id.
   let decision: "approve" | "reject";
-  if (action.action_id === "gatekeeper_approve") {
+  if (action.action_id === "okrunit_approve") {
     decision = "approve";
-  } else if (action.action_id === "gatekeeper_reject") {
+  } else if (action.action_id === "okrunit_reject") {
     decision = "reject";
   } else {
-    // Not our action (e.g. gatekeeper_view), just acknowledge.
+    // Not our action (e.g. okrunit_view), just acknowledge.
     return NextResponse.json({ ok: true });
   }
 

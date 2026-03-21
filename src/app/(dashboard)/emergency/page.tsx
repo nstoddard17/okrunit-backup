@@ -6,7 +6,7 @@ import { EmergencyStopButton } from "@/components/emergency/emergency-stop-butto
 import { EmergencyStatus } from "@/components/emergency/emergency-status";
 
 export const metadata = {
-  title: "Emergency Stop - Gatekeeper",
+  title: "Emergency Stop - OKRunit",
   description: "Emergency stop controls for the approval system.",
 };
 

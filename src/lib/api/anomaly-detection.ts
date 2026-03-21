@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Anomaly Detection
+// OKRunit -- Anomaly Detection
 // ---------------------------------------------------------------------------
 //
 // Checks for anomalous patterns in incoming approval requests. Called during

@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Admin Organizations Tab
+// OKRunit -- Admin Organizations Tab
 // Table of all organizations with counts and impersonate action.
 // ---------------------------------------------------------------------------
 

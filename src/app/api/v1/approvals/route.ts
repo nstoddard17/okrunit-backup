@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Approvals API: POST (create) + GET (list with filters)
+// OKRunit -- Approvals API: POST (create) + GET (list with filters)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

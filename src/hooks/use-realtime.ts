@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Generic Supabase Realtime Subscription Hook
+// OKRunit -- Generic Supabase Realtime Subscription Hook
 // ---------------------------------------------------------------------------
 
 import { useEffect, useRef } from "react";

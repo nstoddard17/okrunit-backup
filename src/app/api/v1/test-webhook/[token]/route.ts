@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Webhook Test Capture Endpoint
+// OKRunit -- Webhook Test Capture Endpoint
 // Public endpoint that captures any HTTP request sent to a test URL.
 // No authentication required -- security via unguessable 48-char hex token.
 // ---------------------------------------------------------------------------
@@ -83,7 +83,7 @@ async function captureRequest(
     // 4. Return success
     return NextResponse.json({
       ok: true,
-      message: "Request captured by Gatekeeper Webhook Tester",
+      message: "Request captured by OKRunit Webhook Tester",
       timestamp: new Date().toISOString(),
     });
   } catch (err) {

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth Client Management: List + Create
+// OKRunit -- OAuth Client Management: List + Create
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

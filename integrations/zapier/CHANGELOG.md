@@ -14,7 +14,7 @@
 
 ## 1.0.2
 
-- Fix OAuth token exchange failing due to URL redirect from gkapprove.com to www.gkapprove.com
+- Fix OAuth token exchange failing due to URL redirect from okrunit.com to www.okrunit.com
 
 ## 1.0.1
 

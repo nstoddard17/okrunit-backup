@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth 2.0 Utilities
+// OKRunit -- OAuth 2.0 Utilities
 // ---------------------------------------------------------------------------
 
 import { createHash, randomBytes, randomUUID } from "crypto";

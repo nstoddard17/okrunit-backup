@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier -- Add Comment to Approval
+// OKRunit Zapier -- Add Comment to Approval
 // ---------------------------------------------------------------------------
 
-const { GATEKEEPER_URL } = require("../authentication");
+const { OKRUNIT_URL } = require("../authentication");
 
 const addComment = {
   key: "add_comment",
@@ -35,7 +35,7 @@ const addComment = {
     perform: async (z, bundle) => {
       const response = await z.request({
         method: "POST",
-        url: `${GATEKEEPER_URL}/api/v1/approvals/${bundle.inputData.approval_id}/comments`,
+        url: `${OKRUNIT_URL}/api/v1/approvals/${bundle.inputData.approval_id}/comments`,
         body: { body: bundle.inputData.body },
       });
 

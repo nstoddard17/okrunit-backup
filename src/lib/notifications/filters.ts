@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Notification Filters
+// OKRunit -- Notification Filters
 // ---------------------------------------------------------------------------
 //
 // shouldNotify()            -- per-user gate: quiet hours + priority threshold

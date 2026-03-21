@@ -17,7 +17,7 @@ import type {
 } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Admin Dashboard - Gatekeeper",
+  title: "Admin Dashboard - OKRunit",
   description: "App-level admin dashboard with cross-org oversight.",
 };
 

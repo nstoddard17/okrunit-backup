@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Shared Email Layout
+// OKRunit -- Shared Email Layout
 // ---------------------------------------------------------------------------
 // Reusable HTML email shell with consistent branding across all emails.
 // Uses table-based layout for maximum email client compatibility.
@@ -21,7 +21,7 @@ const APP_URL =
 const LOGO_URL = `${APP_URL}/logo.png`;
 
 /**
- * Wraps email body content in the standard Gatekeeper email layout.
+ * Wraps email body content in the standard OKRunit email layout.
  *
  * Includes:
  * - Branded header with shield icon and app name
@@ -41,7 +41,7 @@ export function emailLayout(options: {
 
   const footerContent =
     footerText ??
-    "You received this email because you have a Gatekeeper account.";
+    "You received this email because you have a OKRunit account.";
 
   return `<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -53,7 +53,7 @@ export function emailLayout(options: {
   <!--[if mso]>
   <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
   <![endif]-->
-  <title>Gatekeeper</title>
+  <title>OKRunit</title>
 </head>
 <body style="margin:0;padding:0;background-color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;">
   ${preheaderBlock}
@@ -70,10 +70,10 @@ export function emailLayout(options: {
               <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="vertical-align:middle;padding-right:10px;">
-                    <img src="${LOGO_URL}" alt="Gatekeeper" width="28" height="28" style="display:block;border:0;outline:none;" />
+                    <img src="${LOGO_URL}" alt="OKRunit" width="28" height="28" style="display:block;border:0;outline:none;" />
                   </td>
                   <td style="vertical-align:middle;">
-                    <span style="font-size:22px;font-weight:700;color:#f1f5f9;letter-spacing:-0.5px;">Gatekeeper</span>
+                    <span style="font-size:22px;font-weight:700;color:#f1f5f9;letter-spacing:-0.5px;">OKRunit</span>
                   </td>
                 </tr>
               </table>
@@ -101,7 +101,7 @@ export function emailLayout(options: {
                       ${footerContent}
                     </p>
                     <p style="margin:0;color:#475569;font-size:11px;line-height:16px;">
-                      &copy; ${new Date().getFullYear()} Gatekeeper &middot; Human-in-the-loop approval for every automation.
+                      &copy; ${new Date().getFullYear()} OKRunit &middot; Human-in-the-loop approval for every automation.
                     </p>
                   </td>
                 </tr>

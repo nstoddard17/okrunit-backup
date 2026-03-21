@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { LoginForm } from "./login-form";
 
 export const metadata = {
-  title: "Log In - Gatekeeper",
-  description: "Sign in to your Gatekeeper account.",
+  title: "Log In - OKRunit",
+  description: "Sign in to your OKRunit account.",
 };
 
 export default function LoginPage() {

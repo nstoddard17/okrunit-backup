@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Admin Overview Tab
+// OKRunit -- Admin Overview Tab
 // System-wide stats cards with visual indicators.
 // ---------------------------------------------------------------------------
 

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Zod Validation Schemas for API Endpoints
+// OKRunit -- Zod Validation Schemas for API Endpoints
 // ---------------------------------------------------------------------------
 
 import { z } from "zod";

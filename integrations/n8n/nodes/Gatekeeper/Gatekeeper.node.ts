@@ -7,14 +7,14 @@ import type {
 
 export class Gatekeeper implements INodeType {
   description: INodeTypeDescription = {
-    displayName: "Gatekeeper",
-    name: "gatekeeper",
+    displayName: "OKRunit",
+    name: "okrunit",
     icon: "file:gatekeeper.svg",
     group: ["transform"],
     version: 1,
     subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
     description: "Human-in-the-loop approval gateway",
-    defaults: { name: "Gatekeeper" },
+    defaults: { name: "OKRunit" },
     inputs: ["main"],
     outputs: ["main"],
     credentials: [

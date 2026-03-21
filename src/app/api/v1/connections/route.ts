@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Connections API: List + Create
+// OKRunit -- Connections API: List + Create
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

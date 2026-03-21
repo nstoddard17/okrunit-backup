@@ -1,7 +1,7 @@
 {
-  "name": "gatekeeper-zapier",
+  "name": "okrunit-zapier",
   "version": "1.6.0",
-  "description": "Gatekeeper Approvals is a human-in-the-loop approval gateway that pauses automated workflows until a human approves or rejects.",
+  "description": "OKRunit Approvals is a human-in-the-loop approval gateway that pauses automated workflows until a human approves or rejects.",
   "main": "index.js",
   "scripts": {
     "test": "zapier test",
@@ -16,6 +16,6 @@
   },
   "zapier": {
     "id": 0,
-    "key": "gatekeeper"
+    "key": "okrunit"
   }
 }

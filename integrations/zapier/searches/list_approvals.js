@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier -- List/Search Approvals
+// OKRunit Zapier -- List/Search Approvals
 // ---------------------------------------------------------------------------
 
-const { GATEKEEPER_URL } = require("../authentication");
+const { OKRUNIT_URL } = require("../authentication");
 
 const listApprovals = {
   key: "list_approvals",
@@ -58,7 +58,7 @@ const listApprovals = {
       if (bundle.inputData.search) params.search = bundle.inputData.search;
 
       const response = await z.request({
-        url: `${GATEKEEPER_URL}/api/v1/approvals`,
+        url: `${OKRUNIT_URL}/api/v1/approvals`,
         params,
       });
 

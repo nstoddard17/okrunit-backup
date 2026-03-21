@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Email Action Token Management
+// OKRunit -- Email Action Token Management
 // ---------------------------------------------------------------------------
 
 import { randomBytes } from "crypto";

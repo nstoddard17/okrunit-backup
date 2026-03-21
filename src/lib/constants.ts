@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- App-Wide Constants
+// OKRunit -- App-Wide Constants
 // ---------------------------------------------------------------------------
 
-export const APP_NAME = "Gatekeeper";
+export const APP_NAME = "OKRunit";
 
 /** Prefix prepended to every generated API key. */
 export const API_KEY_PREFIX = "gk_";

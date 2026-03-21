@@ -7,7 +7,7 @@ import { ApprovalDashboard } from "@/components/approvals/approval-dashboard";
 import type { ApprovalRequest, Connection, UserProfile } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Dashboard - Gatekeeper",
+  title: "Dashboard - OKRunit",
   description: "View and manage approval requests.",
 };
 

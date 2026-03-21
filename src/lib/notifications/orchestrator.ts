@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Notification Orchestrator
+// OKRunit -- Notification Orchestrator
 // ---------------------------------------------------------------------------
 //
 // Central fan-out for all notification channels (web push, email, Slack).
@@ -130,7 +130,7 @@ export async function dispatchNotifications(
           ).then((tokens: { approveToken: string; rejectToken: string }) =>
             sendApprovalEmail({
               to: email,
-              subject: `[Gatekeeper] ${event.requestTitle}`,
+              subject: `[OKRunit] ${event.requestTitle}`,
               requestId: event.requestId,
               title: event.requestTitle,
               description: event.requestDescription,
@@ -152,7 +152,7 @@ export async function dispatchNotifications(
           promises.push(
             sendDecisionEmail({
               to: email,
-              subject: `[Gatekeeper] ${event.requestTitle} - ${decision}`,
+              subject: `[OKRunit] ${event.requestTitle} - ${decision}`,
               requestTitle: event.requestTitle,
               decision,
               decidedBy: event.decidedBy,
@@ -232,7 +232,7 @@ const TITLE_MAP: Record<NotificationEventType, string> = {
  * Build a short title for push notifications / toast headings.
  */
 function getNotificationTitle(event: NotificationEvent): string {
-  return TITLE_MAP[event.type] ?? "Gatekeeper Notification";
+  return TITLE_MAP[event.type] ?? "OKRunit Notification";
 }
 
 /**

@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Notification Settings Form
+// OKRunit -- Notification Settings Form
 // ---------------------------------------------------------------------------
 
 import { useState } from "react";

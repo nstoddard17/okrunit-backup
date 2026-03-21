@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper Zapier Integration -- App Definition
+// OKRunit Zapier Integration -- App Definition
 // ---------------------------------------------------------------------------
 
 const {

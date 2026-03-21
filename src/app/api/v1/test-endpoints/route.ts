@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Webhook Test Endpoint Management API
+// OKRunit -- Webhook Test Endpoint Management API
 // GET:    Get (or auto-create) the org's active test endpoint
 // POST:   Rotate the token (deactivate old, create new)
 // DELETE: Clear all captured test requests for the org

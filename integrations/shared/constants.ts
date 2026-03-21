@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Shared Constants for Platform Integrations
+// OKRunit -- Shared Constants for Platform Integrations
 // ---------------------------------------------------------------------------
 
 export const API_VERSION = "v1";

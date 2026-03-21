@@ -1,4 +1,4 @@
-// Windmill Script: Add Comment to Gatekeeper Approval
+// Windmill Script: Add Comment to OKRunit Approval
 // Resource type: gatekeeper
 
 type Gatekeeper = {
@@ -26,7 +26,7 @@ export async function main(
   if (!response.ok) {
     const err = await response.json();
     throw new Error(
-      `Gatekeeper API error (${response.status}): ${err.error ?? JSON.stringify(err)}`,
+      `OKRunit API error (${response.status}): ${err.error ?? JSON.stringify(err)}`,
     );
   }
 

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- OAuth 2.0 Token Endpoint
+// OKRunit -- OAuth 2.0 Token Endpoint
 // POST /api/v1/oauth/token
 // ---------------------------------------------------------------------------
 // Supports three grant types:

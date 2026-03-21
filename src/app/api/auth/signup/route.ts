@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Custom Sign-Up Route
+// OKRunit -- Custom Sign-Up Route
 // ---------------------------------------------------------------------------
 // Creates the user via Supabase admin, then sends a branded confirmation
 // email through Resend instead of Supabase's default plain-text email.
@@ -15,7 +15,7 @@ import { buildConfirmEmailHtml } from "@/lib/email/confirm";
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 const FROM_EMAIL =
-  process.env.EMAIL_FROM || "Gatekeeper <noreply@gatekeeper.app>";
+  process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
         const { error: emailError } = await resend.emails.send({
           from: FROM_EMAIL,
           to: body.email,
-          subject: "Confirm your Gatekeeper account",
+          subject: "Confirm your OKRunit account",
           html,
         });
 

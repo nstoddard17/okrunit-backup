@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Batch Approvals API: POST (batch approve/reject)
+// OKRunit -- Batch Approvals API: POST (batch approve/reject)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Batch Archive API: POST (archive/unarchive)
+// OKRunit -- Batch Archive API: POST (archive/unarchive)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

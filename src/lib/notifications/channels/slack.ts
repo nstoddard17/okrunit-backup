@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Slack Notification Channel (Block Kit via Incoming Webhooks)
+// OKRunit -- Slack Notification Channel (Block Kit via Incoming Webhooks)
 // ---------------------------------------------------------------------------
 
 const APP_URL =
@@ -128,7 +128,7 @@ export async function sendSlackNotification(
             emoji: true,
           },
           style: "primary",
-          action_id: `gatekeeper_approve`,
+          action_id: `okrunit_approve`,
           value: params.requestId,
         },
         {
@@ -139,7 +139,7 @@ export async function sendSlackNotification(
             emoji: true,
           },
           style: "danger",
-          action_id: `gatekeeper_reject`,
+          action_id: `okrunit_reject`,
           value: params.requestId,
         },
         {
@@ -150,7 +150,7 @@ export async function sendSlackNotification(
             emoji: true,
           },
           url: dashboardUrl,
-          action_id: "gatekeeper_view",
+          action_id: "okrunit_view",
         },
       ],
     },
@@ -159,7 +159,7 @@ export async function sendSlackNotification(
       elements: [
         {
           type: "mrkdwn",
-          text: `Sent by Gatekeeper${connectionField}`,
+          text: `Sent by OKRunit${connectionField}`,
         },
       ],
     },

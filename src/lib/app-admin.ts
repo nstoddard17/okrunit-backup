@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- App Admin Context Helper
+// OKRunit -- App Admin Context Helper
 // Server-side utility for verifying app-level admin access.
 // ---------------------------------------------------------------------------
 

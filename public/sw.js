@@ -1,15 +1,15 @@
 // ---------------------------------------------------------------------------
-// Gatekeeper -- Service Worker for Web Push Notifications
+// OKRunit -- Service Worker for Web Push Notifications
 // ---------------------------------------------------------------------------
 
 self.addEventListener("push", (event) => {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || "Gatekeeper";
+  const title = data.title || "OKRunit";
   const options = {
     body: data.body || "You have a new notification",
     icon: "/icon-192.png",
     badge: "/badge-72.png",
-    tag: data.tag || "gatekeeper-notification",
+    tag: data.tag || "okrunit-notification",
     data: {
       url: data.url || "/dashboard",
       requestId: data.requestId,

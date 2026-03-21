@@ -1,18 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "description": "Gatekeeper API connection credentials for human-in-the-loop approval workflows.",
+  "description": "OKRunit API connection credentials for human-in-the-loop approval workflows.",
   "properties": {
     "api_key": {
       "type": "string",
-      "description": "Gatekeeper API key (starts with gk_)",
+      "description": "OKRunit API key (starts with gk_)",
       "pattern": "^gk_[a-f0-9]{64}$"
     },
     "api_url": {
       "type": "string",
       "format": "uri",
-      "description": "Base URL of the Gatekeeper instance (e.g., https://gatekeeper.example.com)",
-      "default": "https://gatekeeper.example.com"
+      "description": "Base URL of the OKRunit instance (e.g., https://okrunit.example.com)",
+      "default": "https://okrunit.example.com"
     }
   },
   "required": ["api_key", "api_url"]
