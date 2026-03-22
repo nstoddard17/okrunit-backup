@@ -55,6 +55,13 @@ export const createApprovalSchema = z.object({
   is_sequential: z.boolean().optional(),
   auto_action: autoActionEnum.optional(),
   auto_action_after_minutes: z.int().min(1).max(43200).optional(),
+  require_rejection_reason: z.boolean().optional(),
+  conditions: z.array(z.object({
+    name: z.string().min(1).max(200),
+    check_type: z.enum(["webhook", "manual"]),
+    webhook_url: z.string().url().optional(),
+    description: z.string().max(1000).optional(),
+  })).max(20).optional(),
 });
 
 export type CreateApprovalInput = z.infer<typeof createApprovalSchema>;
@@ -65,6 +72,7 @@ export const respondApprovalSchema = z.object({
   decision: decisionEnum,
   comment: z.string().max(2000).optional(),
   source: decisionSourceEnum.optional(),
+  scheduled_execution_at: z.string().datetime().optional(),
 });
 
 export type RespondApprovalInput = z.infer<typeof respondApprovalSchema>;
@@ -203,3 +211,67 @@ export const updateTrustCounterSchema = z.object({
 });
 
 export type UpdateTrustCounterInput = z.infer<typeof updateTrustCounterSchema>;
+
+// ---- Organization Settings ------------------------------------------------
+
+const rejectionReasonPolicyEnum = z.enum(["optional", "required", "required_high_critical"]);
+
+export const updateOrgSettingsSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  rejection_reason_policy: rejectionReasonPolicyEnum.optional(),
+});
+
+export type UpdateOrgSettingsInput = z.infer<typeof updateOrgSettingsSchema>;
+
+// ---- Bulk Approval Rules --------------------------------------------------
+
+const bulkRuleActionEnum = z.enum(["approve", "reject", "archive"]);
+
+export const createBulkRuleSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().max(1000).optional(),
+  action: bulkRuleActionEnum,
+  status_filter: statusEnum.optional().default("pending"),
+  priority_filter: z.array(priorityEnum).optional(),
+  source_filter: z.array(z.string().max(100)).optional(),
+  action_type_filter: z.array(z.string().max(100)).optional(),
+  older_than_minutes: z.int().min(1).max(525600).optional(),
+  is_scheduled: z.boolean().optional(),
+  schedule_cron: z.string().max(100).optional(),
+  is_active: z.boolean().optional(),
+});
+
+export type CreateBulkRuleInput = z.infer<typeof createBulkRuleSchema>;
+
+export const updateBulkRuleSchema = createBulkRuleSchema.partial();
+
+export type UpdateBulkRuleInput = z.infer<typeof updateBulkRuleSchema>;
+
+// ---- Approval Conditions --------------------------------------------------
+
+const conditionCheckTypeEnum = z.enum(["webhook", "manual"]);
+const conditionStatusEnum = z.enum(["pending", "met", "failed"]);
+
+export const createConditionSchema = z.object({
+  name: z.string().min(1).max(200),
+  check_type: conditionCheckTypeEnum,
+  webhook_url: z.string().url().optional(),
+  description: z.string().max(1000).optional(),
+});
+
+export type CreateConditionInput = z.infer<typeof createConditionSchema>;
+
+export const updateConditionSchema = z.object({
+  status: conditionStatusEnum,
+  check_result: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type UpdateConditionInput = z.infer<typeof updateConditionSchema>;
+
+// ---- Scheduled Execution Cancellation -------------------------------------
+
+export const cancelScheduledExecutionSchema = z.object({
+  execution_status: z.literal("cancelled"),
+});
+
+export type CancelScheduledExecutionInput = z.infer<typeof cancelScheduledExecutionSchema>;

@@ -12,6 +12,12 @@ export type ApprovalStatus =
   | "cancelled"
   | "expired";
 
+export type ExecutionStatus = "immediate" | "scheduled" | "executed" | "cancelled";
+
+export type ConditionCheckType = "webhook" | "manual";
+
+export type ConditionStatus = "pending" | "met" | "failed";
+
 export type ApprovalPriority = "low" | "medium" | "high" | "critical";
 
 export type UserRole = "owner" | "admin" | "member";
@@ -35,6 +41,10 @@ export type DecisionSource =
 export type EmailAction = "approve" | "reject";
 
 export type ApprovalRuleAction = "auto_approve" | "route";
+
+export type RejectionReasonPolicy = "optional" | "required" | "required_high_critical";
+
+export type BulkRuleAction = "approve" | "reject" | "archive";
 
 export type DashboardLayout = "cards" | "grouped" | "split";
 
@@ -67,6 +77,7 @@ export interface Organization {
   emergency_stop_activated_by: string | null;
   default_auto_action: AutoAction | null;
   default_auto_action_minutes: number | null;
+  rejection_reason_policy: RejectionReasonPolicy;
   created_at: string;
   updated_at: string;
 }
@@ -151,6 +162,11 @@ export interface ApprovalRequest {
   auto_action_after_minutes: number | null;
   auto_action_deadline: string | null;
   auto_action_warning_sent: boolean;
+  require_rejection_reason: boolean;
+  scheduled_execution_at: string | null;
+  execution_status: ExecutionStatus;
+  conditions: Record<string, unknown>[];
+  conditions_met: boolean;
   archived_at: string | null;
   created_at: string;
   updated_at: string;
@@ -160,6 +176,19 @@ export interface RiskFactor {
   name: string;
   score: number;
   reason: string;
+}
+
+export interface ApprovalCondition {
+  id: string;
+  request_id: string;
+  name: string;
+  description: string | null;
+  check_type: ConditionCheckType;
+  webhook_url: string | null;
+  status: ConditionStatus;
+  checked_at: string | null;
+  check_result: Record<string, unknown> | null;
+  created_at: string;
 }
 
 export interface ApprovalFlow {
@@ -478,6 +507,29 @@ export interface ApprovalTrustCounter {
   updated_at: string;
 }
 
+export interface BulkApprovalRule {
+  id: string;
+  org_id: string;
+  name: string;
+  description: string | null;
+  action: BulkRuleAction;
+  status_filter: string;
+  priority_filter: string[] | null;
+  source_filter: string[] | null;
+  action_type_filter: string[] | null;
+  older_than_minutes: number | null;
+  is_scheduled: boolean;
+  schedule_cron: string | null;
+  is_active: boolean;
+  last_run_at: string | null;
+  last_run_count: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type BulkApprovalRuleInsert = Omit<BulkApprovalRule, "id" | "last_run_at" | "last_run_count" | "created_at" | "updated_at">;
+
 // ---- Insert Types (omit server-generated columns) -------------------------
 
 export type OrganizationInsert = Omit<Organization, "id" | "created_at" | "updated_at">;
@@ -513,6 +565,7 @@ export type TeamMembershipInsert = Omit<TeamMembership, "id" | "created_at">;
 export type ApprovalVoteInsert = Omit<ApprovalVote, "id" | "created_at">;
 export type SavedFilterInsert = Omit<SavedFilter, "id" | "created_at" | "updated_at">;
 export type ApprovalAttachmentInsert = Omit<ApprovalAttachment, "id" | "created_at">;
+export type ApprovalConditionInsert = Omit<ApprovalCondition, "id" | "status" | "checked_at" | "check_result" | "created_at">;
 export type ApprovalDelegationInsert = Omit<ApprovalDelegation, "id" | "created_at">;
 export type ApprovalTrustCounterInsert = Omit<ApprovalTrustCounter, "id" | "consecutive_approvals" | "total_approvals" | "total_rejections" | "last_decision" | "last_decision_at" | "auto_approve_active" | "created_at" | "updated_at">;
 export type MessagingConnectionInsert = Omit<MessagingConnection, "id" | "created_at" | "updated_at">;

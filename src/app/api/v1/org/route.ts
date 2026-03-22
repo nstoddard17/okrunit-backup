@@ -12,9 +12,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 // ---- Validation -----------------------------------------------------------
 
+const rejectionReasonPolicyEnum = z.enum(["optional", "required", "required_high_critical"]);
+
 const updateOrgSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name is too long"),
-});
+  name: z.string().min(1, "Name is required").max(100, "Name is too long").optional(),
+  rejection_reason_policy: rejectionReasonPolicyEnum.optional(),
+}).refine(
+  (data) => data.name !== undefined || data.rejection_reason_policy !== undefined,
+  { message: "At least one field must be provided" },
+);
 
 // ---- PATCH /api/v1/org ----------------------------------------------------
 
@@ -45,9 +51,13 @@ export async function PATCH(request: Request) {
 
     const admin = createAdminClient();
 
+    const updatePayload: Record<string, unknown> = {};
+    if (body.name !== undefined) updatePayload.name = body.name;
+    if (body.rejection_reason_policy !== undefined) updatePayload.rejection_reason_policy = body.rejection_reason_policy;
+
     const { data: org, error } = await admin
       .from("organizations")
-      .update({ name: body.name })
+      .update(updatePayload)
       .eq("id", auth.orgId)
       .select("*")
       .single();
@@ -68,7 +78,7 @@ export async function PATCH(request: Request) {
       action: "organization.updated",
       resourceType: "organization",
       resourceId: auth.orgId,
-      details: { name: body.name },
+      details: updatePayload as Record<string, unknown>,
       ipAddress,
     });
 

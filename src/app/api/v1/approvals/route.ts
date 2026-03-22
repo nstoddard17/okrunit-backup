@@ -455,6 +455,8 @@ export async function POST(request: Request) {
         auto_action: effectiveAutoAction,
         auto_action_after_minutes: effectiveAutoMinutes,
         auto_action_deadline: autoActionDeadline,
+        require_rejection_reason: validated.require_rejection_reason ?? false,
+        conditions_met: validated.conditions && validated.conditions.length > 0 ? false : true,
       })
       .select("*")
       .single();
@@ -462,6 +464,26 @@ export async function POST(request: Request) {
     if (insertError || !approval) {
       console.error("[Approvals] Insert failed:", insertError);
       throw new ApiError(500, "Failed to create approval request");
+    }
+
+    // 13c. Insert condition records if provided
+    if (validated.conditions && validated.conditions.length > 0) {
+      const conditionRecords = validated.conditions.map((c) => ({
+        request_id: approval.id,
+        name: c.name,
+        description: c.description ?? null,
+        check_type: c.check_type,
+        webhook_url: c.webhook_url ?? null,
+      }));
+
+      const { error: condInsertError } = await admin
+        .from("approval_conditions")
+        .insert(conditionRecords);
+
+      if (condInsertError) {
+        console.error("[Approvals] Condition insert failed:", condInsertError);
+        // Non-fatal: approval was created, conditions just failed to insert
+      }
     }
 
     // 14. Audit log

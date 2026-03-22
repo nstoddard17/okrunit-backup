@@ -12,7 +12,8 @@ export type NotificationEventType =
   | "approval.cancelled"
   | "approval.expired"
   | "approval.comment"
-  | "approval.next_approver";
+  | "approval.next_approver"
+  | "approval.execution_cancelled";
 
 /**
  * Payload passed into the notification orchestrator whenever an event occurs.

@@ -410,6 +410,7 @@ const TITLE_MAP: Record<NotificationEventType, string> = {
   "approval.expired": "Request Expired",
   "approval.comment": "New Comment",
   "approval.next_approver": "Your Approval Needed",
+  "approval.execution_cancelled": "Scheduled Execution Cancelled",
 };
 
 function getNotificationTitle(event: NotificationEvent): string {

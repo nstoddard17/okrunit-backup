@@ -10,10 +10,12 @@ import { ApiError, errorResponse } from "@/lib/api/errors";
 import { respondApprovalSchema } from "@/lib/api/validation";
 import { logAuditEvent } from "@/lib/api/audit";
 import { deliverCallback } from "@/lib/api/callbacks";
+import { checkConditions } from "@/lib/api/conditions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dispatchNotifications } from "@/lib/notifications/orchestrator";
 import { findDelegationForDelegate } from "@/lib/api/delegation";
 import { updateTrustCounter } from "@/lib/api/trust-engine";
+import type { RejectionReasonPolicy, ApprovalPriority } from "@/lib/types/database";
 
 // ---- Helpers --------------------------------------------------------------
 
@@ -131,6 +133,27 @@ async function checkAndApplyAutoAction(
   return null;
 }
 
+/**
+ * Determine if a callback should be delivered for an approved request, taking
+ * into account scheduled execution and unmet conditions. Returns true if the
+ * callback should be delivered immediately.
+ */
+function shouldDeliverCallback(approval: {
+  execution_status?: string;
+  scheduled_execution_at?: string | null;
+  conditions_met?: boolean;
+}): boolean {
+  // If execution is scheduled for the future, don't deliver yet
+  if (approval.execution_status === "scheduled") {
+    return false;
+  }
+  // If conditions are not met, don't deliver yet
+  if (approval.conditions_met === false) {
+    return false;
+  }
+  return true;
+}
+
 // ---- GET /api/v1/approvals/[id] -------------------------------------------
 
 export async function GET(
@@ -165,9 +188,119 @@ export async function GET(
       });
     }
 
-    // 4. Enrich with decided_by_name
+    // 3c. Lazy scheduled execution check
+    if (
+      approval.execution_status === "scheduled" &&
+      approval.scheduled_execution_at &&
+      approval.scheduled_execution_at < new Date().toISOString() &&
+      approval.status === "approved"
+    ) {
+      // Time has arrived -- execute the callback and mark as executed
+      after(async () => {
+        const execAdmin = createAdminClient();
+        await execAdmin
+          .from("approval_requests")
+          .update({ execution_status: "executed" })
+          .eq("id", approval.id)
+          .eq("execution_status", "scheduled"); // guard against races
+
+        if (approval.callback_url) {
+          const decidedByName = await getUserDisplayName(execAdmin, approval.decided_by);
+          await deliverCallback({
+            requestId: approval.id,
+            connectionId: approval.connection_id,
+            callbackUrl: approval.callback_url,
+            callbackHeaders:
+              (approval.callback_headers as Record<string, string>) ?? undefined,
+            payload: {
+              id: approval.id,
+              status: approval.status,
+              decided_by: approval.decided_by,
+              decided_by_name: decidedByName,
+              decided_at: approval.decided_at,
+              decision_comment: approval.decision_comment,
+              title: approval.title,
+              priority: approval.priority,
+              metadata: approval.metadata,
+              execution_status: "executed",
+            },
+          });
+        }
+      });
+
+      // Return the updated state immediately
+      const decidedByName = await getUserDisplayName(admin, approval.decided_by);
+      return NextResponse.json({
+        ...approval,
+        execution_status: "executed",
+        decided_by_name: decidedByName,
+      });
+    }
+
+    // 3d. Lazy condition check for approved approvals with unmet conditions
+    if (
+      approval.status === "approved" &&
+      approval.conditions_met === false
+    ) {
+      const conditionResult = await checkConditions(approval.id);
+      if (conditionResult.allMet && approval.callback_url) {
+        // All conditions now met -- deliver the callback fire-and-forget
+        const decidedByName = await getUserDisplayName(admin, approval.decided_by);
+        after(
+          deliverCallback({
+            requestId: approval.id,
+            connectionId: approval.connection_id,
+            callbackUrl: approval.callback_url,
+            callbackHeaders:
+              (approval.callback_headers as Record<string, string>) ?? undefined,
+            payload: {
+              id: approval.id,
+              status: approval.status,
+              decided_by: approval.decided_by,
+              decided_by_name: decidedByName,
+              decided_at: approval.decided_at,
+              decision_comment: approval.decision_comment,
+              title: approval.title,
+              priority: approval.priority,
+              metadata: approval.metadata,
+              conditions_met: true,
+            },
+          })
+        );
+      }
+    }
+
+    // 4. Compute rejection_reason_required for frontend/integration hint
+    let rejectionReasonRequired = false;
+    if (approval.status === "pending") {
+      if (approval.require_rejection_reason) {
+        rejectionReasonRequired = true;
+      } else {
+        const { data: orgSettings } = await admin
+          .from("organizations")
+          .select("rejection_reason_policy")
+          .eq("id", auth.orgId)
+          .single();
+
+        const policy = (orgSettings?.rejection_reason_policy ?? "optional") as RejectionReasonPolicy;
+        if (policy === "required") {
+          rejectionReasonRequired = true;
+        } else if (
+          policy === "required_high_critical" &&
+          (approval.priority === "high" || approval.priority === "critical")
+        ) {
+          rejectionReasonRequired = true;
+        }
+      }
+    }
+
+    // 5. Enrich with decided_by_name
     const decidedByName = await getUserDisplayName(admin, approval.decided_by);
-    return NextResponse.json({ ...approval, decided_by_name: decidedByName });
+    return NextResponse.json({
+      ...approval,
+      decided_by_name: decidedByName,
+      rejection_reason_required: rejectionReasonRequired,
+    });
   } catch (error) {
     return errorResponse(error);
   }
@@ -238,7 +371,51 @@ export async function PATCH(
       );
     }
 
-    // 5b. If assigned_approvers is set, enforce that only listed users (or their delegates) can decide
+    // 5b. If rejecting, enforce rejection reason requirements
+    if (validated.decision === "reject") {
+      const commentProvided = validated.comment && validated.comment.trim().length > 0;
+
+      if (!commentProvided) {
+        // Check per-request override first
+        if (approval.require_rejection_reason) {
+          throw new ApiError(
+            400,
+            "A rejection reason is required",
+            "REJECTION_REASON_REQUIRED",
+          );
+        }
+
+        // Check org-level policy
+        const { data: orgSettings } = await admin
+          .from("organizations")
+          .select("rejection_reason_policy")
+          .eq("id", auth.orgId)
+          .single();
+
+        const policy = (orgSettings?.rejection_reason_policy ?? "optional") as RejectionReasonPolicy;
+
+        if (policy === "required") {
+          throw new ApiError(
+            400,
+            "A rejection reason is required",
+            "REJECTION_REASON_REQUIRED",
+          );
+        }
+
+        if (
+          policy === "required_high_critical" &&
+          (approval.priority === "high" || approval.priority === "critical")
+        ) {
+          throw new ApiError(
+            400,
+            "A rejection reason is required",
+            "REJECTION_REASON_REQUIRED",
+          );
+        }
+      }
+    }
+
+    // 5c. If assigned_approvers is set, enforce that only listed users (or their delegates) can decide
     const assignedApprovers: string[] | null = approval.assigned_approvers;
     let delegatedFrom: string | null = null;
     let delegationId: string | null = null;
@@ -265,7 +442,7 @@ export async function PATCH(
       }
     }
 
-    // 5c. If required_role is set, enforce role hierarchy
+    // 5d. If required_role is set, enforce role hierarchy
     const requiredRole: string | null = approval.required_role;
     if (requiredRole) {
       const roleLevel: Record<string, number> = { member: 0, admin: 1, owner: 2 };
@@ -281,7 +458,7 @@ export async function PATCH(
       }
     }
 
-    // 5d. If sequential, only the next-in-line approver can vote
+    // 5e. If sequential, only the next-in-line approver can vote
     if (approval.is_sequential && assignedApprovers && assignedApprovers.length > 0) {
       const { data: priorVotes } = await admin
         .from("approval_votes")
@@ -393,6 +570,19 @@ export async function PATCH(
             updatePayload.delegated_from = delegatedFrom;
             updatePayload.delegation_id = delegationId;
           }
+          // Handle scheduled execution for multi-approver
+          if (validated.scheduled_execution_at) {
+            const scheduledTime = new Date(validated.scheduled_execution_at);
+            if (scheduledTime <= new Date()) {
+              throw new ApiError(
+                400,
+                "Scheduled execution time must be in the future",
+                "INVALID_SCHEDULE_TIME",
+              );
+            }
+            updatePayload.scheduled_execution_at = validated.scheduled_execution_at;
+            updatePayload.execution_status = "scheduled";
+          }
         }
 
         const { data: approvedData, error: approveError } = await admin
@@ -445,9 +635,16 @@ export async function PATCH(
         );
       }
 
-      // 6f. Callback delivery + notifications only when a final decision is reached
+      // 6f. Check conditions when approved (multi-approver)
+      let multiConditionsBlocking = false;
+      if (updated.status === "approved" && approval.conditions_met === false) {
+        const condResult = await checkConditions(id);
+        multiConditionsBlocking = !condResult.allMet;
+      }
+
+      // 6g. Callback delivery + notifications only when a final decision is reached
       if (updated.status !== "pending") {
-        if (approval.callback_url) {
+        if (approval.callback_url && shouldDeliverCallback(updated) && !multiConditionsBlocking) {
           const decidedByName = await getUserDisplayName(admin, updated.decided_by);
           after(
             deliverCallback({
@@ -466,6 +663,7 @@ export async function PATCH(
                 title: updated.title,
                 priority: updated.priority,
                 metadata: updated.metadata,
+                execution_status: updated.execution_status,
               },
             })
           );
@@ -516,21 +714,38 @@ export async function PATCH(
 
     // ---- Single-approver flow (default, required_approvals === 1) ----------
 
-    // 6. Update the approval
+    // 6. Determine scheduled execution and conditions
     const decidedAt = new Date().toISOString();
     const newStatus = validated.decision === "approve" ? "approved" : "rejected";
 
+    // Build update payload with optional scheduling fields
+    const updatePayload: Record<string, unknown> = {
+      status: newStatus,
+      decided_by: actorId,
+      decided_at: decidedAt,
+      decision_comment: validated.comment ?? null,
+      decision_source: validated.source ?? "dashboard",
+      ...(delegatedFrom ? { delegated_from: delegatedFrom } : {}),
+      ...(delegationId ? { delegation_id: delegationId } : {}),
+    };
+
+    // If approving with a scheduled execution time, set execution_status to scheduled
+    if (validated.decision === "approve" && validated.scheduled_execution_at) {
+      const scheduledTime = new Date(validated.scheduled_execution_at);
+      if (scheduledTime <= new Date()) {
+        throw new ApiError(
+          400,
+          "Scheduled execution time must be in the future",
+          "INVALID_SCHEDULE_TIME",
+        );
+      }
+      updatePayload.scheduled_execution_at = validated.scheduled_execution_at;
+      updatePayload.execution_status = "scheduled";
+    }
+
     const { data: updated, error: updateError } = await admin
       .from("approval_requests")
-      .update({
-        status: newStatus,
-        decided_by: actorId,
-        decided_at: decidedAt,
-        decision_comment: validated.comment ?? null,
-        decision_source: validated.source ?? "dashboard",
-        ...(delegatedFrom ? { delegated_from: delegatedFrom } : {}),
-        ...(delegationId ? { delegation_id: delegationId } : {}),
-      })
+      .update(updatePayload)
       .eq("id", id)
       .select("*")
       .single();
@@ -538,6 +753,13 @@ export async function PATCH(
     if (updateError || !updated) {
       console.error("[Approvals] Update failed:", updateError);
       throw new ApiError(500, "Failed to update approval request");
+    }
+
+    // 6b. Check conditions for approved approvals
+    let conditionsBlocking = false;
+    if (newStatus === "approved" && approval.conditions_met === false) {
+      const conditionResult = await checkConditions(id);
+      conditionsBlocking = !conditionResult.allMet;
     }
 
     // 7. Audit log
@@ -554,6 +776,8 @@ export async function PATCH(
         comment: validated.comment ?? null,
         source: validated.source ?? "dashboard",
         ...(delegatedFrom ? { delegated_from: delegatedFrom, delegation_id: delegationId } : {}),
+        ...(validated.scheduled_execution_at ? { scheduled_execution_at: validated.scheduled_execution_at } : {}),
+        ...(conditionsBlocking ? { conditions_blocking: true } : {}),
       },
       ipAddress,
     });
@@ -572,8 +796,8 @@ export async function PATCH(
       )
     );
 
-    // 9. Callback delivery (use after() so Vercel keeps the function alive)
-    if (approval.callback_url) {
+    // 9. Callback delivery -- only if not scheduled and conditions are met
+    if (approval.callback_url && shouldDeliverCallback(updated) && !conditionsBlocking) {
       const decidedByName = await getUserDisplayName(admin, actorId);
       after(
         deliverCallback({
@@ -592,12 +816,13 @@ export async function PATCH(
             title: updated.title,
             priority: updated.priority,
             metadata: updated.metadata,
+            execution_status: updated.execution_status,
           },
         })
       );
     }
 
-    // 9. Dispatch notifications
+    // 10. Dispatch notifications
     after(
       dispatchNotifications({
         type: newStatus === "approved" ? "approval.approved" : "approval.rejected",
@@ -649,8 +874,12 @@ export async function DELETE(
     // 2. Fetch approval
     const approval = await fetchApproval(admin, id, auth.orgId);
 
-    // 3. Check status is pending
-    if (approval.status !== "pending") {
+    // 3. Check status is pending, OR allow cancelling a scheduled execution
+    const isScheduledExecution =
+      approval.status === "approved" &&
+      approval.execution_status === "scheduled";
+
+    if (approval.status !== "pending" && !isScheduledExecution) {
       throw new ApiError(
         409,
         "Approval is not pending",
@@ -658,10 +887,14 @@ export async function DELETE(
       );
     }
 
-    // 4. Update status to cancelled
+    // 4. Update status to cancelled (or cancel scheduled execution)
+    const cancelPayload: Record<string, unknown> = isScheduledExecution
+      ? { execution_status: "cancelled" }
+      : { status: "cancelled" };
+
     const { data: updated, error: updateError } = await admin
       .from("approval_requests")
-      .update({ status: "cancelled" })
+      .update(cancelPayload)
       .eq("id", id)
       .select("*")
       .single();
@@ -677,14 +910,17 @@ export async function DELETE(
     logAuditEvent({
       orgId: auth.orgId,
       userId: deleteActorId,
-      action: "approval.cancelled",
+      action: isScheduledExecution ? "approval.execution_cancelled" : "approval.cancelled",
       resourceType: "approval_request",
       resourceId: id,
+      details: isScheduledExecution
+        ? { scheduled_execution_at: approval.scheduled_execution_at }
+        : undefined,
       ipAddress,
     });
 
-    // 6. Callback delivery (use after() so Vercel keeps the function alive)
-    if (approval.callback_url) {
+    // 6. Callback delivery -- only for full cancellation, not scheduled execution cancellation
+    if (!isScheduledExecution && approval.callback_url) {
       after(
         deliverCallback({
           requestId: id,
@@ -709,7 +945,7 @@ export async function DELETE(
     // 7. Dispatch notifications
     after(
       dispatchNotifications({
-        type: "approval.cancelled",
+        type: isScheduledExecution ? "approval.execution_cancelled" : "approval.cancelled",
         orgId: auth.orgId,
         requestId: id,
         requestTitle: updated.title,
