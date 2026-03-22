@@ -1,0 +1,294 @@
+// ---------------------------------------------------------------------------
+// OKRunit -- Telegram Notification Channel (Bot API)
+// ---------------------------------------------------------------------------
+
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_API_BASE = "https://api.telegram.org";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface TelegramNotificationParams {
+  chatId: string;
+  requestId: string;
+  title: string;
+  description?: string;
+  priority: string;
+  connectionName?: string;
+}
+
+export interface TelegramDecisionParams {
+  chatId: string;
+  requestTitle: string;
+  decision: string;
+  decidedBy?: string;
+  comment?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Map priority to an emoji and display string. */
+function priorityEmoji(priority: string): string {
+  const map: Record<string, string> = {
+    critical: "\uD83D\uDEA8 Critical",
+    high: "\uD83D\uDD34 High",
+    medium: "\uD83D\uDFE0 Medium",
+    low: "\uD83D\uDFE2 Low",
+  };
+  return map[priority] ?? `\u26AA ${priority}`;
+}
+
+/** Map a decision string to a display string. */
+function decisionDisplay(decision: string): string {
+  const map: Record<string, string> = {
+    approved: "\u2705 Approved",
+    rejected: "\u274C Rejected",
+    cancelled: "\uD83D\uDEAB Cancelled",
+  };
+  return map[decision] ?? decision;
+}
+
+/** Escape special characters for Telegram MarkdownV2. */
+function escapeMarkdownV2(text: string): string {
+  return text.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, "\\$1");
+}
+
+/** Get the bot token, returning null if not configured. */
+function getBotToken(): string | null {
+  return TELEGRAM_BOT_TOKEN ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/**
+ * Send a Telegram notification with inline keyboard buttons for
+ * approve/reject.
+ *
+ * The callback_data encodes the request ID and action so the webhook
+ * handler at `/api/telegram/webhook` knows what to do.
+ *
+ * Errors are caught and logged -- Telegram notifications must never break
+ * the main request flow.
+ */
+export async function sendTelegramNotification(
+  params: TelegramNotificationParams,
+): Promise<void> {
+  const botToken = getBotToken();
+
+  if (!botToken) {
+    console.warn(
+      "[Telegram] TELEGRAM_BOT_TOKEN is not set -- skipping notification for request",
+      params.requestId,
+    );
+    return;
+  }
+
+  const dashboardUrl = `${APP_URL}/dashboard#request-${params.requestId}`;
+
+  const descriptionLine = params.description
+    ? `\n${escapeMarkdownV2(params.description)}`
+    : "";
+
+  const connectionLine = params.connectionName
+    ? `\n*Connection:* ${escapeMarkdownV2(params.connectionName)}`
+    : "";
+
+  const text = [
+    `*${escapeMarkdownV2("New Approval Request")}*`,
+    "",
+    `*${escapeMarkdownV2(params.title)}*${descriptionLine}`,
+    "",
+    `*Priority:* ${escapeMarkdownV2(priorityEmoji(params.priority))}`,
+    `*Request ID:* \`${params.requestId.slice(0, 8)}\\.\\.\\.\``,
+    connectionLine,
+  ]
+    .filter((line) => line !== "")
+    .join("\n");
+
+  const inlineKeyboard = {
+    inline_keyboard: [
+      [
+        {
+          text: "\u2705 Approve",
+          callback_data: `okrunit:approve:${params.requestId}`,
+        },
+        {
+          text: "\u274C Reject",
+          callback_data: `okrunit:reject:${params.requestId}`,
+        },
+      ],
+      [
+        {
+          text: "\uD83D\uDD0D View in Dashboard",
+          url: dashboardUrl,
+        },
+      ],
+    ],
+  };
+
+  try {
+    const url = `${TELEGRAM_API_BASE}/bot${botToken}/sendMessage`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: params.chatId,
+        text,
+        parse_mode: "MarkdownV2",
+        reply_markup: inlineKeyboard,
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error(
+        `[Telegram] API returned ${response.status} for request ${params.requestId}:`,
+        body,
+      );
+      return;
+    }
+
+    console.log(
+      `[Telegram] Notification sent for request ${params.requestId}`,
+    );
+  } catch (err) {
+    console.error("[Telegram] Failed to send notification:", err);
+  }
+}
+
+/**
+ * Send a decision notification to Telegram (simple message, no interactive
+ * buttons).
+ *
+ * Errors are caught and logged -- Telegram notifications must never break
+ * the main request flow.
+ */
+export async function sendTelegramDecisionNotification(
+  params: TelegramDecisionParams,
+): Promise<void> {
+  const botToken = getBotToken();
+
+  if (!botToken) {
+    console.warn(
+      "[Telegram] TELEGRAM_BOT_TOKEN is not set -- skipping decision notification for",
+      params.requestTitle,
+    );
+    return;
+  }
+
+  const decidedByText = params.decidedBy
+    ? ` by ${escapeMarkdownV2(params.decidedBy)}`
+    : "";
+
+  const commentText = params.comment
+    ? `\n\n_${escapeMarkdownV2(params.comment)}_`
+    : "";
+
+  const text = `${escapeMarkdownV2(decisionDisplay(params.decision))} *${escapeMarkdownV2(params.requestTitle)}*${decidedByText}${commentText}`;
+
+  try {
+    const url = `${TELEGRAM_API_BASE}/bot${botToken}/sendMessage`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: params.chatId,
+        text,
+        parse_mode: "MarkdownV2",
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error(
+        `[Telegram] Decision API returned ${response.status}:`,
+        body,
+      );
+      return;
+    }
+
+    console.log(
+      `[Telegram] Decision notification sent for "${params.requestTitle}"`,
+    );
+  } catch (err) {
+    console.error("[Telegram] Failed to send decision notification:", err);
+  }
+}
+
+/**
+ * Answer a Telegram callback query. This removes the "loading" indicator
+ * on the inline keyboard button the user pressed.
+ *
+ * Errors are caught and logged -- must never break the main flow.
+ */
+export async function answerCallbackQuery(
+  callbackQueryId: string,
+  text: string,
+): Promise<void> {
+  const botToken = getBotToken();
+  if (!botToken) return;
+
+  try {
+    const url = `${TELEGRAM_API_BASE}/bot${botToken}/answerCallbackQuery`;
+
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        callback_query_id: callbackQueryId,
+        text,
+      }),
+    });
+  } catch (err) {
+    console.error("[Telegram] Failed to answer callback query:", err);
+  }
+}
+
+/**
+ * Edit an existing Telegram message to replace it with updated text
+ * (e.g. after a decision has been made).
+ *
+ * Errors are caught and logged -- must never break the main flow.
+ */
+export async function editMessage(
+  chatId: string,
+  messageId: number,
+  text: string,
+): Promise<void> {
+  const botToken = getBotToken();
+  if (!botToken) return;
+
+  try {
+    const url = `${TELEGRAM_API_BASE}/bot${botToken}/editMessageText`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: "MarkdownV2",
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error(
+        `[Telegram] editMessageText returned ${response.status}:`,
+        body,
+      );
+    }
+  } catch (err) {
+    console.error("[Telegram] Failed to edit message:", err);
+  }
+}

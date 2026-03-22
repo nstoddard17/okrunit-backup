@@ -22,6 +22,9 @@ export type DecisionSource =
   | "dashboard"
   | "email"
   | "slack"
+  | "teams"
+  | "telegram"
+  | "discord"
   | "push"
   | "api"
   | "auto_rule"
@@ -35,7 +38,7 @@ export type DashboardLayout = "cards" | "grouped" | "split";
 
 export type VoteValue = "approve" | "reject";
 
-export type VoteSource = "dashboard" | "email" | "slack" | "push" | "api";
+export type VoteSource = "dashboard" | "email" | "slack" | "teams" | "telegram" | "discord" | "push" | "api";
 
 export type ApproverMode = "any" | "designated" | "role_based";
 
@@ -200,6 +203,12 @@ export interface NotificationSettings {
   push_enabled: boolean;
   slack_enabled: boolean;
   slack_webhook_url: string | null;
+  teams_enabled: boolean;
+  teams_webhook_url: string | null;
+  telegram_enabled: boolean;
+  telegram_chat_id: string | null;
+  discord_enabled: boolean;
+  discord_webhook_url: string | null;
   quiet_hours_enabled: boolean;
   quiet_hours_start: string | null;
   quiet_hours_end: string | null;

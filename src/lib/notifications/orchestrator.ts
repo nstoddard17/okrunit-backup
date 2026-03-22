@@ -2,7 +2,7 @@
 // OKRunit -- Notification Orchestrator
 // ---------------------------------------------------------------------------
 //
-// Central fan-out for all notification channels (web push, email, Slack).
+// Central fan-out for all notification channels (web push, email, Slack, Teams, Telegram, Discord).
 //
 // Usage:
 //   import { dispatchNotifications } from "@/lib/notifications/orchestrator";
@@ -26,6 +26,18 @@ import {
   sendSlackNotification,
   sendSlackDecisionNotification,
 } from "@/lib/notifications/channels/slack";
+import {
+  sendTeamsNotification,
+  sendTeamsDecisionNotification,
+} from "@/lib/notifications/channels/teams";
+import {
+  sendTelegramNotification,
+  sendTelegramDecisionNotification,
+} from "@/lib/notifications/channels/telegram";
+import {
+  sendDiscordNotification,
+  sendDiscordDecisionNotification,
+} from "@/lib/notifications/channels/discord";
 import { generateActionTokens } from "@/lib/notifications/tokens";
 import type { NotificationSettings } from "@/lib/types/database";
 import type { PushPayload } from "@/lib/notifications/channels/web-push";
@@ -40,6 +52,12 @@ const DEFAULT_SETTINGS: Pick<
   | "push_enabled"
   | "slack_enabled"
   | "slack_webhook_url"
+  | "teams_enabled"
+  | "teams_webhook_url"
+  | "telegram_enabled"
+  | "telegram_chat_id"
+  | "discord_enabled"
+  | "discord_webhook_url"
   | "quiet_hours_enabled"
   | "quiet_hours_start"
   | "quiet_hours_end"
@@ -50,6 +68,12 @@ const DEFAULT_SETTINGS: Pick<
   push_enabled: true,
   slack_enabled: false,
   slack_webhook_url: null,
+  teams_enabled: false,
+  teams_webhook_url: null,
+  telegram_enabled: false,
+  telegram_chat_id: null,
+  discord_enabled: false,
+  discord_webhook_url: null,
   quiet_hours_enabled: false,
   quiet_hours_start: null,
   quiet_hours_end: null,
@@ -197,6 +221,117 @@ export async function dispatchNotifications(
             }).catch((err: unknown) => {
               console.error(
                 `[Notifications] Slack decision failed for user ${userId}:`,
+                err,
+              );
+            }),
+          );
+        }
+      }
+
+      // -- Teams ----------------------------------------------------------------
+      if (effective.teams_enabled && effective.teams_webhook_url) {
+        if (event.type === "approval.created" || event.type === "approval.next_approver") {
+          promises.push(
+            sendTeamsNotification({
+              webhookUrl: effective.teams_webhook_url,
+              requestId: event.requestId,
+              title: event.requestTitle,
+              description: event.requestDescription,
+              priority: event.requestPriority,
+              connectionName: event.connectionName,
+            }).catch((err: unknown) => {
+              console.error(
+                `[Notifications] Teams notification failed for user ${userId}:`,
+                err,
+              );
+            }),
+          );
+        } else {
+          const decision = extractDecision(event.type);
+          promises.push(
+            sendTeamsDecisionNotification({
+              webhookUrl: effective.teams_webhook_url,
+              requestTitle: event.requestTitle,
+              decision,
+              decidedBy: event.decidedBy,
+              comment: event.decisionComment,
+            }).catch((err: unknown) => {
+              console.error(
+                `[Notifications] Teams decision failed for user ${userId}:`,
+                err,
+              );
+            }),
+          );
+        }
+      }
+
+      // -- Telegram -------------------------------------------------------------
+      if (effective.telegram_enabled && effective.telegram_chat_id) {
+        if (event.type === "approval.created" || event.type === "approval.next_approver") {
+          promises.push(
+            sendTelegramNotification({
+              chatId: effective.telegram_chat_id,
+              requestId: event.requestId,
+              title: event.requestTitle,
+              description: event.requestDescription,
+              priority: event.requestPriority,
+              connectionName: event.connectionName,
+            }).catch((err: unknown) => {
+              console.error(
+                `[Notifications] Telegram notification failed for user ${userId}:`,
+                err,
+              );
+            }),
+          );
+        } else {
+          const decision = extractDecision(event.type);
+          promises.push(
+            sendTelegramDecisionNotification({
+              chatId: effective.telegram_chat_id,
+              requestTitle: event.requestTitle,
+              decision,
+              decidedBy: event.decidedBy,
+              comment: event.decisionComment,
+            }).catch((err: unknown) => {
+              console.error(
+                `[Notifications] Telegram decision failed for user ${userId}:`,
+                err,
+              );
+            }),
+          );
+        }
+      }
+
+      // -- Discord ------------------------------------------------------------
+      if (effective.discord_enabled && effective.discord_webhook_url) {
+        if (event.type === "approval.created" || event.type === "approval.next_approver") {
+          promises.push(
+            sendDiscordNotification({
+              webhookUrl: effective.discord_webhook_url,
+              requestId: event.requestId,
+              title: event.requestTitle,
+              description: event.requestDescription,
+              priority: event.requestPriority,
+              connectionName: event.connectionName,
+            }).catch((err: unknown) => {
+              console.error(
+                `[Notifications] Discord notification failed for user ${userId}:`,
+                err,
+              );
+            }),
+          );
+        } else {
+          const decision = extractDecision(event.type);
+          promises.push(
+            sendDiscordDecisionNotification({
+              webhookUrl: effective.discord_webhook_url,
+              requestTitle: event.requestTitle,
+              decision,
+              decidedBy: event.decidedBy,
+              comment: event.decisionComment,
+            }).catch((err: unknown) => {
+              console.error(
+                `[Notifications] Discord decision failed for user ${userId}:`,
                 err,
               );
             }),
