@@ -361,7 +361,7 @@ function MockDashboard() {
             className="flex items-center justify-center border-b px-3 py-2.5"
             style={{ borderColor: "rgba(255,255,255,0.06)" }}
           >
-            <Image src="/logo_text.png" alt="OKRunit" width={220} height={60} className="h-7 w-auto brightness-0 invert" />
+            <Image src="/logo_text_white.png" alt="OKRunit" width={220} height={60} className="h-7 w-auto" />
           </div>
           <div className="flex-1 space-y-0.5 px-2 py-2">
             {sidebarItems.map((item) => (
@@ -513,7 +513,7 @@ export function Hero({ user }: HeroProps) {
           style={{ backgroundColor: "rgba(10, 10, 10, 0.8)", borderColor: "var(--tess-border)" }}
         >
           <Link href="/" className="flex items-center">
-            <Image src="/logo_text.png" alt="OKRunit" width={440} height={120} className="h-9 w-auto brightness-0 invert" />
+            <Image src="/logo_text_white.png" alt="OKRunit" width={440} height={120} className="h-9 w-auto" />
           </Link>
 
           <div className="hidden items-center gap-6 md:flex">
@@ -878,7 +878,7 @@ export function Hero({ user }: HeroProps) {
             <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5">
               <div className="md:col-span-1">
                 <Link href="/" className="flex items-center">
-                  <Image src="/logo_text.png" alt="OKRunit" width={220} height={60} className="h-8 w-auto brightness-0 invert" />
+                  <Image src="/logo_text.png" alt="OKRunit" width={220} height={60} className="h-8 w-auto" />
                 </Link>
               </div>
               {Object.entries(footerLinks).map(([heading, links]) => (

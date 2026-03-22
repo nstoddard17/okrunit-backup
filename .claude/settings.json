@@ -62,7 +62,19 @@
       "Bash(ln -s /Users/nathanielstoddard/okrunit/.env.local /Users/nathanielstoddard/okrunit/okrunit/.env.local)",
       "Bash(cp favicon.ico favicon.ico.bak)",
       "Bash(rm temp_favicon.png)",
-      "WebFetch(domain:localhost)"
+      "WebFetch(domain:localhost)",
+      "Bash(ls /Users/nathanielstoddard/okrunit/okrunit/public/logo* /Users/nathanielstoddard/okrunit/okrunit/public/okrunit*)",
+      "Bash(done)",
+      "Bash(curl -sI https://www.okrunit.com/oauth/authorize)",
+      "Bash(curl -sI https://okrunit.com/oauth/authorize)",
+      "Bash(curl -sI https://www.okrunit.com/api/v1/oauth/token)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Bash(npx jest:*)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest integrations/pipedream/test/components.test.mjs --no-cache)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest --testMatch='**/pipedream/test/*.mjs' --no-cache)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",
