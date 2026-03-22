@@ -76,6 +76,17 @@ export interface SlaConfig {
   critical: number | null;
 }
 
+export interface GeoRestrictions {
+  enabled: boolean;
+  allowed_countries: string[];
+}
+
+export interface FourEyesConfig {
+  enabled: boolean;
+  action_types: string[];
+  min_priority: ApprovalPriority | null;
+}
+
 export interface Organization {
   id: string;
   name: string;
@@ -88,6 +99,11 @@ export interface Organization {
   sla_config: SlaConfig;
   bottleneck_threshold: number;
   bottleneck_alert_enabled: boolean;
+  ip_allowlist: string[];
+  geo_restrictions: GeoRestrictions;
+  require_reauth_for_critical: boolean;
+  session_timeout_minutes: number;
+  four_eyes_config: FourEyesConfig;
   created_at: string;
   updated_at: string;
 }

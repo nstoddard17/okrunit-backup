@@ -23,6 +23,7 @@ import { checkTrustThreshold } from "@/lib/api/trust-engine";
 import { dispatchNotifications } from "@/lib/notifications/orchestrator";
 import { calculateSlaDeadline, checkSlaBreach, type SlaConfig } from "@/lib/api/sla";
 import { checkBottleneckThreshold } from "@/lib/api/bottleneck";
+import { enforceFourEyesOnCreation } from "@/lib/api/four-eyes";
 
 // ---- Helpers ---------------------------------------------------------------
 
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
 
     const { data: org, error: orgError } = await admin
       .from("organizations")
-      .select("emergency_stop_active, default_auto_action, default_auto_action_minutes, sla_config")
+      .select("emergency_stop_active, default_auto_action, default_auto_action_minutes, sla_config, four_eyes_config")
       .eq("id", auth.orgId)
       .single();
 
@@ -400,6 +401,13 @@ export async function POST(request: Request) {
     if (riskResult.level === "critical" && requiredApprovals === 1) {
       requiredApprovals = 2;
     }
+
+    // 12f1. Four-eyes principle: bump required_approvals if applicable
+    requiredApprovals = enforceFourEyesOnCreation(org, {
+      action_type: effectiveActionType ?? "",
+      priority: effectivePriority as "low" | "medium" | "high" | "critical",
+      required_approvals: requiredApprovals,
+    });
 
     // 12f. Resolve delegations for assigned approvers (expand notification targets)
     let delegateMap: Map<string, string> = new Map();

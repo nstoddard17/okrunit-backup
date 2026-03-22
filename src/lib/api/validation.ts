@@ -223,12 +223,28 @@ const slaConfigSchema = z.object({
   critical: z.number().int().min(1).nullable(),
 });
 
+const geoRestrictionsSchema = z.object({
+  enabled: z.boolean(),
+  allowed_countries: z.array(z.string().length(2)),
+});
+
+const fourEyesConfigSchema = z.object({
+  enabled: z.boolean(),
+  action_types: z.array(z.string().max(100)),
+  min_priority: priorityEnum.nullable(),
+});
+
 export const updateOrgSettingsSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   rejection_reason_policy: rejectionReasonPolicyEnum.optional(),
   sla_config: slaConfigSchema.optional(),
   bottleneck_threshold: z.number().int().min(1).max(1000).optional(),
   bottleneck_alert_enabled: z.boolean().optional(),
+  ip_allowlist: z.array(z.string().max(50)).max(200).optional(),
+  geo_restrictions: geoRestrictionsSchema.optional(),
+  require_reauth_for_critical: z.boolean().optional(),
+  session_timeout_minutes: z.number().int().min(5).max(43200).optional(),
+  four_eyes_config: fourEyesConfigSchema.optional(),
 });
 
 export type UpdateOrgSettingsInput = z.infer<typeof updateOrgSettingsSchema>;

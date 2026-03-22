@@ -21,19 +21,42 @@ const slaConfigSchema = z.object({
   critical: z.number().int().min(1).nullable(),
 });
 
+const priorityEnum = z.enum(["low", "medium", "high", "critical"]);
+
+const geoRestrictionsSchema = z.object({
+  enabled: z.boolean(),
+  allowed_countries: z.array(z.string().length(2, "Country code must be 2 characters (ISO 3166-1 alpha-2)")),
+});
+
+const fourEyesConfigSchema = z.object({
+  enabled: z.boolean(),
+  action_types: z.array(z.string().max(100)),
+  min_priority: priorityEnum.nullable(),
+});
+
 const updateOrgSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name is too long").optional(),
   rejection_reason_policy: rejectionReasonPolicyEnum.optional(),
   sla_config: slaConfigSchema.optional(),
   bottleneck_threshold: z.number().int().min(1).max(1000).optional(),
   bottleneck_alert_enabled: z.boolean().optional(),
+  ip_allowlist: z.array(z.string().max(50)).max(200).optional(),
+  geo_restrictions: geoRestrictionsSchema.optional(),
+  require_reauth_for_critical: z.boolean().optional(),
+  session_timeout_minutes: z.number().int().min(5).max(43200).optional(),
+  four_eyes_config: fourEyesConfigSchema.optional(),
 }).refine(
   (data) =>
     data.name !== undefined ||
     data.rejection_reason_policy !== undefined ||
     data.sla_config !== undefined ||
     data.bottleneck_threshold !== undefined ||
-    data.bottleneck_alert_enabled !== undefined,
+    data.bottleneck_alert_enabled !== undefined ||
+    data.ip_allowlist !== undefined ||
+    data.geo_restrictions !== undefined ||
+    data.require_reauth_for_critical !== undefined ||
+    data.session_timeout_minutes !== undefined ||
+    data.four_eyes_config !== undefined,
   { message: "At least one field must be provided" },
 );
 
@@ -72,6 +95,11 @@ export async function PATCH(request: Request) {
     if (body.sla_config !== undefined) updatePayload.sla_config = body.sla_config;
     if (body.bottleneck_threshold !== undefined) updatePayload.bottleneck_threshold = body.bottleneck_threshold;
     if (body.bottleneck_alert_enabled !== undefined) updatePayload.bottleneck_alert_enabled = body.bottleneck_alert_enabled;
+    if (body.ip_allowlist !== undefined) updatePayload.ip_allowlist = body.ip_allowlist;
+    if (body.geo_restrictions !== undefined) updatePayload.geo_restrictions = body.geo_restrictions;
+    if (body.require_reauth_for_critical !== undefined) updatePayload.require_reauth_for_critical = body.require_reauth_for_critical;
+    if (body.session_timeout_minutes !== undefined) updatePayload.session_timeout_minutes = body.session_timeout_minutes;
+    if (body.four_eyes_config !== undefined) updatePayload.four_eyes_config = body.four_eyes_config;
 
     const { data: org, error } = await admin
       .from("organizations")

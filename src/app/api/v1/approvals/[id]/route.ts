@@ -16,6 +16,9 @@ import { dispatchNotifications } from "@/lib/notifications/orchestrator";
 import { findDelegationForDelegate } from "@/lib/api/delegation";
 import { updateTrustCounter } from "@/lib/api/trust-engine";
 import { checkSlaBreach } from "@/lib/api/sla";
+import { validateSecurityContext } from "@/lib/api/geo-security";
+import { checkFourEyes } from "@/lib/api/four-eyes";
+import { checkReauthRequired } from "@/lib/api/session-security";
 import type { RejectionReasonPolicy, ApprovalPriority } from "@/lib/types/database";
 
 // ---- Helpers --------------------------------------------------------------
@@ -372,6 +375,39 @@ export async function PATCH(
 
     const admin = createAdminClient();
 
+    // 2b. Fetch org settings for security checks
+    const { data: orgSettings } = await admin
+      .from("organizations")
+      .select("ip_allowlist, geo_restrictions, four_eyes_config, require_reauth_for_critical, session_timeout_minutes")
+      .eq("id", auth.orgId)
+      .single();
+
+    // 2c. Geo-fencing: IP allowlist + country restriction
+    let geoIp: string | undefined;
+    let geoCountry: string | null | undefined;
+    if (orgSettings) {
+      const securityResult = validateSecurityContext(request, orgSettings);
+      geoIp = securityResult.ip;
+      geoCountry = securityResult.country;
+      if (!securityResult.allowed) {
+        logAuditEvent({
+          orgId: auth.orgId,
+          userId: actorId,
+          action: "security.geo_blocked",
+          resourceType: "approval_request",
+          resourceId: id,
+          details: {
+            ip: securityResult.ip,
+            country: securityResult.country,
+            reason: securityResult.reason,
+          },
+          ipAddress: securityResult.ip,
+        });
+
+        throw new ApiError(403, securityResult.reason ?? "Access denied by security policy", "GEO_BLOCKED");
+      }
+    }
+
     // 3. Fetch the approval
     const approval = await fetchApproval(admin, id, auth.orgId);
 
@@ -398,6 +434,35 @@ export async function PATCH(
         `Approval was auto-${autoActioned.status} due to deadline`,
         "AUTO_ACTIONED",
       );
+    }
+
+    // 5b1. Four-eyes principle check
+    if (orgSettings) {
+      const fourEyesResult = checkFourEyes(orgSettings, approval, actorId);
+      if (!fourEyesResult.allowed) {
+        logAuditEvent({
+          orgId: auth.orgId,
+          userId: actorId,
+          action: "security.four_eyes_blocked",
+          resourceType: "approval_request",
+          resourceId: id,
+          details: { reason: fourEyesResult.reason },
+          ipAddress: getIpAddress(request),
+        });
+
+        throw new ApiError(403, fourEyesResult.reason ?? "Self-approval blocked", "SELF_APPROVAL_BLOCKED");
+      }
+    }
+
+    // 5b2. Re-authentication check for critical approvals
+    if (orgSettings && orgSettings.require_reauth_for_critical && approval.priority === "critical") {
+      // Fetch the user's metadata to get last_reauth_at
+      const { data: { user: authUser } } = await admin.auth.admin.getUserById(actorId);
+      const lastReauthAt = (authUser?.user_metadata?.last_reauth_at as string) ?? null;
+      const reauthResult = checkReauthRequired(orgSettings, approval, lastReauthAt);
+      if (reauthResult.required) {
+        throw new ApiError(401, reauthResult.reason ?? "Re-authentication required", "REAUTH_REQUIRED");
+      }
     }
 
     // 5b. If rejecting, enforce rejection reason requirements
@@ -644,6 +709,8 @@ export async function PATCH(
           required_approvals: updated.required_approvals,
           final_status: updated.status,
           ...(delegatedFrom ? { delegated_from: delegatedFrom, delegation_id: delegationId } : {}),
+          ...(geoIp ? { ip: geoIp } : {}),
+          ...(geoCountry ? { country: geoCountry } : {}),
         },
         ipAddress,
       });
@@ -807,6 +874,8 @@ export async function PATCH(
         ...(delegatedFrom ? { delegated_from: delegatedFrom, delegation_id: delegationId } : {}),
         ...(validated.scheduled_execution_at ? { scheduled_execution_at: validated.scheduled_execution_at } : {}),
         ...(conditionsBlocking ? { conditions_blocking: true } : {}),
+        ...(geoIp ? { ip: geoIp } : {}),
+        ...(geoCountry ? { country: geoCountry } : {}),
       },
       ipAddress,
     });
