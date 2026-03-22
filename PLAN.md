@@ -585,3 +585,56 @@ supabase/
   migrations/
     001_initial_schema.sql                # All tables, enums, triggers, RLS, indexes, realtime
 ```
+
+---
+
+### Phase 14: Messaging Platform Approval Channels
+
+Enable users to receive approval requests and approve/reject them directly from messaging platforms they already use. Each channel sends interactive messages (buttons/cards) and processes responses back to OKRunit.
+
+**Platforms:**
+- [ ] **Discord** — Bot with slash commands and interactive button components
+  - [ ] Discord bot application setup (OAuth2, bot token)
+  - [ ] Approval request → Discord embed with Approve/Reject buttons
+  - [ ] Button interaction handler → calls OKRunit API to record decision
+  - [ ] Channel/role-based routing (send to specific channels per org/team)
+  - [ ] Thread-based comments on approval requests
+  - [ ] `/okrunit` slash command for listing/searching approvals
+
+- [ ] **Slack** — Enhance existing Slack integration with full interactive workflow
+  - [ ] Expand existing Slack notification channel to support interactive blocks
+  - [ ] Approval request → Slack Block Kit message with Approve/Reject buttons
+  - [ ] Interactive message handler → records decision via API
+  - [ ] Channel routing configuration per org/team
+  - [ ] Thread replies for comments
+  - [ ] `/okrunit` slash command
+  - [ ] Slack App Directory submission
+
+- [ ] **Microsoft Teams** — Bot with Adaptive Cards
+  - [ ] Teams bot registration (Azure Bot Service)
+  - [ ] Approval request → Adaptive Card with action buttons
+  - [ ] Bot Framework message handler → records decision
+  - [ ] Channel/team routing configuration
+  - [ ] Threaded replies for comments
+  - [ ] Teams App Store submission
+
+- [ ] **Telegram** — Bot with inline keyboard buttons
+  - [ ] Telegram bot setup via BotFather
+  - [ ] Approval request → message with inline Approve/Reject keyboard
+  - [ ] Callback query handler → records decision
+  - [ ] Group/channel routing
+
+**Shared Infrastructure:**
+- [ ] Messaging channel configuration UI in dashboard (connect/disconnect platforms)
+- [ ] Per-org channel routing rules (which approvals go to which channels)
+- [ ] Unified message delivery with retry logic (extend existing notification orchestrator)
+- [ ] `decision_source` enum additions: `discord`, `teams`, `telegram` (Slack already exists)
+- [ ] Database: `messaging_connections` table for storing bot tokens/webhook URLs per org
+- [ ] Security: token encryption at rest, webhook signature verification per platform
+
+**Self-Hosted Infrastructure Support:**
+- [ ] All bots/integrations can run on customer infrastructure (no dependency on OKRunit servers)
+- [ ] Docker images for each bot (Discord, Slack, Teams, Telegram)
+- [ ] Helm chart for Kubernetes deployment
+- [ ] Environment variable configuration (API key, bot tokens, channel mappings)
+- [ ] Documentation for self-hosted setup per platform
