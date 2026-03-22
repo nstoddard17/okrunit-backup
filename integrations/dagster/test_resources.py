@@ -318,3 +318,229 @@ def test_base_url(resource):
 def test_valid_priorities_constant(resource):
     """_VALID_PRIORITIES must contain all spec-defined priorities."""
     assert set(resource._VALID_PRIORITIES) == {"low", "medium", "high", "critical"}
+
+
+# ── Sensor Tests ─────────────────────────────────────────────────────────────
+
+from dagster import build_sensor_context, RunRequest, SkipReason
+
+from sensors import new_approval_sensor, approval_decided_sensor, build_new_approval_sensor
+
+
+def _mock_okrunit(approvals_by_call):
+    """Create a mock OKRunit resource with side_effect for list_approvals."""
+    okrunit = MagicMock()
+    okrunit.list_approvals.side_effect = approvals_by_call
+    return okrunit
+
+
+def _run_sensor(sensor_def, cursor=None, okrunit_mock=None):
+    """Execute a sensor definition and return (results, context)."""
+    okrunit = okrunit_mock or MagicMock()
+    ctx = build_sensor_context(cursor=cursor, resources={"okrunit": okrunit})
+    # Call the raw function directly to avoid Dagster's resource injection
+    # which conflicts with the required_resource_keys pattern
+    gen = sensor_def._raw_fn(ctx)
+    results = list(gen) if gen is not None else []
+    return results, ctx
+
+
+# ── new_approval_sensor ─────────────────────────────────────────────────────
+
+
+def test_new_approval_sensor_yields_run_request_for_new_approvals():
+    """new_approval_sensor must yield a RunRequest for each new approval."""
+    okrunit = _mock_okrunit([
+        {
+            "data": [
+                {
+                    "id": "aaa-111",
+                    "title": "Deploy v1",
+                    "status": "pending",
+                    "priority": "high",
+                    "source": "dagster",
+                    "created_at": "2026-03-01T10:00:00Z",
+                }
+            ]
+        }
+    ])
+
+    results, ctx = _run_sensor(new_approval_sensor, cursor=None, okrunit_mock=okrunit)
+
+    run_requests = [r for r in results if isinstance(r, RunRequest)]
+    assert len(run_requests) == 1
+    assert run_requests[0].run_key == "new-approval-aaa-111"
+    config = run_requests[0].run_config["ops"]["process_new_approval"]["config"]
+    assert config["approval_id"] == "aaa-111"
+    assert config["title"] == "Deploy v1"
+    assert config["status"] == "pending"
+    assert config["priority"] == "high"
+    assert config["source"] == "dagster"
+    assert config["created_at"] == "2026-03-01T10:00:00Z"
+
+
+def test_new_approval_sensor_skips_when_no_new_approvals():
+    """new_approval_sensor must yield SkipReason when nothing is new."""
+    okrunit = _mock_okrunit([
+        {
+            "data": [
+                {
+                    "id": "aaa-111",
+                    "title": "Old",
+                    "status": "pending",
+                    "priority": "low",
+                    "source": "api",
+                    "created_at": "2026-03-01T10:00:00Z",
+                }
+            ]
+        }
+    ])
+
+    results, ctx = _run_sensor(
+        new_approval_sensor, cursor="2026-03-01T12:00:00Z", okrunit_mock=okrunit
+    )
+
+    skip_reasons = [r for r in results if isinstance(r, SkipReason)]
+    assert len(skip_reasons) == 1
+    assert "No new approval requests" in skip_reasons[0].skip_message
+
+
+def test_new_approval_sensor_updates_cursor_to_latest():
+    """Cursor must advance to the latest created_at seen."""
+    okrunit = _mock_okrunit([
+        {
+            "data": [
+                {
+                    "id": "aaa-111",
+                    "title": "First",
+                    "status": "pending",
+                    "priority": "low",
+                    "source": "api",
+                    "created_at": "2026-03-01T10:00:00Z",
+                },
+                {
+                    "id": "bbb-222",
+                    "title": "Second",
+                    "status": "pending",
+                    "priority": "high",
+                    "source": "api",
+                    "created_at": "2026-03-02T10:00:00Z",
+                },
+            ]
+        }
+    ])
+
+    results, ctx = _run_sensor(new_approval_sensor, cursor=None, okrunit_mock=okrunit)
+
+    assert ctx.cursor == "2026-03-02T10:00:00Z"
+
+
+def test_new_approval_sensor_passes_status_filter():
+    """When status filter is set, it must be passed to list_approvals."""
+    okrunit = _mock_okrunit([{"data": []}])
+    sensor_def = build_new_approval_sensor(status="pending")
+
+    _run_sensor(sensor_def, cursor=None, okrunit_mock=okrunit)
+
+    call_kwargs = okrunit.list_approvals.call_args.kwargs
+    assert call_kwargs["status"] == "pending"
+
+
+def test_new_approval_sensor_passes_priority_filter():
+    """When priority filter is set, it must be passed to list_approvals."""
+    okrunit = _mock_okrunit([{"data": []}])
+    sensor_def = build_new_approval_sensor(priority="critical")
+
+    _run_sensor(sensor_def, cursor=None, okrunit_mock=okrunit)
+
+    call_kwargs = okrunit.list_approvals.call_args.kwargs
+    assert call_kwargs["priority"] == "critical"
+
+
+def test_new_approval_sensor_no_filters_by_default():
+    """Default sensor must not pass status or priority filters."""
+    okrunit = _mock_okrunit([{"data": []}])
+
+    _run_sensor(new_approval_sensor, cursor=None, okrunit_mock=okrunit)
+
+    call_kwargs = okrunit.list_approvals.call_args.kwargs
+    assert "status" not in call_kwargs
+    assert "priority" not in call_kwargs
+    assert call_kwargs["limit"] == 50
+
+
+def test_new_approval_sensor_deduplicates_by_id():
+    """Run keys must include the approval id for deduplication."""
+    okrunit = _mock_okrunit([
+        {
+            "data": [
+                {
+                    "id": "unique-id-123",
+                    "title": "Test",
+                    "status": "pending",
+                    "priority": "medium",
+                    "source": "api",
+                    "created_at": "2026-03-01T10:00:00Z",
+                }
+            ]
+        }
+    ])
+
+    results, ctx = _run_sensor(new_approval_sensor, cursor=None, okrunit_mock=okrunit)
+    run_requests = [r for r in results if isinstance(r, RunRequest)]
+
+    assert run_requests[0].run_key == "new-approval-unique-id-123"
+
+
+# ── approval_decided_sensor ─────────────────────────────────────────────────
+
+
+def test_approval_decided_sensor_yields_run_for_new_decisions():
+    """approval_decided_sensor must yield RunRequest for new decisions."""
+    okrunit = _mock_okrunit([
+        {
+            "data": [
+                {
+                    "id": "dec-111",
+                    "title": "Deploy v2",
+                    "status": "approved",
+                    "decided_at": "2026-03-01T12:00:00Z",
+                    "decided_by_name": "Alice",
+                }
+            ]
+        },
+        {"data": []},
+    ])
+
+    results, ctx = _run_sensor(
+        approval_decided_sensor, cursor=None, okrunit_mock=okrunit
+    )
+
+    run_requests = [r for r in results if isinstance(r, RunRequest)]
+    assert len(run_requests) == 1
+    assert run_requests[0].run_key == "approval-dec-111"
+
+
+def test_approval_decided_sensor_skips_when_no_new_decisions():
+    """approval_decided_sensor must yield SkipReason when nothing new."""
+    okrunit = _mock_okrunit([
+        {
+            "data": [
+                {
+                    "id": "dec-111",
+                    "status": "approved",
+                    "decided_at": "2026-03-01T10:00:00Z",
+                    "decided_by_name": "Alice",
+                }
+            ]
+        },
+        {"data": []},
+    ])
+
+    results, ctx = _run_sensor(
+        approval_decided_sensor, cursor="2026-03-01T12:00:00Z", okrunit_mock=okrunit
+    )
+
+    skip_reasons = [r for r in results if isinstance(r, SkipReason)]
+    assert len(skip_reasons) == 1
+    assert "No new approval decisions" in skip_reasons[0].skip_message

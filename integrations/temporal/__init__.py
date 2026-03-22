@@ -4,8 +4,14 @@ from .activities import (
     get_approval,
     list_approvals,
     add_comment,
+    poll_new_approvals,
+    poll_decided_approvals,
 )
-from .workflows import ApprovalGateWorkflow
+from .workflows import (
+    ApprovalGateWorkflow,
+    NewApprovalWatcherWorkflow,
+    ApprovalDecidedWatcherWorkflow,
+)
 
 __all__ = [
     "OKRunitConfig",
@@ -13,5 +19,9 @@ __all__ = [
     "get_approval",
     "list_approvals",
     "add_comment",
+    "poll_new_approvals",
+    "poll_decided_approvals",
     "ApprovalGateWorkflow",
+    "NewApprovalWatcherWorkflow",
+    "ApprovalDecidedWatcherWorkflow",
 ]

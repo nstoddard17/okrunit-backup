@@ -5,7 +5,13 @@ from datetime import timedelta
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
-    from .activities import OKRunitConfig, create_approval, get_approval
+    from .activities import (
+        OKRunitConfig,
+        create_approval,
+        get_approval,
+        poll_new_approvals,
+        poll_decided_approvals,
+    )
 
 
 @workflow.defn
@@ -84,3 +90,179 @@ class ApprovalGateWorkflow:
     def current_status(self) -> str:
         """Query the current status of the approval workflow."""
         return self._current_status
+
+
+@workflow.defn
+class NewApprovalWatcherWorkflow:
+    """Workflow that polls for new approval requests on a schedule.
+
+    Runs continuously, polling OKRunit for new approvals created since the last
+    cursor. Each new approval is yielded via a signal so downstream workflows
+    or activities can react to it.
+
+    Usage via temporal CLI:
+        temporal workflow start \\
+          --type NewApprovalWatcherWorkflow \\
+          --task-queue okrunit \\
+          --input '{"config": {"api_key": "gk_...", "api_url": "https://app.okrunit.com"}, "poll_interval_seconds": 30}'
+
+    Query ``current_cursor`` to see the latest poll position.
+    """
+
+    def __init__(self) -> None:
+        self._cursor: str | None = None
+        self._should_stop: bool = False
+        self._total_found: int = 0
+
+    @workflow.signal
+    async def stop(self) -> None:
+        """Signal the watcher to stop after the current poll cycle."""
+        self._should_stop = True
+
+    @workflow.run
+    async def run(
+        self,
+        config: OKRunitConfig,
+        poll_interval_seconds: int = 30,
+        status: str | None = None,
+        priority: str | None = None,
+        initial_cursor: str | None = None,
+    ) -> dict:
+        """Poll for new approvals until stopped.
+
+        Returns summary with total approvals found and final cursor position.
+        """
+        self._cursor = initial_cursor
+
+        workflow.logger.info(
+            f"Starting NewApprovalWatcherWorkflow (interval: {poll_interval_seconds}s)"
+        )
+
+        while not self._should_stop:
+            result = await workflow.execute_activity(
+                poll_new_approvals,
+                args=[config, self._cursor, status, priority],
+                start_to_close_timeout=timedelta(seconds=30),
+            )
+
+            approvals = result["approvals"]
+            if approvals:
+                self._cursor = result["new_cursor"]
+                self._total_found += result["count"]
+                workflow.logger.info(
+                    f"Found {result['count']} new approval(s), cursor: {self._cursor}"
+                )
+
+                # Signal each new approval for downstream processing
+                for approval in approvals:
+                    workflow.logger.info(
+                        f"New approval: {approval['id']} - {approval.get('title', '')}"
+                    )
+
+            await workflow.sleep(poll_interval_seconds)
+
+        workflow.logger.info(
+            f"Watcher stopped. Total approvals found: {self._total_found}"
+        )
+        return {
+            "total_found": self._total_found,
+            "final_cursor": self._cursor,
+        }
+
+    @workflow.query
+    def current_cursor(self) -> str | None:
+        """Query the current cursor position."""
+        return self._cursor
+
+    @workflow.query
+    def total_found(self) -> int:
+        """Query total number of approvals found so far."""
+        return self._total_found
+
+
+@workflow.defn
+class ApprovalDecidedWatcherWorkflow:
+    """Workflow that polls for decided (approved/rejected) approvals on a schedule.
+
+    Runs continuously, polling OKRunit for approvals that have been decided
+    since the last cursor. Each decided approval is logged so downstream
+    workflows or activities can react.
+
+    Usage via temporal CLI:
+        temporal workflow start \\
+          --type ApprovalDecidedWatcherWorkflow \\
+          --task-queue okrunit \\
+          --input '{"config": {"api_key": "gk_...", "api_url": "https://app.okrunit.com"}, "poll_interval_seconds": 30}'
+
+    Query ``current_cursor`` to see the latest poll position.
+    """
+
+    def __init__(self) -> None:
+        self._cursor: str | None = None
+        self._should_stop: bool = False
+        self._total_found: int = 0
+
+    @workflow.signal
+    async def stop(self) -> None:
+        """Signal the watcher to stop after the current poll cycle."""
+        self._should_stop = True
+
+    @workflow.run
+    async def run(
+        self,
+        config: OKRunitConfig,
+        poll_interval_seconds: int = 30,
+        decision: str | None = None,
+        priority: str | None = None,
+        initial_cursor: str | None = None,
+    ) -> dict:
+        """Poll for decided approvals until stopped.
+
+        Returns summary with total decisions found and final cursor position.
+        """
+        self._cursor = initial_cursor
+
+        workflow.logger.info(
+            f"Starting ApprovalDecidedWatcherWorkflow (interval: {poll_interval_seconds}s)"
+        )
+
+        while not self._should_stop:
+            result = await workflow.execute_activity(
+                poll_decided_approvals,
+                args=[config, self._cursor, decision, priority],
+                start_to_close_timeout=timedelta(seconds=30),
+            )
+
+            approvals = result["approvals"]
+            if approvals:
+                self._cursor = result["new_cursor"]
+                self._total_found += result["count"]
+                workflow.logger.info(
+                    f"Found {result['count']} decided approval(s), cursor: {self._cursor}"
+                )
+
+                for approval in approvals:
+                    decided_by = approval.get("decided_by_name", "unknown")
+                    workflow.logger.info(
+                        f"Decision: {approval['id']} {approval['status']} by {decided_by}"
+                    )
+
+            await workflow.sleep(poll_interval_seconds)
+
+        workflow.logger.info(
+            f"Watcher stopped. Total decisions found: {self._total_found}"
+        )
+        return {
+            "total_found": self._total_found,
+            "final_cursor": self._cursor,
+        }
+
+    @workflow.query
+    def current_cursor(self) -> str | None:
+        """Query the current cursor position."""
+        return self._cursor
+
+    @workflow.query
+    def total_found(self) -> int:
+        """Query total number of decisions found so far."""
+        return self._total_found

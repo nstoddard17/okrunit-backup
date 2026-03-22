@@ -12,8 +12,11 @@ from tasks import (
     get_approval,
     list_approvals,
     add_comment,
+    poll_new_approvals,
+    poll_decided_approvals,
     _headers,
     VALID_PRIORITIES,
+    VALID_STATUSES,
 )
 
 
@@ -407,3 +410,390 @@ def test_headers_contains_bearer_token():
 def test_valid_priorities_constant():
     """VALID_PRIORITIES must contain all spec-defined priorities."""
     assert VALID_PRIORITIES == {"low", "medium", "high", "critical"}
+
+
+def test_valid_statuses_constant():
+    """VALID_STATUSES must contain all spec-defined statuses."""
+    assert VALID_STATUSES == {"pending", "approved", "rejected", "cancelled", "expired"}
+
+
+# ── poll_new_approvals ──────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def sample_approvals_list():
+    return {
+        "data": [
+            {
+                "id": "aaa-111",
+                "title": "Deploy v3",
+                "status": "pending",
+                "priority": "high",
+                "created_at": "2026-03-22T12:00:00.000Z",
+                "updated_at": "2026-03-22T12:00:00.000Z",
+            },
+            {
+                "id": "bbb-222",
+                "title": "Deploy v2",
+                "status": "pending",
+                "priority": "medium",
+                "created_at": "2026-03-22T11:00:00.000Z",
+                "updated_at": "2026-03-22T11:00:00.000Z",
+            },
+            {
+                "id": "ccc-333",
+                "title": "Deploy v1",
+                "status": "approved",
+                "priority": "low",
+                "created_at": "2026-03-22T10:00:00.000Z",
+                "updated_at": "2026-03-22T10:30:00.000Z",
+            },
+        ]
+    }
+
+
+@pytest.mark.asyncio
+async def test_poll_new_approvals_filters_by_cursor(mock_response, sample_approvals_list):
+    """Only approvals created after the cursor should be returned."""
+    mock_resp = mock_response(sample_approvals_list)
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        result = await poll_new_approvals.fn(
+            cursor="2026-03-22T11:30:00.000Z",
+            api_key=API_KEY,
+            api_url=API_URL,
+        )
+
+    assert len(result) == 1
+    assert result[0]["id"] == "aaa-111"
+
+
+@pytest.mark.asyncio
+async def test_poll_new_approvals_returns_all_without_cursor(
+    mock_response, sample_approvals_list
+):
+    """Without a cursor, all approvals should be returned."""
+    mock_resp = mock_response(sample_approvals_list)
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        result = await poll_new_approvals.fn(
+            cursor=None,
+            api_key=API_KEY,
+            api_url=API_URL,
+        )
+
+    assert len(result) == 3
+
+
+@pytest.mark.asyncio
+async def test_poll_new_approvals_sorted_by_created_at_desc(
+    mock_response, sample_approvals_list
+):
+    """Results must be sorted by created_at descending."""
+    mock_resp = mock_response(sample_approvals_list)
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        result = await poll_new_approvals.fn(
+            api_key=API_KEY, api_url=API_URL
+        )
+
+    created_times = [a["created_at"] for a in result]
+    assert created_times == sorted(created_times, reverse=True)
+
+
+@pytest.mark.asyncio
+async def test_poll_new_approvals_deduplicates_by_id(mock_response):
+    """Duplicate approval IDs should be deduplicated."""
+    data_with_dupes = {
+        "data": [
+            {"id": "aaa-111", "title": "A", "created_at": "2026-03-22T12:00:00.000Z"},
+            {"id": "aaa-111", "title": "A dup", "created_at": "2026-03-22T12:00:00.000Z"},
+            {"id": "bbb-222", "title": "B", "created_at": "2026-03-22T11:00:00.000Z"},
+        ]
+    }
+    mock_resp = mock_response(data_with_dupes)
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        result = await poll_new_approvals.fn(
+            api_key=API_KEY, api_url=API_URL
+        )
+
+    assert len(result) == 2
+    ids = [a["id"] for a in result]
+    assert len(ids) == len(set(ids))
+
+
+@pytest.mark.asyncio
+async def test_poll_new_approvals_passes_status_filter(mock_response):
+    """Status filter must be passed as a query param."""
+    mock_resp = mock_response({"data": []})
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        await poll_new_approvals.fn(
+            status="pending", api_key=API_KEY, api_url=API_URL
+        )
+
+    params = mock_client.get.call_args.kwargs.get(
+        "params"
+    ) or mock_client.get.call_args[1].get("params")
+    assert params["status"] == "pending"
+
+
+@pytest.mark.asyncio
+async def test_poll_new_approvals_passes_priority_filter(mock_response):
+    """Priority filter must be passed as a query param."""
+    mock_resp = mock_response({"data": []})
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        await poll_new_approvals.fn(
+            priority="high", api_key=API_KEY, api_url=API_URL
+        )
+
+    params = mock_client.get.call_args.kwargs.get(
+        "params"
+    ) or mock_client.get.call_args[1].get("params")
+    assert params["priority"] == "high"
+
+
+@pytest.mark.asyncio
+async def test_poll_new_approvals_validates_invalid_status():
+    """Invalid status must raise ValueError."""
+    with _patch_resolve_api_key():
+        with pytest.raises(ValueError, match="Invalid status 'bogus'"):
+            await poll_new_approvals.fn(
+                status="bogus", api_key=API_KEY, api_url=API_URL
+            )
+
+
+@pytest.mark.asyncio
+async def test_poll_new_approvals_validates_invalid_priority():
+    """Invalid priority must raise ValueError."""
+    with _patch_resolve_api_key():
+        with pytest.raises(ValueError, match="Invalid priority 'urgent'"):
+            await poll_new_approvals.fn(
+                priority="urgent", api_key=API_KEY, api_url=API_URL
+            )
+
+
+@pytest.mark.asyncio
+async def test_poll_new_approvals_calls_correct_endpoint(mock_response):
+    """Must GET /api/v1/approvals."""
+    mock_resp = mock_response({"data": []})
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        await poll_new_approvals.fn(api_key=API_KEY, api_url=API_URL)
+
+    url = mock_client.get.call_args.args[0]
+    assert url == f"{API_URL}/api/v1/approvals"
+
+
+# ── poll_decided_approvals ──────────────────────────────────────────────────
+
+
+@pytest.fixture
+def sample_decided_approvals():
+    return {
+        "data": [
+            {
+                "id": "ddd-444",
+                "title": "Deploy v3",
+                "status": "approved",
+                "priority": "high",
+                "decided_by_name": "Jane",
+                "decided_at": "2026-03-22T13:00:00.000Z",
+                "created_at": "2026-03-22T12:00:00.000Z",
+                "updated_at": "2026-03-22T13:00:00.000Z",
+            },
+            {
+                "id": "eee-555",
+                "title": "Deploy v2",
+                "status": "rejected",
+                "priority": "medium",
+                "decided_by_name": "John",
+                "decided_at": "2026-03-22T12:30:00.000Z",
+                "created_at": "2026-03-22T11:00:00.000Z",
+                "updated_at": "2026-03-22T12:30:00.000Z",
+            },
+        ]
+    }
+
+
+@pytest.mark.asyncio
+async def test_poll_decided_approvals_filters_by_cursor(
+    mock_response, sample_decided_approvals
+):
+    """Only decided approvals updated after the cursor should be returned."""
+    mock_resp = mock_response(sample_decided_approvals)
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        result = await poll_decided_approvals.fn(
+            cursor="2026-03-22T12:45:00.000Z",
+            api_key=API_KEY,
+            api_url=API_URL,
+        )
+
+    assert len(result) == 1
+    assert result[0]["id"] == "ddd-444"
+
+
+@pytest.mark.asyncio
+async def test_poll_decided_approvals_fetches_both_statuses(mock_response):
+    """Without decision filter, must fetch both approved and rejected."""
+    mock_resp = mock_response({"data": []})
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        await poll_decided_approvals.fn(api_key=API_KEY, api_url=API_URL)
+
+    # Should have made 2 GET calls: one for approved, one for rejected
+    assert mock_client.get.call_count == 2
+    statuses_fetched = set()
+    for call in mock_client.get.call_args_list:
+        params = call.kwargs.get("params") or call[1].get("params")
+        statuses_fetched.add(params["status"])
+    assert statuses_fetched == {"approved", "rejected"}
+
+
+@pytest.mark.asyncio
+async def test_poll_decided_approvals_single_decision_filter(mock_response):
+    """With decision='approved', should only fetch approved."""
+    mock_resp = mock_response({"data": []})
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        await poll_decided_approvals.fn(
+            decision="approved", api_key=API_KEY, api_url=API_URL
+        )
+
+    assert mock_client.get.call_count == 1
+    params = mock_client.get.call_args.kwargs.get(
+        "params"
+    ) or mock_client.get.call_args[1].get("params")
+    assert params["status"] == "approved"
+
+
+@pytest.mark.asyncio
+async def test_poll_decided_approvals_sorted_by_updated_at_desc(
+    mock_response, sample_decided_approvals
+):
+    """Results must be sorted by updated_at descending."""
+    mock_resp = mock_response(sample_decided_approvals)
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        result = await poll_decided_approvals.fn(
+            api_key=API_KEY, api_url=API_URL
+        )
+
+    updated_times = [a["updated_at"] for a in result]
+    assert updated_times == sorted(updated_times, reverse=True)
+
+
+@pytest.mark.asyncio
+async def test_poll_decided_approvals_deduplicates_by_id(mock_response):
+    """Duplicate IDs across status fetches should be deduplicated."""
+    # Same approval appears in both approved and rejected fetches
+    data = {
+        "data": [
+            {
+                "id": "same-id",
+                "title": "X",
+                "status": "approved",
+                "updated_at": "2026-03-22T13:00:00.000Z",
+            },
+        ]
+    }
+    mock_resp = mock_response(data)
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        result = await poll_decided_approvals.fn(
+            api_key=API_KEY, api_url=API_URL
+        )
+
+    # Even though 2 fetches return the same ID, it should appear only once
+    assert len(result) == 1
+    assert result[0]["id"] == "same-id"
+
+
+@pytest.mark.asyncio
+async def test_poll_decided_approvals_validates_invalid_decision():
+    """Invalid decision value must raise ValueError."""
+    with _patch_resolve_api_key():
+        with pytest.raises(ValueError, match="Invalid decision 'pending'"):
+            await poll_decided_approvals.fn(
+                decision="pending", api_key=API_KEY, api_url=API_URL
+            )
+
+
+@pytest.mark.asyncio
+async def test_poll_decided_approvals_validates_invalid_priority():
+    """Invalid priority must raise ValueError."""
+    with _patch_resolve_api_key():
+        with pytest.raises(ValueError, match="Invalid priority 'urgent'"):
+            await poll_decided_approvals.fn(
+                priority="urgent", api_key=API_KEY, api_url=API_URL
+            )
+
+
+@pytest.mark.asyncio
+async def test_poll_decided_approvals_passes_priority_filter(mock_response):
+    """Priority filter must be passed as a query param."""
+    mock_resp = mock_response({"data": []})
+    mock_client = _make_mock_client(mock_resp)
+    mock_client.get.return_value = mock_resp
+
+    with _patch_resolve_api_key(), patch(
+        "httpx.AsyncClient", return_value=mock_client
+    ):
+        await poll_decided_approvals.fn(
+            priority="critical", api_key=API_KEY, api_url=API_URL
+        )
+
+    for call in mock_client.get.call_args_list:
+        params = call.kwargs.get("params") or call[1].get("params")
+        assert params["priority"] == "critical"

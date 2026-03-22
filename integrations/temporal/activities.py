@@ -131,3 +131,132 @@ async def add_comment(
         )
         resp.raise_for_status()
         return resp.json()
+
+
+@activity.defn
+async def poll_new_approvals(
+    config: OKRunitConfig,
+    cursor: str | None = None,
+    status: str | None = None,
+    priority: str | None = None,
+    limit: int = 25,
+) -> dict:
+    """Poll for new approval requests since a given cursor timestamp.
+
+    Returns approvals sorted by created_at descending. The cursor is an ISO
+    timestamp; only approvals created after this time are returned. The response
+    includes a ``new_cursor`` field set to the most recent ``created_at`` value
+    so the caller can pass it on the next poll.
+
+    Filters:
+        status  - pending, approved, rejected, cancelled, expired (optional)
+        priority - low, medium, high, critical (optional)
+    """
+    params: dict[str, str] = {
+        "page_size": str(limit),
+        "sort": "created_at",
+        "order": "desc",
+    }
+    if cursor:
+        params["created_after"] = cursor
+    if status:
+        params["status"] = status
+    if priority:
+        params["priority"] = priority
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{config.api_url}/api/v1/approvals",
+            params=params,
+            headers=_headers(config),
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+    approvals = data.get("data", data if isinstance(data, list) else [])
+
+    # Deduplicate by id (keep first occurrence, i.e. most recent)
+    seen: set[str] = set()
+    unique: list[dict] = []
+    for item in approvals:
+        aid = item["id"]
+        if aid not in seen:
+            seen.add(aid)
+            unique.append(item)
+
+    new_cursor = unique[0]["created_at"] if unique else cursor
+
+    return {
+        "approvals": unique,
+        "new_cursor": new_cursor,
+        "count": len(unique),
+    }
+
+
+@activity.defn
+async def poll_decided_approvals(
+    config: OKRunitConfig,
+    cursor: str | None = None,
+    decision: str | None = None,
+    priority: str | None = None,
+    limit: int = 25,
+) -> dict:
+    """Poll for approvals that have been approved or rejected since a cursor.
+
+    Returns decided approvals sorted by updated_at descending. The cursor is an
+    ISO timestamp; only approvals updated after this time are returned.
+
+    Filters:
+        decision - 'approved', 'rejected', or None for both (default: both)
+        priority - low, medium, high, critical (optional)
+    """
+    valid_decisions = ("approved", "rejected")
+
+    # Build status filter based on decision parameter
+    if decision:
+        if decision not in valid_decisions:
+            raise ValueError(
+                f"Invalid decision '{decision}'. Must be one of: {', '.join(valid_decisions)}"
+            )
+        status_filter = decision
+    else:
+        status_filter = "approved,rejected"
+
+    params: dict[str, str] = {
+        "page_size": str(limit),
+        "status": status_filter,
+        "sort": "updated_at",
+        "order": "desc",
+    }
+    if cursor:
+        params["updated_after"] = cursor
+    if priority:
+        params["priority"] = priority
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{config.api_url}/api/v1/approvals",
+            params=params,
+            headers=_headers(config),
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+    approvals = data.get("data", data if isinstance(data, list) else [])
+
+    # Deduplicate by id (keep first occurrence, i.e. most recent)
+    seen: set[str] = set()
+    unique: list[dict] = []
+    for item in approvals:
+        aid = item["id"]
+        if aid not in seen:
+            seen.add(aid)
+            unique.append(item)
+
+    new_cursor = unique[0]["updated_at"] if unique else cursor
+
+    return {
+        "approvals": unique,
+        "new_cursor": new_cursor,
+        "count": len(unique),
+    }
