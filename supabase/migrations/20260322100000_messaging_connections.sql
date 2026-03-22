@@ -48,10 +48,12 @@ CREATE INDEX idx_messaging_connections_org_id ON messaging_connections(org_id);
 CREATE INDEX idx_messaging_connections_org_platform ON messaging_connections(org_id, platform);
 
 -- 4. Updated_at trigger
+CREATE EXTENSION IF NOT EXISTS moddatetime WITH SCHEMA extensions;
+
 CREATE TRIGGER set_messaging_connections_updated_at
   BEFORE UPDATE ON messaging_connections
   FOR EACH ROW
-  EXECUTE FUNCTION moddatetime(updated_at);
+  EXECUTE FUNCTION extensions.moddatetime(updated_at);
 
 -- 5. Enable realtime for messaging_connections
 ALTER TABLE messaging_connections REPLICA IDENTITY FULL;

@@ -7,8 +7,12 @@ ALTER TABLE notification_settings
   ADD COLUMN IF NOT EXISTS discord_enabled boolean NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS discord_webhook_url text;
 
--- Add 'discord' to the decision_source enum
-ALTER TYPE decision_source ADD VALUE IF NOT EXISTS 'discord' AFTER 'slack';
+-- Update decision_source CHECK constraint to include 'discord'
+ALTER TABLE approval_requests DROP CONSTRAINT IF EXISTS approval_requests_decision_source_check;
+ALTER TABLE approval_requests ADD CONSTRAINT approval_requests_decision_source_check
+  CHECK (decision_source IN ('dashboard', 'email', 'slack', 'discord', 'teams', 'telegram', 'push', 'api', 'auto_rule', 'batch'));
 
--- Add 'discord' to the vote_source enum
-ALTER TYPE vote_source ADD VALUE IF NOT EXISTS 'discord' AFTER 'slack';
+-- Update vote source CHECK constraint to include 'discord'
+ALTER TABLE approval_votes DROP CONSTRAINT IF EXISTS approval_votes_source_check;
+ALTER TABLE approval_votes ADD CONSTRAINT approval_votes_source_check
+  CHECK (source IN ('dashboard', 'email', 'slack', 'discord', 'teams', 'telegram', 'push', 'api'));
