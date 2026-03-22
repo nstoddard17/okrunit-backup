@@ -1,0 +1,29 @@
+{
+  "name": "@okrunit/sdk",
+  "version": "0.1.0",
+  "description": "Official TypeScript SDK for the OKRunit human-in-the-loop approval API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "okrunit",
+    "approval",
+    "human-in-the-loop",
+    "sdk",
+    "api-client"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

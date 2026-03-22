@@ -286,6 +286,18 @@ export const cancelScheduledExecutionSchema = z.object({
 
 export type CancelScheduledExecutionInput = z.infer<typeof cancelScheduledExecutionSchema>;
 
+// ---- Export ---------------------------------------------------------------
+
+export const exportQuerySchema = z.object({
+  format: z.enum(["csv", "json"]).default("csv"),
+  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD format").optional(),
+  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD format").optional(),
+  status: statusEnum.optional(),
+  priority: priorityEnum.optional(),
+});
+
+export type ExportQueryInput = z.infer<typeof exportQuerySchema>;
+
 // ---- Analytics ------------------------------------------------------------
 
 export const analyticsQuerySchema = z.object({

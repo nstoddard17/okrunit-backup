@@ -544,6 +544,51 @@ export interface BulkApprovalRule {
 
 export type BulkApprovalRuleInsert = Omit<BulkApprovalRule, "id" | "last_run_at" | "last_run_count" | "created_at" | "updated_at">;
 
+// ---- GitHub Integration Types ----------------------------------------------
+
+export interface GitHubInstallation {
+  id: string;
+  org_id: string;
+  installation_id: number;
+  account_login: string;
+  account_type: "User" | "Organization";
+  repositories: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type GitHubInstallationInsert = Omit<
+  GitHubInstallation,
+  "id" | "created_at" | "updated_at"
+>;
+
+export type GitHubInstallationUpdate = Partial<
+  Omit<GitHubInstallation, "id" | "created_at">
+> & { id: string };
+
+// ---- Export Types ----------------------------------------------------------
+
+export interface ExportApproval {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  action_type: string | null;
+  source: string | null;
+  created_at: string;
+  decided_at: string | null;
+  decided_by_name: string | null;
+  decision_comment: string | null;
+  decision_source: string | null;
+  required_approvals: number;
+  current_approvals: number;
+  risk_score: number | null;
+  risk_level: string | null;
+  sla_breached: boolean;
+}
+
 // ---- Bottleneck Alert Types -----------------------------------------------
 
 export interface BottleneckAlert {
