@@ -18,6 +18,8 @@ export type UserRole = "owner" | "admin" | "member";
 
 export type InviteRole = "admin" | "member";
 
+export type MessagingPlatform = "discord" | "slack" | "teams" | "telegram";
+
 export type DecisionSource =
   | "dashboard"
   | "email"
@@ -201,14 +203,6 @@ export interface NotificationSettings {
   user_id: string;
   email_enabled: boolean;
   push_enabled: boolean;
-  slack_enabled: boolean;
-  slack_webhook_url: string | null;
-  teams_enabled: boolean;
-  teams_webhook_url: string | null;
-  telegram_enabled: boolean;
-  telegram_chat_id: string | null;
-  discord_enabled: boolean;
-  discord_webhook_url: string | null;
   quiet_hours_enabled: boolean;
   quiet_hours_start: string | null;
   quiet_hours_end: string | null;
@@ -216,6 +210,28 @@ export interface NotificationSettings {
   minimum_priority: ApprovalPriority;
   skip_approval_confirmation: boolean;
   dashboard_layout: DashboardLayout;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MessagingConnection {
+  id: string;
+  org_id: string;
+  platform: MessagingPlatform;
+  access_token: string | null;
+  refresh_token: string | null;
+  token_expires_at: string | null;
+  bot_token: string | null;
+  workspace_id: string | null;
+  workspace_name: string | null;
+  channel_id: string;
+  channel_name: string | null;
+  webhook_url: string | null;
+  is_active: boolean;
+  notify_on_create: boolean;
+  notify_on_decide: boolean;
+  priority_filter: string;
+  installed_by: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -448,6 +464,7 @@ export type TeamMembershipInsert = Omit<TeamMembership, "id" | "created_at">;
 export type ApprovalVoteInsert = Omit<ApprovalVote, "id" | "created_at">;
 export type SavedFilterInsert = Omit<SavedFilter, "id" | "created_at" | "updated_at">;
 export type ApprovalAttachmentInsert = Omit<ApprovalAttachment, "id" | "created_at">;
+export type MessagingConnectionInsert = Omit<MessagingConnection, "id" | "created_at" | "updated_at">;
 export type WebhookTestEndpointInsert = Omit<WebhookTestEndpoint, "id" | "created_at" | "updated_at">;
 export type WebhookTestRequestInsert = Omit<WebhookTestRequest, "id" | "created_at">;
 
@@ -462,3 +479,4 @@ export type NotificationSettingsUpdate = Partial<Omit<NotificationSettings, "id"
 export type ApprovalRuleUpdate = Partial<Omit<ApprovalRule, "id" | "created_at">> & { id: string };
 export type SavedFilterUpdate = Partial<Omit<SavedFilter, "id" | "created_at">> & { id: string };
 export type ApprovalCommentUpdate = Partial<Omit<ApprovalComment, "id" | "created_at">> & { id: string };
+export type MessagingConnectionUpdate = Partial<Omit<MessagingConnection, "id" | "created_at">> & { id: string };

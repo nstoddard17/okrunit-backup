@@ -2,14 +2,16 @@
 // OKRunit -- Notification Orchestrator
 // ---------------------------------------------------------------------------
 //
-// Central fan-out for all notification channels (web push, email, Slack, Teams, Telegram, Discord).
+// Central fan-out for all notification channels (web push, email, Slack,
+// Teams, Telegram, Discord).
 //
 // Usage:
 //   import { dispatchNotifications } from "@/lib/notifications/orchestrator";
 //   await dispatchNotifications({ type: "approval.created", ... });
 //
-// This module is designed to be called from the approvals API routes (POST for
-// new requests, PATCH for decisions) but never modifies those routes itself.
+// Per-user channels: email, web push (controlled by notification_settings).
+// Org-wide channels: Slack, Teams, Telegram, Discord (controlled by
+// messaging_connections table).
 // ---------------------------------------------------------------------------
 
 import type { NotificationEvent, NotificationEventType } from "@/lib/notifications/types";
@@ -39,8 +41,10 @@ import {
   sendDiscordDecisionNotification,
 } from "@/lib/notifications/channels/discord";
 import { generateActionTokens } from "@/lib/notifications/tokens";
-import type { NotificationSettings } from "@/lib/types/database";
+import { getOrgMessagingConnections } from "@/lib/notifications/messaging";
+import type { NotificationSettings, MessagingConnection } from "@/lib/types/database";
 import type { PushPayload } from "@/lib/notifications/channels/web-push";
+import { PRIORITY_ORDER } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // Default settings applied when a user has not configured preferences
@@ -50,14 +54,6 @@ const DEFAULT_SETTINGS: Pick<
   NotificationSettings,
   | "email_enabled"
   | "push_enabled"
-  | "slack_enabled"
-  | "slack_webhook_url"
-  | "teams_enabled"
-  | "teams_webhook_url"
-  | "telegram_enabled"
-  | "telegram_chat_id"
-  | "discord_enabled"
-  | "discord_webhook_url"
   | "quiet_hours_enabled"
   | "quiet_hours_start"
   | "quiet_hours_end"
@@ -66,14 +62,6 @@ const DEFAULT_SETTINGS: Pick<
 > = {
   email_enabled: true,
   push_enabled: true,
-  slack_enabled: false,
-  slack_webhook_url: null,
-  teams_enabled: false,
-  teams_webhook_url: null,
-  telegram_enabled: false,
-  telegram_chat_id: null,
-  discord_enabled: false,
-  discord_webhook_url: null,
   quiet_hours_enabled: false,
   quiet_hours_start: null,
   quiet_hours_end: null,
@@ -90,9 +78,11 @@ const DEFAULT_SETTINGS: Pick<
  * across all enabled channels.
  *
  * Flow:
- *  1. Load all org members and their notification settings.
- *  2. For each member, check `shouldNotify` (quiet hours + priority).
- *  3. Fan out to enabled channels (web push, email, Slack) in parallel.
+ *  1. Load all org members and their notification settings (for email + push).
+ *  2. Load all org messaging connections (for Slack, Teams, Telegram, Discord).
+ *  3. For each member, check `shouldNotify` (quiet hours + priority).
+ *  4. Fan out to enabled per-user channels (web push, email) in parallel.
+ *  5. Fan out to org-wide messaging connections in parallel.
  *
  * This function **never throws**. Individual channel failures are logged but
  * do not prevent other channels or other users from receiving their
@@ -102,7 +92,11 @@ export async function dispatchNotifications(
   event: NotificationEvent,
 ): Promise<void> {
   try {
-    const orgUsers = await getOrgNotificationSettings(event.orgId);
+    // Load per-user settings and org-wide messaging connections in parallel
+    const [orgUsers, messagingConnections] = await Promise.all([
+      getOrgNotificationSettings(event.orgId),
+      getOrgMessagingConnections(event.orgId),
+    ]);
 
     // If targeted, only notify specific users
     let recipients = orgUsers;
@@ -110,14 +104,10 @@ export async function dispatchNotifications(
       recipients = orgUsers.filter(u => event.targetUserIds!.includes(u.userId));
     }
 
-    if (recipients.length === 0) {
-      return;
-    }
-
     const promises: Promise<void>[] = [];
 
+    // -- Per-user channels (email + web push) ---------------------------------
     for (const { userId, email, settings } of recipients) {
-      // Apply defaults when the user has no saved settings row.
       const effective = settings ?? (DEFAULT_SETTINGS as NotificationSettings);
 
       // Gate: quiet hours + priority threshold
@@ -147,7 +137,6 @@ export async function dispatchNotifications(
       // -- Email --------------------------------------------------------------
       if (effective.email_enabled) {
         if (event.type === "approval.created" || event.type === "approval.next_approver") {
-          // Generate one-click approve/reject tokens, then send the email.
           const emailPromise = generateActionTokens(
             event.requestId,
             userId,
@@ -190,162 +179,222 @@ export async function dispatchNotifications(
           );
         }
       }
+    }
 
-      // -- Slack --------------------------------------------------------------
-      if (effective.slack_enabled && effective.slack_webhook_url) {
-        if (event.type === "approval.created" || event.type === "approval.next_approver") {
-          promises.push(
-            sendSlackNotification({
-              webhookUrl: effective.slack_webhook_url,
-              requestId: event.requestId,
-              title: event.requestTitle,
-              description: event.requestDescription,
-              priority: event.requestPriority,
-              connectionName: event.connectionName,
-            }).catch((err: unknown) => {
-              console.error(
-                `[Notifications] Slack notification failed for user ${userId}:`,
-                err,
-              );
-            }),
-          );
-        } else {
-          const decision = extractDecision(event.type);
-          promises.push(
-            sendSlackDecisionNotification({
-              webhookUrl: effective.slack_webhook_url,
-              requestTitle: event.requestTitle,
-              decision,
-              decidedBy: event.decidedBy,
-              comment: event.decisionComment,
-            }).catch((err: unknown) => {
-              console.error(
-                `[Notifications] Slack decision failed for user ${userId}:`,
-                err,
-              );
-            }),
-          );
-        }
+    // -- Org-wide messaging connections (Slack, Teams, Telegram, Discord) ------
+    for (const conn of messagingConnections) {
+      // Filter by connection's priority_filter
+      if (!meetsMinimumPriority(event.requestPriority, conn.priority_filter)) {
+        continue;
       }
 
-      // -- Teams ----------------------------------------------------------------
-      if (effective.teams_enabled && effective.teams_webhook_url) {
-        if (event.type === "approval.created" || event.type === "approval.next_approver") {
-          promises.push(
-            sendTeamsNotification({
-              webhookUrl: effective.teams_webhook_url,
-              requestId: event.requestId,
-              title: event.requestTitle,
-              description: event.requestDescription,
-              priority: event.requestPriority,
-              connectionName: event.connectionName,
-            }).catch((err: unknown) => {
-              console.error(
-                `[Notifications] Teams notification failed for user ${userId}:`,
-                err,
-              );
-            }),
-          );
-        } else {
-          const decision = extractDecision(event.type);
-          promises.push(
-            sendTeamsDecisionNotification({
-              webhookUrl: effective.teams_webhook_url,
-              requestTitle: event.requestTitle,
-              decision,
-              decidedBy: event.decidedBy,
-              comment: event.decisionComment,
-            }).catch((err: unknown) => {
-              console.error(
-                `[Notifications] Teams decision failed for user ${userId}:`,
-                err,
-              );
-            }),
-          );
-        }
-      }
+      // Filter by event type
+      const isCreateEvent =
+        event.type === "approval.created" || event.type === "approval.next_approver";
+      const isDecisionEvent =
+        event.type === "approval.approved" ||
+        event.type === "approval.rejected" ||
+        event.type === "approval.cancelled" ||
+        event.type === "approval.expired";
 
-      // -- Telegram -------------------------------------------------------------
-      if (effective.telegram_enabled && effective.telegram_chat_id) {
-        if (event.type === "approval.created" || event.type === "approval.next_approver") {
-          promises.push(
-            sendTelegramNotification({
-              chatId: effective.telegram_chat_id,
-              requestId: event.requestId,
-              title: event.requestTitle,
-              description: event.requestDescription,
-              priority: event.requestPriority,
-              connectionName: event.connectionName,
-            }).catch((err: unknown) => {
-              console.error(
-                `[Notifications] Telegram notification failed for user ${userId}:`,
-                err,
-              );
-            }),
-          );
-        } else {
-          const decision = extractDecision(event.type);
-          promises.push(
-            sendTelegramDecisionNotification({
-              chatId: effective.telegram_chat_id,
-              requestTitle: event.requestTitle,
-              decision,
-              decidedBy: event.decidedBy,
-              comment: event.decisionComment,
-            }).catch((err: unknown) => {
-              console.error(
-                `[Notifications] Telegram decision failed for user ${userId}:`,
-                err,
-              );
-            }),
-          );
-        }
-      }
+      if (isCreateEvent && !conn.notify_on_create) continue;
+      if (isDecisionEvent && !conn.notify_on_decide) continue;
 
-      // -- Discord ------------------------------------------------------------
-      if (effective.discord_enabled && effective.discord_webhook_url) {
-        if (event.type === "approval.created" || event.type === "approval.next_approver") {
-          promises.push(
-            sendDiscordNotification({
-              webhookUrl: effective.discord_webhook_url,
-              requestId: event.requestId,
-              title: event.requestTitle,
-              description: event.requestDescription,
-              priority: event.requestPriority,
-              connectionName: event.connectionName,
-            }).catch((err: unknown) => {
-              console.error(
-                `[Notifications] Discord notification failed for user ${userId}:`,
-                err,
-              );
-            }),
-          );
-        } else {
-          const decision = extractDecision(event.type);
-          promises.push(
-            sendDiscordDecisionNotification({
-              webhookUrl: effective.discord_webhook_url,
-              requestTitle: event.requestTitle,
-              decision,
-              decidedBy: event.decidedBy,
-              comment: event.decisionComment,
-            }).catch((err: unknown) => {
-              console.error(
-                `[Notifications] Discord decision failed for user ${userId}:`,
-                err,
-              );
-            }),
-          );
-        }
+      // Dispatch based on platform
+      const channelPromise = dispatchToMessagingConnection(conn, event);
+      if (channelPromise) {
+        promises.push(channelPromise);
       }
     }
 
-    // Wait for all channel deliveries. Individual failures have already been
-    // caught above, so allSettled is used purely for awaiting completion.
     await Promise.allSettled(promises);
   } catch (error) {
     console.error("[Notifications] Orchestrator error:", error);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Messaging Connection Dispatcher
+// ---------------------------------------------------------------------------
+
+function dispatchToMessagingConnection(
+  conn: MessagingConnection,
+  event: NotificationEvent,
+): Promise<void> | null {
+  const isCreateEvent =
+    event.type === "approval.created" || event.type === "approval.next_approver";
+
+  switch (conn.platform) {
+    case "slack":
+      return dispatchSlack(conn, event, isCreateEvent);
+    case "discord":
+      return dispatchDiscord(conn, event, isCreateEvent);
+    case "teams":
+      return dispatchTeams(conn, event, isCreateEvent);
+    case "telegram":
+      return dispatchTelegram(conn, event, isCreateEvent);
+    default:
+      return null;
+  }
+}
+
+function dispatchSlack(
+  conn: MessagingConnection,
+  event: NotificationEvent,
+  isCreateEvent: boolean,
+): Promise<void> {
+  const webhookUrl = conn.webhook_url;
+  if (!webhookUrl) return Promise.resolve();
+
+  if (isCreateEvent) {
+    return sendSlackNotification({
+      webhookUrl,
+      requestId: event.requestId,
+      title: event.requestTitle,
+      description: event.requestDescription,
+      priority: event.requestPriority,
+      connectionName: event.connectionName,
+    }).catch((err: unknown) => {
+      console.error(
+        `[Notifications] Slack notification failed for connection ${conn.id}:`,
+        err,
+      );
+    });
+  }
+
+  const decision = extractDecision(event.type);
+  return sendSlackDecisionNotification({
+    webhookUrl,
+    requestTitle: event.requestTitle,
+    decision,
+    decidedBy: event.decidedBy,
+    comment: event.decisionComment,
+  }).catch((err: unknown) => {
+    console.error(
+      `[Notifications] Slack decision failed for connection ${conn.id}:`,
+      err,
+    );
+  });
+}
+
+function dispatchDiscord(
+  conn: MessagingConnection,
+  event: NotificationEvent,
+  isCreateEvent: boolean,
+): Promise<void> {
+  const webhookUrl = conn.webhook_url;
+  if (!webhookUrl) return Promise.resolve();
+
+  if (isCreateEvent) {
+    return sendDiscordNotification({
+      webhookUrl,
+      requestId: event.requestId,
+      title: event.requestTitle,
+      description: event.requestDescription,
+      priority: event.requestPriority,
+      connectionName: event.connectionName,
+    }).catch((err: unknown) => {
+      console.error(
+        `[Notifications] Discord notification failed for connection ${conn.id}:`,
+        err,
+      );
+    });
+  }
+
+  const decision = extractDecision(event.type);
+  return sendDiscordDecisionNotification({
+    webhookUrl,
+    requestTitle: event.requestTitle,
+    decision,
+    decidedBy: event.decidedBy,
+    comment: event.decisionComment,
+  }).catch((err: unknown) => {
+    console.error(
+      `[Notifications] Discord decision failed for connection ${conn.id}:`,
+      err,
+    );
+  });
+}
+
+function dispatchTeams(
+  conn: MessagingConnection,
+  event: NotificationEvent,
+  isCreateEvent: boolean,
+): Promise<void> {
+  const webhookUrl = conn.webhook_url;
+  if (!webhookUrl) return Promise.resolve();
+
+  if (isCreateEvent) {
+    return sendTeamsNotification({
+      webhookUrl,
+      requestId: event.requestId,
+      title: event.requestTitle,
+      description: event.requestDescription,
+      priority: event.requestPriority,
+      connectionName: event.connectionName,
+    }).catch((err: unknown) => {
+      console.error(
+        `[Notifications] Teams notification failed for connection ${conn.id}:`,
+        err,
+      );
+    });
+  }
+
+  const decision = extractDecision(event.type);
+  return sendTeamsDecisionNotification({
+    webhookUrl,
+    requestTitle: event.requestTitle,
+    decision,
+    decidedBy: event.decidedBy,
+    comment: event.decisionComment,
+  }).catch((err: unknown) => {
+    console.error(
+      `[Notifications] Teams decision failed for connection ${conn.id}:`,
+      err,
+    );
+  });
+}
+
+function dispatchTelegram(
+  conn: MessagingConnection,
+  event: NotificationEvent,
+  isCreateEvent: boolean,
+): Promise<void> {
+  const chatId = conn.channel_id;
+  // For Telegram, we need either the connection's bot_token or the env var
+  if (!chatId) return Promise.resolve();
+
+  if (isCreateEvent) {
+    return sendTelegramNotification({
+      chatId,
+      botToken: conn.bot_token ?? undefined,
+      requestId: event.requestId,
+      title: event.requestTitle,
+      description: event.requestDescription,
+      priority: event.requestPriority,
+      connectionName: event.connectionName,
+    }).catch((err: unknown) => {
+      console.error(
+        `[Notifications] Telegram notification failed for connection ${conn.id}:`,
+        err,
+      );
+    });
+  }
+
+  const decision = extractDecision(event.type);
+  return sendTelegramDecisionNotification({
+    chatId,
+    botToken: conn.bot_token ?? undefined,
+    requestTitle: event.requestTitle,
+    decision,
+    decidedBy: event.decidedBy,
+    comment: event.decisionComment,
+  }).catch((err: unknown) => {
+    console.error(
+      `[Notifications] Telegram decision failed for connection ${conn.id}:`,
+      err,
+    );
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -363,16 +412,10 @@ const TITLE_MAP: Record<NotificationEventType, string> = {
   "approval.next_approver": "Your Approval Needed",
 };
 
-/**
- * Build a short title for push notifications / toast headings.
- */
 function getNotificationTitle(event: NotificationEvent): string {
   return TITLE_MAP[event.type] ?? "OKRunit Notification";
 }
 
-/**
- * Build a one-line body for push notifications.
- */
 function getNotificationBody(event: NotificationEvent): string {
   switch (event.type) {
     case "approval.created":
@@ -394,10 +437,21 @@ function getNotificationBody(event: NotificationEvent): string {
   }
 }
 
-/**
- * Extract the human-readable decision word from an event type.
- * e.g. "approval.approved" -> "approved"
- */
 function extractDecision(type: NotificationEventType): string {
   return type.split(".")[1] ?? "updated";
+}
+
+/**
+ * Check if an event's priority meets the minimum priority threshold
+ * set on a messaging connection.
+ */
+function meetsMinimumPriority(
+  eventPriority: string,
+  minimumPriority: string,
+): boolean {
+  const eventOrder =
+    PRIORITY_ORDER[eventPriority as keyof typeof PRIORITY_ORDER] ?? 0;
+  const minOrder =
+    PRIORITY_ORDER[minimumPriority as keyof typeof PRIORITY_ORDER] ?? 0;
+  return eventOrder >= minOrder;
 }

@@ -1,0 +1,124 @@
+// ---------------------------------------------------------------------------
+// OKRunit -- Messaging Connections CRUD Route
+// ---------------------------------------------------------------------------
+// GET  /api/v1/messaging/connections       -- List all connections for the org
+// DELETE /api/v1/messaging/connections?id=  -- Remove a connection
+// ---------------------------------------------------------------------------
+
+import { NextResponse } from "next/server";
+
+import { authenticateRequest } from "@/lib/api/auth";
+import { errorResponse, ApiError } from "@/lib/api/errors";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { logAuditEvent } from "@/lib/api/audit";
+
+export async function GET(request: Request) {
+  try {
+    const auth = await authenticateRequest(request);
+
+    let orgId: string;
+    if (auth.type === "session") {
+      orgId = auth.orgId;
+    } else {
+      throw new ApiError(401, "Session authentication required");
+    }
+
+    const admin = createAdminClient();
+
+    const { data: connections, error } = await admin
+      .from("messaging_connections")
+      .select(
+        "id, org_id, platform, workspace_id, workspace_name, channel_id, channel_name, is_active, notify_on_create, notify_on_decide, priority_filter, installed_by, created_at, updated_at",
+      )
+      .eq("org_id", orgId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[Messaging Connections] Failed to list:", error);
+      return NextResponse.json(
+        { error: "Failed to load messaging connections" },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({ connections: connections ?? [] });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const auth = await authenticateRequest(request);
+
+    let orgId: string;
+    let userId: string;
+    if (auth.type === "session") {
+      orgId = auth.orgId;
+      userId = auth.user.id;
+      // Check admin/owner role
+      if (!["owner", "admin"].includes(auth.membership.role)) {
+        throw new ApiError(403, "Admin or owner role required");
+      }
+    } else {
+      throw new ApiError(401, "Session authentication required");
+    }
+
+    const url = new URL(request.url);
+    const connectionId = url.searchParams.get("id");
+
+    if (!connectionId) {
+      return NextResponse.json(
+        { error: "Connection ID is required" },
+        { status: 400 },
+      );
+    }
+
+    const admin = createAdminClient();
+
+    // Verify the connection belongs to this org
+    const { data: existing, error: fetchError } = await admin
+      .from("messaging_connections")
+      .select("id, platform, workspace_name, channel_name")
+      .eq("id", connectionId)
+      .eq("org_id", orgId)
+      .single();
+
+    if (fetchError || !existing) {
+      throw new ApiError(404, "Messaging connection not found");
+    }
+
+    // Delete the connection
+    const { error: deleteError } = await admin
+      .from("messaging_connections")
+      .delete()
+      .eq("id", connectionId)
+      .eq("org_id", orgId);
+
+    if (deleteError) {
+      console.error("[Messaging Connections] Delete failed:", deleteError);
+      return NextResponse.json(
+        { error: "Failed to delete connection" },
+        { status: 500 },
+      );
+    }
+
+    // Audit log
+    logAuditEvent({
+      orgId,
+      userId,
+      action: "messaging_connection.deleted",
+      resourceType: "messaging_connection",
+      resourceId: connectionId,
+      details: {
+        platform: existing.platform,
+        workspace_name: existing.workspace_name,
+        channel_name: existing.channel_name,
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}

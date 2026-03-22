@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Key,
+  MessageSquare,
   Users,
   FileText,
   Webhook,
@@ -63,6 +64,7 @@ const navSections: NavSection[] = [
     label: "Configuration",
     items: [
       { href: "/connections", label: "Connections", icon: Key, adminOnly: true },
+      { href: "/messaging", label: "Messaging", icon: MessageSquare, adminOnly: true },
       { href: "/rules", label: "Rules", icon: ShieldCheck },
       { href: "/team", label: "Team", icon: Users, adminOnly: true },
       { href: "/organization", label: "Organization", icon: Building2, adminOnly: true },

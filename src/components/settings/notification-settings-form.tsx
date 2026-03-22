@@ -3,9 +3,13 @@
 // ---------------------------------------------------------------------------
 // OKRunit -- Notification Settings Form
 // ---------------------------------------------------------------------------
+// Per-user notification preferences: email, push, quiet hours, priority.
+// Messaging integrations (Slack, Discord, Teams, Telegram) are now managed
+// org-wide through the messaging connections page, not per-user.
+// ---------------------------------------------------------------------------
 
 import { useState } from "react";
-import { Bell, Mail, MessageSquare, Clock, Loader2, ShieldCheck } from "lucide-react";
+import { Bell, Mail, Clock, Loader2, ShieldCheck } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import type { NotificationSettings, ApprovalPriority } from "@/lib/types/database";
@@ -59,14 +63,6 @@ const PRIORITY_OPTIONS: { value: ApprovalPriority; label: string }[] = [
 const DEFAULT_SETTINGS: Omit<NotificationSettings, "id" | "created_at" | "updated_at" | "user_id"> = {
   email_enabled: true,
   push_enabled: false,
-  slack_enabled: false,
-  slack_webhook_url: null,
-  teams_enabled: false,
-  teams_webhook_url: null,
-  telegram_enabled: false,
-  telegram_chat_id: null,
-  discord_enabled: false,
-  discord_webhook_url: null,
   quiet_hours_enabled: false,
   quiet_hours_start: "22:00",
   quiet_hours_end: "08:00",
@@ -91,18 +87,11 @@ interface NotificationSettingsFormProps {
 export function NotificationSettingsForm({
   initialSettings,
 }: NotificationSettingsFormProps) {
-  // Merge defaults with any existing settings
   const [emailEnabled, setEmailEnabled] = useState(
     initialSettings?.email_enabled ?? DEFAULT_SETTINGS.email_enabled
   );
   const [pushEnabled, setPushEnabled] = useState(
     initialSettings?.push_enabled ?? DEFAULT_SETTINGS.push_enabled
-  );
-  const [slackEnabled, setSlackEnabled] = useState(
-    initialSettings?.slack_enabled ?? DEFAULT_SETTINGS.slack_enabled
-  );
-  const [slackWebhookUrl, setSlackWebhookUrl] = useState(
-    initialSettings?.slack_webhook_url ?? ""
   );
   const [quietHoursEnabled, setQuietHoursEnabled] = useState(
     initialSettings?.quiet_hours_enabled ?? DEFAULT_SETTINGS.quiet_hours_enabled
@@ -148,8 +137,6 @@ export function NotificationSettingsForm({
         user_id: user.id,
         email_enabled: emailEnabled,
         push_enabled: pushEnabled,
-        slack_enabled: slackEnabled,
-        slack_webhook_url: slackEnabled ? slackWebhookUrl || null : null,
         quiet_hours_enabled: quietHoursEnabled,
         quiet_hours_start: quietHoursEnabled ? quietHoursStart : null,
         quiet_hours_end: quietHoursEnabled ? quietHoursEnd : null,
@@ -189,8 +176,9 @@ export function NotificationSettingsForm({
             Notification Channels
           </CardTitle>
           <CardDescription>
-            Choose how you want to receive notifications for approval requests
-            and updates.
+            Choose how you want to receive personal notifications for approval
+            requests and updates. Messaging integrations (Slack, Discord, Teams,
+            Telegram) are managed org-wide in Messaging settings.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -241,62 +229,8 @@ export function NotificationSettingsForm({
               <PushPermissionPrompt />
             </div>
           )}
-
-          <Separator />
-
-          {/* Slack */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <MessageSquare className="size-4 text-muted-foreground" />
-              <div className="space-y-0.5">
-                <Label htmlFor="slack-toggle" className="text-sm font-medium">
-                  Slack notifications
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Receive notifications via Slack webhook
-                </p>
-              </div>
-            </div>
-            <Switch
-              id="slack-toggle"
-              checked={slackEnabled}
-              onCheckedChange={setSlackEnabled}
-            />
-          </div>
         </CardContent>
       </Card>
-
-      {/* ---- Slack Configuration ---- */}
-      {slackEnabled && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="size-5" />
-              Slack Configuration
-            </CardTitle>
-            <CardDescription>
-              Configure your Slack webhook URL to receive notifications in your
-              Slack workspace.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="slack-webhook-url">Webhook URL</Label>
-              <Input
-                id="slack-webhook-url"
-                type="url"
-                placeholder="https://hooks.slack.com/services/..."
-                value={slackWebhookUrl}
-                onChange={(e) => setSlackWebhookUrl(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Create an incoming webhook in your Slack workspace and paste the
-                URL here.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* ---- Quiet Hours ---- */}
       <Card>

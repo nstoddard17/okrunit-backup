@@ -13,6 +13,7 @@ const TELEGRAM_API_BASE = "https://api.telegram.org";
 
 export interface TelegramNotificationParams {
   chatId: string;
+  botToken?: string; // Per-connection bot token (overrides env var)
   requestId: string;
   title: string;
   description?: string;
@@ -22,6 +23,7 @@ export interface TelegramNotificationParams {
 
 export interface TelegramDecisionParams {
   chatId: string;
+  botToken?: string; // Per-connection bot token (overrides env var)
   requestTitle: string;
   decision: string;
   decidedBy?: string;
@@ -80,11 +82,11 @@ function getBotToken(): string | null {
 export async function sendTelegramNotification(
   params: TelegramNotificationParams,
 ): Promise<void> {
-  const botToken = getBotToken();
+  const botToken = params.botToken ?? getBotToken();
 
   if (!botToken) {
     console.warn(
-      "[Telegram] TELEGRAM_BOT_TOKEN is not set -- skipping notification for request",
+      "[Telegram] No bot token available -- skipping notification for request",
       params.requestId,
     );
     return;
@@ -174,11 +176,11 @@ export async function sendTelegramNotification(
 export async function sendTelegramDecisionNotification(
   params: TelegramDecisionParams,
 ): Promise<void> {
-  const botToken = getBotToken();
+  const botToken = params.botToken ?? getBotToken();
 
   if (!botToken) {
     console.warn(
-      "[Telegram] TELEGRAM_BOT_TOKEN is not set -- skipping decision notification for",
+      "[Telegram] No bot token available -- skipping decision notification for",
       params.requestTitle,
     );
     return;

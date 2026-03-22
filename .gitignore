@@ -62,3 +62,7 @@ integrations/n8n/dist
 
 # supabase local
 supabase/.temp
+**/__pycache__/
+integrations/*/dist/
+tools/scripts/deploy/screenshots/
+tools/scripts/deploy/node_modules/
