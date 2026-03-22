@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from .resources import OKRunitResource
+from resources import OKRunitResource
 
 
 @pytest.fixture

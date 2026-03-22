@@ -63,7 +63,7 @@ async def test_create_approval_sets_source_to_temporal(
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        result = await create_approval.fn(
+        result = await create_approval(
             config, title="Test approval", priority="high"
         )
 
@@ -84,7 +84,7 @@ async def test_create_approval_generates_idempotency_key(
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        await create_approval.fn(config, title="Test", priority="medium")
+        await create_approval(config, title="Test", priority="medium")
 
     call_kwargs = mock_client.post.call_args
     sent_body = call_kwargs.kwargs.get("json") or call_kwargs[1].get("json")
@@ -106,7 +106,7 @@ async def test_create_approval_default_title_when_empty(
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        await create_approval.fn(config, title="", priority="medium")
+        await create_approval(config, title="", priority="medium")
 
     call_kwargs = mock_client.post.call_args
     sent_body = call_kwargs.kwargs.get("json") or call_kwargs[1].get("json")
@@ -125,7 +125,7 @@ async def test_create_approval_default_title_when_none(
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        await create_approval.fn(config, title=None, priority="medium")
+        await create_approval(config, title=None, priority="medium")
 
     call_kwargs = mock_client.post.call_args
     sent_body = call_kwargs.kwargs.get("json") or call_kwargs[1].get("json")
@@ -136,7 +136,7 @@ async def test_create_approval_default_title_when_none(
 async def test_create_approval_validates_priority_rejects_invalid(config):
     """Invalid priority values must raise ValueError."""
     with pytest.raises(ValueError, match="Invalid priority 'urgent'"):
-        await create_approval.fn(config, title="Test", priority="urgent")
+        await create_approval(config, title="Test", priority="urgent")
 
 
 @pytest.mark.asyncio
@@ -152,7 +152,7 @@ async def test_create_approval_accepts_valid_priorities(
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        await create_approval.fn(config, title="Test", priority=priority)
+        await create_approval(config, title="Test", priority=priority)
 
     call_kwargs = mock_client.post.call_args
     sent_body = call_kwargs.kwargs.get("json") or call_kwargs[1].get("json")
@@ -171,7 +171,7 @@ async def test_create_approval_passes_callback_url(
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        await create_approval.fn(
+        await create_approval(
             config,
             title="Test",
             priority="medium",
@@ -195,7 +195,7 @@ async def test_create_approval_omits_callback_url_when_none(
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        await create_approval.fn(config, title="Test", priority="medium")
+        await create_approval(config, title="Test", priority="medium")
 
     call_kwargs = mock_client.post.call_args
     sent_body = call_kwargs.kwargs.get("json") or call_kwargs[1].get("json")
@@ -214,7 +214,7 @@ async def test_create_approval_posts_to_correct_endpoint(
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        await create_approval.fn(config, title="Test", priority="medium")
+        await create_approval(config, title="Test", priority="medium")
 
     call_args = mock_client.post.call_args
     url = call_args.args[0] if call_args.args else call_args.kwargs.get("url")
@@ -233,7 +233,7 @@ async def test_create_approval_includes_description_and_metadata(
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        await create_approval.fn(
+        await create_approval(
             config,
             title="Test",
             priority="medium",
@@ -264,7 +264,7 @@ async def test_get_approval_calls_correct_endpoint(
     approval_id = "550e8400-e29b-41d4-a716-446655440000"
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        result = await get_approval.fn(config, approval_id)
+        result = await get_approval(config, approval_id)
 
     call_args = mock_client.get.call_args
     url = call_args.args[0] if call_args.args else call_args.kwargs.get("url")
@@ -282,7 +282,7 @@ async def test_get_approval_sends_auth_header(config, mock_response, sample_appr
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        await get_approval.fn(config, "some-id")
+        await get_approval(config, "some-id")
 
     call_kwargs = mock_client.get.call_args
     headers = call_kwargs.kwargs.get("headers") or call_kwargs[1].get("headers")
@@ -302,7 +302,7 @@ async def test_list_approvals_passes_filter_parameters(config, mock_response):
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        await list_approvals.fn(
+        await list_approvals(
             config,
             status="pending",
             priority="high",
@@ -328,7 +328,7 @@ async def test_list_approvals_omits_unset_filters(config, mock_response):
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        await list_approvals.fn(config)
+        await list_approvals(config)
 
     call_kwargs = mock_client.get.call_args
     params = call_kwargs.kwargs.get("params") or call_kwargs[1].get("params")
@@ -348,7 +348,7 @@ async def test_list_approvals_calls_correct_endpoint(config, mock_response):
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        await list_approvals.fn(config)
+        await list_approvals(config)
 
     call_args = mock_client.get.call_args
     url = call_args.args[0] if call_args.args else call_args.kwargs.get("url")
@@ -374,7 +374,7 @@ async def test_add_comment_sends_correct_request_body(config, mock_response):
     mock_client.__aexit__ = AsyncMock(return_value=False)
 
     with patch("httpx.AsyncClient", return_value=mock_client):
-        result = await add_comment.fn(config, "approval-id", "Looks good!")
+        result = await add_comment(config, "approval-id", "Looks good!")
 
     call_kwargs = mock_client.post.call_args
     url = call_kwargs.args[0] if call_kwargs.args else call_kwargs.kwargs.get("url")

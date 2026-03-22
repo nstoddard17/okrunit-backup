@@ -1,11 +1,13 @@
 """Tests for OKRunit Prefect tasks."""
 
+"""Tests for OKRunit Prefect tasks."""
+
 import re
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from .tasks import (
+from tasks import (
     create_approval,
     get_approval,
     list_approvals,
@@ -48,7 +50,7 @@ def sample_approval():
 def _patch_resolve_api_key():
     """Patch _resolve_api_key so tests don't try to load Prefect Secret blocks."""
     return patch(
-        "integrations.prefect.tasks._resolve_api_key",
+        "tasks._resolve_api_key",
         new_callable=AsyncMock,
         return_value=API_KEY,
     )
