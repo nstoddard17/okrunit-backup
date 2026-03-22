@@ -638,3 +638,172 @@ Enable users to receive approval requests and approve/reject them directly from 
 - [ ] Helm chart for Kubernetes deployment
 - [ ] Environment variable configuration (API key, bot tokens, channel mappings)
 - [ ] Documentation for self-hosted setup per platform
+
+---
+
+### Phase 15: Trust & Automation
+
+Build intelligent automation that reduces approval fatigue while maintaining safety.
+
+- [ ] **Auto-approval after N consecutive approvals**
+  - [ ] New rule type `consecutive_approval_threshold` in rules engine
+  - [ ] Track approval history per action_type/title pattern
+  - [ ] Configurable threshold count per rule (e.g., "after 10 consecutive approvals")
+  - [ ] Reset counter on any rejection
+  - [ ] Audit log entry when auto-approved via trust threshold
+  - [ ] Dashboard indicator showing trust level progress
+
+- [ ] **Time-based auto-approval/rejection**
+  - [ ] Per-request `auto_action_after` field (minutes) + `auto_action` (approve/reject)
+  - [ ] Configurable per org as default timeout behavior
+  - [ ] Priority-based defaults (low=auto-approve after 4h, critical=never auto)
+  - [ ] Warning notification before auto-action fires (e.g., 15 min warning)
+
+- [ ] **Risk scoring**
+  - [ ] Score based on: action_type, priority, time of day, requester history, metadata patterns
+  - [ ] Display risk score on approval cards
+  - [ ] Auto-escalate high-risk requests (require more approvers)
+  - [ ] Risk score API field returned with approval details
+
+- [ ] **Approval delegation**
+  - [ ] "Delegate my approvals" UI in settings
+  - [ ] Date range + delegate user selection
+  - [ ] Delegated approvals show original assignee + delegate in audit trail
+  - [ ] Auto-expire delegation after end date
+  - [ ] Notification to delegate when they receive delegated approvals
+
+---
+
+### Phase 16: Advanced Workflow Features
+
+- [ ] **Approval templates/flows**
+  - [ ] Pre-built approval chains (e.g., "production deploy" → DevOps team + engineering lead)
+  - [ ] Template editor UI with drag-and-drop approval stages
+  - [ ] Sequential and parallel stage support
+  - [ ] Reusable across connections and integrations
+
+- [ ] **Scheduled approvals**
+  - [ ] "Approve but execute at" datetime field
+  - [ ] Callback delivery delayed until scheduled time
+  - [ ] Calendar view of scheduled approvals
+  - [ ] Ability to cancel before execution time
+
+- [ ] **Conditional approvals**
+  - [ ] "Approved if" conditions attached to approvals
+  - [ ] Webhook-based condition checks (e.g., "test suite passed")
+  - [ ] Callback only fires when all conditions met
+  - [ ] Condition status visible on approval detail
+
+- [ ] **Rejection reason controls**
+  - [ ] Org-level setting: optional (default), required, required for high/critical only
+  - [ ] Per-request override via API: `require_rejection_reason: true`
+  - [ ] Soft nudge UX: "Are you sure? Adding a reason helps your team" confirmation when rejecting without reason
+  - [ ] "Reject without reason" escape hatch (unless hard-required)
+  - [ ] Dashboard shows rejection reason prominently in approval history
+
+- [ ] **Bulk approval rules**
+  - [ ] "Approve all pending low-priority from this source" action
+  - [ ] Bulk rule builder with source/priority/action_type filters
+  - [ ] Scheduled bulk rules (e.g., "every Friday at 5pm, auto-approve remaining low-priority")
+
+---
+
+### Phase 17: Observability & Analytics
+
+- [ ] **Approval SLA tracking**
+  - [ ] Configurable SLA per priority (e.g., critical = 15 min, high = 1 hour)
+  - [ ] SLA breach notifications to org admins
+  - [ ] SLA dashboard with breach history and trends
+  - [ ] API field: `sla_deadline`, `sla_breached`
+
+- [ ] **Bottleneck detection**
+  - [ ] Track pending approval count per user
+  - [ ] Alert when a user has too many pending (configurable threshold)
+  - [ ] Suggest redistribution to team members with lower load
+  - [ ] Weekly digest email with team approval load distribution
+
+- [ ] **Enhanced analytics dashboard**
+  - [ ] Approval volume trends over time (daily/weekly/monthly)
+  - [ ] Approval rate by source, action_type, priority
+  - [ ] Mean time to decision (MTTD) metrics
+  - [ ] Rejection rate trends and top rejection reasons
+  - [ ] Per-user approval activity metrics
+
+- [ ] **Cost of delay estimation**
+  - [ ] Optional `estimated_impact` field on approval requests (currency/description)
+  - [ ] Running total of "cost of pending approvals" on dashboard
+  - [ ] Impact shown on approval cards to help reviewers prioritize
+
+- [ ] **Webhook replay**
+  - [ ] View callback delivery history in dashboard
+  - [ ] "Replay" button to re-send a failed callback
+  - [ ] Manual trigger for callbacks that were never sent
+
+---
+
+### Phase 18: Developer Experience
+
+- [ ] **SDK libraries**
+  - [ ] `@okrunit/sdk` npm package (TypeScript) with typed API client
+  - [ ] `okrunit-python` PyPI package with async support
+  - [ ] `okrunit-go` Go module
+  - [ ] All SDKs: create, get, list, approve, reject, comment, wait-for-decision
+
+- [ ] **CLI tool**
+  - [ ] `okrunit` CLI: `request`, `list`, `approve`, `reject`, `wait`
+  - [ ] `okrunit request "Deploy v2.3" --priority high --wait` blocks until decided
+  - [ ] JSON and table output formats
+  - [ ] Config file for API key and base URL
+
+- [ ] **GitHub PR integration**
+  - [ ] GitHub App that adds OKRunit approval checks to PRs
+  - [ ] Required review via OKRunit before merge
+  - [ ] Status check updates in real-time as approval progresses
+
+- [ ] **Approval audit export**
+  - [ ] CSV and PDF export of approval history
+  - [ ] Filterable by date range, status, source, priority
+  - [ ] Compliance-ready format with all decision metadata
+
+---
+
+### Phase 19: Security & Compliance
+
+- [ ] **Geo-fencing**
+  - [ ] IP allowlist per org for approval decisions
+  - [ ] Country-based restrictions on who can approve
+  - [ ] Audit log includes IP and geo info for each decision
+
+- [ ] **Four-eyes principle**
+  - [ ] Rule type: certain action_types always require 2+ different approvers
+  - [ ] Cannot approve your own request
+  - [ ] Configurable per action_type or priority level
+
+- [ ] **Session security**
+  - [ ] Require re-authentication for critical approvals
+  - [ ] Session timeout controls per org
+  - [ ] Device trust / remember device
+
+---
+
+### Phase 20: Onboarding & User Experience
+
+- [ ] **Guided setup wizard**
+  - [ ] Step 1: Create organization (name, logo)
+  - [ ] Step 2: Invite team members (email list)
+  - [ ] Step 3: Connect messaging (Discord/Slack/Teams one-click)
+  - [ ] Step 4: Create first API connection
+  - [ ] Step 5: Send test approval
+  - [ ] Progress bar, skip-able steps, contextual help
+
+- [ ] **Smart defaults**
+  - [ ] Everything works out of the box with zero configuration
+  - [ ] Sensible notification defaults per platform
+  - [ ] Auto-detected timezone from browser
+  - [ ] Template suggestions based on connected integrations
+
+- [ ] **Non-technical user experience**
+  - [ ] No-code approval flow builder (visual drag-and-drop)
+  - [ ] Plain English rule descriptions ("If priority is high, require 2 approvers")
+  - [ ] Tooltips and contextual help on every settings page
+  - [ ] Interactive onboarding tour highlighting key features
