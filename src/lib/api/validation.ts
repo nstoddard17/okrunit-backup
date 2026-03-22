@@ -34,6 +34,8 @@ const ruleActionEnum = z.enum(["auto_approve", "route"]);
 
 // ---- Approval Requests ----------------------------------------------------
 
+const autoActionEnum = z.enum(["approve", "reject"]);
+
 export const createApprovalSchema = z.object({
   title: z.string().min(1).max(500),
   description: z.string().max(5000).optional(),
@@ -51,6 +53,8 @@ export const createApprovalSchema = z.object({
   source: z.string().max(50).optional(),
   source_id: z.string().max(200).optional(),
   is_sequential: z.boolean().optional(),
+  auto_action: autoActionEnum.optional(),
+  auto_action_after_minutes: z.int().min(1).max(43200).optional(),
 });
 
 export type CreateApprovalInput = z.infer<typeof createApprovalSchema>;
@@ -162,3 +166,40 @@ export const updateTeamSchema = z.object({
 });
 
 export type UpdateTeamInput = z.infer<typeof updateTeamSchema>;
+
+// ---- Delegations ----------------------------------------------------------
+
+export const createDelegationSchema = z.object({
+  delegate_id: z.string().uuid(),
+  reason: z.string().max(500).optional(),
+  starts_at: z.string().datetime().optional(),
+  ends_at: z.string().datetime(),
+});
+
+export type CreateDelegationInput = z.infer<typeof createDelegationSchema>;
+
+// ---- Trust Counters -------------------------------------------------------
+
+const trustMatchFieldEnum = z.enum([
+  "action_type",
+  "source",
+  "title_pattern",
+  "connection_id",
+]);
+
+export const createTrustCounterSchema = z.object({
+  match_field: trustMatchFieldEnum,
+  match_value: z.string().min(1).max(500),
+  auto_approve_threshold: z.int().min(1).max(10000).optional(),
+});
+
+export type CreateTrustCounterInput = z.infer<typeof createTrustCounterSchema>;
+
+export const updateTrustCounterSchema = z.object({
+  auto_approve_threshold: z.int().min(1).max(10000).nullable().optional(),
+  // Allow resetting the counter state manually.
+  consecutive_approvals: z.int().min(0).optional(),
+  auto_approve_active: z.boolean().optional(),
+});
+
+export type UpdateTrustCounterInput = z.infer<typeof updateTrustCounterSchema>;

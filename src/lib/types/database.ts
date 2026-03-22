@@ -55,12 +55,18 @@ export interface CreatedByInfo {
 
 // ---- Table Row Interfaces -------------------------------------------------
 
+export type AutoAction = "approve" | "reject";
+
+export type TrustMatchField = "action_type" | "source" | "title_pattern" | "connection_id";
+
 export interface Organization {
   id: string;
   name: string;
   emergency_stop_active: boolean;
   emergency_stop_activated_at: string | null;
   emergency_stop_activated_by: string | null;
+  default_auto_action: AutoAction | null;
+  default_auto_action_minutes: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -136,9 +142,24 @@ export interface ApprovalRequest {
   created_by: CreatedByInfo | null;
   required_role: UserRole | null;
   is_sequential: boolean;
+  risk_score: number | null;
+  risk_level: string | null;
+  risk_factors: RiskFactor[] | null;
+  delegated_from: string | null;
+  delegation_id: string | null;
+  auto_action: AutoAction | null;
+  auto_action_after_minutes: number | null;
+  auto_action_deadline: string | null;
+  auto_action_warning_sent: boolean;
   archived_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface RiskFactor {
+  name: string;
+  score: number;
+  reason: string;
 }
 
 export interface ApprovalFlow {
@@ -429,6 +450,34 @@ export interface OAuthRefreshToken {
   created_at: string;
 }
 
+export interface ApprovalDelegation {
+  id: string;
+  org_id: string;
+  delegator_id: string;
+  delegate_id: string;
+  reason: string | null;
+  starts_at: string;
+  ends_at: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ApprovalTrustCounter {
+  id: string;
+  org_id: string;
+  match_field: TrustMatchField;
+  match_value: string;
+  consecutive_approvals: number;
+  total_approvals: number;
+  total_rejections: number;
+  last_decision: "approved" | "rejected" | null;
+  last_decision_at: string | null;
+  auto_approve_threshold: number | null;
+  auto_approve_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // ---- Insert Types (omit server-generated columns) -------------------------
 
 export type OrganizationInsert = Omit<Organization, "id" | "created_at" | "updated_at">;
@@ -464,6 +513,8 @@ export type TeamMembershipInsert = Omit<TeamMembership, "id" | "created_at">;
 export type ApprovalVoteInsert = Omit<ApprovalVote, "id" | "created_at">;
 export type SavedFilterInsert = Omit<SavedFilter, "id" | "created_at" | "updated_at">;
 export type ApprovalAttachmentInsert = Omit<ApprovalAttachment, "id" | "created_at">;
+export type ApprovalDelegationInsert = Omit<ApprovalDelegation, "id" | "created_at">;
+export type ApprovalTrustCounterInsert = Omit<ApprovalTrustCounter, "id" | "consecutive_approvals" | "total_approvals" | "total_rejections" | "last_decision" | "last_decision_at" | "auto_approve_active" | "created_at" | "updated_at">;
 export type MessagingConnectionInsert = Omit<MessagingConnection, "id" | "created_at" | "updated_at">;
 export type WebhookTestEndpointInsert = Omit<WebhookTestEndpoint, "id" | "created_at" | "updated_at">;
 export type WebhookTestRequestInsert = Omit<WebhookTestRequest, "id" | "created_at">;
@@ -479,4 +530,5 @@ export type NotificationSettingsUpdate = Partial<Omit<NotificationSettings, "id"
 export type ApprovalRuleUpdate = Partial<Omit<ApprovalRule, "id" | "created_at">> & { id: string };
 export type SavedFilterUpdate = Partial<Omit<SavedFilter, "id" | "created_at">> & { id: string };
 export type ApprovalCommentUpdate = Partial<Omit<ApprovalComment, "id" | "created_at">> & { id: string };
+export type ApprovalTrustCounterUpdate = Partial<Omit<ApprovalTrustCounter, "id" | "created_at">> & { id: string };
 export type MessagingConnectionUpdate = Partial<Omit<MessagingConnection, "id" | "created_at">> & { id: string };

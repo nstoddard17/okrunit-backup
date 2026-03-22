@@ -12,6 +12,8 @@ import { logAuditEvent } from "@/lib/api/audit";
 import { deliverCallback } from "@/lib/api/callbacks";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dispatchNotifications } from "@/lib/notifications/orchestrator";
+import { findDelegationForDelegate } from "@/lib/api/delegation";
+import { updateTrustCounter } from "@/lib/api/trust-engine";
 
 // ---- Helpers --------------------------------------------------------------
 
@@ -84,6 +86,51 @@ async function checkAndExpire(
   return false;
 }
 
+/**
+ * Lazy auto-action check. If the approval is pending and past its auto_action_deadline,
+ * apply the configured auto-action (approve/reject). Returns the updated fields
+ * or null if no auto-action was taken.
+ */
+async function checkAndApplyAutoAction(
+  admin: ReturnType<typeof createAdminClient>,
+  approval: {
+    id: string;
+    status: string;
+    auto_action?: string | null;
+    auto_action_deadline?: string | null;
+  },
+): Promise<{ status: string; decided_at: string; decision_source: string; auto_approved: boolean } | null> {
+  if (
+    approval.status === "pending" &&
+    approval.auto_action &&
+    approval.auto_action_deadline &&
+    approval.auto_action_deadline < new Date().toISOString()
+  ) {
+    const now = new Date().toISOString();
+    const newStatus = approval.auto_action === "approve" ? "approved" : "rejected";
+
+    await admin
+      .from("approval_requests")
+      .update({
+        status: newStatus,
+        decided_at: now,
+        decision_source: "auto_rule",
+        auto_approved: approval.auto_action === "approve",
+      })
+      .eq("id", approval.id)
+      .eq("status", "pending"); // guard against races
+
+    return {
+      status: newStatus,
+      decided_at: now,
+      decision_source: "auto_rule",
+      auto_approved: approval.auto_action === "approve",
+    };
+  }
+
+  return null;
+}
+
 // ---- GET /api/v1/approvals/[id] -------------------------------------------
 
 export async function GET(
@@ -106,6 +153,16 @@ export async function GET(
       return NextResponse.json(
         { ...approval, status: "expired", decided_by_name: null },
       );
+    }
+
+    // 3b. Lazy auto-action deadline check
+    const autoActioned = await checkAndApplyAutoAction(admin, approval);
+    if (autoActioned) {
+      return NextResponse.json({
+        ...approval,
+        ...autoActioned,
+        decided_by_name: null,
+      });
     }
 
     // 4. Enrich with decided_by_name
@@ -171,15 +228,40 @@ export async function PATCH(
       throw new ApiError(409, "Approval has expired", "EXPIRED");
     }
 
-    // 5b. If assigned_approvers is set, enforce that only listed users can decide
+    // 5a. Lazy auto-action deadline check
+    const autoActioned = await checkAndApplyAutoAction(admin, approval);
+    if (autoActioned) {
+      throw new ApiError(
+        409,
+        `Approval was auto-${autoActioned.status} due to deadline`,
+        "AUTO_ACTIONED",
+      );
+    }
+
+    // 5b. If assigned_approvers is set, enforce that only listed users (or their delegates) can decide
     const assignedApprovers: string[] | null = approval.assigned_approvers;
+    let delegatedFrom: string | null = null;
+    let delegationId: string | null = null;
+
     if (assignedApprovers && assignedApprovers.length > 0) {
       if (!assignedApprovers.includes(actorId)) {
-        throw new ApiError(
-          403,
-          "You are not an assigned approver for this request",
-          "NOT_ASSIGNED_APPROVER",
+        // Check if the actor is a delegate for any assigned approver
+        const delegationResult = await findDelegationForDelegate(
+          auth.orgId,
+          actorId,
+          assignedApprovers,
         );
+
+        if (!delegationResult) {
+          throw new ApiError(
+            403,
+            "You are not an assigned approver for this request",
+            "NOT_ASSIGNED_APPROVER",
+          );
+        }
+
+        delegatedFrom = delegationResult.delegatorId;
+        delegationId = delegationResult.delegationId;
       }
     }
 
@@ -279,6 +361,8 @@ export async function PATCH(
             decided_at: decidedAt,
             decision_comment: validated.comment ?? null,
             decision_source: validated.source ?? "dashboard",
+            ...(delegatedFrom ? { delegated_from: delegatedFrom } : {}),
+            ...(delegationId ? { delegation_id: delegationId } : {}),
           })
           .eq("id", id)
           .select("*")
@@ -305,6 +389,10 @@ export async function PATCH(
           updatePayload.decided_at = decidedAt;
           updatePayload.decision_comment = validated.comment ?? null;
           updatePayload.decision_source = validated.source ?? "dashboard";
+          if (delegatedFrom) {
+            updatePayload.delegated_from = delegatedFrom;
+            updatePayload.delegation_id = delegationId;
+          }
         }
 
         const { data: approvedData, error: approveError } = await admin
@@ -336,11 +424,28 @@ export async function PATCH(
           current_approvals: updated.current_approvals,
           required_approvals: updated.required_approvals,
           final_status: updated.status,
+          ...(delegatedFrom ? { delegated_from: delegatedFrom, delegation_id: delegationId } : {}),
         },
         ipAddress,
       });
 
-      // 6e. Callback delivery + notifications only when a final decision is reached
+      // 6e. Update trust counters when a final decision is reached (fire-and-forget)
+      if (updated.status !== "pending") {
+        after(
+          updateTrustCounter(
+            auth.orgId,
+            {
+              action_type: approval.action_type,
+              source: approval.source,
+              title: approval.title,
+              connection_id: approval.connection_id,
+            },
+            updated.status as "approved" | "rejected",
+          )
+        );
+      }
+
+      // 6f. Callback delivery + notifications only when a final decision is reached
       if (updated.status !== "pending") {
         if (approval.callback_url) {
           const decidedByName = await getUserDisplayName(admin, updated.decided_by);
@@ -380,7 +485,7 @@ export async function PATCH(
         );
       }
 
-      // 6f. Sequential chain: notify next approver if vote didn't finalize
+      // 6g. Sequential chain: notify next approver if vote didn't finalize
       if (updated.status === "pending" && approval.is_sequential && assignedApprovers) {
         // Collect all user IDs that have voted (including current actor)
         const { data: allVotes } = await admin
@@ -423,6 +528,8 @@ export async function PATCH(
         decided_at: decidedAt,
         decision_comment: validated.comment ?? null,
         decision_source: validated.source ?? "dashboard",
+        ...(delegatedFrom ? { delegated_from: delegatedFrom } : {}),
+        ...(delegationId ? { delegation_id: delegationId } : {}),
       })
       .eq("id", id)
       .select("*")
@@ -446,11 +553,26 @@ export async function PATCH(
         decision: validated.decision,
         comment: validated.comment ?? null,
         source: validated.source ?? "dashboard",
+        ...(delegatedFrom ? { delegated_from: delegatedFrom, delegation_id: delegationId } : {}),
       },
       ipAddress,
     });
 
-    // 8. Callback delivery (use after() so Vercel keeps the function alive)
+    // 8. Update trust counters (fire-and-forget)
+    after(
+      updateTrustCounter(
+        auth.orgId,
+        {
+          action_type: approval.action_type,
+          source: approval.source,
+          title: approval.title,
+          connection_id: approval.connection_id,
+        },
+        newStatus as "approved" | "rejected",
+      )
+    );
+
+    // 9. Callback delivery (use after() so Vercel keeps the function alive)
     if (approval.callback_url) {
       const decidedByName = await getUserDisplayName(admin, actorId);
       after(

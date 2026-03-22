@@ -17,6 +17,9 @@ import { checkRateLimit, addRateLimitHeaders, type RateLimitResult } from "@/lib
 import { enforceConnectionScoping } from "@/lib/api/connection-scoping";
 import { checkForAnomalies } from "@/lib/api/anomaly-detection";
 import { evaluateRules } from "@/lib/api/rules-engine";
+import { calculateRiskScore } from "@/lib/api/risk-scoring";
+import { resolveDelegates } from "@/lib/api/delegation";
+import { checkTrustThreshold } from "@/lib/api/trust-engine";
 import { dispatchNotifications } from "@/lib/notifications/orchestrator";
 
 // ---- Helpers ---------------------------------------------------------------
@@ -51,7 +54,7 @@ export async function POST(request: Request) {
 
     const { data: org, error: orgError } = await admin
       .from("organizations")
-      .select("emergency_stop_active")
+      .select("emergency_stop_active, default_auto_action, default_auto_action_minutes")
       .eq("id", auth.orgId)
       .single();
 
@@ -300,6 +303,17 @@ export async function POST(request: Request) {
       metadata: validated.metadata as Record<string, unknown> | undefined,
     });
 
+    // 11b. Trust threshold check (auto-approve after N consecutive approvals)
+    let trustResult: { autoApprove: boolean; reason: string; counterId: string | null } | null = null;
+    if (!ruleResult.matched || ruleResult.action !== "auto_approve") {
+      trustResult = await checkTrustThreshold(auth.orgId, {
+        action_type: effectiveActionType,
+        source: validated.source ?? autoDetectedSource,
+        title: validated.title,
+        connection_id: connectionId,
+      });
+    }
+
     // 12. Determine approvers: flow defaults → request values → rule routing
     let assignedApprovers: string[] | null = validated.assigned_approvers ?? flowAssignedApprovers ?? null;
     let requiredApprovals = assignedApprovers
@@ -368,8 +382,45 @@ export async function POST(request: Request) {
       }
     }
 
+    // 12e. Risk scoring
+    const riskResult = await calculateRiskScore(
+      {
+        priority: effectivePriority,
+        action_type: effectiveActionType,
+        description: validated.description,
+        callback_url: validated.callback_url,
+        source: validated.source ?? autoDetectedSource,
+      },
+      auth.orgId,
+    );
+
+    // Auto-escalate: if risk is critical and only 1 approver required, bump to 2
+    if (riskResult.level === "critical" && requiredApprovals === 1) {
+      requiredApprovals = 2;
+    }
+
+    // 12f. Resolve delegations for assigned approvers (expand notification targets)
+    let delegateMap: Map<string, string> = new Map();
+    if (assignedApprovers && assignedApprovers.length > 0) {
+      delegateMap = await resolveDelegates(auth.orgId, assignedApprovers);
+    }
+
     // 13. Insert approval request
-    const isAutoApproved = ruleResult.matched && ruleResult.action === "auto_approve";
+    const isRuleAutoApproved = ruleResult.matched && ruleResult.action === "auto_approve";
+    const isTrustAutoApproved = !isRuleAutoApproved && (trustResult?.autoApprove ?? false);
+    const isAutoApproved = isRuleAutoApproved || isTrustAutoApproved;
+
+    // 13b. Compute auto-action deadline (time-based auto-approve/reject)
+    //       Request values take precedence, then org defaults.
+    const effectiveAutoAction = validated.auto_action ?? org.default_auto_action ?? null;
+    const effectiveAutoMinutes = validated.auto_action_after_minutes ?? org.default_auto_action_minutes ?? null;
+
+    let autoActionDeadline: string | null = null;
+    if (!isAutoApproved && effectiveAutoAction && effectiveAutoMinutes) {
+      const deadline = new Date();
+      deadline.setMinutes(deadline.getMinutes() + effectiveAutoMinutes);
+      autoActionDeadline = deadline.toISOString();
+    }
 
     const { data: approval, error: insertError } = await admin
       .from("approval_requests")
@@ -395,9 +446,15 @@ export async function POST(request: Request) {
         created_by: createdBy,
         required_role: effectiveRequiredRole,
         is_sequential: effectiveIsSequential,
+        risk_score: riskResult.score,
+        risk_level: riskResult.level,
+        risk_factors: riskResult.factors,
         auto_approved: isAutoApproved,
         decision_source: isAutoApproved ? "auto_rule" : null,
         decided_at: isAutoApproved ? new Date().toISOString() : null,
+        auto_action: effectiveAutoAction,
+        auto_action_after_minutes: effectiveAutoMinutes,
+        auto_action_deadline: autoActionDeadline,
       })
       .select("*")
       .single();
@@ -420,18 +477,32 @@ export async function POST(request: Request) {
         ...(flowId ? { flow_id: flowId } : {}),
         ...(validated.source ? { source: validated.source } : {}),
         ...(ruleResult.rule ? { rule_id: ruleResult.rule.id, rule_name: ruleResult.rule.name } : {}),
+        ...(isTrustAutoApproved && trustResult ? { trust_counter_id: trustResult.counterId, trust_reason: trustResult.reason } : {}),
+        ...(autoActionDeadline ? { auto_action: effectiveAutoAction, auto_action_deadline: autoActionDeadline } : {}),
+        risk_score: riskResult.score,
+        risk_level: riskResult.level,
       },
       ipAddress,
     });
 
     // 15. Dispatch notifications (fire-and-forget)
+    //     Include delegates alongside original approvers
     let targetUserIds: string[] | undefined;
     if (assignedApprovers && assignedApprovers.length > 0) {
       if (effectiveIsSequential) {
-        // Sequential chain: only notify the first approver
-        targetUserIds = [assignedApprovers[0]];
+        // Sequential chain: only notify the first approver (and their delegate)
+        const firstApprover = assignedApprovers[0];
+        const firstDelegate = delegateMap.get(firstApprover);
+        targetUserIds = firstDelegate
+          ? [firstApprover, firstDelegate]
+          : [firstApprover];
       } else {
-        targetUserIds = assignedApprovers;
+        // Notify all assigned approvers + their delegates
+        const allTargets = new Set(assignedApprovers);
+        for (const [, delegateId] of delegateMap) {
+          allTargets.add(delegateId);
+        }
+        targetUserIds = Array.from(allTargets);
       }
     }
 
@@ -547,18 +618,34 @@ export async function GET(request: Request) {
 
     const { count } = await countQuery;
 
-    // 7. Lazy expiration: update any pending approvals that have expired
+    // 7. Lazy expiration + auto-action deadline check
     const now = new Date().toISOString();
     const expiredIds: string[] = [];
+    const autoActionIds: { id: string; action: string }[] = [];
+
     const activeApprovals = (approvals ?? []).filter((approval) => {
-      if (
-        approval.status === "pending" &&
-        approval.expires_at &&
-        approval.expires_at < now
-      ) {
+      if (approval.status !== "pending") return true;
+
+      // Check regular expiration first
+      if (approval.expires_at && approval.expires_at < now) {
         expiredIds.push(approval.id);
         return false;
       }
+
+      // Check auto-action deadline (time-based auto-approve/reject)
+      if (
+        approval.auto_action &&
+        approval.auto_action_deadline &&
+        approval.auto_action_deadline < now
+      ) {
+        autoActionIds.push({ id: approval.id, action: approval.auto_action as string });
+        // Mutate in-place for the response so the client sees the final state
+        approval.status = approval.auto_action === "approve" ? "approved" : "rejected";
+        approval.decided_at = now;
+        approval.decision_source = "auto_rule";
+        approval.auto_approved = approval.auto_action === "approve";
+      }
+
       return true;
     });
 
@@ -568,6 +655,55 @@ export async function GET(request: Request) {
         .update({ status: "expired" })
         .in("id", expiredIds)
         .then();
+    }
+
+    // Fire-and-forget: apply auto-actions for approvals past their deadline
+    for (const { id: autoId, action: autoAct } of autoActionIds) {
+      const newStatus = autoAct === "approve" ? "approved" : "rejected";
+      admin
+        .from("approval_requests")
+        .update({
+          status: newStatus,
+          decided_at: now,
+          decision_source: "auto_rule",
+          auto_approved: autoAct === "approve",
+        })
+        .eq("id", autoId)
+        .eq("status", "pending") // guard against races
+        .then();
+
+      // Audit the auto-action
+      logAuditEvent({
+        orgId: auth.orgId,
+        action: `approval.auto_${newStatus}`,
+        resourceType: "approval_request",
+        resourceId: autoId,
+        details: { reason: "auto_action_deadline_reached", auto_action: autoAct },
+      });
+
+      // Deliver callback for auto-actioned approvals
+      const autoApproval = activeApprovals.find(a => a.id === autoId);
+      if (autoApproval?.callback_url) {
+        // Dynamic import to avoid circular dependency issues at module load
+        import("@/lib/api/callbacks").then(({ deliverCallback }) => {
+          deliverCallback({
+            requestId: autoId,
+            connectionId: autoApproval.connection_id,
+            callbackUrl: autoApproval.callback_url,
+            callbackHeaders: (autoApproval.callback_headers as Record<string, string>) ?? undefined,
+            payload: {
+              id: autoApproval.id,
+              status: newStatus,
+              decided_by: null,
+              decided_at: now,
+              decision_comment: null,
+              title: autoApproval.title,
+              priority: autoApproval.priority,
+              metadata: autoApproval.metadata,
+            },
+          });
+        });
+      }
     }
 
     // 8. Enrich with decided_by_name for decided approvals
