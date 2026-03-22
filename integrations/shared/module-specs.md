@@ -1,6 +1,6 @@
 # OKRunit Integration Module Specifications
 
-Canonical reference for all platform integrations (Zapier, Make, n8n, etc.).
+Canonical reference for all platform integrations (Zapier, Make, n8n, Windmill, Pipedream, GitHub Actions, Temporal, Prefect, Dagster).
 Every integration must implement these modules with matching fields, filters, and behavior.
 
 ---
@@ -390,7 +390,53 @@ Same as [getApproval](#search-getapproval).
 
 ### n8n
 - Source set to `"n8n"`
+- Idempotency key format: `n8n-{timestamp}-{random}`
 - Uses n8n webhook node for callback pattern
+- Community node: `n8n-nodes-okrunit`
+- CLI: `npm install n8n-nodes-okrunit` in `~/.n8n`
+
+### Windmill
+- Source set to `"windmill"`
+- Idempotency key format: `windmill-{timestamp}-{random}`
+- Script-based integration using Deno TypeScript
+- Resource type: `gatekeeper` (api_key + api_url)
+- CLI: `wmill sync push` to deploy, `wmill script run` to execute
+
+### Pipedream
+- Source set to `"pipedream"`
+- Idempotency key format: `pipedream-{timestamp}-{random}`
+- Component-based architecture (defineAction, defineSource)
+- Uses `@pipedream/platform` axios for HTTP
+- CLI: `pd deploy` to publish, `pd action run` to test
+
+### GitHub Actions
+- Source set to `"github-actions"`
+- Idempotency key format: `gha-{runId}-{runNumber}-{timestamp}`
+- Polling-based (no callback); action polls until decided or timeout
+- Auto-includes GitHub context in metadata (repo, workflow, actor, ref, sha)
+- Default title: `"Approval required: {workflow} #{runNumber}"`
+- CLI: `gh workflow run` to trigger, `gh run watch` to monitor
+
+### Temporal
+- Source set to `"temporal"`
+- Idempotency key format: `temporal-{timestamp}-{random}`
+- Python SDK with activities and durable workflows
+- `ApprovalGateWorkflow` with `current_status` query
+- CLI: `temporal workflow start` to create, `temporal workflow query` to check
+
+### Prefect
+- Source set to `"prefect"`
+- Idempotency key format: `prefect-{timestamp}-{random}`
+- Python tasks and flows using Prefect 3.x
+- API key resolved from Prefect Secret block `okrunit-api-key`
+- CLI: `prefect flow-run create` to run, `prefect deploy` to schedule
+
+### Dagster
+- Source set to `"dagster"`
+- Idempotency key format: `dagster-{timestamp}-{random}`
+- `OKRunitResource` (ConfigurableResource) with ops and sensors
+- `approval_decided_sensor` polls for decisions and triggers runs
+- CLI: `dagster dev` to start, `dagster job launch` to run
 
 ### General Rules
 - All integrations must use OAuth 2.0 for authentication

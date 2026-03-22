@@ -6,7 +6,7 @@
   "connection": "oauth2",
   "parameters": [
     {
-      "name": "status_filter",
+      "name": "decision",
       "type": "select",
       "label": "Decision Type",
       "required": false,
@@ -35,7 +35,7 @@
   "url": "/api/v1/approvals",
   "method": "GET",
   "qs": {
-    "status": "{{ifempty(parameters.status_filter, 'approved,rejected')}}",
+    "status": "{{ifempty(parameters.decision, 'approved,rejected')}}",
     "page_size": "50",
     "priority": "{{ifempty(parameters.priority_filter, undefined)}}"
   },
@@ -51,13 +51,14 @@
   "samples": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "title": "Deploy v2.3.1 to production",
+    "description": "Release includes new payment flow",
     "status": "approved",
     "priority": "high",
+    "source": "api",
     "decided_by": "770e8400-e29b-41d4-a716-446655440002",
     "decided_by_name": "Jane Smith",
     "decided_at": "2026-02-21T10:30:00.000Z",
     "decision_comment": "Looks good, approved!",
-    "metadata": { "environment": "production" },
     "created_at": "2026-02-21T10:00:00.000Z",
     "updated_at": "2026-02-21T10:30:00.000Z"
   }

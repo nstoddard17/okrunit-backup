@@ -9,7 +9,7 @@ type Gatekeeper = {
 export async function main(
   gatekeeper: Gatekeeper,
   approval_id: string,
-  body: string,
+  comment: string,
 ) {
   const response = await fetch(
     `${gatekeeper.api_url}/api/v1/approvals/${approval_id}/comments`,
@@ -19,7 +19,7 @@ export async function main(
         Authorization: `Bearer ${gatekeeper.api_key}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ body }),
+      body: JSON.stringify({ body: comment }),
     },
   );
 

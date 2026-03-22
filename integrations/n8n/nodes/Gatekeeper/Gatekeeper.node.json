@@ -2,16 +2,16 @@
   "node": "n8n-nodes-okrunit.okrunit",
   "nodeVersion": "1.0",
   "codexVersion": "1.0",
-  "categories": ["Miscellaneous"],
+  "categories": ["Productivity"],
   "resources": {
     "primaryDocumentation": [
       {
-        "url": "https://github.com/your-org/okrunit/tree/main/integrations/n8n"
+        "url": "https://docs.okrunit.com/integrations/n8n"
       }
     ]
   },
-  "alias": ["approval", "human-in-the-loop", "gate", "review"],
+  "alias": ["approval", "human-in-the-loop", "gate", "review", "okrunit", "gatekeeper", "approve", "reject"],
   "subcategories": {
-    "Miscellaneous": ["Other"]
+    "Productivity": ["Workflow Automation"]
   }
 }

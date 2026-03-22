@@ -19,7 +19,7 @@ export class Gatekeeper implements INodeType {
     outputs: ["main"],
     credentials: [
       {
-        name: "gatekeeperApi",
+        name: "gatekeeperOAuth2Api",
         required: true,
       },
     ],
@@ -91,12 +91,13 @@ export class Gatekeeper implements INodeType {
         displayName: "Title",
         name: "title",
         type: "string",
-        required: true,
+        required: false,
         displayOptions: {
           show: { resource: ["approval"], operation: ["create"] },
         },
         default: "",
-        description: "Short title for the approval request (max 500 chars)",
+        description:
+          'Short title for the approval request (max 500 chars). Defaults to "Approval request from n8n" if blank.',
       },
       {
         displayName: "Priority",
@@ -144,7 +145,11 @@ export class Gatekeeper implements INodeType {
             name: "callback_url",
             type: "string",
             default: "",
-            description: "URL to POST the decision to when decided",
+            description: "Webhook URL to receive the decision (must be a valid URL)",
+            placeholder: "https://example.com/webhook",
+            typeOptions: {
+              validationRule: "url",
+            },
           },
           {
             displayName: "Metadata (JSON)",
@@ -159,13 +164,6 @@ export class Gatekeeper implements INodeType {
             type: "dateTime",
             default: "",
             description: "ISO 8601 datetime when request auto-expires",
-          },
-          {
-            displayName: "Idempotency Key",
-            name: "idempotency_key",
-            type: "string",
-            default: "",
-            description: "Unique key to prevent duplicate submissions",
           },
           {
             displayName: "Required Approvals",
@@ -242,17 +240,11 @@ export class Gatekeeper implements INodeType {
             description: "Full-text search on title/description",
           },
           {
-            displayName: "Page",
-            name: "page",
+            displayName: "Limit",
+            name: "limit",
             type: "number",
-            default: 1,
-            typeOptions: { minValue: 1 },
-          },
-          {
-            displayName: "Page Size",
-            name: "page_size",
-            type: "number",
-            default: 20,
+            default: 25,
+            description: "Maximum number of results",
             typeOptions: { minValue: 1, maxValue: 100 },
           },
         ],
@@ -287,7 +279,7 @@ export class Gatekeeper implements INodeType {
     const returnData: INodeExecutionData[] = [];
     const resource = this.getNodeParameter("resource", 0) as string;
     const operation = this.getNodeParameter("operation", 0) as string;
-    const credentials = await this.getCredentials("gatekeeperApi");
+    const credentials = await this.getCredentials("gatekeeperOAuth2Api");
     const baseUrl = credentials.baseUrl as string;
 
     for (let i = 0; i < items.length; i++) {
@@ -302,7 +294,15 @@ export class Gatekeeper implements INodeType {
             i,
           ) as Record<string, unknown>;
 
-          const body: Record<string, unknown> = { title, priority };
+          // Auto-set source and idempotency key per spec
+          const idempotencyKey = `n8n-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+          const body: Record<string, unknown> = {
+            title: title || "Approval request from n8n",
+            priority,
+            source: "n8n",
+            idempotency_key: idempotencyKey,
+          };
 
           for (const [key, value] of Object.entries(additionalFields)) {
             if (value === "" || value === undefined || value === null) continue;
@@ -317,7 +317,7 @@ export class Gatekeeper implements INodeType {
           responseData =
             await this.helpers.httpRequestWithAuthentication.call(
               this,
-              "gatekeeperApi",
+              "gatekeeperOAuth2Api",
               {
                 method: "POST",
                 url: `${baseUrl}/api/v1/approvals`,
@@ -334,7 +334,7 @@ export class Gatekeeper implements INodeType {
           responseData =
             await this.helpers.httpRequestWithAuthentication.call(
               this,
-              "gatekeeperApi",
+              "gatekeeperOAuth2Api",
               {
                 method: "GET",
                 url: `${baseUrl}/api/v1/approvals/${approvalId}`,
@@ -350,14 +350,18 @@ export class Gatekeeper implements INodeType {
 
           for (const [k, v] of Object.entries(filters)) {
             if (v !== "" && v !== undefined && v !== null) {
-              qs[k] = String(v);
+              if (k === "limit") {
+                qs.page_size = String(v);
+              } else {
+                qs[k] = String(v);
+              }
             }
           }
 
           responseData =
             await this.helpers.httpRequestWithAuthentication.call(
               this,
-              "gatekeeperApi",
+              "gatekeeperOAuth2Api",
               {
                 method: "GET",
                 url: `${baseUrl}/api/v1/approvals`,
@@ -378,7 +382,7 @@ export class Gatekeeper implements INodeType {
           responseData =
             await this.helpers.httpRequestWithAuthentication.call(
               this,
-              "gatekeeperApi",
+              "gatekeeperOAuth2Api",
               {
                 method: "POST",
                 url: `${baseUrl}/api/v1/approvals/${approvalId}/comments`,
@@ -390,7 +394,7 @@ export class Gatekeeper implements INodeType {
           responseData =
             await this.helpers.httpRequestWithAuthentication.call(
               this,
-              "gatekeeperApi",
+              "gatekeeperOAuth2Api",
               {
                 method: "GET",
                 url: `${baseUrl}/api/v1/approvals/${approvalId}/comments`,

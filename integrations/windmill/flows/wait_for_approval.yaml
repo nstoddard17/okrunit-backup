@@ -34,7 +34,13 @@ value:
                 Authorization: `Bearer ${gk.api_key}`,
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ title, priority, description }),
+              body: JSON.stringify({
+                title,
+                priority,
+                description,
+                source: "windmill",
+                idempotency_key: `windmill-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+              }),
             });
             if (!res.ok) throw new Error(`API error: ${res.status}`);
             return await res.json();

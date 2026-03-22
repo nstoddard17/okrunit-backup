@@ -15,17 +15,26 @@ export async function main(
   callback_url?: string,
   metadata?: Record<string, unknown>,
   expires_at?: string,
-  idempotency_key?: string,
   required_approvals?: number,
   context_html?: string,
 ) {
-  const body: Record<string, unknown> = { title, priority };
+  // Default title if empty/blank
+  const resolvedTitle = title?.trim() ? title.trim() : "Approval request from windmill";
+
+  // Auto-generate idempotency key and set source
+  const idempotency_key = `windmill-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+
+  const body: Record<string, unknown> = {
+    title: resolvedTitle,
+    priority,
+    source: "windmill",
+    idempotency_key,
+  };
   if (description) body.description = description;
   if (action_type) body.action_type = action_type;
   if (callback_url) body.callback_url = callback_url;
   if (metadata) body.metadata = metadata;
   if (expires_at) body.expires_at = expires_at;
-  if (idempotency_key) body.idempotency_key = idempotency_key;
   if (required_approvals) body.required_approvals = required_approvals;
   if (context_html) body.context_html = context_html;
 

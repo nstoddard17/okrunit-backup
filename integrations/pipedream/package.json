@@ -1,0 +1,22 @@
+{
+  "name": "@pipedream/okrunit",
+  "version": "0.1.0",
+  "description": "Pipedream components for OKRunit human-in-the-loop approval gateway",
+  "main": "dist/components/okrunit.app.mjs",
+  "keywords": [
+    "pipedream",
+    "okrunit",
+    "approval",
+    "human-in-the-loop"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@pipedream/platform": "^3.0.0",
+    "@pipedream/types": "^0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

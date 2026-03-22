@@ -41,8 +41,7 @@
     "callback_url": "{{ifempty(parameters.callback_url, undefined)}}",
     "metadata": "{{ifempty(parameters.metadata, undefined)}}",
     "source": "make",
-    "source_id": "{{scenario.id}}",
-    "idempotency_key": "make-{{scenario.id}}-{{execution.id}}"
+    "idempotency_key": "make-{{ifempty(parameters.title, 'approval')}}-{{timestamp}}"
   },
   "response": {
     "output": "{{body}}"
@@ -51,13 +50,13 @@
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "title": "Deploy v2.3.1 to production",
     "description": "Release includes new payment flow",
-    "priority": "medium",
     "status": "pending",
-    "action_type": null,
-    "required_approvals": 1,
-    "current_approvals": 0,
-    "auto_approved": false,
+    "priority": "medium",
+    "source": "make",
+    "decided_by": null,
+    "decided_by_name": null,
+    "decision_comment": null,
     "created_at": "2026-02-21T10:00:00.000Z",
-    "updated_at": "2026-02-21T10:00:00.000Z"
+    "decided_at": null
   }
 }

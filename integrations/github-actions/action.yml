@@ -1,0 +1,67 @@
+name: "OKRunit Approval Gate"
+description: "Pause a GitHub Actions workflow until a human approves or rejects via OKRunit"
+author: "OKRunit"
+branding:
+  icon: "check-circle"
+  color: "blue"
+
+inputs:
+  api-key:
+    description: "OKRunit API key (starts with gk_)"
+    required: true
+  api-url:
+    description: "OKRunit instance URL"
+    required: false
+    default: "https://app.okrunit.com"
+  title:
+    description: "Approval request title. Defaults to workflow name if blank."
+    required: false
+    default: ""
+  description:
+    description: "Additional context for the reviewer"
+    required: false
+  priority:
+    description: "Priority level (low, medium, high, critical)"
+    required: false
+    default: "medium"
+  metadata:
+    description: "JSON metadata to attach to the approval"
+    required: false
+  timeout:
+    description: "Max wait time in seconds (default: 3600 = 1 hour)"
+    required: false
+    default: "3600"
+  poll-interval:
+    description: "Polling interval in seconds (default: 10)"
+    required: false
+    default: "10"
+
+outputs:
+  approval-id:
+    description: "The approval request ID"
+  status:
+    description: "Decision status (approved or rejected)"
+  description:
+    description: "Description of the approval request"
+  priority:
+    description: "Priority level (low, medium, high, critical)"
+  source:
+    description: "Source platform (github-actions)"
+  action-type:
+    description: "Action type of the approval"
+  required-approvals:
+    description: "Number of required approvals"
+  current-approvals:
+    description: "Number of current approvals"
+  updated-at:
+    description: "ISO timestamp of the last update"
+  decided-by:
+    description: "Name of the person who decided"
+  decided-at:
+    description: "ISO timestamp of the decision"
+  decision-comment:
+    description: "Comment from the decider"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"

@@ -44,11 +44,19 @@ const addComment = {
 
     sample: {
       id: "660e8400-e29b-41d4-a716-446655440001",
-      request_id: "550e8400-e29b-41d4-a716-446655440000",
+      approval_id: "550e8400-e29b-41d4-a716-446655440000",
       body: "Looks good, proceeding with approval.",
+      created_by: "770e8400-e29b-41d4-a716-446655440002",
       created_at: "2026-02-21T10:05:00.000Z",
-      updated_at: "2026-02-21T10:05:00.000Z",
     },
+
+    outputFields: [
+      { key: "id", label: "Comment ID" },
+      { key: "approval_id", label: "Approval ID" },
+      { key: "body", label: "Comment" },
+      { key: "created_by", label: "Created By" },
+      { key: "created_at", label: "Created At", type: "datetime" },
+    ],
   },
 };
 
