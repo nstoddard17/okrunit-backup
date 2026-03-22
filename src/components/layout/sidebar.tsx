@@ -18,6 +18,7 @@ import {
   Building2,
   ShieldAlert,
   Search,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,7 @@ interface SidebarProps {
   pendingCount: number;
   userRole: string;
   isAppAdmin?: boolean;
+  showSetup?: boolean;
 }
 
 interface NavItem {
@@ -52,6 +54,8 @@ interface NavSection {
   label: string | null;
   items: NavItem[];
 }
+
+const setupItem: NavItem = { href: "/setup", label: "Setup", icon: Sparkles };
 
 const navSections: NavSection[] = [
   {
@@ -106,7 +110,7 @@ function getInitials(name: string | null, email: string): string {
   return email.charAt(0).toUpperCase();
 }
 
-export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, isAppAdmin }: SidebarProps) {
+export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, isAppAdmin, showSetup }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const isAdmin = userRole === "owner" || userRole === "admin";
@@ -144,6 +148,25 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, 
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-2">
+        {showSetup && (
+          <div className="mb-2">
+            <Link
+              href="/setup"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150",
+                pathname === "/setup"
+                  ? "border-l-2 border-l-[var(--sidebar-primary)] bg-[var(--sidebar-accent)] font-medium text-foreground"
+                  : "border-l-2 border-l-transparent text-primary hover:bg-[var(--sidebar-accent)]/60"
+              )}
+            >
+              <Sparkles className="size-4 shrink-0" />
+              <span className="flex-1">Setup</span>
+              <Badge className="h-5 bg-primary/10 px-1.5 text-[10px] font-medium text-primary hover:bg-primary/10">
+                New
+              </Badge>
+            </Link>
+          </div>
+        )}
         {navSections.map((section, sectionIndex) => {
           const visibleItems = section.items.filter((item) => {
             if (item.appAdminOnly && !isAppAdmin) return false;

@@ -31,13 +31,22 @@ export default async function DashboardLayout({
   // Fetch user's org list for the switcher
   const userOrgs = await getUserOrgs(profile.id);
 
-  // Fetch pending approval count for the active org
+  // Fetch pending approval count and connection count for the active org
   const admin = createAdminClient();
-  const { count: pendingCount } = await admin
-    .from("approval_requests")
-    .select("*", { count: "exact", head: true })
-    .eq("org_id", org.id)
-    .eq("status", "pending");
+  const [{ count: pendingCount }, { count: connectionCount }] = await Promise.all([
+    admin
+      .from("approval_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", org.id)
+      .eq("status", "pending"),
+    admin
+      .from("connections")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", org.id),
+  ]);
+
+  // Show setup link if org has no connections yet (likely a new org)
+  const showSetup = (connectionCount ?? 0) === 0;
 
   return (
     <div className="gk-v2 force-light flex h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
@@ -55,6 +64,7 @@ export default async function DashboardLayout({
           pendingCount={pendingCount ?? 0}
           userRole={membership.role}
           isAppAdmin={profile.is_app_admin}
+          showSetup={showSetup}
         />
       </div>
 

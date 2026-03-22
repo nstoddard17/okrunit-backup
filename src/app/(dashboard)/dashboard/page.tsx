@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ApprovalDashboard } from "@/components/approvals/approval-dashboard";
+import { OnboardingBanner } from "@/components/onboarding/onboarding-banner";
+import { OnboardingTour } from "@/components/onboarding/onboarding-tour";
 import type { ApprovalRequest, Connection, UserProfile } from "@/lib/types/database";
 
 export const metadata = {
@@ -89,6 +91,8 @@ export default async function DashboardPage() {
 
   return (
     <PageContainer>
+      <OnboardingBanner />
+      <OnboardingTour />
       <PageHeader
         title="Dashboard"
         description="View and manage approval requests across your organization."
