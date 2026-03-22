@@ -69,6 +69,13 @@ export type AutoAction = "approve" | "reject";
 
 export type TrustMatchField = "action_type" | "source" | "title_pattern" | "connection_id";
 
+export interface SlaConfig {
+  low: number | null;
+  medium: number | null;
+  high: number | null;
+  critical: number | null;
+}
+
 export interface Organization {
   id: string;
   name: string;
@@ -78,6 +85,9 @@ export interface Organization {
   default_auto_action: AutoAction | null;
   default_auto_action_minutes: number | null;
   rejection_reason_policy: RejectionReasonPolicy;
+  sla_config: SlaConfig;
+  bottleneck_threshold: number;
+  bottleneck_alert_enabled: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -167,6 +177,10 @@ export interface ApprovalRequest {
   execution_status: ExecutionStatus;
   conditions: Record<string, unknown>[];
   conditions_met: boolean;
+  sla_deadline: string | null;
+  sla_breached: boolean;
+  sla_breached_at: string | null;
+  sla_warning_sent: boolean;
   archived_at: string | null;
   created_at: string;
   updated_at: string;
@@ -530,6 +544,17 @@ export interface BulkApprovalRule {
 
 export type BulkApprovalRuleInsert = Omit<BulkApprovalRule, "id" | "last_run_at" | "last_run_count" | "created_at" | "updated_at">;
 
+// ---- Bottleneck Alert Types -----------------------------------------------
+
+export interface BottleneckAlert {
+  user_id: string;
+  user_name: string | null;
+  user_email: string;
+  pending_count: number;
+  threshold: number;
+  excess: number;
+}
+
 // ---- Insert Types (omit server-generated columns) -------------------------
 
 export type OrganizationInsert = Omit<Organization, "id" | "created_at" | "updated_at">;
@@ -585,3 +610,117 @@ export type SavedFilterUpdate = Partial<Omit<SavedFilter, "id" | "created_at">> 
 export type ApprovalCommentUpdate = Partial<Omit<ApprovalComment, "id" | "created_at">> & { id: string };
 export type ApprovalTrustCounterUpdate = Partial<Omit<ApprovalTrustCounter, "id" | "created_at">> & { id: string };
 export type MessagingConnectionUpdate = Partial<Omit<MessagingConnection, "id" | "created_at">> & { id: string };
+
+// ---- Analytics Types ------------------------------------------------------
+
+export interface AnalyticsSummary {
+  total_approvals: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  cancelled: number;
+  expired: number;
+  approval_rate: number;
+  avg_response_time_minutes: number;
+  median_response_time_minutes: number;
+}
+
+export interface AnalyticsDailyTrend {
+  date: string;
+  created: number;
+  approved: number;
+  rejected: number;
+}
+
+export interface AnalyticsSourceMetric {
+  source: string;
+  count: number;
+  approval_rate: number;
+}
+
+export interface AnalyticsPriorityMetric {
+  priority: string;
+  count: number;
+  avg_response_minutes: number;
+}
+
+export interface AnalyticsActionTypeMetric {
+  action_type: string;
+  count: number;
+}
+
+export interface AnalyticsRejectionReasonMetric {
+  reason: string;
+  count: number;
+}
+
+export interface AnalyticsUserMetric {
+  user_id: string;
+  user_name: string;
+  approved: number;
+  rejected: number;
+  avg_response_minutes: number;
+}
+
+export interface AnalyticsResponse {
+  summary: AnalyticsSummary;
+  trends: {
+    daily: AnalyticsDailyTrend[];
+  };
+  by_source: AnalyticsSourceMetric[];
+  by_priority: AnalyticsPriorityMetric[];
+  by_action_type: AnalyticsActionTypeMetric[];
+  top_rejection_reasons: AnalyticsRejectionReasonMetric[];
+  per_user: AnalyticsUserMetric[];
+  date_range: {
+    start_date: string;
+    end_date: string;
+  };
+}
+
+export interface CostOfDelayItem {
+  id: string;
+  title: string;
+  priority: string;
+  age_minutes: number;
+  estimated_impact: string | null;
+  created_at: string;
+  action_type: string | null;
+  source: string | null;
+}
+
+export interface CostOfDelayResponse {
+  summary: {
+    total_pending: number;
+    avg_age_minutes: number;
+    critical_pending: number;
+    high_pending: number;
+    oldest_age_minutes: number;
+  };
+  items: CostOfDelayItem[];
+}
+
+export interface WebhookDeliveryListResponse {
+  data: WebhookDeliveryLog[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface WebhookReplayResponse {
+  message: string;
+  original_delivery_id: string;
+  replay_result: WebhookDeliveryLog | null;
+}
+
+export interface ApprovalWebhookHistoryResponse {
+  approval_id: string;
+  summary: {
+    total_attempts: number;
+    success_count: number;
+    failure_count: number;
+    latest_status: string | null;
+    latest_attempt_at: string | null;
+  };
+  deliveries: WebhookDeliveryLog[];
+}

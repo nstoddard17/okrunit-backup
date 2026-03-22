@@ -216,9 +216,19 @@ export type UpdateTrustCounterInput = z.infer<typeof updateTrustCounterSchema>;
 
 const rejectionReasonPolicyEnum = z.enum(["optional", "required", "required_high_critical"]);
 
+const slaConfigSchema = z.object({
+  low: z.number().int().min(1).nullable(),
+  medium: z.number().int().min(1).nullable(),
+  high: z.number().int().min(1).nullable(),
+  critical: z.number().int().min(1).nullable(),
+});
+
 export const updateOrgSettingsSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   rejection_reason_policy: rejectionReasonPolicyEnum.optional(),
+  sla_config: slaConfigSchema.optional(),
+  bottleneck_threshold: z.number().int().min(1).max(1000).optional(),
+  bottleneck_alert_enabled: z.boolean().optional(),
 });
 
 export type UpdateOrgSettingsInput = z.infer<typeof updateOrgSettingsSchema>;
@@ -275,3 +285,24 @@ export const cancelScheduledExecutionSchema = z.object({
 });
 
 export type CancelScheduledExecutionInput = z.infer<typeof cancelScheduledExecutionSchema>;
+
+// ---- Analytics ------------------------------------------------------------
+
+export const analyticsQuerySchema = z.object({
+  period: z.enum(["day", "week", "month"]).optional(),
+  start_date: z.string().optional(),
+  end_date: z.string().optional(),
+});
+
+export type AnalyticsQueryInput = z.infer<typeof analyticsQuerySchema>;
+
+// ---- Webhook Delivery Logs ------------------------------------------------
+
+export const webhookLogQuerySchema = z.object({
+  request_id: z.string().uuid().optional(),
+  status: z.enum(["success", "failed"]).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(20).optional(),
+  offset: z.coerce.number().int().min(0).default(0).optional(),
+});
+
+export type WebhookLogQueryInput = z.infer<typeof webhookLogQuerySchema>;

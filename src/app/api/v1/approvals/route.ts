@@ -21,6 +21,8 @@ import { calculateRiskScore } from "@/lib/api/risk-scoring";
 import { resolveDelegates } from "@/lib/api/delegation";
 import { checkTrustThreshold } from "@/lib/api/trust-engine";
 import { dispatchNotifications } from "@/lib/notifications/orchestrator";
+import { calculateSlaDeadline, checkSlaBreach, type SlaConfig } from "@/lib/api/sla";
+import { checkBottleneckThreshold } from "@/lib/api/bottleneck";
 
 // ---- Helpers ---------------------------------------------------------------
 
@@ -54,7 +56,7 @@ export async function POST(request: Request) {
 
     const { data: org, error: orgError } = await admin
       .from("organizations")
-      .select("emergency_stop_active, default_auto_action, default_auto_action_minutes")
+      .select("emergency_stop_active, default_auto_action, default_auto_action_minutes, sla_config")
       .eq("id", auth.orgId)
       .single();
 
@@ -422,6 +424,14 @@ export async function POST(request: Request) {
       autoActionDeadline = deadline.toISOString();
     }
 
+    // 13c. Calculate SLA deadline from org config
+    const slaDeadline = isAutoApproved
+      ? null
+      : calculateSlaDeadline(
+          effectivePriority as "low" | "medium" | "high" | "critical",
+          (org.sla_config as SlaConfig) ?? null,
+        );
+
     const { data: approval, error: insertError } = await admin
       .from("approval_requests")
       .insert({
@@ -457,6 +467,7 @@ export async function POST(request: Request) {
         auto_action_deadline: autoActionDeadline,
         require_rejection_reason: validated.require_rejection_reason ?? false,
         conditions_met: validated.conditions && validated.conditions.length > 0 ? false : true,
+        sla_deadline: slaDeadline,
       })
       .select("*")
       .single();
@@ -539,6 +550,25 @@ export async function POST(request: Request) {
       connectionName: connectionName ?? undefined,
       targetUserIds,
     });
+
+    // 15b. Bottleneck detection (fire-and-forget)
+    //      Check if any assigned approver now exceeds the threshold
+    if (!isAutoApproved && assignedApprovers && assignedApprovers.length > 0) {
+      checkBottleneckThreshold(auth.orgId, assignedApprovers).then((overloadedUserIds) => {
+        if (overloadedUserIds.length > 0) {
+          // Notify org admins about the bottleneck
+          dispatchNotifications({
+            type: "approval.bottleneck",
+            orgId: auth.orgId,
+            requestId: approval.id,
+            requestTitle: `Bottleneck: ${overloadedUserIds.length} approver(s) overloaded`,
+            requestPriority: "high",
+          });
+        }
+      }).catch((err) => {
+        console.error("[Approvals] Bottleneck check failed:", err);
+      });
+    }
 
     // 16. Return created approval (with rate limit headers if applicable)
     const response = NextResponse.json(approval, { status: 201 });
@@ -677,6 +707,40 @@ export async function GET(request: Request) {
         .update({ status: "expired" })
         .in("id", expiredIds)
         .then();
+    }
+
+    // Fire-and-forget: lazy SLA breach check for pending approvals
+    const slaBreachIds: string[] = [];
+    for (const approval of activeApprovals) {
+      if (checkSlaBreach(approval)) {
+        slaBreachIds.push(approval.id);
+        approval.sla_breached = true;
+        approval.sla_breached_at = now;
+      }
+    }
+
+    if (slaBreachIds.length > 0) {
+      admin
+        .from("approval_requests")
+        .update({
+          sla_breached: true,
+          sla_breached_at: now,
+        })
+        .in("id", slaBreachIds)
+        .eq("sla_breached", false)
+        .then();
+
+      // Dispatch SLA breach notifications for each breached approval
+      for (const breachedApproval of activeApprovals.filter((a) => slaBreachIds.includes(a.id))) {
+        dispatchNotifications({
+          type: "approval.sla_breached",
+          orgId: auth.orgId,
+          requestId: breachedApproval.id,
+          requestTitle: breachedApproval.title,
+          requestPriority: breachedApproval.priority,
+          connectionId: breachedApproval.connection_id ?? undefined,
+        });
+      }
     }
 
     // Fire-and-forget: apply auto-actions for approvals past their deadline

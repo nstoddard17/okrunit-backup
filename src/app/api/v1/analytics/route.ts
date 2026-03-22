@@ -1,12 +1,61 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Analytics API: GET (aggregate stats for dashboard)
+// OKRunit -- Analytics API: GET (comprehensive approval metrics and trends)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { authenticateRequest } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { analyticsQuerySchema } from "@/lib/api/validation";
+import {
+  getApprovalSummary,
+  getApprovalTrends,
+  getApprovalsBySource,
+  getApprovalsByPriority,
+  getApprovalsByActionType,
+  getTopRejectionReasons,
+  getPerUserMetrics,
+} from "@/lib/api/analytics";
+
+// ---- Helpers --------------------------------------------------------------
+
+/**
+ * Resolve the start and end date from query parameters.
+ * If explicit dates are provided, they take precedence.
+ * Otherwise, the `period` param determines the range relative to now.
+ * Defaults to "month" if nothing is specified.
+ */
+function resolveDateRange(params: {
+  period?: string;
+  start_date?: string;
+  end_date?: string;
+}): { startDate: string; endDate: string } {
+  const now = new Date();
+  const endDate = params.end_date ?? now.toISOString();
+
+  if (params.start_date) {
+    return { startDate: params.start_date, endDate };
+  }
+
+  const period = params.period ?? "month";
+  const start = new Date(now);
+
+  switch (period) {
+    case "day":
+      start.setUTCDate(start.getUTCDate() - 1);
+      break;
+    case "week":
+      start.setUTCDate(start.getUTCDate() - 7);
+      break;
+    case "month":
+    default:
+      start.setUTCMonth(start.getUTCMonth() - 1);
+      break;
+  }
+
+  return { startDate: start.toISOString(), endDate };
+}
 
 // ---- GET /api/v1/analytics ------------------------------------------------
 
@@ -23,89 +72,61 @@ export async function GET(request: Request) {
       );
     }
 
-    const admin = createAdminClient();
     const orgId = auth.orgId;
 
-    // 2. Fetch aggregate counts by status
-    const { count: totalCount } = await admin
-      .from("approval_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("org_id", orgId);
+    // 2. Parse and validate query params
+    const { searchParams } = new URL(request.url);
+    const queryInput = {
+      period: searchParams.get("period") ?? undefined,
+      start_date: searchParams.get("start_date") ?? undefined,
+      end_date: searchParams.get("end_date") ?? undefined,
+    };
 
-    const { count: pendingCount } = await admin
-      .from("approval_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("org_id", orgId)
-      .eq("status", "pending");
+    const params = analyticsQuerySchema.parse(queryInput);
+    const { startDate, endDate } = resolveDateRange(params);
 
-    const { count: approvedCount } = await admin
-      .from("approval_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("org_id", orgId)
-      .eq("status", "approved");
+    // 3. Execute all analytics queries in parallel
+    const [
+      summary,
+      trends,
+      bySource,
+      byPriority,
+      byActionType,
+      topRejectionReasons,
+      perUser,
+    ] = await Promise.all([
+      getApprovalSummary(orgId, startDate, endDate),
+      getApprovalTrends(orgId, startDate, endDate),
+      getApprovalsBySource(orgId, startDate, endDate),
+      getApprovalsByPriority(orgId, startDate, endDate),
+      getApprovalsByActionType(orgId, startDate, endDate),
+      getTopRejectionReasons(orgId, startDate, endDate, 10),
+      getPerUserMetrics(orgId, startDate, endDate),
+    ]);
 
-    const { count: rejectedCount } = await admin
-      .from("approval_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("org_id", orgId)
-      .eq("status", "rejected");
-
-    // 3. Calculate approval rate
-    const approved = approvedCount ?? 0;
-    const rejected = rejectedCount ?? 0;
-    const decided = approved + rejected;
-    const approvalRate = decided > 0
-      ? Math.round((approved / decided) * 10000) / 100
-      : 0;
-
-    // 4. Calculate average response time for decided approvals
-    const { data: decidedApprovals } = await admin
-      .from("approval_requests")
-      .select("created_at, decided_at")
-      .eq("org_id", orgId)
-      .not("decided_at", "is", null)
-      .in("status", ["approved", "rejected"]);
-
-    let avgResponseTimeMs = 0;
-    if (decidedApprovals && decidedApprovals.length > 0) {
-      const totalMs = decidedApprovals.reduce((sum, row) => {
-        const created = new Date(row.created_at).getTime();
-        const decided = new Date(row.decided_at!).getTime();
-        return sum + (decided - created);
-      }, 0);
-      avgResponseTimeMs = Math.round(totalMs / decidedApprovals.length);
-    }
-
-    // 5. Volume this week vs last week
-    const now = new Date();
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-
-    const { count: volumeThisWeek } = await admin
-      .from("approval_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("org_id", orgId)
-      .gte("created_at", oneWeekAgo.toISOString());
-
-    const { count: volumeLastWeek } = await admin
-      .from("approval_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("org_id", orgId)
-      .gte("created_at", twoWeeksAgo.toISOString())
-      .lt("created_at", oneWeekAgo.toISOString());
-
-    // 6. Return aggregated stats
+    // 4. Return comprehensive analytics
     return NextResponse.json({
-      pending_count: pendingCount ?? 0,
-      total_count: totalCount ?? 0,
-      approved_count: approved,
-      rejected_count: rejected,
-      approval_rate: approvalRate,
-      avg_response_time_ms: avgResponseTimeMs,
-      volume_this_week: volumeThisWeek ?? 0,
-      volume_last_week: volumeLastWeek ?? 0,
+      summary,
+      trends: {
+        daily: trends,
+      },
+      by_source: bySource,
+      by_priority: byPriority,
+      by_action_type: byActionType,
+      top_rejection_reasons: topRejectionReasons,
+      per_user: perUser,
+      date_range: {
+        start_date: startDate,
+        end_date: endDate,
+      },
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation failed", issues: error.issues },
+        { status: 400 },
+      );
+    }
     return errorResponse(error);
   }
 }

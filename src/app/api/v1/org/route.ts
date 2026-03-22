@@ -14,11 +14,26 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 const rejectionReasonPolicyEnum = z.enum(["optional", "required", "required_high_critical"]);
 
+const slaConfigSchema = z.object({
+  low: z.number().int().min(1).nullable(),
+  medium: z.number().int().min(1).nullable(),
+  high: z.number().int().min(1).nullable(),
+  critical: z.number().int().min(1).nullable(),
+});
+
 const updateOrgSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name is too long").optional(),
   rejection_reason_policy: rejectionReasonPolicyEnum.optional(),
+  sla_config: slaConfigSchema.optional(),
+  bottleneck_threshold: z.number().int().min(1).max(1000).optional(),
+  bottleneck_alert_enabled: z.boolean().optional(),
 }).refine(
-  (data) => data.name !== undefined || data.rejection_reason_policy !== undefined,
+  (data) =>
+    data.name !== undefined ||
+    data.rejection_reason_policy !== undefined ||
+    data.sla_config !== undefined ||
+    data.bottleneck_threshold !== undefined ||
+    data.bottleneck_alert_enabled !== undefined,
   { message: "At least one field must be provided" },
 );
 
@@ -54,6 +69,9 @@ export async function PATCH(request: Request) {
     const updatePayload: Record<string, unknown> = {};
     if (body.name !== undefined) updatePayload.name = body.name;
     if (body.rejection_reason_policy !== undefined) updatePayload.rejection_reason_policy = body.rejection_reason_policy;
+    if (body.sla_config !== undefined) updatePayload.sla_config = body.sla_config;
+    if (body.bottleneck_threshold !== undefined) updatePayload.bottleneck_threshold = body.bottleneck_threshold;
+    if (body.bottleneck_alert_enabled !== undefined) updatePayload.bottleneck_alert_enabled = body.bottleneck_alert_enabled;
 
     const { data: org, error } = await admin
       .from("organizations")

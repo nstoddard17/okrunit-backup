@@ -15,6 +15,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { dispatchNotifications } from "@/lib/notifications/orchestrator";
 import { findDelegationForDelegate } from "@/lib/api/delegation";
 import { updateTrustCounter } from "@/lib/api/trust-engine";
+import { checkSlaBreach } from "@/lib/api/sla";
 import type { RejectionReasonPolicy, ApprovalPriority } from "@/lib/types/database";
 
 // ---- Helpers --------------------------------------------------------------
@@ -186,6 +187,34 @@ export async function GET(
         ...autoActioned,
         decided_by_name: null,
       });
+    }
+
+    // 3b2. Lazy SLA breach check
+    if (checkSlaBreach(approval)) {
+      // Mark as breached (fire-and-forget)
+      admin
+        .from("approval_requests")
+        .update({
+          sla_breached: true,
+          sla_breached_at: new Date().toISOString(),
+        })
+        .eq("id", approval.id)
+        .eq("sla_breached", false)
+        .then();
+
+      // Notify about the breach (fire-and-forget)
+      dispatchNotifications({
+        type: "approval.sla_breached",
+        orgId: auth.orgId,
+        requestId: approval.id,
+        requestTitle: approval.title,
+        requestPriority: approval.priority,
+        connectionId: approval.connection_id ?? undefined,
+      });
+
+      // Update local object for the response
+      approval.sla_breached = true;
+      approval.sla_breached_at = new Date().toISOString();
     }
 
     // 3c. Lazy scheduled execution check

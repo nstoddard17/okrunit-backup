@@ -190,7 +190,10 @@ export async function dispatchNotifications(
 
       // Filter by event type
       const isCreateEvent =
-        event.type === "approval.created" || event.type === "approval.next_approver";
+        event.type === "approval.created" ||
+        event.type === "approval.next_approver" ||
+        event.type === "approval.sla_breached" ||
+        event.type === "approval.bottleneck";
       const isDecisionEvent =
         event.type === "approval.approved" ||
         event.type === "approval.rejected" ||
@@ -411,6 +414,8 @@ const TITLE_MAP: Record<NotificationEventType, string> = {
   "approval.comment": "New Comment",
   "approval.next_approver": "Your Approval Needed",
   "approval.execution_cancelled": "Scheduled Execution Cancelled",
+  "approval.sla_breached": "SLA Breached",
+  "approval.bottleneck": "Approval Bottleneck Detected",
 };
 
 function getNotificationTitle(event: NotificationEvent): string {
@@ -433,6 +438,10 @@ function getNotificationBody(event: NotificationEvent): string {
       return `New comment on "${event.requestTitle}".`;
     case "approval.next_approver":
       return `Your approval is now needed for "${event.requestTitle}".`;
+    case "approval.sla_breached":
+      return `"${event.requestTitle}" has breached its SLA deadline.`;
+    case "approval.bottleneck":
+      return `An approver has too many pending approvals.`;
     default:
       return event.requestTitle;
   }
