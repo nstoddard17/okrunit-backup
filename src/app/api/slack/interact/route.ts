@@ -15,7 +15,7 @@
 // ---------------------------------------------------------------------------
 
 import { createHmac, timingSafeEqual } from "crypto";
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
@@ -406,140 +406,91 @@ export async function POST(request: Request) {
     }
 
     const requestId = action.value;
-    const triggerId = payload.trigger_id;
-
-    if (!triggerId) {
-      console.error("[Slack Interact] No trigger_id in block_actions payload");
-      return NextResponse.json({ ok: true });
-    }
-
-    // Validate the request exists and is still actionable.
-    const admin = createAdminClient();
-    const { data: approval, error: fetchError } = await admin
-      .from("approval_requests")
-      .select("id, status, expires_at, org_id, require_rejection_reason, priority, title")
-      .eq("id", requestId)
-      .single();
-
-    if (fetchError || !approval) {
-      return NextResponse.json({
-        replace_original: true,
-        blocks: [
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: ":warning: Approval request not found. It may have been deleted.",
-            },
-          },
-        ],
-      });
-    }
-
-    if (approval.status !== "pending") {
-      return NextResponse.json({
-        replace_original: true,
-        blocks: [
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: `:information_source: This request has already been *${approval.status}*. No action taken.`,
-            },
-          },
-        ],
-      });
-    }
-
-    if (
-      approval.expires_at &&
-      new Date(approval.expires_at) < new Date()
-    ) {
-      await admin
-        .from("approval_requests")
-        .update({ status: "expired" })
-        .eq("id", approval.id);
-
-      return NextResponse.json({
-        replace_original: true,
-        blocks: [
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: ":hourglass: This request has expired and can no longer be actioned.",
-            },
-          },
-        ],
-      });
-    }
-
-    // Check if rejection reason is required.
-    const reasonRequired =
-      decision === "reject" &&
-      (await isRejectionReasonRequired(approval.org_id, {
-        require_rejection_reason: approval.require_rejection_reason,
-        priority: approval.priority,
-      }));
-
-    // If rejection reason is required, open the modal.
-    if (reasonRequired) {
-      const opened = await openSlackModal({
-        triggerId,
-        action: decision,
-        requestId,
-        title: approval.title,
-        reasonRequired: true,
-      });
-
-      if (!opened) {
-        return NextResponse.json({
-          replace_original: true,
-          blocks: [
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: ":x: Failed to open the reason dialog. Please try again or use the dashboard.",
-              },
-            },
-          ],
-        });
-      }
-
-      return NextResponse.json({ ok: true });
-    }
-
-    // Otherwise, apply the decision immediately (one click, no modal).
+    const responseUrl = payload.response_url;
     const slackUserId = payload.user?.id ?? "unknown";
     const slackUsername = payload.user?.username ?? payload.user?.name ?? "Slack User";
+    const triggerId = payload.trigger_id;
 
-    const result = await applyDecisionAndRespond({
-      decision,
-      requestId,
-      slackUserId,
-      slackUsername,
-    });
+    // Acknowledge immediately (Slack requires response within 3 seconds).
+    // All processing happens in the background via response_url.
+    const backgroundProcess = async () => {
+      try {
+        const admin = createAdminClient();
+        const { data: approval, error: fetchError } = await admin
+          .from("approval_requests")
+          .select("id, status, expires_at, org_id, require_rejection_reason, priority, title, callback_url, callback_headers, connection_id, metadata")
+          .eq("id", requestId)
+          .single();
 
-    if ("response_action" in result) {
-      return NextResponse.json({
-        replace_original: true,
-        blocks: [
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: ":x: Failed to process the decision. Please try the dashboard.",
-            },
-          },
-        ],
-      });
-    }
+        if (fetchError || !approval || approval.status !== "pending") {
+          if (responseUrl) {
+            await fetch(responseUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                replace_original: true,
+                blocks: [{
+                  type: "section",
+                  text: { type: "mrkdwn", text: !approval ? ":warning: Request not found." : `:information_source: Already ${approval.status}.` },
+                }],
+              }),
+            });
+          }
+          return;
+        }
 
-    return NextResponse.json({
-      replace_original: true,
-      blocks: buildResponseBlocks(approval.title, decision, slackUsername),
-    });
+        // Check if rejection reason is required.
+        const reasonRequired =
+          decision === "reject" &&
+          (await isRejectionReasonRequired(approval.org_id, {
+            require_rejection_reason: approval.require_rejection_reason,
+            priority: approval.priority,
+          }));
+
+        if (reasonRequired && triggerId) {
+          await openSlackModal({
+            triggerId,
+            action: decision,
+            requestId,
+            title: approval.title,
+            reasonRequired: true,
+          });
+          return;
+        }
+
+        // Apply the decision.
+        const result = await applyDecisionAndRespond({
+          decision,
+          requestId,
+          slackUserId,
+          slackUsername,
+        });
+
+        if ("response_action" in result) {
+          return;
+        }
+
+        // Update the original message.
+        if (responseUrl) {
+          await fetch(responseUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              replace_original: true,
+              blocks: buildResponseBlocks(approval.title, decision, slackUsername),
+            }),
+          });
+        }
+      } catch (err) {
+        console.error("[Slack Interact] Background processing error:", err);
+      }
+    };
+
+    // Process in background after responding to Slack.
+    after(backgroundProcess);
+
+    // Return 200 immediately to Slack.
+    return new NextResponse("", { status: 200 });
   }
 
   // -------------------------------------------------------------------------
