@@ -55,20 +55,20 @@ export default async function AnalyticsPage() {
   const orgId = membership.org_id;
   const admin = createAdminClient();
 
-  const [
-    { count: totalCount },
-    { count: pendingCount },
-    { count: approvedCount },
-    { count: rejectedCount },
-  ] = await Promise.all([
+  const [totalResult, pendingResult, approvedResult, rejectedResult] = await Promise.all([
     admin.from("approval_requests").select("*", { count: "exact", head: true }).eq("org_id", orgId),
     admin.from("approval_requests").select("*", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "pending"),
     admin.from("approval_requests").select("*", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "approved"),
     admin.from("approval_requests").select("*", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "rejected"),
   ]);
 
-  const approved = approvedCount ?? 0;
-  const rejected = rejectedCount ?? 0;
+  const totalCount = totalResult.count ?? 0;
+  const pendingCount = pendingResult.count ?? 0;
+  const approvedCount = approvedResult.count ?? 0;
+  const rejectedCount = rejectedResult.count ?? 0;
+
+  const approved = approvedCount;
+  const rejected = rejectedCount;
   const decided = approved + rejected;
   const approvalRate = decided > 0 ? Math.round((approved / decided) * 10000) / 100 : 0;
 
@@ -76,10 +76,12 @@ export default async function AnalyticsPage() {
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
 
-  const [{ count: volumeThisWeek }, { count: volumeLastWeek }] = await Promise.all([
+  const [thisWeekResult, lastWeekResult] = await Promise.all([
     admin.from("approval_requests").select("*", { count: "exact", head: true }).eq("org_id", orgId).gte("created_at", oneWeekAgo.toISOString()),
     admin.from("approval_requests").select("*", { count: "exact", head: true }).eq("org_id", orgId).gte("created_at", twoWeeksAgo.toISOString()).lt("created_at", oneWeekAgo.toISOString()),
   ]);
+  const volumeThisWeek = thisWeekResult.count ?? 0;
+  const volumeLastWeek = lastWeekResult.count ?? 0;
 
   const { data: decidedApprovals } = await admin
     .from("approval_requests")
@@ -98,7 +100,7 @@ export default async function AnalyticsPage() {
     avgResponseTimeMs = Math.round(totalMs / decidedApprovals.length);
   }
 
-  const trend = calculateTrend(volumeThisWeek ?? 0, volumeLastWeek ?? 0);
+  const trend = calculateTrend(volumeThisWeek, volumeLastWeek);
 
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const { data: recentApprovals } = await admin
@@ -167,9 +169,9 @@ export default async function AnalyticsPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Pending Approvals"
-          value={pendingCount ?? 0}
+          value={pendingCount}
           icon={Clock}
-          subtitle={`${totalCount ?? 0} total requests`}
+          subtitle={`${totalCount} total requests`}
           iconColor="text-amber-500"
         />
         <StatCard
@@ -188,7 +190,7 @@ export default async function AnalyticsPage() {
         />
         <StatCard
           title="Volume This Week"
-          value={volumeThisWeek ?? 0}
+          value={volumeThisWeek}
           icon={BarChart3}
           trend={trend !== null ? { value: trend, label: "vs last week" } : undefined}
           subtitle={trend === null ? "No data from last week" : undefined}
