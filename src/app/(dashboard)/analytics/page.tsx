@@ -53,7 +53,21 @@ export default async function AnalyticsPage() {
   const { membership } = ctx;
 
   const orgId = membership.org_id;
-  const admin = createAdminClient();
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch (e) {
+    console.error("[Analytics] Failed to create admin client:", e);
+    return (
+      <PageContainer wide>
+        <PageHeader title="Analytics" description="Unable to load analytics." />
+        <p className="text-muted-foreground">Failed to connect to database. Please try again later.</p>
+      </PageContainer>
+    );
+  }
+
+  try {
 
   const [totalResult, pendingResult, approvedResult, rejectedResult] = await Promise.all([
     admin.from("approval_requests").select("*", { count: "exact", head: true }).eq("org_id", orgId),
@@ -210,4 +224,13 @@ export default async function AnalyticsPage() {
       )}
     </PageContainer>
   );
+  } catch (e) {
+    console.error("[Analytics] Page render error:", e);
+    return (
+      <PageContainer wide>
+        <PageHeader title="Analytics" description="Approval statistics and trends." />
+        <p className="text-muted-foreground">Something went wrong loading analytics. Please try again later.</p>
+      </PageContainer>
+    );
+  }
 }
