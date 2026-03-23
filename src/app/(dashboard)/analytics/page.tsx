@@ -54,18 +54,7 @@ export default async function AnalyticsPage() {
 
   const orgId = membership.org_id;
 
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch (e) {
-    console.error("[Analytics] Failed to create admin client:", e);
-    return (
-      <PageContainer wide>
-        <PageHeader title="Analytics" description="Unable to load analytics." />
-        <p className="text-muted-foreground">Failed to connect to database. Please try again later.</p>
-      </PageContainer>
-    );
-  }
+  const admin = createAdminClient();
 
   try {
 
@@ -97,21 +86,27 @@ export default async function AnalyticsPage() {
   const volumeThisWeek = thisWeekResult.count ?? 0;
   const volumeLastWeek = lastWeekResult.count ?? 0;
 
-  const { data: decidedApprovals } = await admin
+  const { data: decidedApprovals, error: decidedError } = await admin
     .from("approval_requests")
-    .select("created_at, decided_at")
+    .select("created_at, decided_at, status")
     .eq("org_id", orgId)
-    .not("decided_at", "is", null)
-    .in("status", ["approved", "rejected"]);
+    .not("decided_at", "is", null);
+
+  const filteredDecided = (decidedApprovals ?? []).filter(
+    (r) => r.status === "approved" || r.status === "rejected"
+  );
 
   let avgResponseTimeMs = 0;
-  if (decidedApprovals && decidedApprovals.length > 0) {
-    const totalMs = decidedApprovals.reduce((sum, row) => {
-      const created = new Date(row.created_at).getTime();
-      const decidedTime = new Date(row.decided_at!).getTime();
-      return sum + (decidedTime - created);
-    }, 0);
-    avgResponseTimeMs = Math.round(totalMs / decidedApprovals.length);
+  if (filteredDecided.length > 0) {
+    const validRows = filteredDecided.filter((r) => r.decided_at);
+    if (validRows.length > 0) {
+      const totalMs = validRows.reduce((sum, row) => {
+        const created = new Date(row.created_at).getTime();
+        const decidedTime = new Date(row.decided_at).getTime();
+        return sum + Math.max(0, decidedTime - created);
+      }, 0);
+      avgResponseTimeMs = Math.round(totalMs / validRows.length);
+    }
   }
 
   const trend = calculateTrend(volumeThisWeek, volumeLastWeek);
