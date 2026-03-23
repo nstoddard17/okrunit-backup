@@ -259,12 +259,15 @@ export async function answerCallbackQuery(
  * Edit an existing Telegram message to replace it with updated text
  * (e.g. after a decision has been made).
  *
+ * Optionally include an inline keyboard via reply_markup.
+ *
  * Errors are caught and logged -- must never break the main flow.
  */
 export async function editMessage(
   chatId: string,
   messageId: number,
   text: string,
+  replyMarkup?: object,
 ): Promise<void> {
   const botToken = getBotToken();
   if (!botToken) return;
@@ -272,22 +275,28 @@ export async function editMessage(
   try {
     const url = `${TELEGRAM_API_BASE}/bot${botToken}/editMessageText`;
 
+    const body: Record<string, unknown> = {
+      chat_id: chatId,
+      message_id: messageId,
+      text,
+      parse_mode: "MarkdownV2",
+    };
+
+    if (replyMarkup) {
+      body.reply_markup = replyMarkup;
+    }
+
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        message_id: messageId,
-        text,
-        parse_mode: "MarkdownV2",
-      }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
-      const body = await response.text();
+      const responseBody = await response.text();
       console.error(
         `[Telegram] editMessageText returned ${response.status}:`,
-        body,
+        responseBody,
       );
     }
   } catch (err) {

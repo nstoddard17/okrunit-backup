@@ -3,11 +3,16 @@
 // ---------------------------------------------------------------------------
 //
 // Receives Action.Submit payloads from Teams Adaptive Cards when a user
-// clicks "Approve" or "Reject". Optionally verifies an HMAC signature,
-// processes the action, and returns an updated card showing the decision.
+// clicks "Approve" or "Reject".
 //
-// Teams sends these as POST requests with JSON body containing the
-// action data from the Adaptive Card's Action.Submit.
+// Flow:
+//   1. User clicks Approve/Reject (Action.Submit with action + requestId)
+//   2. If no comment field is present, return an updated card with a TextInput
+//      and Submit button for the user to enter a reason
+//   3. When submitted again with the comment field, apply the decision
+//
+// If a rejection reason is required, the TextInput is marked as required
+// and there is no "Skip" option.
 // ---------------------------------------------------------------------------
 
 import { createHmac, timingSafeEqual } from "crypto";
@@ -16,17 +21,12 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
 import { deliverCallback } from "@/lib/api/callbacks";
+import { isRejectionReasonRequired } from "@/lib/api/rejection-reason";
 
 // ---------------------------------------------------------------------------
 // Signature Verification (optional)
 // ---------------------------------------------------------------------------
 
-/**
- * Verify the Teams HMAC signature if TEAMS_SIGNING_SECRET is configured.
- *
- * When set, the caller is expected to send an `X-OKRunit-Signature` header
- * containing `sha256=<hex digest>` computed over the raw body.
- */
 function verifyTeamsSignature(
   signingSecret: string,
   rawBody: string,
@@ -50,10 +50,37 @@ function buildResponseCard(
   title: string,
   decision: string,
   userName: string,
+  comment?: string,
 ): object {
   const isApproved = decision === "approved";
   const statusEmoji = isApproved ? "\u2705" : "\u274C";
   const statusLabel = isApproved ? "Approved" : "Rejected";
+
+  const bodyItems: object[] = [
+    {
+      type: "TextBlock",
+      text: `${statusEmoji} ${statusLabel}: **${title}**`,
+      wrap: true,
+      weight: "Bolder",
+    },
+    {
+      type: "TextBlock",
+      text: `by ${userName}`,
+      wrap: true,
+      isSubtle: true,
+      size: "Small",
+    },
+  ];
+
+  if (comment) {
+    bodyItems.push({
+      type: "TextBlock",
+      text: `Reason: ${comment}`,
+      wrap: true,
+      isSubtle: true,
+      size: "Small",
+    });
+  }
 
   return {
     type: "message",
@@ -65,21 +92,7 @@ function buildResponseCard(
           $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
           type: "AdaptiveCard",
           version: "1.4",
-          body: [
-            {
-              type: "TextBlock",
-              text: `${statusEmoji} ${statusLabel}: **${title}**`,
-              wrap: true,
-              weight: "Bolder",
-            },
-            {
-              type: "TextBlock",
-              text: `by ${userName}`,
-              wrap: true,
-              isSubtle: true,
-              size: "Small",
-            },
-          ],
+          body: bodyItems,
         },
       },
     ],
@@ -105,6 +118,86 @@ function buildErrorCard(message: string): object {
               wrap: true,
             },
           ],
+        },
+      },
+    ],
+  };
+}
+
+/**
+ * Build an Adaptive Card that prompts for a reason before applying.
+ */
+function buildReasonPromptCard(
+  title: string,
+  action: string,
+  requestId: string,
+  reasonRequired: boolean,
+): object {
+  const actionLabel = action === "approve" ? "approval" : "rejection";
+
+  const bodyItems: object[] = [
+    {
+      type: "TextBlock",
+      text: `Would you like to add a reason for your ${actionLabel}?`,
+      wrap: true,
+      weight: "Bolder",
+    },
+    {
+      type: "TextBlock",
+      text: `**${title}**`,
+      wrap: true,
+    },
+    {
+      type: "Input.Text",
+      id: "comment",
+      placeholder: "Enter your reason here...",
+      isMultiline: true,
+      isRequired: reasonRequired,
+      label: `Reason for ${actionLabel}`,
+      errorMessage: reasonRequired
+        ? `A reason is required for this ${actionLabel}.`
+        : undefined,
+    },
+  ];
+
+  const actions: object[] = [
+    {
+      type: "Action.Submit",
+      title: `Submit ${action === "approve" ? "Approval" : "Rejection"}`,
+      data: {
+        action,
+        requestId,
+        hasComment: true,
+      },
+    },
+  ];
+
+  // Only show "Skip" if reason is not required.
+  if (!reasonRequired) {
+    actions.push({
+      type: "Action.Submit",
+      title: "Skip",
+      data: {
+        action,
+        requestId,
+        hasComment: true,
+        skipReason: true,
+      },
+    });
+  }
+
+  return {
+    type: "message",
+    attachments: [
+      {
+        contentType: "application/vnd.microsoft.card.adaptive",
+        contentUrl: null,
+        content: {
+          $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
+          type: "AdaptiveCard",
+          version: "1.4",
+          body: bodyItems,
+          actions,
         },
       },
     ],
@@ -140,6 +233,9 @@ export async function POST(request: Request) {
     value?: {
       action?: string;
       requestId?: string;
+      comment?: string;
+      hasComment?: boolean;
+      skipReason?: boolean;
     };
     from?: {
       id?: string;
@@ -157,8 +253,6 @@ export async function POST(request: Request) {
   }
 
   // 4. Extract action data.
-  //    Teams Adaptive Card Action.Submit sends the data in `value`.
-  //    Bot Framework wraps it further; we support both shapes.
   const actionData = payload.value;
 
   if (!actionData?.action || !actionData?.requestId) {
@@ -168,7 +262,6 @@ export async function POST(request: Request) {
   const actionType = actionData.action;
   const requestId = actionData.requestId;
 
-  // 5. Determine the decision.
   let decision: "approve" | "reject";
   if (actionType === "approve") {
     decision = "approve";
@@ -183,7 +276,7 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
 
-  // 6. Fetch the approval request.
+  // 5. Fetch the approval request.
   const { data: approval, error: fetchError } = await admin
     .from("approval_requests")
     .select("*")
@@ -192,11 +285,13 @@ export async function POST(request: Request) {
 
   if (fetchError || !approval) {
     return NextResponse.json(
-      buildErrorCard("Approval request not found. It may have been deleted."),
+      buildErrorCard(
+        "Approval request not found. It may have been deleted.",
+      ),
     );
   }
 
-  // 7. Check that the request is still pending.
+  // 6. Check that the request is still pending.
   if (approval.status !== "pending") {
     const statusLabel =
       approval.status.charAt(0).toUpperCase() + approval.status.slice(1);
@@ -208,7 +303,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // 8. Check for lazy expiration.
+  // 7. Check for lazy expiration.
   if (approval.expires_at && new Date(approval.expires_at) < new Date()) {
     await admin
       .from("approval_requests")
@@ -222,11 +317,38 @@ export async function POST(request: Request) {
     );
   }
 
-  // 9. Apply the decision.
+  // -------------------------------------------------------------------------
+  // If this is the first submit (no hasComment flag), show the reason prompt
+  // -------------------------------------------------------------------------
+  if (!actionData.hasComment) {
+    // Check if rejection reason is required.
+    const reasonRequired =
+      decision === "reject" &&
+      (await isRejectionReasonRequired(approval.org_id, {
+        require_rejection_reason: approval.require_rejection_reason,
+        priority: approval.priority,
+      }));
+
+    return NextResponse.json(
+      buildReasonPromptCard(
+        approval.title,
+        decision,
+        requestId,
+        reasonRequired,
+      ),
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // Second submit: apply the decision with the comment
+  // -------------------------------------------------------------------------
+  const comment =
+    actionData.skipReason ? undefined : actionData.comment?.trim() || undefined;
+
+  // 8. Apply the decision.
   const newStatus = decision === "approve" ? "approved" : "rejected";
   const decidedAt = new Date().toISOString();
 
-  // Try to find a matching user in the org for decided_by.
   const { data: userProfile } = await admin
     .from("user_profiles")
     .select("id")
@@ -236,14 +358,20 @@ export async function POST(request: Request) {
 
   const decidedBy = userProfile?.id ?? null;
 
+  const updatePayload: Record<string, unknown> = {
+    status: newStatus,
+    decided_by: decidedBy,
+    decided_at: decidedAt,
+    decision_source: "teams",
+  };
+
+  if (comment) {
+    updatePayload.decision_comment = comment;
+  }
+
   const { data: updated, error: updateError } = await admin
     .from("approval_requests")
-    .update({
-      status: newStatus,
-      decided_by: decidedBy,
-      decided_at: decidedAt,
-      decision_source: "teams",
-    })
+    .update(updatePayload)
     .eq("id", requestId)
     .select("*")
     .single();
@@ -257,7 +385,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // 10. Audit log (fire-and-forget).
+  // 9. Audit log (fire-and-forget).
   logAuditEvent({
     orgId: approval.org_id,
     userId: decidedBy ?? undefined,
@@ -267,12 +395,13 @@ export async function POST(request: Request) {
     details: {
       decision,
       decision_source: "teams",
+      decision_comment: comment ?? null,
       teams_user_id: teamsUserId,
       teams_user_name: teamsUserName,
     },
   });
 
-  // 11. Deliver callback if configured (fire-and-forget).
+  // 10. Deliver callback if configured (fire-and-forget).
   if (approval.callback_url) {
     deliverCallback({
       requestId: approval.id,
@@ -293,8 +422,8 @@ export async function POST(request: Request) {
     });
   }
 
-  // 12. Return an updated card that replaces the original.
+  // 11. Return an updated card that replaces the original.
   return NextResponse.json(
-    buildResponseCard(approval.title, newStatus, teamsUserName),
+    buildResponseCard(approval.title, newStatus, teamsUserName, comment),
   );
 }

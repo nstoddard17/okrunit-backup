@@ -3,14 +3,17 @@
 // ---------------------------------------------------------------------------
 //
 // Receives interaction payloads from Discord when a user clicks an
-// "Approve" or "Reject" button. Verifies the Discord request signature
-// (Ed25519), processes the action, and returns an updated message.
+// "Approve" or "Reject" button, or submits a modal with a reason.
 //
-// Discord sends these as POST requests with JSON body.
+// Flow:
+//   1. User clicks Approve/Reject button (MESSAGE_COMPONENT)
+//   2. Bot responds with a Modal containing a text input for the reason
+//   3. User submits modal (MODAL_SUBMIT) -> decision is applied with reason
+//
+// If the rejection reason is not required, the modal text input is optional.
 //
 // Required env vars:
 //   DISCORD_PUBLIC_KEY  -- The application's public key for signature verification
-//   DISCORD_APP_ID      -- The application ID (optional, for richer responses)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";
@@ -18,23 +21,42 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
 import { deliverCallback } from "@/lib/api/callbacks";
+import { isRejectionReasonRequired } from "@/lib/api/rejection-reason";
 
 // ---------------------------------------------------------------------------
 // Discord Interaction Types
 // ---------------------------------------------------------------------------
 
-/** Discord interaction types. */
 const INTERACTION_TYPE = {
   PING: 1,
   APPLICATION_COMMAND: 2,
   MESSAGE_COMPONENT: 3,
+  APPLICATION_COMMAND_AUTOCOMPLETE: 4,
+  MODAL_SUBMIT: 5,
 } as const;
 
-/** Discord interaction callback types. */
 const CALLBACK_TYPE = {
   PONG: 1,
   CHANNEL_MESSAGE_WITH_SOURCE: 4,
+  DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE: 5,
+  DEFERRED_UPDATE_MESSAGE: 6,
   UPDATE_MESSAGE: 7,
+  APPLICATION_COMMAND_AUTOCOMPLETE_RESULT: 8,
+  MODAL: 9,
+} as const;
+
+/** Discord component types. */
+const COMPONENT_TYPE = {
+  ACTION_ROW: 1,
+  BUTTON: 2,
+  STRING_SELECT: 3,
+  TEXT_INPUT: 4,
+} as const;
+
+/** Discord text input styles. */
+const TEXT_INPUT_STYLE = {
+  SHORT: 1,
+  PARAGRAPH: 2,
 } as const;
 
 interface DiscordUser {
@@ -46,7 +68,15 @@ interface DiscordUser {
 
 interface DiscordInteractionData {
   custom_id: string;
-  component_type: number;
+  component_type?: number;
+  components?: Array<{
+    type: number;
+    components?: Array<{
+      type: number;
+      custom_id: string;
+      value?: string;
+    }>;
+  }>;
 }
 
 interface DiscordInteraction {
@@ -66,11 +96,6 @@ interface DiscordInteraction {
 // Ed25519 Signature Verification
 // ---------------------------------------------------------------------------
 
-/**
- * Verify the Discord request signature using Ed25519.
- *
- * @see https://discord.com/developers/docs/interactions/overview#setting-up-an-endpoint-verifying-security-request-headers
- */
 async function verifyDiscordSignature(
   publicKey: string,
   signature: string,
@@ -78,7 +103,6 @@ async function verifyDiscordSignature(
   body: string,
 ): Promise<boolean> {
   try {
-    // Import the public key as a CryptoKey for Ed25519 verification.
     const keyBytes = hexToUint8Array(publicKey);
     const cryptoKey = await crypto.subtle.importKey(
       "raw",
@@ -88,7 +112,6 @@ async function verifyDiscordSignature(
       ["verify"],
     );
 
-    // The message to verify is timestamp + body.
     const message = new TextEncoder().encode(timestamp + body);
     const signatureBytes = hexToUint8Array(signature);
 
@@ -104,7 +127,6 @@ async function verifyDiscordSignature(
   }
 }
 
-/** Convert a hex string to a Uint8Array. */
 function hexToUint8Array(hex: string): Uint8Array {
   const length = hex.length / 2;
   const bytes = new Uint8Array(length);
@@ -118,7 +140,6 @@ function hexToUint8Array(hex: string): Uint8Array {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Map a decision string to a Discord-friendly display string with emoji. */
 function decisionEmoji(decision: string): string {
   const map: Record<string, string> = {
     approved: "Approved",
@@ -127,43 +148,39 @@ function decisionEmoji(decision: string): string {
   return map[decision] ?? decision;
 }
 
-/** Map a decision to an embed color. */
 function decisionColor(decision: string): number {
   const map: Record<string, number> = {
-    approved: 0x57f287,  // Green
-    rejected: 0xed4245,  // Red
+    approved: 0x57f287,
+    rejected: 0xed4245,
   };
   return map[decision] ?? 0x5865f2;
 }
 
-/**
- * Build a response that updates the original message to show the decision.
- */
 function buildDecisionResponse(
   title: string,
   decision: string,
   discordUser: string,
+  comment?: string,
 ): object {
+  const commentText = comment ? `\n\n**Reason:** ${comment}` : "";
+
   return {
     type: CALLBACK_TYPE.UPDATE_MESSAGE,
     data: {
       embeds: [
         {
           title: `Request ${decisionEmoji(decision)}`,
-          description: `**${title}** was **${decisionEmoji(decision)}** by ${discordUser}`,
+          description: `**${title}** was **${decisionEmoji(decision)}** by ${discordUser}${commentText}`,
           color: decisionColor(decision),
           footer: { text: "OKRunit" },
           timestamp: new Date().toISOString(),
         },
       ],
-      components: [], // Remove buttons after action
+      components: [],
     },
   };
 }
 
-/**
- * Build an error/info response that updates the original message.
- */
 function buildInfoResponse(message: string): object {
   return {
     type: CALLBACK_TYPE.UPDATE_MESSAGE,
@@ -171,12 +188,194 @@ function buildInfoResponse(message: string): object {
       embeds: [
         {
           description: message,
-          color: 0xfee75c, // Yellow for warnings
+          color: 0xfee75c,
           footer: { text: "OKRunit" },
         },
       ],
-      components: [], // Remove buttons
+      components: [],
     },
+  };
+}
+
+/**
+ * Build a modal response that prompts the user for a reason.
+ */
+function buildReasonModal(
+  action: string,
+  requestId: string,
+  title: string,
+  reasonRequired: boolean,
+): object {
+  const actionLabel = action === "approve" ? "Approval" : "Rejection";
+
+  return {
+    type: CALLBACK_TYPE.MODAL,
+    data: {
+      custom_id: `okrunit:modal:${action}:${requestId}`,
+      title: `${actionLabel} Reason`,
+      components: [
+        {
+          type: COMPONENT_TYPE.ACTION_ROW,
+          components: [
+            {
+              type: COMPONENT_TYPE.TEXT_INPUT,
+              custom_id: "reason",
+              label: `Reason for ${actionLabel.toLowerCase()}`,
+              style: TEXT_INPUT_STYLE.PARAGRAPH,
+              placeholder: "Enter your reason here...",
+              required: reasonRequired,
+              min_length: reasonRequired ? 1 : 0,
+              max_length: 4000,
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Core: Apply the decision
+// ---------------------------------------------------------------------------
+
+async function applyDecision(params: {
+  decision: "approve" | "reject";
+  requestId: string;
+  discordUserId: string;
+  discordUsername: string;
+  comment?: string;
+}): Promise<
+  | { success: true; approval: Record<string, unknown>; updated: Record<string, unknown>; newStatus: string }
+  | { success: false; response: object }
+> {
+  const { decision, requestId, discordUserId, discordUsername, comment } =
+    params;
+  const admin = createAdminClient();
+
+  // Fetch the approval request.
+  const { data: approval, error: fetchError } = await admin
+    .from("approval_requests")
+    .select("*")
+    .eq("id", requestId)
+    .single();
+
+  if (fetchError || !approval) {
+    return {
+      success: false,
+      response: buildInfoResponse(
+        "Approval request not found. It may have been deleted.",
+      ),
+    };
+  }
+
+  if (approval.status !== "pending") {
+    return {
+      success: false,
+      response: buildInfoResponse(
+        `This request has already been **${approval.status}**. No action taken.`,
+      ),
+    };
+  }
+
+  if (approval.expires_at && new Date(approval.expires_at) < new Date()) {
+    await admin
+      .from("approval_requests")
+      .update({ status: "expired" })
+      .eq("id", approval.id);
+
+    return {
+      success: false,
+      response: buildInfoResponse(
+        "This request has expired and can no longer be actioned.",
+      ),
+    };
+  }
+
+  const newStatus = decision === "approve" ? "approved" : "rejected";
+  const decidedAt = new Date().toISOString();
+
+  const { data: userProfile } = await admin
+    .from("user_profiles")
+    .select("id")
+    .eq("org_id", approval.org_id)
+    .limit(1)
+    .maybeSingle();
+
+  const decidedBy = userProfile?.id ?? null;
+
+  const updatePayload: Record<string, unknown> = {
+    status: newStatus,
+    decided_by: decidedBy,
+    decided_at: decidedAt,
+    decision_source: "discord",
+  };
+
+  if (comment) {
+    updatePayload.decision_comment = comment;
+  }
+
+  const { data: updated, error: updateError } = await admin
+    .from("approval_requests")
+    .update(updatePayload)
+    .eq("id", requestId)
+    .select("*")
+    .single();
+
+  if (updateError || !updated) {
+    console.error(
+      "[Discord Interact] Failed to update approval:",
+      updateError,
+    );
+    return {
+      success: false,
+      response: buildInfoResponse(
+        "Failed to process your action. Please try again from the dashboard.",
+      ),
+    };
+  }
+
+  // Audit log (fire-and-forget).
+  logAuditEvent({
+    orgId: approval.org_id,
+    userId: decidedBy ?? undefined,
+    action: `approval.${newStatus}`,
+    resourceType: "approval_request",
+    resourceId: requestId,
+    details: {
+      decision,
+      decision_source: "discord",
+      decision_comment: comment ?? null,
+      discord_user_id: discordUserId,
+      discord_username: discordUsername,
+    },
+  });
+
+  // Deliver callback if configured (fire-and-forget).
+  if (approval.callback_url) {
+    deliverCallback({
+      requestId: approval.id,
+      connectionId: approval.connection_id,
+      callbackUrl: approval.callback_url,
+      callbackHeaders:
+        (approval.callback_headers as Record<string, string>) ?? undefined,
+      payload: {
+        id: updated.id,
+        status: updated.status,
+        decided_by: updated.decided_by,
+        decided_at: updated.decided_at,
+        decision_comment: updated.decision_comment,
+        title: updated.title,
+        priority: updated.priority,
+        metadata: updated.metadata,
+      },
+    });
+  }
+
+  return {
+    success: true,
+    approval: approval as Record<string, unknown>,
+    updated: updated as Record<string, unknown>,
+    newStatus,
   };
 }
 
@@ -241,161 +440,141 @@ export async function POST(request: Request) {
     return NextResponse.json({ type: CALLBACK_TYPE.PONG });
   }
 
-  // 5. We only handle MESSAGE_COMPONENT (button clicks).
-  if (interaction.type !== INTERACTION_TYPE.MESSAGE_COMPONENT) {
-    return NextResponse.json({ type: CALLBACK_TYPE.PONG });
-  }
+  // -------------------------------------------------------------------------
+  // Handle MESSAGE_COMPONENT (button clicks) -- show the reason modal
+  // -------------------------------------------------------------------------
+  if (interaction.type === INTERACTION_TYPE.MESSAGE_COMPONENT) {
+    const customId = interaction.data?.custom_id;
+    if (!customId) {
+      return NextResponse.json({ type: CALLBACK_TYPE.PONG });
+    }
 
-  const customId = interaction.data?.custom_id;
-  if (!customId) {
-    return NextResponse.json({ type: CALLBACK_TYPE.PONG });
-  }
+    const parts = customId.split(":");
+    if (parts.length !== 3 || parts[0] !== "okrunit") {
+      return NextResponse.json({ type: CALLBACK_TYPE.PONG });
+    }
 
-  // 6. Parse the custom_id to determine action and request ID.
-  //    Format: okrunit:approve:<requestId> or okrunit:reject:<requestId>
-  const parts = customId.split(":");
-  if (parts.length !== 3 || parts[0] !== "okrunit") {
-    // Not our button, just acknowledge.
-    return NextResponse.json({ type: CALLBACK_TYPE.PONG });
-  }
+    const actionStr = parts[1];
+    const requestId = parts[2];
 
-  const actionStr = parts[1];
-  const requestId = parts[2];
+    if (actionStr !== "approve" && actionStr !== "reject") {
+      return NextResponse.json({ type: CALLBACK_TYPE.PONG });
+    }
 
-  let decision: "approve" | "reject";
-  if (actionStr === "approve") {
-    decision = "approve";
-  } else if (actionStr === "reject") {
-    decision = "reject";
-  } else {
-    return NextResponse.json({ type: CALLBACK_TYPE.PONG });
-  }
-
-  // Resolve the Discord user from the interaction.
-  const discordUser =
-    interaction.member?.user ?? interaction.user;
-  const discordUserId = discordUser?.id ?? "unknown";
-  const discordUsername =
-    discordUser?.global_name ?? discordUser?.username ?? "Discord User";
-
-  const admin = createAdminClient();
-
-  // 7. Fetch the approval request.
-  const { data: approval, error: fetchError } = await admin
-    .from("approval_requests")
-    .select("*")
-    .eq("id", requestId)
-    .single();
-
-  if (fetchError || !approval) {
-    return NextResponse.json(
-      buildInfoResponse(
-        "Approval request not found. It may have been deleted.",
-      ),
-    );
-  }
-
-  // 8. Check that the request is still pending.
-  if (approval.status !== "pending") {
-    const statusLabel =
-      approval.status.charAt(0).toUpperCase() + approval.status.slice(1);
-
-    return NextResponse.json(
-      buildInfoResponse(
-        `This request has already been **${statusLabel.toLowerCase()}**. No action taken.`,
-      ),
-    );
-  }
-
-  // 9. Check for lazy expiration.
-  if (approval.expires_at && new Date(approval.expires_at) < new Date()) {
-    await admin
+    // Validate the request exists and is still actionable.
+    const admin = createAdminClient();
+    const { data: approval, error: fetchError } = await admin
       .from("approval_requests")
-      .update({ status: "expired" })
-      .eq("id", approval.id);
+      .select("id, status, expires_at, org_id, require_rejection_reason, priority, title")
+      .eq("id", requestId)
+      .single();
 
+    if (fetchError || !approval) {
+      return NextResponse.json(
+        buildInfoResponse(
+          "Approval request not found. It may have been deleted.",
+        ),
+      );
+    }
+
+    if (approval.status !== "pending") {
+      return NextResponse.json(
+        buildInfoResponse(
+          `This request has already been **${approval.status}**. No action taken.`,
+        ),
+      );
+    }
+
+    if (
+      approval.expires_at &&
+      new Date(approval.expires_at) < new Date()
+    ) {
+      await admin
+        .from("approval_requests")
+        .update({ status: "expired" })
+        .eq("id", approval.id);
+
+      return NextResponse.json(
+        buildInfoResponse(
+          "This request has expired and can no longer be actioned.",
+        ),
+      );
+    }
+
+    // Check if rejection reason is required.
+    const reasonRequired =
+      actionStr === "reject" &&
+      (await isRejectionReasonRequired(approval.org_id, {
+        require_rejection_reason: approval.require_rejection_reason,
+        priority: approval.priority,
+      }));
+
+    // Show the modal.
     return NextResponse.json(
-      buildInfoResponse(
-        "This request has expired and can no longer be actioned.",
-      ),
+      buildReasonModal(actionStr, requestId, approval.title, reasonRequired),
     );
   }
 
-  // 10. Apply the decision.
-  const newStatus = decision === "approve" ? "approved" : "rejected";
-  const decidedAt = new Date().toISOString();
+  // -------------------------------------------------------------------------
+  // Handle MODAL_SUBMIT -- apply the decision with the reason
+  // -------------------------------------------------------------------------
+  if (interaction.type === INTERACTION_TYPE.MODAL_SUBMIT) {
+    const customId = interaction.data?.custom_id;
+    if (!customId) {
+      return NextResponse.json({ type: CALLBACK_TYPE.PONG });
+    }
 
-  // Try to find the Discord user in our user_profiles by matching within
-  // the org. If not found, we use a null decided_by and record the Discord
-  // user info in the audit details.
-  const { data: userProfile } = await admin
-    .from("user_profiles")
-    .select("id")
-    .eq("org_id", approval.org_id)
-    .limit(1)
-    .maybeSingle();
+    // Format: okrunit:modal:<action>:<requestId>
+    const parts = customId.split(":");
+    if (parts.length !== 4 || parts[0] !== "okrunit" || parts[1] !== "modal") {
+      return NextResponse.json({ type: CALLBACK_TYPE.PONG });
+    }
 
-  const decidedBy = userProfile?.id ?? null;
+    const actionStr = parts[2];
+    const requestId = parts[3];
 
-  const { data: updated, error: updateError } = await admin
-    .from("approval_requests")
-    .update({
-      status: newStatus,
-      decided_by: decidedBy,
-      decided_at: decidedAt,
-      decision_source: "discord",
-    })
-    .eq("id", requestId)
-    .select("*")
-    .single();
+    if (actionStr !== "approve" && actionStr !== "reject") {
+      return NextResponse.json({ type: CALLBACK_TYPE.PONG });
+    }
 
-  if (updateError || !updated) {
-    console.error("[Discord Interact] Failed to update approval:", updateError);
-    return NextResponse.json(
-      buildInfoResponse(
-        "Failed to process your action. Please try again from the dashboard.",
-      ),
-    );
-  }
+    // Extract the reason from the modal components.
+    let reason: string | undefined;
+    for (const row of interaction.data?.components ?? []) {
+      for (const component of row.components ?? []) {
+        if (component.custom_id === "reason" && component.value) {
+          reason = component.value.trim();
+        }
+      }
+    }
 
-  // 11. Audit log (fire-and-forget).
-  logAuditEvent({
-    orgId: approval.org_id,
-    userId: decidedBy ?? undefined,
-    action: `approval.${newStatus}`,
-    resourceType: "approval_request",
-    resourceId: requestId,
-    details: {
-      decision,
-      decision_source: "discord",
-      discord_user_id: discordUserId,
-      discord_username: discordUsername,
-    },
-  });
+    // Resolve the Discord user.
+    const discordUser = interaction.member?.user ?? interaction.user;
+    const discordUserId = discordUser?.id ?? "unknown";
+    const discordUsername =
+      discordUser?.global_name ?? discordUser?.username ?? "Discord User";
 
-  // 12. Deliver callback if configured (fire-and-forget).
-  if (approval.callback_url) {
-    deliverCallback({
-      requestId: approval.id,
-      connectionId: approval.connection_id,
-      callbackUrl: approval.callback_url,
-      callbackHeaders:
-        (approval.callback_headers as Record<string, string>) ?? undefined,
-      payload: {
-        id: updated.id,
-        status: updated.status,
-        decided_by: updated.decided_by,
-        decided_at: updated.decided_at,
-        decision_comment: updated.decision_comment,
-        title: updated.title,
-        priority: updated.priority,
-        metadata: updated.metadata,
-      },
+    const result = await applyDecision({
+      decision: actionStr,
+      requestId,
+      discordUserId,
+      discordUsername,
+      comment: reason || undefined,
     });
+
+    if (!result.success) {
+      return NextResponse.json(result.response);
+    }
+
+    return NextResponse.json(
+      buildDecisionResponse(
+        result.approval.title as string,
+        result.newStatus,
+        discordUsername,
+        reason || undefined,
+      ),
+    );
   }
 
-  // 13. Return an updated Discord message that replaces the original.
-  return NextResponse.json(
-    buildDecisionResponse(approval.title, newStatus, discordUsername),
-  );
+  // Unknown interaction type.
+  return NextResponse.json({ type: CALLBACK_TYPE.PONG });
 }

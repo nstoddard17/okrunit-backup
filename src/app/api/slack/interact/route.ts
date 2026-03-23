@@ -3,8 +3,12 @@
 // ---------------------------------------------------------------------------
 //
 // Receives interactive message payloads from Slack when a user clicks an
-// "Approve" or "Reject" button. Verifies the Slack request signature,
-// processes the action, and returns an updated message.
+// "Approve" or "Reject" button, or submits a modal view with a reason.
+//
+// Flow:
+//   1. User clicks Approve/Reject button (block_actions)
+//   2. Bot opens a modal view with a text input for the reason
+//   3. User submits the modal (view_submission) -> decision is applied
 //
 // Slack sends these as POST requests with form-encoded body where the
 // actual payload is in the "payload" field as a JSON string.
@@ -16,26 +20,21 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
 import { deliverCallback } from "@/lib/api/callbacks";
+import { isRejectionReasonRequired } from "@/lib/api/rejection-reason";
 
 // ---------------------------------------------------------------------------
 // Signature Verification
 // ---------------------------------------------------------------------------
 
 const SLACK_SIGNATURE_VERSION = "v0";
-const MAX_TIMESTAMP_DRIFT_SECONDS = 5 * 60; // 5 minutes
+const MAX_TIMESTAMP_DRIFT_SECONDS = 5 * 60;
 
-/**
- * Verify the Slack request signature using HMAC-SHA256.
- *
- * @see https://api.slack.com/authentication/verifying-requests-from-slack
- */
 function verifySlackSignature(
   signingSecret: string,
   timestamp: string,
   rawBody: string,
   expectedSignature: string,
 ): boolean {
-  // Reject replayed requests older than 5 minutes.
   const ts = parseInt(timestamp, 10);
   if (isNaN(ts)) return false;
 
@@ -44,14 +43,12 @@ function verifySlackSignature(
     return false;
   }
 
-  // Compute the expected signature.
   const sigBasestring = `${SLACK_SIGNATURE_VERSION}:${timestamp}:${rawBody}`;
   const computedSignature =
     SLACK_SIGNATURE_VERSION +
     "=" +
     createHmac("sha256", signingSecret).update(sigBasestring).digest("hex");
 
-  // Timing-safe comparison to prevent timing attacks.
   const a = Buffer.from(computedSignature, "utf-8");
   const b = Buffer.from(expectedSignature, "utf-8");
 
@@ -63,7 +60,6 @@ function verifySlackSignature(
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Map a decision string to a Slack-friendly display string. */
 function decisionDisplay(decision: string): string {
   const map: Record<string, string> = {
     approved: ":white_check_mark: Approved",
@@ -72,24 +68,248 @@ function decisionDisplay(decision: string): string {
   return map[decision] ?? decision;
 }
 
-/**
- * Build a replacement message that shows the decision result.
- * This replaces the original interactive message in Slack.
- */
 function buildResponseBlocks(
   title: string,
   decision: string,
   slackUser: string,
+  comment?: string,
 ): object[] {
+  const commentLine = comment ? `\n_Reason: ${comment}_` : "";
+
   return [
     {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `${decisionDisplay(decision)} *${title}*\n_by <@${slackUser}>_`,
+        text: `${decisionDisplay(decision)} *${title}*\n_by <@${slackUser}>_${commentLine}`,
       },
     },
   ];
+}
+
+/**
+ * Open a Slack modal view using the trigger_id from the button interaction.
+ */
+async function openSlackModal(params: {
+  triggerId: string;
+  action: string;
+  requestId: string;
+  title: string;
+  reasonRequired: boolean;
+}): Promise<boolean> {
+  const slackToken = process.env.SLACK_BOT_TOKEN;
+  if (!slackToken) {
+    console.error("[Slack Interact] SLACK_BOT_TOKEN is not set");
+    return false;
+  }
+
+  const actionLabel = params.action === "approve" ? "Approval" : "Rejection";
+
+  const view = {
+    type: "modal",
+    callback_id: "okrunit_reason_modal",
+    private_metadata: JSON.stringify({
+      action: params.action,
+      requestId: params.requestId,
+    }),
+    title: {
+      type: "plain_text",
+      text: `${actionLabel} Reason`,
+    },
+    submit: {
+      type: "plain_text",
+      text: `Submit ${actionLabel}`,
+    },
+    close: {
+      type: "plain_text",
+      text: "Cancel",
+    },
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `You are about to *${params.action}* the request:\n*${params.title}*`,
+        },
+      },
+      {
+        type: "input",
+        block_id: "reason_block",
+        optional: !params.reasonRequired,
+        element: {
+          type: "plain_text_input",
+          action_id: "reason_input",
+          multiline: true,
+          placeholder: {
+            type: "plain_text",
+            text: "Enter your reason here...",
+          },
+        },
+        label: {
+          type: "plain_text",
+          text: `Reason for ${actionLabel.toLowerCase()}`,
+        },
+      },
+    ],
+  };
+
+  try {
+    const response = await fetch("https://slack.com/api/views.open", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${slackToken}`,
+      },
+      body: JSON.stringify({
+        trigger_id: params.triggerId,
+        view,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!result.ok) {
+      console.error("[Slack Interact] Failed to open modal:", result.error);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error("[Slack Interact] Error opening modal:", err);
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Core: Apply the decision
+// ---------------------------------------------------------------------------
+
+async function applyDecisionAndRespond(params: {
+  decision: "approve" | "reject";
+  requestId: string;
+  slackUserId: string;
+  slackUsername: string;
+  comment?: string;
+}): Promise<
+  | { response_action: string }
+  | { approval: Record<string, unknown>; updated: Record<string, unknown>; newStatus: string; slackUserId: string }
+> {
+  const { decision, requestId, slackUserId, slackUsername, comment } = params;
+  const admin = createAdminClient();
+
+  // Fetch the approval request.
+  const { data: approval, error: fetchError } = await admin
+    .from("approval_requests")
+    .select("*")
+    .eq("id", requestId)
+    .single();
+
+  if (fetchError || !approval) {
+    return {
+      response_action: "clear",
+    };
+  }
+
+  if (approval.status !== "pending") {
+    return {
+      response_action: "clear",
+    };
+  }
+
+  if (approval.expires_at && new Date(approval.expires_at) < new Date()) {
+    await admin
+      .from("approval_requests")
+      .update({ status: "expired" })
+      .eq("id", approval.id);
+
+    return {
+      response_action: "clear",
+    };
+  }
+
+  const newStatus = decision === "approve" ? "approved" : "rejected";
+  const decidedAt = new Date().toISOString();
+
+  const { data: userProfile } = await admin
+    .from("user_profiles")
+    .select("id")
+    .eq("org_id", approval.org_id)
+    .limit(1)
+    .maybeSingle();
+
+  const decidedBy = userProfile?.id ?? null;
+
+  const updatePayload: Record<string, unknown> = {
+    status: newStatus,
+    decided_by: decidedBy,
+    decided_at: decidedAt,
+    decision_source: "slack",
+  };
+
+  if (comment) {
+    updatePayload.decision_comment = comment;
+  }
+
+  const { data: updated, error: updateError } = await admin
+    .from("approval_requests")
+    .update(updatePayload)
+    .eq("id", requestId)
+    .select("*")
+    .single();
+
+  if (updateError || !updated) {
+    console.error("[Slack Interact] Failed to update approval:", updateError);
+    return {
+      response_action: "clear",
+    };
+  }
+
+  // Audit log (fire-and-forget).
+  logAuditEvent({
+    orgId: approval.org_id,
+    userId: decidedBy ?? undefined,
+    action: `approval.${newStatus}`,
+    resourceType: "approval_request",
+    resourceId: requestId,
+    details: {
+      decision,
+      decision_source: "slack",
+      decision_comment: comment ?? null,
+      slack_user_id: slackUserId,
+      slack_username: slackUsername,
+    },
+  });
+
+  // Deliver callback if configured (fire-and-forget).
+  if (approval.callback_url) {
+    deliverCallback({
+      requestId: approval.id,
+      connectionId: approval.connection_id,
+      callbackUrl: approval.callback_url,
+      callbackHeaders:
+        (approval.callback_headers as Record<string, string>) ?? undefined,
+      payload: {
+        id: updated.id,
+        status: updated.status,
+        decided_by: updated.decided_by,
+        decided_at: updated.decided_at,
+        decision_comment: updated.decision_comment,
+        title: updated.title,
+        priority: updated.priority,
+        metadata: updated.metadata,
+      },
+    });
+  }
+
+  // For view_submission, we update the original message via response_url
+  // if available, or just close the modal. The original message update
+  // is handled separately below.
+  return {
+    approval,
+    updated,
+    newStatus,
+    slackUserId,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -114,7 +334,9 @@ export async function POST(request: Request) {
   const timestamp = request.headers.get("X-Slack-Request-Timestamp") ?? "";
   const slackSignature = request.headers.get("X-Slack-Signature") ?? "";
 
-  if (!verifySlackSignature(signingSecret, timestamp, rawBody, slackSignature)) {
+  if (
+    !verifySlackSignature(signingSecret, timestamp, rawBody, slackSignature)
+  ) {
     console.warn("[Slack Interact] Invalid Slack signature");
     return NextResponse.json(
       { error: "Invalid request signature" },
@@ -123,7 +345,6 @@ export async function POST(request: Request) {
   }
 
   // 3. Parse the payload from the form-encoded body.
-  //    Slack sends: payload=<url-encoded JSON string>
   const formData = new URLSearchParams(rawBody);
   const payloadStr = formData.get("payload");
 
@@ -136,11 +357,23 @@ export async function POST(request: Request) {
 
   let payload: {
     type: string;
+    trigger_id?: string;
+    response_url?: string;
     user?: { id: string; username?: string; name?: string };
     actions?: Array<{
       action_id: string;
       value: string;
     }>;
+    view?: {
+      callback_id?: string;
+      private_metadata?: string;
+      state?: {
+        values?: Record<
+          string,
+          Record<string, { value?: string | null }>
+        >;
+      };
+    };
     message?: { blocks?: unknown[] };
   };
 
@@ -153,178 +386,210 @@ export async function POST(request: Request) {
     );
   }
 
-  // 4. We only handle block_actions (button clicks).
-  if (payload.type !== "block_actions") {
-    return NextResponse.json({ ok: true });
-  }
+  // -------------------------------------------------------------------------
+  // Handle block_actions (button clicks) -- open the reason modal
+  // -------------------------------------------------------------------------
+  if (payload.type === "block_actions") {
+    const action = payload.actions?.[0];
+    if (!action) {
+      return NextResponse.json({ ok: true });
+    }
 
-  const action = payload.actions?.[0];
-  if (!action) {
-    return NextResponse.json({ ok: true });
-  }
+    let decision: "approve" | "reject";
+    if (action.action_id === "okrunit_approve") {
+      decision = "approve";
+    } else if (action.action_id === "okrunit_reject") {
+      decision = "reject";
+    } else {
+      // Not our action, just acknowledge.
+      return NextResponse.json({ ok: true });
+    }
 
-  // 5. Determine the action type from the action_id.
-  let decision: "approve" | "reject";
-  if (action.action_id === "okrunit_approve") {
-    decision = "approve";
-  } else if (action.action_id === "okrunit_reject") {
-    decision = "reject";
-  } else {
-    // Not our action (e.g. okrunit_view), just acknowledge.
-    return NextResponse.json({ ok: true });
-  }
+    const requestId = action.value;
+    const triggerId = payload.trigger_id;
 
-  const requestId = action.value;
-  const slackUser = payload.user?.id ?? "unknown";
-  const slackUsername = payload.user?.username ?? payload.user?.name ?? "Slack User";
+    if (!triggerId) {
+      console.error("[Slack Interact] No trigger_id in block_actions payload");
+      return NextResponse.json({ ok: true });
+    }
 
-  const admin = createAdminClient();
-
-  // 6. Fetch the approval request.
-  const { data: approval, error: fetchError } = await admin
-    .from("approval_requests")
-    .select("*")
-    .eq("id", requestId)
-    .single();
-
-  if (fetchError || !approval) {
-    return NextResponse.json({
-      replace_original: true,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: ":warning: Approval request not found. It may have been deleted.",
-          },
-        },
-      ],
-    });
-  }
-
-  // 7. Check that the request is still pending.
-  if (approval.status !== "pending") {
-    const statusLabel =
-      approval.status.charAt(0).toUpperCase() + approval.status.slice(1);
-
-    return NextResponse.json({
-      replace_original: true,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `:information_source: This request has already been *${statusLabel.toLowerCase()}*. No action taken.`,
-          },
-        },
-      ],
-    });
-  }
-
-  // 8. Check for lazy expiration.
-  if (approval.expires_at && new Date(approval.expires_at) < new Date()) {
-    await admin
+    // Validate the request exists and is still actionable.
+    const admin = createAdminClient();
+    const { data: approval, error: fetchError } = await admin
       .from("approval_requests")
-      .update({ status: "expired" })
-      .eq("id", approval.id);
+      .select("id, status, expires_at, org_id, require_rejection_reason, priority, title")
+      .eq("id", requestId)
+      .single();
 
-    return NextResponse.json({
-      replace_original: true,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: ":hourglass: This request has expired and can no longer be actioned.",
+    if (fetchError || !approval) {
+      return NextResponse.json({
+        replace_original: true,
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: ":warning: Approval request not found. It may have been deleted.",
+            },
           },
-        },
-      ],
+        ],
+      });
+    }
+
+    if (approval.status !== "pending") {
+      return NextResponse.json({
+        replace_original: true,
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: `:information_source: This request has already been *${approval.status}*. No action taken.`,
+            },
+          },
+        ],
+      });
+    }
+
+    if (
+      approval.expires_at &&
+      new Date(approval.expires_at) < new Date()
+    ) {
+      await admin
+        .from("approval_requests")
+        .update({ status: "expired" })
+        .eq("id", approval.id);
+
+      return NextResponse.json({
+        replace_original: true,
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: ":hourglass: This request has expired and can no longer be actioned.",
+            },
+          },
+        ],
+      });
+    }
+
+    // Check if rejection reason is required.
+    const reasonRequired =
+      decision === "reject" &&
+      (await isRejectionReasonRequired(approval.org_id, {
+        require_rejection_reason: approval.require_rejection_reason,
+        priority: approval.priority,
+      }));
+
+    // Open the modal.
+    const opened = await openSlackModal({
+      triggerId,
+      action: decision,
+      requestId,
+      title: approval.title,
+      reasonRequired,
     });
+
+    if (!opened) {
+      // Fallback: if modal fails to open, return an error message.
+      return NextResponse.json({
+        replace_original: true,
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: ":x: Failed to open the reason dialog. Please try again or use the dashboard.",
+            },
+          },
+        ],
+      });
+    }
+
+    // Acknowledge the button click. The modal is now open.
+    return NextResponse.json({ ok: true });
   }
 
-  // 9. Apply the decision.
-  const newStatus = decision === "approve" ? "approved" : "rejected";
-  const decidedAt = new Date().toISOString();
+  // -------------------------------------------------------------------------
+  // Handle view_submission (modal submit) -- apply the decision
+  // -------------------------------------------------------------------------
+  if (payload.type === "view_submission") {
+    const view = payload.view;
+    if (!view || view.callback_id !== "okrunit_reason_modal") {
+      return NextResponse.json({ ok: true });
+    }
 
-  // Try to find the Slack user in our user_profiles by matching the Slack
-  // username. If not found, we'll use a null decided_by and record the Slack
-  // user info in the audit details.
-  const { data: userProfile } = await admin
-    .from("user_profiles")
-    .select("id")
-    .eq("org_id", approval.org_id)
-    .limit(1)
-    .maybeSingle();
+    // Extract action and requestId from private_metadata.
+    let metadata: { action?: string; requestId?: string };
+    try {
+      metadata = JSON.parse(view.private_metadata ?? "{}");
+    } catch {
+      console.error("[Slack Interact] Invalid private_metadata in modal");
+      return NextResponse.json({ response_action: "clear" });
+    }
 
-  const decidedBy = userProfile?.id ?? null;
+    if (!metadata.action || !metadata.requestId) {
+      return NextResponse.json({ response_action: "clear" });
+    }
 
-  const { data: updated, error: updateError } = await admin
-    .from("approval_requests")
-    .update({
-      status: newStatus,
-      decided_by: decidedBy,
-      decided_at: decidedAt,
-      decision_source: "slack",
-    })
-    .eq("id", requestId)
-    .select("*")
-    .single();
+    const decision = metadata.action as "approve" | "reject";
+    const requestId = metadata.requestId;
 
-  if (updateError || !updated) {
-    console.error("[Slack Interact] Failed to update approval:", updateError);
-    return NextResponse.json({
-      replace_original: true,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: ":x: Failed to process your action. Please try again from the dashboard.",
-          },
-        },
-      ],
-    });
-  }
+    // Extract the reason from the view state.
+    const reason =
+      view.state?.values?.reason_block?.reason_input?.value?.trim() ||
+      undefined;
 
-  // 10. Audit log (fire-and-forget).
-  logAuditEvent({
-    orgId: approval.org_id,
-    userId: decidedBy ?? undefined,
-    action: `approval.${newStatus}`,
-    resourceType: "approval_request",
-    resourceId: requestId,
-    details: {
+    const slackUserId = payload.user?.id ?? "unknown";
+    const slackUsername =
+      payload.user?.username ?? payload.user?.name ?? "Slack User";
+
+    const result = await applyDecisionAndRespond({
       decision,
-      decision_source: "slack",
-      slack_user_id: slackUser,
-      slack_username: slackUsername,
-    },
-  });
-
-  // 11. Deliver callback if configured (fire-and-forget).
-  if (approval.callback_url) {
-    deliverCallback({
-      requestId: approval.id,
-      connectionId: approval.connection_id,
-      callbackUrl: approval.callback_url,
-      callbackHeaders:
-        (approval.callback_headers as Record<string, string>) ?? undefined,
-      payload: {
-        id: updated.id,
-        status: updated.status,
-        decided_by: updated.decided_by,
-        decided_at: updated.decided_at,
-        decision_comment: updated.decision_comment,
-        title: updated.title,
-        priority: updated.priority,
-        metadata: updated.metadata,
-      },
+      requestId,
+      slackUserId: slackUserId,
+      slackUsername: slackUsername,
+      comment: reason,
     });
+
+    // If the result has response_action, it's an error case.
+    if ("response_action" in result) {
+      return NextResponse.json(result);
+    }
+
+    // Update the original message via response_url if available.
+    const responseUrl = payload.response_url;
+    if (responseUrl) {
+      const newStatus = result.newStatus as string;
+      const approvalData = result.approval as Record<string, unknown>;
+
+      try {
+        await fetch(responseUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            replace_original: true,
+            blocks: buildResponseBlocks(
+              approvalData.title as string,
+              newStatus,
+              slackUserId,
+              reason,
+            ),
+          }),
+        });
+      } catch (err) {
+        console.error(
+          "[Slack Interact] Failed to update original message:",
+          err,
+        );
+      }
+    }
+
+    // Close the modal.
+    return NextResponse.json({ response_action: "clear" });
   }
 
-  // 12. Return an updated Slack message that replaces the original.
-  return NextResponse.json({
-    replace_original: true,
-    blocks: buildResponseBlocks(approval.title, newStatus, slackUser),
-  });
+  // Unknown payload type -- acknowledge.
+  return NextResponse.json({ ok: true });
 }
