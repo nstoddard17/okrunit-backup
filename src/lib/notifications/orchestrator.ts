@@ -285,12 +285,17 @@ function dispatchDiscord(
   event: NotificationEvent,
   isCreateEvent: boolean,
 ): Promise<void> {
-  const webhookUrl = conn.webhook_url;
-  if (!webhookUrl) return Promise.resolve();
+  const webhookUrl = conn.webhook_url ?? undefined;
+  const botToken = conn.bot_token ?? undefined;
+  const channelId = conn.channel_id ?? undefined;
+
+  if (!webhookUrl && !(botToken && channelId)) return Promise.resolve();
 
   if (isCreateEvent) {
     return sendDiscordNotification({
       webhookUrl,
+      botToken,
+      channelId,
       requestId: event.requestId,
       title: event.requestTitle,
       description: event.requestDescription,
@@ -307,6 +312,8 @@ function dispatchDiscord(
   const decision = extractDecision(event.type);
   return sendDiscordDecisionNotification({
     webhookUrl,
+    botToken,
+    channelId,
     requestTitle: event.requestTitle,
     decision,
     decidedBy: event.decidedBy,

@@ -10,7 +10,9 @@ const APP_URL =
 // ---------------------------------------------------------------------------
 
 export interface DiscordNotificationParams {
-  webhookUrl: string;
+  webhookUrl?: string;
+  botToken?: string;
+  channelId?: string;
   requestId: string;
   title: string;
   description?: string;
@@ -19,7 +21,9 @@ export interface DiscordNotificationParams {
 }
 
 export interface DiscordDecisionParams {
-  webhookUrl: string;
+  webhookUrl?: string;
+  botToken?: string;
+  channelId?: string;
   requestTitle: string;
   decision: string;
   decidedBy?: string;
@@ -186,16 +190,31 @@ export async function sendDiscordNotification(
   };
 
   try {
-    const response = await fetch(params.webhookUrl, {
+    let url: string;
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+    if (params.botToken && params.channelId) {
+      // Bot token approach — send via Discord API
+      url = `https://discord.com/api/v10/channels/${params.channelId}/messages`;
+      headers["Authorization"] = `Bot ${params.botToken}`;
+    } else if (params.webhookUrl) {
+      // Webhook URL approach
+      url = params.webhookUrl;
+    } else {
+      console.warn("[Discord] No webhook URL or bot token — skipping");
+      return;
+    }
+
+    const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
       const body = await response.text();
       console.error(
-        `[Discord] Webhook returned ${response.status} for request ${params.requestId}:`,
+        `[Discord] API returned ${response.status} for request ${params.requestId}:`,
         body,
       );
       return;
@@ -245,9 +264,22 @@ export async function sendDiscordDecisionNotification(
   };
 
   try {
-    const response = await fetch(params.webhookUrl, {
+    let url: string;
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+    if (params.botToken && params.channelId) {
+      url = `https://discord.com/api/v10/channels/${params.channelId}/messages`;
+      headers["Authorization"] = `Bot ${params.botToken}`;
+    } else if (params.webhookUrl) {
+      url = params.webhookUrl;
+    } else {
+      console.warn("[Discord] No webhook URL or bot token — skipping decision");
+      return;
+    }
+
+    const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
 
