@@ -476,6 +476,7 @@ export async function POST(request: Request) {
         require_rejection_reason: validated.require_rejection_reason ?? false,
         conditions_met: validated.conditions && validated.conditions.length > 0 ? false : true,
         sla_deadline: slaDeadline,
+        notify_channel_ids: validated.notify_channel_ids ?? null,
       })
       .select("*")
       .single();
@@ -558,6 +559,11 @@ export async function POST(request: Request) {
         connectionId: connectionId ?? undefined,
         connectionName: connectionName ?? undefined,
         targetUserIds,
+        notifyChannelIds: validated.notify_channel_ids,
+        source: validated.source ?? autoDetectedSource ?? undefined,
+        actionType: effectiveActionType ?? undefined,
+        assignedApprovers: assignedApprovers ?? undefined,
+        assignedTeamId: assignedTeamId ?? undefined,
       });
     });
 

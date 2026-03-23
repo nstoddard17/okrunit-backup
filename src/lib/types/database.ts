@@ -197,6 +197,7 @@ export interface ApprovalRequest {
   sla_breached: boolean;
   sla_breached_at: string | null;
   sla_warning_sent: boolean;
+  notify_channel_ids: string[] | null;
   archived_at: string | null;
   created_at: string;
   updated_at: string;
@@ -294,6 +295,12 @@ export interface NotificationSettings {
   updated_at: string;
 }
 
+export interface RoutingRules {
+  sources?: string[];
+  action_types?: string[];
+  priorities?: string[];
+}
+
 export interface MessagingConnection {
   id: string;
   org_id: string;
@@ -311,6 +318,7 @@ export interface MessagingConnection {
   notify_on_create: boolean;
   notify_on_decide: boolean;
   priority_filter: string;
+  routing_rules: RoutingRules;
   installed_by: string | null;
   created_at: string;
   updated_at: string;

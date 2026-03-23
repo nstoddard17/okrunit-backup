@@ -42,9 +42,10 @@ import {
 } from "@/lib/notifications/channels/discord";
 import { generateActionTokens } from "@/lib/notifications/tokens";
 import { getOrgMessagingConnections } from "@/lib/notifications/messaging";
-import type { NotificationSettings, MessagingConnection } from "@/lib/types/database";
+import type { NotificationSettings, MessagingConnection, RoutingRules } from "@/lib/types/database";
 import type { PushPayload } from "@/lib/notifications/channels/web-push";
 import { PRIORITY_ORDER } from "@/lib/constants";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // ---------------------------------------------------------------------------
 // Default settings applied when a user has not configured preferences
@@ -182,13 +183,67 @@ export async function dispatchNotifications(
     }
 
     // -- Org-wide messaging connections (Slack, Teams, Telegram, Discord) ------
+    // Pre-load team membership data for DM filtering (only if needed, once).
+    // We do this outside the loop to avoid N+1 queries per connection.
+    let teamMemberIds: Set<string> | null = null;
+
     for (const conn of messagingConnections) {
-      // Filter by connection's priority_filter
+      // ---- Filter 1: Per-request channel targeting ----
+      // If the event specifies exact channel IDs, only deliver to those.
+      if (
+        event.notifyChannelIds &&
+        event.notifyChannelIds.length > 0 &&
+        !event.notifyChannelIds.includes(conn.id)
+      ) {
+        continue;
+      }
+
+      // ---- Filter 2: Routing rules on the connection ----
+      // If the connection has routing rules configured, check them.
+      // Only apply routing rules when no per-request targeting was used.
+      if (
+        !(event.notifyChannelIds && event.notifyChannelIds.length > 0) &&
+        !passesRoutingRules(conn.routing_rules, event)
+      ) {
+        continue;
+      }
+
+      // ---- Filter 3: User-level DM filtering ----
+      // For personal/DM channels, only notify if the connection's installer
+      // is an assigned approver or team member.
+      if (isDmChannel(conn) && conn.installed_by) {
+        const hasAssignedApprovers =
+          event.assignedApprovers && event.assignedApprovers.length > 0;
+        const hasAssignedTeam = !!event.assignedTeamId;
+
+        if (hasAssignedApprovers || hasAssignedTeam) {
+          let userIsTarget = false;
+
+          // Check direct assignment
+          if (hasAssignedApprovers) {
+            userIsTarget = event.assignedApprovers!.includes(conn.installed_by);
+          }
+
+          // Check team membership (lazy-load once)
+          if (!userIsTarget && hasAssignedTeam) {
+            if (teamMemberIds === null) {
+              teamMemberIds = await loadTeamMemberIds(event.assignedTeamId!);
+            }
+            userIsTarget = teamMemberIds.has(conn.installed_by);
+          }
+
+          if (!userIsTarget) {
+            continue;
+          }
+        }
+        // If no assigned approvers/team, broadcast to all (including DMs)
+      }
+
+      // ---- Existing filters: priority + event type ----
       if (!meetsMinimumPriority(event.requestPriority, conn.priority_filter)) {
         continue;
       }
 
-      // Filter by event type
       const isCreateEvent =
         event.type === "approval.created" ||
         event.type === "approval.next_approver" ||
@@ -471,4 +526,128 @@ function meetsMinimumPriority(
   const minOrder =
     PRIORITY_ORDER[minimumPriority as keyof typeof PRIORITY_ORDER] ?? 0;
   return eventOrder >= minOrder;
+}
+
+// ---------------------------------------------------------------------------
+// Notification Routing Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Check if a messaging connection passes its routing rules for this event.
+ * Returns true if no routing rules are set (backward compatible).
+ *
+ * Rules use AND logic: if multiple rule fields are set, ALL must match.
+ * Within a single field, values use OR logic (match any one).
+ */
+function passesRoutingRules(
+  rules: RoutingRules | null | undefined,
+  event: NotificationEvent,
+): boolean {
+  if (!rules) return true;
+
+  const hasSources = rules.sources && rules.sources.length > 0;
+  const hasActionTypes = rules.action_types && rules.action_types.length > 0;
+  const hasPriorities = rules.priorities && rules.priorities.length > 0;
+
+  // Empty routing rules = receive everything
+  if (!hasSources && !hasActionTypes && !hasPriorities) return true;
+
+  // Sources filter: approval source must match one of the configured sources
+  if (hasSources) {
+    const eventSource = event.source ?? "";
+    if (!rules.sources!.some((s) => s === eventSource)) {
+      return false;
+    }
+  }
+
+  // Action types filter: supports glob patterns (e.g. "deploy*")
+  if (hasActionTypes) {
+    const eventActionType = event.actionType ?? "";
+    if (!rules.action_types!.some((pattern) => matchGlob(pattern, eventActionType))) {
+      return false;
+    }
+  }
+
+  // Priorities filter: approval priority must be in the list
+  if (hasPriorities) {
+    if (!rules.priorities!.includes(event.requestPriority)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Simple glob matching that supports trailing wildcards (e.g. "deploy*").
+ * For exact matches, just compares strings directly.
+ */
+function matchGlob(pattern: string, value: string): boolean {
+  if (!pattern.includes("*")) {
+    return pattern === value;
+  }
+
+  // Convert glob to regex: escape special regex chars, replace * with .*
+  const escaped = pattern
+    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+    .replace(/\*/g, ".*");
+  const regex = new RegExp(`^${escaped}$`);
+  return regex.test(value);
+}
+
+/**
+ * Determine if a messaging connection represents a direct message / personal
+ * channel (as opposed to a shared group/channel). DM connections should only
+ * receive notifications relevant to their installer.
+ *
+ * Heuristic: Telegram chats with positive IDs are typically personal DMs.
+ * Slack DMs use "D" prefix channel IDs. Discord DMs use specific patterns.
+ * If channel_name is explicitly set and indicates a DM, treat it as such.
+ */
+function isDmChannel(conn: MessagingConnection): boolean {
+  const name = conn.channel_name?.toLowerCase() ?? "";
+
+  // Explicit DM markers in channel name
+  if (name.startsWith("dm:") || name === "direct message") {
+    return true;
+  }
+
+  // Slack: DM channels start with "D"
+  if (conn.platform === "slack" && conn.channel_id.startsWith("D")) {
+    return true;
+  }
+
+  // Telegram: positive chat IDs are personal DMs, negative are groups
+  if (conn.platform === "telegram") {
+    const chatId = parseInt(conn.channel_id, 10);
+    if (!isNaN(chatId) && chatId > 0) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Load all user IDs that are members of a given team. This is called at most
+ * once per notification dispatch (lazy-loaded and cached for the loop).
+ */
+async function loadTeamMemberIds(teamId: string): Promise<Set<string>> {
+  try {
+    const admin = createAdminClient();
+    const { data: memberships, error } = await admin
+      .from("team_memberships")
+      .select("user_id")
+      .eq("team_id", teamId);
+
+    if (error || !memberships) {
+      console.error("[Notifications] Failed to load team memberships:", error);
+      return new Set();
+    }
+
+    return new Set(memberships.map((m) => m.user_id));
+  } catch (err) {
+    console.error("[Notifications] Team membership lookup error:", err);
+    return new Set();
+  }
 }

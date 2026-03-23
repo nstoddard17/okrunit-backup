@@ -62,6 +62,7 @@ export const createApprovalSchema = z.object({
     webhook_url: z.string().url().optional(),
     description: z.string().max(1000).optional(),
   })).max(20).optional(),
+  notify_channel_ids: z.array(z.uuid()).min(1).max(50).optional(),
 });
 
 export type CreateApprovalInput = z.infer<typeof createApprovalSchema>;
@@ -272,6 +273,25 @@ export type CreateBulkRuleInput = z.infer<typeof createBulkRuleSchema>;
 export const updateBulkRuleSchema = createBulkRuleSchema.partial();
 
 export type UpdateBulkRuleInput = z.infer<typeof updateBulkRuleSchema>;
+
+// ---- Messaging Connection Routing Rules -----------------------------------
+
+export const routingRulesSchema = z.object({
+  sources: z.array(z.string().max(100)).max(50).optional(),
+  action_types: z.array(z.string().max(200)).max(50).optional(),
+  priorities: z.array(priorityEnum).optional(),
+});
+
+export type RoutingRulesInput = z.infer<typeof routingRulesSchema>;
+
+export const updateMessagingConnectionSchema = z.object({
+  routing_rules: routingRulesSchema.optional(),
+  priority_filter: priorityEnum.optional(),
+  notify_on_create: z.boolean().optional(),
+  notify_on_decide: z.boolean().optional(),
+});
+
+export type UpdateMessagingConnectionInput = z.infer<typeof updateMessagingConnectionSchema>;
 
 // ---- Approval Conditions --------------------------------------------------
 

@@ -44,4 +44,14 @@ export interface NotificationEvent {
   decisionComment?: string;
   /** When set, only notify these specific users instead of all org members. */
   targetUserIds?: string[];
+  /** When set, only send messaging notifications to these specific connection IDs. */
+  notifyChannelIds?: string[];
+  /** The source platform that created this approval (e.g. "api", "zapier"). */
+  source?: string;
+  /** The action type of the approval request (e.g. "deploy", "delete"). */
+  actionType?: string;
+  /** Assigned approver user IDs, used for DM-level filtering. */
+  assignedApprovers?: string[];
+  /** Assigned team ID, used for DM-level filtering. */
+  assignedTeamId?: string;
 }

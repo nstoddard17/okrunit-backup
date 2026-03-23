@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     const { data: connections, error } = await admin
       .from("messaging_connections")
       .select(
-        "id, org_id, platform, workspace_id, workspace_name, channel_id, channel_name, is_active, notify_on_create, notify_on_decide, priority_filter, installed_by, created_at, updated_at",
+        "id, org_id, platform, workspace_id, workspace_name, channel_id, channel_name, is_active, notify_on_create, notify_on_decide, priority_filter, routing_rules, installed_by, created_at, updated_at",
       )
       .eq("org_id", orgId)
       .order("created_at", { ascending: false });
