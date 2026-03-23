@@ -292,21 +292,106 @@
   animation: gk-card-enter 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* ── UI Polish: Global Transitions & Animations ──────────────────────── */
+
+/* Smooth page content fade-in */
+@keyframes gk-page-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Card hover effects — reusable utility class */
+.gk-v2 .card-hover {
+  transition: box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.gk-v2 .card-hover:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Stat card hover — subtle scale + elevated shadow */
+.gk-v2 .stat-card-hover {
+  transition: box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.gk-v2 .stat-card-hover:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* Sidebar nav items — smooth background transition */
+.gk-v2 .sidebar-nav-item {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+/* Sidebar active indicator — stronger left border */
+.gk-v2 .sidebar-nav-active {
+  border-left-width: 3px;
+  border-left-color: var(--sidebar-primary);
+  background-color: var(--sidebar-accent);
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* Sidebar section separator */
+.gk-v2 .sidebar-section-divider {
+  border-top: 1px solid var(--sidebar-border);
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+}
+
+/* Button smooth transitions */
+.gk-v2 [data-slot="button"] {
+  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 100ms ease;
+}
+
+/* Empty state illustration container */
+.gk-v2 .empty-state-icon {
+  background: linear-gradient(135deg, var(--muted) 0%, oklch(0.95 0.008 265) 100%);
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.gk-v2 .empty-state-icon:hover {
+  transform: scale(1.05);
+}
+
+/* Platform card accent border */
+.gk-v2 .platform-card-accent {
+  border-top: 3px solid var(--platform-color, var(--border));
+  transition: box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.gk-v2 .platform-card-accent:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+}
+
+/* Messaging connection card */
+.gk-v2 .messaging-connection-card {
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.gk-v2 .messaging-connection-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+}
+
 /* ── Tesslate-inspired Dark Landing Theme ────────────────────────────── */
 
 .tess-dark {
   --tess-bg: #050505;
-  --tess-bg-elevated: #0a0a0a;
-  --tess-bg-card: #111111;
-  --tess-bg-card-hover: #161616;
-  --tess-border: rgba(255, 255, 255, 0.08);
-  --tess-border-strong: rgba(255, 255, 255, 0.14);
+  --tess-bg-elevated: #0c0c0c;
+  --tess-bg-card: #131313;
+  --tess-bg-card-hover: #1a1a1a;
+  --tess-border: rgba(255, 255, 255, 0.12);
+  --tess-border-strong: rgba(255, 255, 255, 0.22);
   --tess-text: #ffffff;
-  --tess-text-secondary: #a3a3a3;
-  --tess-text-muted: #6b6b6b;
+  --tess-text-secondary: #b8b8b8;
+  --tess-text-muted: #888888;
   --tess-accent: #ff911d;
-  --tess-accent-soft: rgba(255, 145, 29, 0.12);
-  --tess-glow: rgba(255, 145, 29, 0.06);
+  --tess-accent-soft: rgba(255, 145, 29, 0.15);
+  --tess-glow: rgba(255, 145, 29, 0.08);
   font-family: var(--font-dm-sans), 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color-scheme: dark;
 }

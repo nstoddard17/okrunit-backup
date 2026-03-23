@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConnectionCard } from "@/components/connections/connection-card";
 import { ConnectionForm } from "@/components/connections/connection-form";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Connection } from "@/lib/types/database";
 
 // ---- Component --------------------------------------------------------------
@@ -98,23 +99,16 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
 
       {/* Connection cards or empty state */}
       {initialConnections.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
-          <Unplug className="text-muted-foreground mb-4 size-10" />
-          <h3 className="text-sm font-medium">No API key connections</h3>
-          <p className="text-muted-foreground mt-1 max-w-sm text-sm">
-            Most integrations connect automatically through their own app
-            (e.g. Zapier). Create a manual API key connection only if you need
-            direct API access for custom scripts or agents.
-          </p>
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={() => setCreateOpen(true)}
-          >
-            <Plus />
-            Create Manual Connection
-          </Button>
-        </div>
+        <EmptyState
+          icon={Unplug}
+          title="No API key connections"
+          description="Most integrations connect automatically through their own app (e.g. Zapier). Create a manual API key connection only if you need direct API access for custom scripts or agents."
+          action={{
+            label: "Create Manual Connection",
+            onClick: () => setCreateOpen(true),
+            variant: "outline",
+          }}
+        />
       ) : (
         <div className="grid gap-4">
           {initialConnections.map((connection) => (

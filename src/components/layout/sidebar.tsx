@@ -153,10 +153,10 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, 
             <Link
               href="/setup"
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150",
+                "sidebar-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm",
                 pathname === "/setup"
-                  ? "border-l-2 border-l-[var(--sidebar-primary)] bg-[var(--sidebar-accent)] font-medium text-foreground"
-                  : "border-l-2 border-l-transparent text-primary hover:bg-[var(--sidebar-accent)]/60"
+                  ? "sidebar-nav-active"
+                  : "border-l-3 border-l-transparent text-primary hover:bg-[var(--sidebar-accent)]/60"
               )}
             >
               <Sparkles className="size-4 shrink-0" />
@@ -177,9 +177,9 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, 
           if (visibleItems.length === 0) return null;
 
           return (
-            <div key={sectionIndex} className={sectionIndex > 0 ? "mt-5" : ""}>
+            <div key={sectionIndex} className={sectionIndex > 0 ? "sidebar-section-divider" : ""}>
               {section.label && (
-                <p className="mb-1.5 px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                <p className="mb-1.5 px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                   {section.label}
                 </p>
               )}
@@ -195,10 +195,10 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, 
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150",
+                        "sidebar-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm",
                         isActive
-                          ? "border-l-2 border-l-[var(--sidebar-primary)] bg-[var(--sidebar-accent)] font-medium text-foreground"
-                          : "border-l-2 border-l-transparent text-muted-foreground hover:bg-[var(--sidebar-accent)]/60 hover:text-foreground"
+                          ? "sidebar-nav-active"
+                          : "border-l-3 border-l-transparent text-muted-foreground hover:bg-[var(--sidebar-accent)]/60 hover:text-foreground"
                       )}
                     >
                       <Icon className="size-4 shrink-0" />

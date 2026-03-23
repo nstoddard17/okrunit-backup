@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PLATFORM_ICONS } from "@/components/messaging/platform-card";
+import { cn } from "@/lib/utils";
 import type { MessagingConnection } from "@/lib/types/database";
 
 // ---------------------------------------------------------------------------
@@ -105,16 +106,19 @@ export function ConnectionList({
           return (
             <Card
               key={connection.id}
-              className={!connection.is_active ? "opacity-60" : undefined}
+              className={cn(
+                "messaging-connection-card border-0 shadow-[var(--shadow-card)]",
+                !connection.is_active && "opacity-60",
+              )}
             >
               <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 {/* Left: platform + channel info */}
                 <div className="flex items-center gap-3">
                   <div
-                    className="flex size-9 shrink-0 items-center justify-center rounded-lg"
+                    className="flex size-10 shrink-0 items-center justify-center rounded-lg shadow-sm"
                     style={{ backgroundColor: color }}
                   >
-                    {Icon && <Icon className="size-4 text-white" />}
+                    {Icon && <Icon className="size-5 text-white" />}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">

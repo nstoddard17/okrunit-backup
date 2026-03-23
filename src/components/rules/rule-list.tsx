@@ -16,6 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { RuleForm } from "@/components/rules/rule-form";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { ApprovalRule, Connection } from "@/lib/types/database";
 
 // ---- Helpers --------------------------------------------------------------
@@ -147,18 +148,15 @@ export function RuleList({ initialRules, connections, teams = [] }: RuleListProp
 
       {/* Rule cards or empty state */}
       {initialRules.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
-          <Scale className="text-muted-foreground mb-4 size-10" />
-          <h3 className="text-sm font-medium">No rules yet</h3>
-          <p className="text-muted-foreground mt-1 max-w-sm text-sm">
-            Create auto-approve rules to automatically handle approval
-            requests based on priority, action type, and other conditions.
-          </p>
-          <Button className="mt-4" onClick={() => setCreateOpen(true)}>
-            <Plus />
-            Create Rule
-          </Button>
-        </div>
+        <EmptyState
+          icon={Scale}
+          title="No rules yet"
+          description="Create auto-approve rules to automatically handle approval requests based on priority, action type, and other conditions."
+          action={{
+            label: "Create Rule",
+            onClick: () => setCreateOpen(true),
+          }}
+        />
       ) : (
         <div className="grid gap-4">
           {initialRules.map((rule, index) => {

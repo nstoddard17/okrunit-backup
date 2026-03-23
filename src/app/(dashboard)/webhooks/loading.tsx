@@ -1,25 +1,28 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageContainer } from "@/components/ui/page-container";
 
 export default function WebhooksLoading() {
   return (
-    <div className="space-y-6">
-      {/* Page heading skeleton */}
-      <div className="space-y-1">
-        <Skeleton className="h-8 w-[220px]" />
-        <Skeleton className="h-4 w-[400px]" />
+    <PageContainer wide>
+      {/* Page header skeleton */}
+      <div className="flex items-start justify-between gap-4 pb-6">
+        <div className="space-y-1">
+          <Skeleton className="h-8 w-[220px]" />
+          <Skeleton className="h-4 w-[400px]" />
+        </div>
       </div>
 
       {/* Filter bar skeleton */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         <Skeleton className="h-9 w-[180px]" />
         <Skeleton className="h-9 w-[220px]" />
         <Skeleton className="h-9 w-[180px]" />
       </div>
 
       {/* Table skeleton */}
-      <div className="rounded-xl border">
+      <div className="overflow-hidden rounded-xl border-0 shadow-[var(--shadow-card)]">
         {/* Table header */}
-        <div className="flex items-center gap-4 border-b px-4 py-3">
+        <div className="flex items-center gap-4 border-b bg-muted/30 px-4 py-3">
           <Skeleton className="h-4 w-6" />
           <Skeleton className="h-4 w-[100px]" />
           <Skeleton className="h-4 w-[70px]" />
@@ -49,6 +52,6 @@ export default function WebhooksLoading() {
           </div>
         ))}
       </div>
-    </div>
+    </PageContainer>
   );
 }

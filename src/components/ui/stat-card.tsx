@@ -31,7 +31,7 @@ export function StatCard({
 
   return (
     <Card
-      className={cn("card-interactive border-0 shadow-[var(--shadow-card)]", onClick && "cursor-pointer", className)}
+      className={cn("stat-card-hover border-0 shadow-[var(--shadow-card)]", onClick && "cursor-pointer", className)}
       onClick={onClick}
     >
       <CardContent className="p-5">

@@ -14,7 +14,7 @@ import {
   useTransition,
 } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader2, Webhook } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import type { WebhookDeliveryLog, Connection } from "@/lib/types/database";
@@ -228,13 +228,22 @@ export function DeliveryLogTable({
 
       {/* ---- Table ---- */}
       {filteredEntries.length === 0 ? (
-        <div className="text-muted-foreground flex flex-col items-center justify-center rounded-xl border py-16 text-center">
-          <p className="text-sm">No webhook deliveries found.</p>
+        <div className="flex flex-col items-center justify-center gap-5 rounded-xl border-0 py-20 text-center shadow-[var(--shadow-card)]">
+          <div className="empty-state-icon rounded-2xl p-5">
+            <Webhook className="size-9 text-muted-foreground/70" />
+          </div>
+          <div className="space-y-2">
+            <p className="text-base font-semibold text-foreground">No webhook deliveries found</p>
+            {(filters.status !== "all" || filters.connectionId !== null) && (
+              <p className="text-sm text-muted-foreground">
+                Try adjusting your filters to see more results.
+              </p>
+            )}
+          </div>
           {(filters.status !== "all" || filters.connectionId !== null) && (
             <Button
-              variant="link"
+              variant="outline"
               size="sm"
-              className="mt-1"
               onClick={() =>
                 handleFilterChange({ status: "all", connectionId: null })
               }

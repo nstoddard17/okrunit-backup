@@ -1,16 +1,26 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageContainer } from "@/components/ui/page-container";
 
 export default function TeamLoading() {
   return (
-    <div className="space-y-8">
-      {/* Header skeleton */}
-      <div className="space-y-1">
-        <Skeleton className="h-8 w-[100px]" />
-        <Skeleton className="h-4 w-[320px]" />
+    <PageContainer>
+      {/* Page header skeleton */}
+      <div className="flex items-start justify-between gap-4 pb-6">
+        <div className="space-y-1">
+          <Skeleton className="h-8 w-[80px]" />
+          <Skeleton className="h-4 w-[320px]" />
+        </div>
+      </div>
+
+      {/* Tabs skeleton */}
+      <div className="mb-6 flex gap-1 border-b">
+        <Skeleton className="h-9 w-[80px]" />
+        <Skeleton className="h-9 w-[90px]" />
+        <Skeleton className="h-9 w-[70px]" />
       </div>
 
       {/* Invite form skeleton */}
-      <div className="rounded-xl border p-6">
+      <div className="mb-6 rounded-xl border-0 p-6 shadow-[var(--shadow-card)]">
         <Skeleton className="mb-4 h-5 w-[200px]" />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <Skeleton className="h-9 flex-1" />
@@ -20,7 +30,7 @@ export default function TeamLoading() {
       </div>
 
       {/* Members table skeleton */}
-      <div className="rounded-xl border">
+      <div className="rounded-xl border-0 shadow-[var(--shadow-card)]">
         <div className="border-b p-4">
           <Skeleton className="h-5 w-[120px]" />
         </div>
@@ -38,6 +48,6 @@ export default function TeamLoading() {
           ))}
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

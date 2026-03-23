@@ -3,17 +3,10 @@ import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { StatCard } from "@/components/ui/stat-card";
-import { Clock, CheckCircle, Timer, BarChart3 } from "lucide-react";
-
-// Pre-render icons as JSX so they can be passed to StatCard without
-// "Functions cannot be passed to Client Components" errors
-const icons = {
-  total: <BarChart3 className="size-5" />,
-  pending: <Clock className="size-5" />,
-  approved: <CheckCircle className="size-5" />,
-  decided: <Timer className="size-5" />,
-};
+import { AnalyticsDashboard } from "@/components/analytics/analytics-dashboard";
+import type { VolumeDataPoint } from "@/components/analytics/volume-chart";
+import type { ApprovalRateDataPoint } from "@/components/analytics/approval-rate-chart";
+import type { ResponseTimeDataPoint } from "@/components/analytics/response-time-chart";
 
 export const metadata = {
   title: "Analytics - OKRunit",
@@ -27,35 +20,206 @@ export default async function AnalyticsPage() {
   const orgId = ctx.membership.org_id;
   const admin = createAdminClient();
 
-  // Simple count queries — no complex joins or filters
-  const { count: total } = await admin
-    .from("approval_requests")
-    .select("*", { count: "exact", head: true })
-    .eq("org_id", orgId);
+  // ── Date ranges ────────────────────────────────────────────────────
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const sixtyDaysAgo = new Date(now);
+  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-  const { count: pending } = await admin
-    .from("approval_requests")
-    .select("*", { count: "exact", head: true })
-    .eq("org_id", orgId)
-    .eq("status", "pending");
+  const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
+  const sixtyDaysAgoISO = sixtyDaysAgo.toISOString();
 
-  const { count: approved } = await admin
-    .from("approval_requests")
-    .select("*", { count: "exact", head: true })
-    .eq("org_id", orgId)
-    .eq("status", "approved");
+  // ── Current period stats ───────────────────────────────────────────
+  const [
+    { count: total },
+    { count: pending },
+    { count: approved },
+    { count: rejected },
+  ] = await Promise.all([
+    admin
+      .from("approval_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", orgId),
+    admin
+      .from("approval_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .eq("status", "pending"),
+    admin
+      .from("approval_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .eq("status", "approved"),
+    admin
+      .from("approval_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .eq("status", "rejected"),
+  ]);
 
-  const { count: rejected } = await admin
-    .from("approval_requests")
-    .select("*", { count: "exact", head: true })
-    .eq("org_id", orgId)
-    .eq("status", "rejected");
-
+  const totalNum = total ?? 0;
+  const pendingNum = pending ?? 0;
   const approvedNum = approved ?? 0;
   const rejectedNum = rejected ?? 0;
-  const decided = approvedNum + rejectedNum;
+  const decidedNum = approvedNum + rejectedNum;
   const approvalRate =
-    decided > 0 ? Math.round((approvedNum / decided) * 100) : 0;
+    decidedNum > 0 ? Math.round((approvedNum / decidedNum) * 100) : 0;
+
+  // ── Previous period stats (for trend calculation) ──────────────────
+  const [
+    { count: prevTotal },
+    { count: prevPending },
+    { count: prevApproved },
+    { count: prevRejected },
+  ] = await Promise.all([
+    admin
+      .from("approval_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .gte("created_at", sixtyDaysAgoISO)
+      .lt("created_at", thirtyDaysAgoISO),
+    admin
+      .from("approval_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .eq("status", "pending")
+      .gte("created_at", sixtyDaysAgoISO)
+      .lt("created_at", thirtyDaysAgoISO),
+    admin
+      .from("approval_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .eq("status", "approved")
+      .gte("created_at", sixtyDaysAgoISO)
+      .lt("created_at", thirtyDaysAgoISO),
+    admin
+      .from("approval_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .eq("status", "rejected")
+      .gte("created_at", sixtyDaysAgoISO)
+      .lt("created_at", thirtyDaysAgoISO),
+  ]);
+
+  function calcTrend(current: number, previous: number | null): number | null {
+    const prev = previous ?? 0;
+    if (prev === 0 && current === 0) return null;
+    if (prev === 0) return 100;
+    return Math.round(((current - prev) / prev) * 100);
+  }
+
+  const prevDecided = (prevApproved ?? 0) + (prevRejected ?? 0);
+  const prevApprovalRate =
+    prevDecided > 0
+      ? Math.round(((prevApproved ?? 0) / prevDecided) * 100)
+      : 0;
+
+  // Current-period counts for trend (last 30 days only)
+  const { count: currentPeriodTotal } = await admin
+    .from("approval_requests")
+    .select("*", { count: "exact", head: true })
+    .eq("org_id", orgId)
+    .gte("created_at", thirtyDaysAgoISO);
+
+  const trends = {
+    totalTrend: calcTrend(currentPeriodTotal ?? 0, prevTotal),
+    pendingTrend: calcTrend(pendingNum, prevPending),
+    approvalRateTrend:
+      prevDecided > 0 || decidedNum > 0
+        ? calcTrend(approvalRate, prevApprovalRate)
+        : null,
+    decidedTrend: calcTrend(decidedNum, prevDecided),
+  };
+
+  // ── Volume data (daily counts, last 30 days) ──────────────────────
+  const { data: recentRequests } = await admin
+    .from("approval_requests")
+    .select("created_at")
+    .eq("org_id", orgId)
+    .gte("created_at", thirtyDaysAgoISO)
+    .order("created_at", { ascending: true });
+
+  const volumeMap = new Map<string, number>();
+  // Pre-fill all 30 days so the chart has no gaps
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    volumeMap.set(d.toISOString().slice(0, 10), 0);
+  }
+  for (const row of recentRequests ?? []) {
+    const dateKey = row.created_at.slice(0, 10);
+    volumeMap.set(dateKey, (volumeMap.get(dateKey) ?? 0) + 1);
+  }
+  const volumeData: VolumeDataPoint[] = Array.from(volumeMap.entries()).map(
+    ([date, count]) => ({ date, count })
+  );
+
+  // ── Approval rate data (daily approved/rejected, last 30 days) ────
+  const { data: decidedRequests } = await admin
+    .from("approval_requests")
+    .select("status, decided_at")
+    .eq("org_id", orgId)
+    .in("status", ["approved", "rejected"])
+    .gte("decided_at", thirtyDaysAgoISO)
+    .order("decided_at", { ascending: true });
+
+  const rateMap = new Map<string, { approved: number; rejected: number }>();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    rateMap.set(d.toISOString().slice(0, 10), { approved: 0, rejected: 0 });
+  }
+  for (const row of decidedRequests ?? []) {
+    if (!row.decided_at) continue;
+    const dateKey = row.decided_at.slice(0, 10);
+    const entry = rateMap.get(dateKey) ?? { approved: 0, rejected: 0 };
+    if (row.status === "approved") entry.approved++;
+    else entry.rejected++;
+    rateMap.set(dateKey, entry);
+  }
+  const approvalRateData: ApprovalRateDataPoint[] = Array.from(
+    rateMap.entries()
+  ).map(([date, counts]) => ({ date, ...counts }));
+
+  // ── Response time data (avg hours per day, last 30 days) ──────────
+  const { data: timedRequests } = await admin
+    .from("approval_requests")
+    .select("created_at, decided_at")
+    .eq("org_id", orgId)
+    .in("status", ["approved", "rejected"])
+    .not("decided_at", "is", null)
+    .gte("decided_at", thirtyDaysAgoISO)
+    .order("decided_at", { ascending: true });
+
+  const timeMap = new Map<
+    string,
+    { totalHours: number; count: number }
+  >();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    timeMap.set(d.toISOString().slice(0, 10), { totalHours: 0, count: 0 });
+  }
+  for (const row of timedRequests ?? []) {
+    if (!row.decided_at || !row.created_at) continue;
+    const dateKey = row.decided_at.slice(0, 10);
+    const hours =
+      (new Date(row.decided_at).getTime() -
+        new Date(row.created_at).getTime()) /
+      (1000 * 60 * 60);
+    const entry = timeMap.get(dateKey) ?? { totalHours: 0, count: 0 };
+    entry.totalHours += hours;
+    entry.count++;
+    timeMap.set(dateKey, entry);
+  }
+  const responseTimeData: ResponseTimeDataPoint[] = Array.from(
+    timeMap.entries()
+  ).map(([date, { totalHours, count }]) => ({
+    date,
+    avg_response_time_hours:
+      count > 0 ? Math.round((totalHours / count) * 10) / 10 : 0,
+  }));
 
   return (
     <PageContainer wide>
@@ -64,40 +228,20 @@ export default async function AnalyticsPage() {
         description="Approval statistics and trends for your organization."
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Requests"
-          value={total ?? 0}
-          iconNode={icons.total}
-          subtitle="All time"
-          iconColor="text-violet-500"
-        />
-        <StatCard
-          title="Pending"
-          value={pending ?? 0}
-          iconNode={icons.pending}
-          subtitle="Awaiting decision"
-          iconColor="text-amber-500"
-        />
-        <StatCard
-          title="Approval Rate"
-          value={`${approvalRate}%`}
-          iconNode={icons.approved}
-          subtitle={`${approvedNum} approved, ${rejectedNum} rejected`}
-          iconColor="text-emerald-500"
-        />
-        <StatCard
-          title="Decided"
-          value={decided}
-          iconNode={icons.decided}
-          subtitle="Approved + rejected"
-          iconColor="text-blue-500"
-        />
-      </div>
-
-      <div className="mt-8 text-center text-muted-foreground">
-        <p>Charts and detailed trends coming soon.</p>
-      </div>
+      <AnalyticsDashboard
+        stats={{
+          total: totalNum,
+          pending: pendingNum,
+          approved: approvedNum,
+          rejected: rejectedNum,
+          decided: decidedNum,
+          approvalRate,
+        }}
+        trends={trends}
+        volumeData={volumeData}
+        approvalRateData={approvalRateData}
+        responseTimeData={responseTimeData}
+      />
     </PageContainer>
   );
 }

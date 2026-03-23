@@ -44,16 +44,16 @@ export function Header({ emergencyStopActive }: HeaderProps) {
           Emergency Stop Active — All approval requests are being held.
         </div>
       )}
-      <div className="flex h-14 items-center justify-between px-6">
-        <div className="flex items-center gap-1.5 text-sm">
+      <div className="flex h-12 items-center justify-between px-6">
+        <nav className="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
           {breadcrumb.section && (
             <>
-              <span className="text-muted-foreground">{breadcrumb.section}</span>
-              <ChevronRight className="size-3.5 text-muted-foreground/60" />
+              <span className="text-muted-foreground/80 text-xs font-medium">{breadcrumb.section}</span>
+              <ChevronRight className="size-3 text-muted-foreground/40" />
             </>
           )}
-          <span className="font-medium">{breadcrumb.title}</span>
-        </div>
+          <span className="font-semibold text-foreground">{breadcrumb.title}</span>
+        </nav>
       </div>
     </header>
   );

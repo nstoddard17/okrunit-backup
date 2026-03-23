@@ -16,18 +16,18 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-4 py-16", className)}>
-      <div className="rounded-xl bg-muted/60 p-4">
-        <Icon className="size-8 text-muted-foreground" />
+    <div className={cn("flex flex-col items-center justify-center gap-5 py-20", className)}>
+      <div className="empty-state-icon rounded-2xl p-5">
+        <Icon className="size-9 text-muted-foreground/70" />
       </div>
-      <div className="text-center space-y-1.5 max-w-sm">
-        <p className="text-base font-medium text-foreground">{title}</p>
+      <div className="text-center space-y-2 max-w-sm">
+        <p className="text-base font-semibold text-foreground">{title}</p>
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
         )}
       </div>
       {action && (
-        <Button variant={action.variant ?? "outline"} onClick={action.onClick} className="mt-2">
+        <Button variant={action.variant ?? "default"} onClick={action.onClick} className="mt-1">
           {action.label}
         </Button>
       )}

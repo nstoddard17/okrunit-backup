@@ -86,11 +86,14 @@ export function PlatformCard({
   const Icon = PLATFORM_ICONS[platform];
 
   return (
-    <Card className="flex flex-col justify-between">
+    <Card
+      className="platform-card-accent flex flex-col justify-between border-0 shadow-[var(--shadow-card)]"
+      style={{ "--platform-color": color } as React.CSSProperties}
+    >
       <CardHeader>
         <div className="flex items-center gap-3">
           <div
-            className="flex size-10 items-center justify-center rounded-lg"
+            className="flex size-10 items-center justify-center rounded-lg shadow-sm"
             style={{ backgroundColor: color }}
           >
             <Icon className="size-5 text-white" />
@@ -110,7 +113,7 @@ export function PlatformCard({
         <Button
           variant="outline"
           size="sm"
-          className="w-full"
+          className="w-full transition-colors duration-150"
           onClick={onConnect}
         >
           <ExternalLink className="size-3.5" />

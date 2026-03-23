@@ -227,10 +227,10 @@ function LogoIcon({ name }: { name: string }) {
 
   return (
     <div className="flex items-center gap-2.5 shrink-0">
-      <span style={{ color: "rgba(255,255,255,0.25)" }}>{icons[name]}</span>
+      <span style={{ color: "rgba(255,255,255,0.45)" }}>{icons[name]}</span>
       <span
         className="text-base font-semibold tracking-tight whitespace-nowrap"
-        style={{ color: "rgba(255,255,255,0.25)" }}
+        style={{ color: "rgba(255,255,255,0.45)" }}
       >
         {name}
       </span>
@@ -594,16 +594,16 @@ export function Hero({ user }: HeroProps) {
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href={user ? "/dashboard" : "/signup"}
-              className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold transition hover:opacity-90"
-              style={{ backgroundColor: "var(--tess-text)", color: "var(--tess-bg)" }}
+              className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold transition hover:brightness-110"
+              style={{ backgroundColor: "var(--tess-accent)", color: "#000" }}
             >
               {user ? "Go to Dashboard" : "Get started free"}
               <ArrowRight className="h-4 w-4" />
             </Link>
             <a
               href="#features"
-              className="inline-flex items-center gap-2 rounded-xl border px-7 py-3.5 text-sm font-semibold transition hover:border-white/20"
-              style={{ borderColor: "var(--tess-border)", color: "var(--tess-text)" }}
+              className="inline-flex items-center gap-2 rounded-xl border px-7 py-3.5 text-sm font-semibold transition hover:border-white/30"
+              style={{ borderColor: "rgba(255,255,255,0.2)", color: "var(--tess-text)" }}
             >
               <Play className="h-3.5 w-3.5" />
               See how it works
@@ -633,6 +633,11 @@ export function Hero({ user }: HeroProps) {
         </FadeIn>
       </section>
 
+      {/* ── Section Separator ──────────────────────────────────── */}
+      <div className="relative z-10 mx-auto max-w-4xl px-5">
+        <div className="h-px" style={{ background: "linear-gradient(to right, transparent, rgba(255,145,29,0.2), transparent)" }} />
+      </div>
+
       {/* ── Logo Ticker ────────────────────────────────────────── */}
       <section className="relative z-10 mx-auto max-w-6xl px-5 py-6">
         <FadeIn>
@@ -642,6 +647,11 @@ export function Hero({ user }: HeroProps) {
           <LogoTicker />
         </FadeIn>
       </section>
+
+      {/* ── Section Separator ──────────────────────────────────── */}
+      <div className="relative z-10 mx-auto max-w-4xl px-5">
+        <div className="h-px" style={{ background: "linear-gradient(to right, transparent, rgba(255,145,29,0.15), transparent)" }} />
+      </div>
 
       {/* ── Feature Grid ───────────────────────────────────────── */}
       <section id="features" className="relative z-10 mx-auto max-w-6xl px-5 py-12">
@@ -674,6 +684,11 @@ export function Hero({ user }: HeroProps) {
           </div>
         </FadeIn>
       </section>
+
+      {/* ── Section Separator ──────────────────────────────────── */}
+      <div className="relative z-10 mx-auto max-w-4xl px-5 py-4">
+        <div className="h-px" style={{ background: "linear-gradient(to right, transparent, rgba(255,145,29,0.15), transparent)" }} />
+      </div>
 
       {/* ── Features + Stats ───────────────────────────────────── */}
       <section className="relative z-10 mx-auto max-w-6xl px-5 py-12">
@@ -736,6 +751,11 @@ export function Hero({ user }: HeroProps) {
         </FadeIn>
       </section>
 
+      {/* ── Section Separator ──────────────────────────────────── */}
+      <div className="relative z-10 mx-auto max-w-4xl px-5 py-4">
+        <div className="h-px" style={{ background: "linear-gradient(to right, transparent, rgba(255,145,29,0.15), transparent)" }} />
+      </div>
+
       {/* ── Three-Column Product Section ───────────────────────── */}
       <section className="relative z-10 mx-auto max-w-6xl px-5 py-12">
         <div className="grid gap-4 lg:grid-cols-3">
@@ -774,13 +794,13 @@ export function Hero({ user }: HeroProps) {
             <h2 className="mx-auto max-w-2xl text-3xl font-bold md:text-5xl" style={{ letterSpacing: "-0.03em" }}>
               Start protecting your automations today
             </h2>
-            <p className="mx-auto mt-4 max-w-lg text-base" style={{ color: "var(--tess-text-muted)" }}>
+            <p className="mx-auto mt-4 max-w-lg text-base" style={{ color: "var(--tess-text-secondary)" }}>
               Free to start. No credit card required. Add human oversight in minutes.
             </p>
             <Link
               href={user ? "/dashboard" : "/signup"}
-              className="mt-7 inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold transition hover:opacity-90"
-              style={{ backgroundColor: "var(--tess-text)", color: "var(--tess-bg)" }}
+              className="mt-7 inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold transition hover:brightness-110"
+              style={{ backgroundColor: "var(--tess-accent)", color: "#000" }}
             >
               {user ? "Go to Dashboard" : "Get started free"}
               <ArrowRight className="h-4 w-4" />
@@ -866,8 +886,8 @@ export function Hero({ user }: HeroProps) {
           <p className="text-base font-semibold">Join the teams using OKRunit</p>
           <Link
             href={user ? "/dashboard" : "/signup"}
-            className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90"
-            style={{ backgroundColor: "var(--tess-text)", color: "var(--tess-bg)" }}
+            className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:brightness-110"
+            style={{ backgroundColor: "var(--tess-accent)", color: "#000" }}
           >
             {user ? "Dashboard" : "Get started"} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
