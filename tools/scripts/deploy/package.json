@@ -1,0 +1,18 @@
+{
+  "name": "okrunit-deploy-scripts",
+  "version": "1.0.0",
+  "description": "Playwright-based deployment scripts for OKRunit integrations",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy:zapier": "npx tsx deploy-zapier.ts",
+    "deploy:make": "npx tsx deploy-make.ts",
+    "deploy:pipedream": "npx tsx deploy-pipedream.ts",
+    "deploy:windmill": "npx tsx deploy-windmill.ts",
+    "deploy:all": "npx tsx deploy-all.ts"
+  },
+  "dependencies": {
+    "playwright": "^1.52.0",
+    "tsx": "^4.19.0"
+  }
+}

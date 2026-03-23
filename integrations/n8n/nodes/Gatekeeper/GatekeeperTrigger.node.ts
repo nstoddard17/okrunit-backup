@@ -1,4 +1,5 @@
 import type {
+  IDataObject,
   IPollFunctions,
   INodeExecutionData,
   INodeType,
@@ -152,9 +153,9 @@ export class GatekeeperTrigger implements INodeType {
 
       for (const approval of approvals) {
         if (lastPollTime && approval.created_at > lastPollTime) {
-          results.push({ json: approval as Record<string, unknown> });
+          results.push({ json: approval as unknown as IDataObject });
         } else if (!lastPollTime) {
-          results.push({ json: approval as Record<string, unknown> });
+          results.push({ json: approval as unknown as IDataObject });
         }
       }
     } else {
@@ -191,9 +192,9 @@ export class GatekeeperTrigger implements INodeType {
             approval.decided_at &&
             approval.decided_at > lastPollTime
           ) {
-            results.push({ json: approval as Record<string, unknown> });
+            results.push({ json: approval as unknown as IDataObject });
           } else if (!lastPollTime && approval.decided_at) {
-            results.push({ json: approval as Record<string, unknown> });
+            results.push({ json: approval as unknown as IDataObject });
           }
         }
       }

@@ -1,4 +1,5 @@
 import type {
+  IDataObject,
   IExecuteFunctions,
   INodeExecutionData,
   INodeType,
@@ -405,7 +406,7 @@ export class Gatekeeper implements INodeType {
       }
 
       returnData.push({
-        json: responseData as Record<string, unknown>,
+        json: responseData as IDataObject,
       });
     }
 

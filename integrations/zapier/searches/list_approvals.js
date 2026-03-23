@@ -56,7 +56,7 @@ const listApprovals = {
         label: "Limit",
         type: "integer",
         required: false,
-        default: 25,
+        default: "25",
         helpText: "Maximum number of results.",
       },
     ],
