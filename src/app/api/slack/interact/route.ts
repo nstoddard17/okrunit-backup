@@ -96,6 +96,7 @@ async function openSlackModal(params: {
   requestId: string;
   title: string;
   reasonRequired: boolean;
+  responseUrl?: string;
 }): Promise<boolean> {
   const slackToken = process.env.SLACK_BOT_TOKEN;
   if (!slackToken) {
@@ -111,6 +112,7 @@ async function openSlackModal(params: {
     private_metadata: JSON.stringify({
       action: params.action,
       requestId: params.requestId,
+      responseUrl: params.responseUrl,
     }),
     title: {
       type: "plain_text",
@@ -454,6 +456,7 @@ export async function POST(request: Request) {
             requestId,
             title: approval.title,
             reasonRequired: true,
+            responseUrl: responseUrl ?? undefined,
           });
           return;
         }
@@ -503,7 +506,7 @@ export async function POST(request: Request) {
     }
 
     // Extract action and requestId from private_metadata.
-    let metadata: { action?: string; requestId?: string };
+    let metadata: { action?: string; requestId?: string; responseUrl?: string };
     try {
       metadata = JSON.parse(view.private_metadata ?? "{}");
     } catch {
@@ -517,6 +520,7 @@ export async function POST(request: Request) {
 
     const decision = metadata.action as "approve" | "reject";
     const requestId = metadata.requestId;
+    const originalResponseUrl = metadata.responseUrl;
 
     // Extract the reason from the view state.
     const reason =
@@ -541,7 +545,7 @@ export async function POST(request: Request) {
     }
 
     // Update the original message via response_url if available.
-    const responseUrl = payload.response_url;
+    const responseUrl = originalResponseUrl ?? payload.response_url;
     if (responseUrl) {
       const newStatus = result.newStatus as string;
       const approvalData = result.approval as Record<string, unknown>;
