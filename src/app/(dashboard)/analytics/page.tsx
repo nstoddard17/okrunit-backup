@@ -6,6 +6,15 @@ import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { Clock, CheckCircle, Timer, BarChart3 } from "lucide-react";
 
+// Pre-render icons as JSX so they can be passed to StatCard without
+// "Functions cannot be passed to Client Components" errors
+const icons = {
+  total: <BarChart3 className="size-5" />,
+  pending: <Clock className="size-5" />,
+  approved: <CheckCircle className="size-5" />,
+  decided: <Timer className="size-5" />,
+};
+
 export const metadata = {
   title: "Analytics - OKRunit",
   description: "Dashboard analytics and approval statistics.",
@@ -59,28 +68,28 @@ export default async function AnalyticsPage() {
         <StatCard
           title="Total Requests"
           value={total ?? 0}
-          icon={BarChart3}
+          iconNode={icons.total}
           subtitle="All time"
           iconColor="text-violet-500"
         />
         <StatCard
           title="Pending"
           value={pending ?? 0}
-          icon={Clock}
+          iconNode={icons.pending}
           subtitle="Awaiting decision"
           iconColor="text-amber-500"
         />
         <StatCard
           title="Approval Rate"
           value={`${approvalRate}%`}
-          icon={CheckCircle}
+          iconNode={icons.approved}
           subtitle={`${approvedNum} approved, ${rejectedNum} rejected`}
           iconColor="text-emerald-500"
         />
         <StatCard
           title="Decided"
           value={decided}
-          icon={Timer}
+          iconNode={icons.decided}
           subtitle="Approved + rejected"
           iconColor="text-blue-500"
         />

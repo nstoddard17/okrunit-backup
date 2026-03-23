@@ -1,14 +1,14 @@
-"use client";
-
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  iconNode?: ReactNode;
   subtitle?: string;
   trend?: { value: number; label: string };
   iconColor?: string;
@@ -20,6 +20,7 @@ export function StatCard({
   title,
   value,
   icon: Icon,
+  iconNode,
   subtitle,
   trend,
   iconColor = "text-muted-foreground",
@@ -42,7 +43,7 @@ export function StatCard({
             <p className="text-3xl font-semibold tracking-tight">{value}</p>
           </div>
           <div className={cn("rounded-lg bg-muted/50 p-2.5", iconColor)}>
-            <Icon className="size-5" />
+            {Icon ? <Icon className="size-5" /> : iconNode}
           </div>
         </div>
         {(subtitle || trend) && (
