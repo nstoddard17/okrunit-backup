@@ -2,7 +2,7 @@
 // OKRunit -- Approvals API: POST (create) + GET (list with filters)
 // ---------------------------------------------------------------------------
 
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
 
 import { authenticateRequest } from "@/lib/api/auth";
@@ -547,34 +547,38 @@ export async function POST(request: Request) {
       }
     }
 
-    dispatchNotifications({
-      type: isAutoApproved ? "approval.approved" : "approval.created",
-      orgId: auth.orgId,
-      requestId: approval.id,
-      requestTitle: validated.title,
-      requestDescription: validated.description,
-      requestPriority: effectivePriority,
-      connectionId: connectionId ?? undefined,
-      connectionName: connectionName ?? undefined,
-      targetUserIds,
+    after(async () => {
+      await dispatchNotifications({
+        type: isAutoApproved ? "approval.approved" : "approval.created",
+        orgId: auth.orgId,
+        requestId: approval.id,
+        requestTitle: validated.title,
+        requestDescription: validated.description,
+        requestPriority: effectivePriority,
+        connectionId: connectionId ?? undefined,
+        connectionName: connectionName ?? undefined,
+        targetUserIds,
+      });
     });
 
     // 15b. Bottleneck detection (fire-and-forget)
     //      Check if any assigned approver now exceeds the threshold
     if (!isAutoApproved && assignedApprovers && assignedApprovers.length > 0) {
-      checkBottleneckThreshold(auth.orgId, assignedApprovers).then((overloadedUserIds) => {
-        if (overloadedUserIds.length > 0) {
-          // Notify org admins about the bottleneck
-          dispatchNotifications({
-            type: "approval.bottleneck",
-            orgId: auth.orgId,
-            requestId: approval.id,
-            requestTitle: `Bottleneck: ${overloadedUserIds.length} approver(s) overloaded`,
-            requestPriority: "high",
-          });
+      after(async () => {
+        try {
+          const overloadedUserIds = await checkBottleneckThreshold(auth.orgId, assignedApprovers);
+          if (overloadedUserIds.length > 0) {
+            await dispatchNotifications({
+              type: "approval.bottleneck",
+              orgId: auth.orgId,
+              requestId: approval.id,
+              requestTitle: `Bottleneck: ${overloadedUserIds.length} approver(s) overloaded`,
+              requestPriority: "high",
+            });
+          }
+        } catch (err) {
+          console.error("[Approvals] Bottleneck check failed:", err);
         }
-      }).catch((err) => {
-        console.error("[Approvals] Bottleneck check failed:", err);
       });
     }
 
@@ -739,16 +743,18 @@ export async function GET(request: Request) {
         .then();
 
       // Dispatch SLA breach notifications for each breached approval
-      for (const breachedApproval of activeApprovals.filter((a) => slaBreachIds.includes(a.id))) {
-        dispatchNotifications({
-          type: "approval.sla_breached",
-          orgId: auth.orgId,
-          requestId: breachedApproval.id,
-          requestTitle: breachedApproval.title,
-          requestPriority: breachedApproval.priority,
-          connectionId: breachedApproval.connection_id ?? undefined,
-        });
-      }
+      after(async () => {
+        for (const breachedApproval of activeApprovals.filter((a) => slaBreachIds.includes(a.id))) {
+          await dispatchNotifications({
+            type: "approval.sla_breached",
+            orgId: auth.orgId,
+            requestId: breachedApproval.id,
+            requestTitle: breachedApproval.title,
+            requestPriority: breachedApproval.priority,
+            connectionId: breachedApproval.connection_id ?? undefined,
+          });
+        }
+      });
     }
 
     // Fire-and-forget: apply auto-actions for approvals past their deadline
