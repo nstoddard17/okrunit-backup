@@ -482,17 +482,46 @@ export async function POST(request: Request) {
         priority: approval.priority,
       }));
 
-    // Open the modal.
-    const opened = await openSlackModal({
-      triggerId,
-      action: decision,
+    // If rejection reason is required, open the modal.
+    if (reasonRequired) {
+      const opened = await openSlackModal({
+        triggerId,
+        action: decision,
+        requestId,
+        title: approval.title,
+        reasonRequired: true,
+      });
+
+      if (!opened) {
+        return NextResponse.json({
+          replace_original: true,
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: ":x: Failed to open the reason dialog. Please try again or use the dashboard.",
+              },
+            },
+          ],
+        });
+      }
+
+      return NextResponse.json({ ok: true });
+    }
+
+    // Otherwise, apply the decision immediately (one click, no modal).
+    const slackUserId = payload.user?.id ?? "unknown";
+    const slackUsername = payload.user?.username ?? payload.user?.name ?? "Slack User";
+
+    const result = await applyDecisionAndRespond({
+      decision,
       requestId,
-      title: approval.title,
-      reasonRequired,
+      slackUserId,
+      slackUsername,
     });
 
-    if (!opened) {
-      // Fallback: if modal fails to open, return an error message.
+    if ("response_action" in result) {
       return NextResponse.json({
         replace_original: true,
         blocks: [
@@ -500,15 +529,17 @@ export async function POST(request: Request) {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: ":x: Failed to open the reason dialog. Please try again or use the dashboard.",
+              text: ":x: Failed to process the decision. Please try the dashboard.",
             },
           },
         ],
       });
     }
 
-    // Acknowledge the button click. The modal is now open.
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      replace_original: true,
+      blocks: buildResponseBlocks(approval.title, decision, slackUsername),
+    });
   }
 
   // -------------------------------------------------------------------------
