@@ -397,6 +397,7 @@ function dispatchTeams(
       description: event.requestDescription,
       priority: event.requestPriority,
       connectionName: event.connectionName,
+      orgId: event.orgId,
     }).catch((err: unknown) => {
       console.error(
         `[Notifications] Teams notification failed for connection ${conn.id}:`,

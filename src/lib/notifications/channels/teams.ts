@@ -1,6 +1,14 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Microsoft Teams Notification Channel (Adaptive Cards)
+// OKRunit -- Microsoft Teams Notification Channel (Incoming Webhooks)
 // ---------------------------------------------------------------------------
+//
+// Uses Incoming Webhooks with Adaptive Cards. Approve/reject actions use
+// Action.OpenUrl buttons that link to one-click browser pages (no Azure Bot
+// Service required). Tokens are generated using the same email_action_tokens
+// table used by the email channel.
+// ---------------------------------------------------------------------------
+
+import { generateActionTokens } from "@/lib/notifications/tokens";
 
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -16,6 +24,7 @@ export interface TeamsNotificationParams {
   description?: string;
   priority: string;
   connectionName?: string;
+  orgId: string;
 }
 
 export interface TeamsDecisionParams {
@@ -54,10 +63,20 @@ function decisionDisplay(decision: string): string {
   return map[decision] ?? decision;
 }
 
-/** Build the Adaptive Card body for a new approval request. */
-function buildApprovalCard(params: TeamsNotificationParams): object {
+/**
+ * Build the Adaptive Card body for a new approval request.
+ *
+ * Uses Action.OpenUrl buttons that open one-click approve/reject pages in the
+ * browser. The tokens are single-use and expire after the configured TTL.
+ */
+function buildApprovalCard(
+  params: TeamsNotificationParams,
+  approveToken: string,
+  rejectToken: string,
+): object {
   const dashboardUrl = `${APP_URL}/dashboard#request-${params.requestId}`;
-  const interactUrl = `${APP_URL}/api/teams/interact`;
+  const approveUrl = `${APP_URL}/approve/${approveToken}`;
+  const rejectUrl = `${APP_URL}/reject/${rejectToken}`;
   const p = priorityConfig(params.priority);
 
   const bodyItems: object[] = [
@@ -160,6 +179,15 @@ function buildApprovalCard(params: TeamsNotificationParams): object {
     spacing: "Medium",
   });
 
+  // Browser action hint
+  bodyItems.push({
+    type: "TextBlock",
+    text: "\uD83C\uDF10 Clicking Approve or Reject will open in your browser",
+    size: "Small",
+    color: "Accent",
+    spacing: "Medium",
+  });
+
   return {
     type: "message",
     attachments: [
@@ -173,26 +201,18 @@ function buildApprovalCard(params: TeamsNotificationParams): object {
           body: bodyItems,
           actions: [
             {
-              type: "Action.Submit",
-              title: "Approve",
-              style: "positive",
-              data: {
-                action: "approve",
-                requestId: params.requestId,
-              },
-            },
-            {
-              type: "Action.Submit",
-              title: "Reject",
-              style: "destructive",
-              data: {
-                action: "reject",
-                requestId: params.requestId,
-              },
+              type: "Action.OpenUrl",
+              title: "\u2705 Approve",
+              url: approveUrl,
             },
             {
               type: "Action.OpenUrl",
-              title: "View in Dashboard",
+              title: "\u274C Reject",
+              url: rejectUrl,
+            },
+            {
+              type: "Action.OpenUrl",
+              title: "\uD83D\uDD0D View in Dashboard",
               url: dashboardUrl,
             },
           ],
@@ -208,10 +228,13 @@ function buildApprovalCard(params: TeamsNotificationParams): object {
 
 /**
  * Send a Teams notification with an Adaptive Card containing approve/reject
- * buttons.
+ * links that open in the browser.
  *
- * The buttons use Action.Submit, which POST back to the Teams interact
- * endpoint (`/api/teams/interact`) when configured via a Teams bot/webhook.
+ * Generates single-use tokens for the approve and reject actions using the
+ * same email_action_tokens table used by the email channel. The token owner
+ * is set to a synthetic "teams-org" user ID since Teams webhook notifications
+ * are org-wide (not user-specific). The actual permission check happens when
+ * the user confirms their action in the browser.
  *
  * Errors are caught and logged -- Teams notifications must never break the
  * main request flow.
@@ -219,9 +242,18 @@ function buildApprovalCard(params: TeamsNotificationParams): object {
 export async function sendTeamsNotification(
   params: TeamsNotificationParams,
 ): Promise<void> {
-  const payload = buildApprovalCard(params);
-
   try {
+    // Generate one-time action tokens for the approve/reject links.
+    // We use the orgId as a synthetic user ID since Teams webhooks are
+    // org-wide channels -- the actual user identity is verified when they
+    // open the link and confirm the action.
+    const tokens = await generateActionTokens(
+      params.requestId,
+      params.orgId,
+    );
+
+    const payload = buildApprovalCard(params, tokens.approveToken, tokens.rejectToken);
+
     const response = await fetch(params.webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
