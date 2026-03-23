@@ -244,17 +244,14 @@ async function applyDecision(params: {
   if (chatId && messageId) {
     const emoji = newStatus === "approved" ? "\u2705" : "\u274C";
     const label = newStatus === "approved" ? "Approved" : "Rejected";
-    const commentLine = comment
-      ? `\n${escapeMarkdownV2(`Reason: ${comment}`)}`
-      : `\n${escapeMarkdownV2("Reply to this message to add a reason")}`;
+    const commentLine = comment ? `\nReason: ${comment}` : "";
 
     await editMessage(
       String(chatId),
       messageId,
-      [
-        `${escapeMarkdownV2(`${emoji} ${label}`)}: *${escapeMarkdownV2(approval.title)}*`,
-        escapeMarkdownV2(`by ${displayName}`) + commentLine,
-      ].join("\n"),
+      `${emoji} ${label}: ${approval.title}\nby ${displayName}${commentLine}`,
+      undefined,
+      false,
     );
   }
 }
@@ -378,9 +375,9 @@ export async function POST(request: Request) {
         await editMessage(
           String(chatId),
           messageId,
-          escapeMarkdownV2(
-            "A rejection reason is required. Please type your reason:",
-          ),
+          "⚠️ A rejection reason is required.\n\nType your reason below:",
+          undefined,
+          false,
         );
       }
       return NextResponse.json({ ok: true });
@@ -416,7 +413,9 @@ export async function POST(request: Request) {
       await editMessage(
         String(chatId),
         messageId,
-        escapeMarkdownV2("Please type your rejection reason:"),
+        "⚠️ Please type your rejection reason below:",
+        undefined,
+        false,
       );
     }
     return NextResponse.json({ ok: true });

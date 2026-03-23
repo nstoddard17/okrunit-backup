@@ -95,20 +95,21 @@ export async function sendTelegramNotification(
   const dashboardUrl = `${APP_URL}/dashboard#request-${params.requestId}`;
 
   const descriptionLine = params.description
-    ? `\n${escapeMarkdownV2(params.description)}`
+    ? `\n${params.description}`
     : "";
 
   const connectionLine = params.connectionName
-    ? `\n*Connection:* ${escapeMarkdownV2(params.connectionName)}`
+    ? `\nConnection: ${params.connectionName}`
     : "";
 
   const text = [
-    `*${escapeMarkdownV2("New Approval Request")}*`,
+    "🔔 Approval Required",
     "",
-    `*${escapeMarkdownV2(params.title)}*${descriptionLine}`,
+    params.title,
+    descriptionLine,
     "",
-    `*Priority:* ${escapeMarkdownV2(priorityEmoji(params.priority))}`,
-    `*Request ID:* \`${params.requestId.slice(0, 8)}\\.\\.\\.\``,
+    `Priority: ${priorityEmoji(params.priority)}`,
+    `Request ID: ${params.requestId.slice(0, 8)}`,
     connectionLine,
   ]
     .filter((line) => line !== "")
@@ -144,7 +145,6 @@ export async function sendTelegramNotification(
       body: JSON.stringify({
         chat_id: params.chatId,
         text,
-        parse_mode: "MarkdownV2",
         reply_markup: inlineKeyboard,
       }),
     });
@@ -268,6 +268,7 @@ export async function editMessage(
   messageId: number,
   text: string,
   replyMarkup?: object,
+  useMarkdown: boolean = true,
 ): Promise<void> {
   const botToken = getBotToken();
   if (!botToken) return;
@@ -279,8 +280,11 @@ export async function editMessage(
       chat_id: chatId,
       message_id: messageId,
       text,
-      parse_mode: "MarkdownV2",
     };
+
+    if (useMarkdown) {
+      body.parse_mode = "MarkdownV2";
+    }
 
     if (replyMarkup) {
       body.reply_markup = replyMarkup;
