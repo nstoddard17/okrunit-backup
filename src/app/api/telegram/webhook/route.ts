@@ -2,23 +2,18 @@
 // OKRunit -- Telegram Webhook Route
 // ---------------------------------------------------------------------------
 //
-// Receives callback_query and message updates from Telegram.
-//
 // Flow:
-//   1. User clicks Approve/Reject button (callback_query)
-//   2. Bot asks "Would you like to add a reason?" with "Type a reason" / "Skip"
-//   3a. If "Type a reason": bot asks user to reply with their reason
-//   3b. If "Skip": decision is applied immediately
-//   4. When user replies with text, the decision is applied with that comment
+//   1. User clicks Approve/Reject button → decision applied immediately
+//   2. Confirmation message says "Reply to add a reason" (optional)
+//   3. If user replies with text → reason is attached as decision_comment
+//
+// Exception: If rejection reason is REQUIRED by org policy, the reject button
+// prompts for a reason first and blocks until provided.
 //
 // Callback data formats:
-//   okrunit:approve:<requestId>     -- Initial approve button
-//   okrunit:reject:<requestId>      -- Initial reject button
-//   okrunit:confirm:<action>:<requestId>  -- Skip / apply without reason
-//   okrunit:reason:<action>:<requestId>   -- User wants to type a reason
-//
-// Webhook URL should be registered via:
-//   https://api.telegram.org/bot<TOKEN>/setWebhook?url=<APP_URL>/api/telegram/webhook&allowed_updates=["callback_query","message"]
+//   okrunit:approve:<requestId>   -- Approve (immediate)
+//   okrunit:reject:<requestId>    -- Reject (immediate, unless reason required)
+//   okrunit:reason:reject:<requestId> -- Forced reason prompt (when required)
 // ---------------------------------------------------------------------------
 
 import { timingSafeEqual } from "crypto";
@@ -70,26 +65,18 @@ interface TelegramUpdate {
 }
 
 // ---------------------------------------------------------------------------
-// In-memory store for pending reason prompts
-// ---------------------------------------------------------------------------
-//
-// Maps "chatId:userId" to { action, requestId, botMessageId } so we can
-// associate a text reply with a pending decision. Entries expire after 10
-// minutes. In a multi-instance deployment this would need Redis or similar,
-// but for a single Vercel serverless function (or small-scale use) the
-// in-memory map is sufficient since Telegram retries on failure.
+// Pending reason prompts (only used when rejection reason is required)
 // ---------------------------------------------------------------------------
 
 interface PendingReason {
-  action: "approve" | "reject";
+  action: "reject";
   requestId: string;
   botMessageId: number;
   expiresAt: number;
 }
 
 const pendingReasons = new Map<string, PendingReason>();
-
-const PENDING_REASON_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const PENDING_TTL_MS = 10 * 60 * 1000;
 
 function pendingKey(chatId: number, userId: number): string {
   return `${chatId}:${userId}`;
@@ -98,9 +85,7 @@ function pendingKey(chatId: number, userId: number): string {
 function cleanExpired(): void {
   const now = Date.now();
   for (const [key, value] of pendingReasons) {
-    if (value.expiresAt < now) {
-      pendingReasons.delete(key);
-    }
+    if (value.expiresAt < now) pendingReasons.delete(key);
   }
 }
 
@@ -108,27 +93,17 @@ function cleanExpired(): void {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Escape special characters for Telegram MarkdownV2. */
 function escapeMarkdownV2(text: string): string {
   return text.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, "\\$1");
 }
 
-/**
- * Verify the Telegram webhook secret token if TELEGRAM_WEBHOOK_SECRET is
- * configured.
- */
-function verifyTelegramSecret(
-  expectedSecret: string,
-  headerSecret: string,
-): boolean {
-  const a = Buffer.from(expectedSecret, "utf-8");
-  const b = Buffer.from(headerSecret, "utf-8");
-
+function verifyTelegramSecret(expected: string, header: string): boolean {
+  const a = Buffer.from(expected, "utf-8");
+  const b = Buffer.from(header, "utf-8");
   if (a.length !== b.length) return false;
   return timingSafeEqual(a, b);
 }
 
-/** Build the display name from a Telegram user. */
 function telegramDisplayName(user: TelegramUser): string {
   if (user.username) return `@${user.username}`;
   const parts = [user.first_name, user.last_name].filter(Boolean);
@@ -136,7 +111,7 @@ function telegramDisplayName(user: TelegramUser): string {
 }
 
 // ---------------------------------------------------------------------------
-// Core: Apply the decision to the approval request
+// Apply decision to the approval
 // ---------------------------------------------------------------------------
 
 async function applyDecision(params: {
@@ -149,10 +124,9 @@ async function applyDecision(params: {
 }): Promise<void> {
   const { decision, requestId, telegramUser, chatId, messageId, comment } =
     params;
-  const telegramUserName = telegramDisplayName(telegramUser);
+  const displayName = telegramDisplayName(telegramUser);
   const admin = createAdminClient();
 
-  // Fetch the approval request.
   const { data: approval, error: fetchError } = await admin
     .from("approval_requests")
     .select("*")
@@ -172,40 +146,34 @@ async function applyDecision(params: {
     return;
   }
 
-  // Check that the request is still pending.
   if (approval.status !== "pending") {
     if (chatId && messageId) {
       await editMessage(
         String(chatId),
         messageId,
         escapeMarkdownV2(
-          `\u2139\uFE0F This request has already been ${approval.status}. No action taken.`,
+          `\u2139\uFE0F Already ${approval.status}. No action taken.`,
         ),
       );
     }
     return;
   }
 
-  // Check for lazy expiration.
   if (approval.expires_at && new Date(approval.expires_at) < new Date()) {
     await admin
       .from("approval_requests")
       .update({ status: "expired" })
       .eq("id", approval.id);
-
     if (chatId && messageId) {
       await editMessage(
         String(chatId),
         messageId,
-        escapeMarkdownV2(
-          "\u231B This request has expired and can no longer be actioned.",
-        ),
+        escapeMarkdownV2("\u231B This request has expired."),
       );
     }
     return;
   }
 
-  // Apply the decision.
   const newStatus = decision === "approve" ? "approved" : "rejected";
   const decidedAt = new Date().toISOString();
 
@@ -224,10 +192,7 @@ async function applyDecision(params: {
     decided_at: decidedAt,
     decision_source: "telegram",
   };
-
-  if (comment) {
-    updatePayload.decision_comment = comment;
-  }
+  if (comment) updatePayload.decision_comment = comment;
 
   const { data: updated, error: updateError } = await admin
     .from("approval_requests")
@@ -237,14 +202,10 @@ async function applyDecision(params: {
     .single();
 
   if (updateError || !updated) {
-    console.error(
-      "[Telegram Webhook] Failed to update approval:",
-      updateError,
-    );
+    console.error("[Telegram Webhook] Update failed:", updateError);
     return;
   }
 
-  // Audit log (fire-and-forget).
   logAuditEvent({
     orgId: approval.org_id,
     userId: decidedBy ?? undefined,
@@ -256,12 +217,10 @@ async function applyDecision(params: {
       decision_source: "telegram",
       decision_comment: comment ?? null,
       telegram_user_id: telegramUser.id,
-      telegram_username: telegramUser.username ?? null,
-      telegram_display_name: telegramUserName,
+      telegram_display_name: displayName,
     },
   });
 
-  // Deliver callback if configured (fire-and-forget).
   if (approval.callback_url) {
     deliverCallback({
       requestId: approval.id,
@@ -282,21 +241,21 @@ async function applyDecision(params: {
     });
   }
 
-  // Edit the original message to show the result.
   if (chatId && messageId) {
-    const statusEmoji = newStatus === "approved" ? "\u2705" : "\u274C";
-    const statusLabel = newStatus === "approved" ? "Approved" : "Rejected";
-
+    const emoji = newStatus === "approved" ? "\u2705" : "\u274C";
+    const label = newStatus === "approved" ? "Approved" : "Rejected";
     const commentLine = comment
       ? `\n${escapeMarkdownV2(`Reason: ${comment}`)}`
-      : "";
+      : `\n${escapeMarkdownV2("Reply to this message to add a reason")}`;
 
-    const updatedText = [
-      `${escapeMarkdownV2(`${statusEmoji} ${statusLabel}`)}: *${escapeMarkdownV2(approval.title)}*`,
-      `${escapeMarkdownV2(`by ${telegramUserName}`)}${commentLine}`,
-    ].join("\n");
-
-    await editMessage(String(chatId), messageId, updatedText);
+    await editMessage(
+      String(chatId),
+      messageId,
+      [
+        `${escapeMarkdownV2(`${emoji} ${label}`)}: *${escapeMarkdownV2(approval.title)}*`,
+        escapeMarkdownV2(`by ${displayName}`) + commentLine,
+      ].join("\n"),
+    );
   }
 }
 
@@ -306,66 +265,41 @@ async function applyDecision(params: {
 
 export async function POST(request: Request) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
-
   if (!botToken) {
     console.error("[Telegram Webhook] TELEGRAM_BOT_TOKEN is not set");
-    return NextResponse.json(
-      { error: "Telegram integration is not configured" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Not configured" }, { status: 500 });
   }
 
-  // 1. Verify the webhook secret if configured.
   const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-
   if (webhookSecret) {
-    const headerSecret =
+    const header =
       request.headers.get("X-Telegram-Bot-Api-Secret-Token") ?? "";
-
-    if (!verifyTelegramSecret(webhookSecret, headerSecret)) {
-      console.warn("[Telegram Webhook] Invalid webhook secret");
-      return NextResponse.json(
-        { error: "Invalid webhook secret" },
-        { status: 401 },
-      );
+    if (!verifyTelegramSecret(webhookSecret, header)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
 
-  // 2. Parse the update payload.
   let update: TelegramUpdate;
-
   try {
     update = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Invalid JSON payload" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  // Clean up expired pending reasons periodically.
   cleanExpired();
 
-  // ---------------------------------------------------------------------------
-  // Handle text message replies (user typing a reason)
-  // ---------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Handle text messages (reply with reason — only for required rejections)
+  // -------------------------------------------------------------------------
   if (update.message && !update.callback_query) {
     const msg = update.message;
     const fromUser = msg.from;
-
-    if (!fromUser || !msg.text) {
-      return NextResponse.json({ ok: true });
-    }
+    if (!fromUser || !msg.text) return NextResponse.json({ ok: true });
 
     const key = pendingKey(msg.chat.id, fromUser.id);
     const pending = pendingReasons.get(key);
+    if (!pending) return NextResponse.json({ ok: true });
 
-    if (!pending) {
-      // Not a reply we're expecting -- ignore.
-      return NextResponse.json({ ok: true });
-    }
-
-    // We have a pending reason prompt for this user in this chat.
     pendingReasons.delete(key);
 
     await applyDecision({
@@ -380,206 +314,114 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  // ---------------------------------------------------------------------------
-  // Handle callback_query (button presses)
-  // ---------------------------------------------------------------------------
-  const callbackQuery = update.callback_query;
+  // -------------------------------------------------------------------------
+  // Handle button clicks
+  // -------------------------------------------------------------------------
+  const cb = update.callback_query;
+  if (!cb?.data) return NextResponse.json({ ok: true });
 
-  if (!callbackQuery) {
-    return NextResponse.json({ ok: true });
-  }
-
-  const callbackData = callbackQuery.data;
-  if (!callbackData) {
-    return NextResponse.json({ ok: true });
-  }
-
-  const parts = callbackData.split(":");
+  const parts = cb.data.split(":");
   if (parts[0] !== "okrunit" || parts.length < 3) {
-    await answerCallbackQuery(callbackQuery.id, "Unknown action");
+    await answerCallbackQuery(cb.id, "Unknown action");
     return NextResponse.json({ ok: true });
   }
 
-  const telegramUser = callbackQuery.from;
-  const chatId = callbackQuery.message?.chat.id;
-  const messageId = callbackQuery.message?.message_id;
+  const chatId = cb.message?.chat.id;
+  const messageId = cb.message?.message_id;
 
   // -------------------------------------------------------------------------
-  // Case 1: Initial approve/reject button press
-  // Format: okrunit:approve:<requestId> or okrunit:reject:<requestId>
+  // Approve — always immediate
   // -------------------------------------------------------------------------
-  if (
-    parts.length === 3 &&
-    (parts[1] === "approve" || parts[1] === "reject")
-  ) {
-    const action = parts[1] as "approve" | "reject";
-    const requestId = parts[2];
-
-    // Validate the request exists and is still pending before prompting.
-    const admin = createAdminClient();
-    const { data: approval, error: fetchError } = await admin
-      .from("approval_requests")
-      .select("id, status, expires_at, org_id, require_rejection_reason, priority, title")
-      .eq("id", requestId)
-      .single();
-
-    if (fetchError || !approval) {
-      await answerCallbackQuery(
-        callbackQuery.id,
-        "Approval request not found.",
-      );
-      if (chatId && messageId) {
-        await editMessage(
-          String(chatId),
-          messageId,
-          escapeMarkdownV2(
-            "\u26A0\uFE0F Approval request not found. It may have been deleted.",
-          ),
-        );
-      }
-      return NextResponse.json({ ok: true });
-    }
-
-    if (approval.status !== "pending") {
-      await answerCallbackQuery(
-        callbackQuery.id,
-        `Already ${approval.status}. No action taken.`,
-      );
-      if (chatId && messageId) {
-        await editMessage(
-          String(chatId),
-          messageId,
-          escapeMarkdownV2(
-            `\u2139\uFE0F This request has already been ${approval.status}. No action taken.`,
-          ),
-        );
-      }
-      return NextResponse.json({ ok: true });
-    }
-
-    if (
-      approval.expires_at &&
-      new Date(approval.expires_at) < new Date()
-    ) {
-      await admin
-        .from("approval_requests")
-        .update({ status: "expired" })
-        .eq("id", approval.id);
-
-      await answerCallbackQuery(
-        callbackQuery.id,
-        "This request has expired.",
-      );
-      if (chatId && messageId) {
-        await editMessage(
-          String(chatId),
-          messageId,
-          escapeMarkdownV2(
-            "\u231B This request has expired and can no longer be actioned.",
-          ),
-        );
-      }
-      return NextResponse.json({ ok: true });
-    }
-
-    // Check if rejection reason is required.
-    const reasonRequired =
-      action === "reject" &&
-      (await isRejectionReasonRequired(approval.org_id, {
-        require_rejection_reason: approval.require_rejection_reason,
-        priority: approval.priority,
-      }));
-
-    // Build the "add a reason?" prompt with buttons.
-    const actionLabel = action === "approve" ? "approval" : "rejection";
-    const promptText = escapeMarkdownV2(
-      `Would you like to add a reason for your ${actionLabel} of "${approval.title}"?`,
-    );
-
-    const buttons: Array<{ text: string; callback_data: string }> = [
-      {
-        text: "Type a reason",
-        callback_data: `okrunit:reason:${action}:${requestId}`,
-      },
-    ];
-
-    // Only show "Skip" if reason is not required.
-    if (!reasonRequired) {
-      buttons.push({
-        text: "Skip",
-        callback_data: `okrunit:confirm:${action}:${requestId}`,
-      });
-    }
-
-    await answerCallbackQuery(callbackQuery.id, "");
-
-    if (chatId && messageId) {
-      await editMessage(String(chatId), messageId, promptText, {
-        inline_keyboard: [buttons],
-      });
-    }
-
-    return NextResponse.json({ ok: true });
-  }
-
-  // -------------------------------------------------------------------------
-  // Case 2: "Skip" -- apply without reason
-  // Format: okrunit:confirm:<action>:<requestId>
-  // -------------------------------------------------------------------------
-  if (parts.length === 4 && parts[1] === "confirm") {
-    const action = parts[2] as "approve" | "reject";
-    const requestId = parts[3];
-
-    await answerCallbackQuery(
-      callbackQuery.id,
-      action === "approve" ? "Approved!" : "Rejected!",
-    );
-
+  if (parts[1] === "approve" && parts.length === 3) {
+    await answerCallbackQuery(cb.id, "Approved!");
     await applyDecision({
-      decision: action,
-      requestId,
-      telegramUser,
+      decision: "approve",
+      requestId: parts[2],
+      telegramUser: cb.from,
       chatId,
       messageId,
     });
-
     return NextResponse.json({ ok: true });
   }
 
   // -------------------------------------------------------------------------
-  // Case 3: "Type a reason" -- prompt user to reply with text
-  // Format: okrunit:reason:<action>:<requestId>
+  // Reject — immediate unless reason is required
   // -------------------------------------------------------------------------
-  if (parts.length === 4 && parts[1] === "reason") {
-    const action = parts[2] as "approve" | "reject";
+  if (parts[1] === "reject" && parts.length === 3) {
+    const requestId = parts[2];
+
+    // Check if rejection reason is required
+    const admin = createAdminClient();
+    const { data: approval } = await admin
+      .from("approval_requests")
+      .select("org_id, require_rejection_reason, priority")
+      .eq("id", requestId)
+      .single();
+
+    const reasonRequired = approval
+      ? await isRejectionReasonRequired(approval.org_id, {
+          require_rejection_reason: approval.require_rejection_reason,
+          priority: approval.priority,
+        })
+      : false;
+
+    if (reasonRequired) {
+      // Must provide a reason — prompt for it
+      await answerCallbackQuery(cb.id, "A rejection reason is required");
+      if (chatId && messageId) {
+        pendingReasons.set(pendingKey(chatId, cb.from.id), {
+          action: "reject",
+          requestId,
+          botMessageId: messageId,
+          expiresAt: Date.now() + PENDING_TTL_MS,
+        });
+        await editMessage(
+          String(chatId),
+          messageId,
+          escapeMarkdownV2(
+            "A rejection reason is required. Please type your reason:",
+          ),
+        );
+      }
+      return NextResponse.json({ ok: true });
+    }
+
+    // No reason required — apply immediately
+    await answerCallbackQuery(cb.id, "Rejected!");
+    await applyDecision({
+      decision: "reject",
+      requestId,
+      telegramUser: cb.from,
+      chatId,
+      messageId,
+    });
+    return NextResponse.json({ ok: true });
+  }
+
+  // -------------------------------------------------------------------------
+  // Forced reason prompt submit (legacy format, kept for compatibility)
+  // -------------------------------------------------------------------------
+  if (parts[1] === "reason" && parts.length === 4) {
+    const action = parts[2] as "reject";
     const requestId = parts[3];
 
-    await answerCallbackQuery(callbackQuery.id, "");
-
+    await answerCallbackQuery(cb.id, "");
     if (chatId && messageId) {
-      // Store the pending reason.
-      const key = pendingKey(chatId, telegramUser.id);
-      pendingReasons.set(key, {
+      pendingReasons.set(pendingKey(chatId, cb.from.id), {
         action,
         requestId,
         botMessageId: messageId,
-        expiresAt: Date.now() + PENDING_REASON_TTL_MS,
+        expiresAt: Date.now() + PENDING_TTL_MS,
       });
-
-      const actionLabel = action === "approve" ? "approval" : "rejection";
       await editMessage(
         String(chatId),
         messageId,
-        escapeMarkdownV2(
-          `Please type your reason for the ${actionLabel} as a reply to this message.`,
-        ),
+        escapeMarkdownV2("Please type your rejection reason:"),
       );
     }
-
     return NextResponse.json({ ok: true });
   }
 
-  // Unknown callback data format.
-  await answerCallbackQuery(callbackQuery.id, "Unknown action");
+  await answerCallbackQuery(cb.id, "Unknown action");
   return NextResponse.json({ ok: true });
 }
