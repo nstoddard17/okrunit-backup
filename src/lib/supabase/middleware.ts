@@ -43,7 +43,11 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/callback") &&
     !request.nextUrl.pathname.startsWith("/invite") &&
     !request.nextUrl.pathname.startsWith("/api") &&
-    request.nextUrl.pathname !== "/"
+    !request.nextUrl.pathname.startsWith("/approve") &&
+    !request.nextUrl.pathname.startsWith("/reject") &&
+    request.nextUrl.pathname !== "/" &&
+    request.nextUrl.pathname !== "/sitemap.xml" &&
+    request.nextUrl.pathname !== "/robots.txt"
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

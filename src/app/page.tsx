@@ -1,5 +1,18 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { Hero } from "@/components/landing/hero";
+import {
+  OrganizationJsonLd,
+  SoftwareAppJsonLd,
+  WebsiteJsonLd,
+  FAQJsonLd,
+} from "@/components/seo/json-ld";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "https://okrunit.com",
+  },
+};
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -8,15 +21,21 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   return (
-    <Hero
-      user={
-        user
-          ? {
-              email: user.email ?? "",
-              full_name: user.user_metadata?.full_name ?? null,
-            }
-          : null
-      }
-    />
+    <>
+      <OrganizationJsonLd />
+      <SoftwareAppJsonLd />
+      <WebsiteJsonLd />
+      <FAQJsonLd />
+      <Hero
+        user={
+          user
+            ? {
+                email: user.email ?? "",
+                full_name: user.user_metadata?.full_name ?? null,
+              }
+            : null
+        }
+      />
+    </>
   );
 }

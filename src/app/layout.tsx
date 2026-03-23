@@ -21,9 +21,47 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "OKRunit - Human-in-the-Loop Approval Gateway",
+  title: {
+    default: "OKRunit - Human-in-the-Loop Approval Gateway for AI Agents & Automations",
+    template: "%s | OKRunit",
+  },
   description:
-    "Universal approval gateway for AI agents and automation platforms. Get human approval before destructive actions execute.",
+    "Add human approval to any automation workflow. OKRunit pauses AI agents, Zapier zaps, Make scenarios, and n8n workflows until a human approves. One API call. Approve from Slack, email, or dashboard.",
+  keywords: [
+    "human-in-the-loop",
+    "approval gateway",
+    "AI agent approval",
+    "automation approval",
+    "Zapier approval",
+    "Make.com approval",
+    "n8n approval",
+    "workflow approval",
+    "human approval API",
+    "AI safety",
+    "destructive action prevention",
+  ],
+  metadataBase: new URL("https://okrunit.com"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "OKRunit - Human Approval for Every Automation",
+    description:
+      "Add human approval to any automation workflow. One API call pauses execution until a human approves. Works with Zapier, Make, n8n, Slack, and any REST API.",
+    url: "https://okrunit.com",
+    siteName: "OKRunit",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OKRunit - Human Approval for Every Automation",
+    description:
+      "Add human approval to any automation workflow. One API call pauses execution until a human approves.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
