@@ -48,13 +48,36 @@ function calculateTrend(current: number, previous: number): number | null {
 }
 
 export default async function AnalyticsPage() {
-  const ctx = await getOrgContext();
+  let ctx;
+  try {
+    ctx = await getOrgContext();
+  } catch (e) {
+    console.error("[Analytics] getOrgContext failed:", e);
+    return (
+      <PageContainer wide>
+        <PageHeader title="Analytics" description="Unable to load." />
+        <p>Error loading org context.</p>
+      </PageContainer>
+    );
+  }
   if (!ctx) redirect("/login");
   const { membership } = ctx;
 
   const orgId = membership.org_id;
+  console.log("[Analytics] Loading for org:", orgId);
 
-  const admin = createAdminClient();
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch (e) {
+    console.error("[Analytics] createAdminClient failed:", e);
+    return (
+      <PageContainer wide>
+        <PageHeader title="Analytics" description="Unable to load." />
+        <p>Error creating database client.</p>
+      </PageContainer>
+    );
+  }
 
   try {
 
@@ -219,13 +242,11 @@ export default async function AnalyticsPage() {
       )}
     </PageContainer>
   );
-  } catch (e) {
-    console.error("[Analytics] Page render error:", e);
-    return (
-      <PageContainer wide>
-        <PageHeader title="Analytics" description="Approval statistics and trends." />
-        <p className="text-muted-foreground">Something went wrong loading analytics. Please try again later.</p>
-      </PageContainer>
-    );
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    const stack = e instanceof Error ? e.stack : "";
+    console.error("[Analytics] RENDER ERROR:", msg);
+    console.error("[Analytics] STACK:", stack);
+    throw e; // Re-throw so error.tsx catches it with digest
   }
 }
