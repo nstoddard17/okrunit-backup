@@ -5,6 +5,10 @@
 // Receives Action.Submit payloads from Teams Adaptive Cards when a user
 // clicks "Approve" or "Reject".
 //
+// Supports two authentication modes:
+// 1. Bot Framework JWT -- standard Microsoft Bot Framework token validation
+// 2. HMAC Signature -- legacy mode using TEAMS_SIGNING_SECRET
+//
 // Flow:
 //   1. User clicks Approve/Reject (Action.Submit with action + requestId)
 //   2. If no comment field is present, return an updated card with a TextInput
@@ -15,7 +19,7 @@
 // and there is no "Skip" option.
 // ---------------------------------------------------------------------------
 
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac, createPublicKey, createVerify, timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -24,7 +28,51 @@ import { deliverCallback } from "@/lib/api/callbacks";
 import { isRejectionReasonRequired } from "@/lib/api/rejection-reason";
 
 // ---------------------------------------------------------------------------
-// Signature Verification (optional)
+// Bot Framework Auth Constants
+// ---------------------------------------------------------------------------
+
+const TEAMS_CLIENT_ID = process.env.TEAMS_CLIENT_ID;
+
+const BOT_FRAMEWORK_JWKS_URL =
+  "https://login.botframework.com/v1/.well-known/keys";
+
+// Cache JWKS keys with a TTL of 24 hours
+let cachedKeys: JsonWebKey[] | null = null;
+let cachedKeysAt = 0;
+const JWKS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+interface JwksResponse {
+  keys: JsonWebKey[];
+}
+
+interface JsonWebKey {
+  kty: string;
+  kid?: string;
+  n?: string;
+  e?: string;
+  use?: string;
+  alg?: string;
+  x5c?: string[];
+}
+
+async function getJWKS(): Promise<JsonWebKey[]> {
+  if (cachedKeys && Date.now() - cachedKeysAt < JWKS_CACHE_TTL_MS) {
+    return cachedKeys;
+  }
+
+  const res = await fetch(BOT_FRAMEWORK_JWKS_URL);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch JWKS: ${res.status}`);
+  }
+
+  const data: JwksResponse = await res.json();
+  cachedKeys = data.keys;
+  cachedKeysAt = Date.now();
+  return data.keys;
+}
+
+// ---------------------------------------------------------------------------
+// Signature Verification (legacy HMAC mode)
 // ---------------------------------------------------------------------------
 
 function verifyTeamsSignature(
@@ -39,6 +87,132 @@ function verifyTeamsSignature(
 
   if (a.length !== b.length) return false;
   return timingSafeEqual(a, b);
+}
+
+// ---------------------------------------------------------------------------
+// Bot Framework JWT Verification
+// ---------------------------------------------------------------------------
+
+/**
+ * Decode a base64url string to a Buffer.
+ */
+function base64UrlDecode(str: string): Buffer {
+  // Replace base64url chars with base64 equivalents and add padding
+  const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+  return Buffer.from(padded, "base64");
+}
+
+/**
+ * Verify a Bot Framework JWT token from the Authorization header.
+ * Returns true if the token is valid and issued for our bot.
+ *
+ * Uses Node.js built-in crypto (no external JWT library required).
+ */
+async function verifyBotFrameworkToken(
+  authHeader: string,
+): Promise<boolean> {
+  if (!TEAMS_CLIENT_ID) return false;
+
+  const token = authHeader.replace(/^Bearer\s+/i, "");
+  if (!token) return false;
+
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+
+    // Decode header to find the key ID
+    const header = JSON.parse(base64UrlDecode(parts[0]).toString("utf-8"));
+    const kid = header.kid as string | undefined;
+    const alg = header.alg as string | undefined;
+
+    if (!alg || !alg.startsWith("RS")) {
+      console.warn("[Teams Interact] Unsupported JWT algorithm:", alg);
+      return false;
+    }
+
+    // Fetch JWKS and find the matching key
+    const keys = await getJWKS();
+    const key = kid
+      ? keys.find((k) => k.kid === kid)
+      : keys.find((k) => k.kty === "RSA" && k.use === "sig");
+
+    if (!key) {
+      console.warn("[Teams Interact] No matching JWK found for kid:", kid);
+      return false;
+    }
+
+    // Build a public key from the JWK
+    let publicKey;
+    if (key.x5c && key.x5c.length > 0) {
+      // Use the X.509 certificate if available
+      const cert = `-----BEGIN CERTIFICATE-----\n${key.x5c[0]}\n-----END CERTIFICATE-----`;
+      publicKey = createPublicKey(cert);
+    } else if (key.n && key.e) {
+      // Build from RSA components
+      publicKey = createPublicKey({
+        key: {
+          kty: "RSA",
+          n: key.n,
+          e: key.e,
+        },
+        format: "jwk",
+      });
+    } else {
+      console.warn("[Teams Interact] JWK missing key material");
+      return false;
+    }
+
+    // Verify the signature
+    const signingInput = `${parts[0]}.${parts[1]}`;
+    const signature = base64UrlDecode(parts[2]);
+
+    // Map JWT algorithm to Node.js algorithm name
+    const nodeAlg = alg === "RS256" ? "RSA-SHA256" : alg === "RS384" ? "RSA-SHA384" : "RSA-SHA512";
+
+    const verifier = createVerify(nodeAlg);
+    verifier.update(signingInput);
+    const isValid = verifier.verify(publicKey, signature);
+
+    if (!isValid) {
+      console.warn("[Teams Interact] JWT signature verification failed");
+      return false;
+    }
+
+    // Decode and validate claims
+    const payload = JSON.parse(base64UrlDecode(parts[1]).toString("utf-8"));
+
+    // Check issuer
+    if (payload.iss !== "https://api.botframework.com") {
+      console.warn("[Teams Interact] JWT issuer mismatch:", payload.iss);
+      return false;
+    }
+
+    // Check audience
+    if (payload.aud !== TEAMS_CLIENT_ID) {
+      console.warn("[Teams Interact] JWT audience mismatch:", payload.aud);
+      return false;
+    }
+
+    // Check expiration
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) {
+      console.warn("[Teams Interact] JWT has expired");
+      return false;
+    }
+
+    // Check not-before
+    if (payload.nbf && payload.nbf > now + 300) {
+      // Allow 5 min clock skew
+      console.warn("[Teams Interact] JWT not yet valid");
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.warn("[Teams Interact] Bot Framework JWT verification failed:", err);
+    return false;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -205,6 +379,46 @@ function buildReasonPromptCard(
 }
 
 // ---------------------------------------------------------------------------
+// Bot Framework Activity Types
+// ---------------------------------------------------------------------------
+
+interface BotFrameworkActivity {
+  type: string;
+  action?: string;
+  serviceUrl?: string;
+  channelId?: string;
+  conversation?: {
+    id: string;
+    tenantId?: string;
+    conversationType?: string;
+    isGroup?: boolean;
+    name?: string;
+  };
+  from?: {
+    id?: string;
+    name?: string;
+    aadObjectId?: string;
+  };
+  recipient?: {
+    id?: string;
+    name?: string;
+  };
+  membersAdded?: Array<{
+    id?: string;
+    name?: string;
+  }>;
+  value?: {
+    action?: string;
+    requestId?: string;
+    comment?: string;
+    hasComment?: boolean;
+    skipReason?: boolean;
+  };
+  text?: string;
+  replyToId?: string;
+}
+
+// ---------------------------------------------------------------------------
 // POST /api/teams/interact
 // ---------------------------------------------------------------------------
 
@@ -212,39 +426,52 @@ export async function POST(request: Request) {
   // 1. Read the raw body.
   const rawBody = await request.text();
 
-  // 2. Verify signature if TEAMS_SIGNING_SECRET is configured.
+  // 2. Determine authentication mode and verify.
+  const authHeader = request.headers.get("Authorization") ?? "";
   const signingSecret = process.env.TEAMS_SIGNING_SECRET;
+  let authenticated = false;
 
-  if (signingSecret) {
+  // Try Bot Framework JWT first (production mode)
+  if (authHeader.toLowerCase().startsWith("bearer ")) {
+    authenticated = await verifyBotFrameworkToken(authHeader);
+    if (!authenticated) {
+      console.warn("[Teams Interact] Bot Framework JWT auth failed");
+      return NextResponse.json(
+        { error: "Invalid authorization token" },
+        { status: 401 },
+      );
+    }
+  }
+  // Fall back to legacy HMAC signature verification
+  else if (signingSecret) {
     const signature = request.headers.get("X-OKRunit-Signature") ?? "";
-
     if (!verifyTeamsSignature(signingSecret, rawBody, signature)) {
-      console.warn("[Teams Interact] Invalid signature");
+      console.warn("[Teams Interact] Invalid HMAC signature");
       return NextResponse.json(
         { error: "Invalid request signature" },
+        { status: 401 },
+      );
+    }
+    authenticated = true;
+  }
+
+  // If neither auth mode is configured, allow through (development mode)
+  if (!authenticated && (signingSecret || TEAMS_CLIENT_ID)) {
+    // At least one auth mode is configured but neither succeeded
+    // Only fail if there was actually an auth header that didn't verify
+    if (authHeader) {
+      return NextResponse.json(
+        { error: "Authentication failed" },
         { status: 401 },
       );
     }
   }
 
   // 3. Parse the JSON payload.
-  let payload: {
-    type?: string;
-    value?: {
-      action?: string;
-      requestId?: string;
-      comment?: string;
-      hasComment?: boolean;
-      skipReason?: boolean;
-    };
-    from?: {
-      id?: string;
-      name?: string;
-    };
-  };
+  let activity: BotFrameworkActivity;
 
   try {
-    payload = JSON.parse(rawBody);
+    activity = JSON.parse(rawBody);
   } catch {
     return NextResponse.json(
       { error: "Invalid JSON payload" },
@@ -252,8 +479,101 @@ export async function POST(request: Request) {
     );
   }
 
-  // 4. Extract action data.
-  const actionData = payload.value;
+  // 4. Handle Bot Framework conversationUpdate activities (bot added/removed).
+  if (activity.type === "conversationUpdate") {
+    return handleConversationUpdate(activity);
+  }
+
+  // 5. Handle message activities (Adaptive Card Action.Submit).
+  if (activity.type === "message" || activity.type === "invoke") {
+    return handleActionSubmit(activity);
+  }
+
+  // Unknown activity type -- acknowledge without error.
+  return NextResponse.json({ ok: true, message: "Activity type not handled" });
+}
+
+// ---------------------------------------------------------------------------
+// Handle conversationUpdate (bot added to team/channel)
+// ---------------------------------------------------------------------------
+
+async function handleConversationUpdate(
+  activity: BotFrameworkActivity,
+): Promise<NextResponse> {
+  const botId = activity.recipient?.id;
+  const membersAdded = activity.membersAdded ?? [];
+
+  // Check if the bot itself was added
+  const botWasAdded = membersAdded.some((m) => m.id === botId);
+
+  if (!botWasAdded) {
+    // Some other member was added -- not relevant to us
+    return NextResponse.json({ ok: true });
+  }
+
+  // Store the conversation reference for proactive messaging
+  const conversationId = activity.conversation?.id;
+  const serviceUrl = activity.serviceUrl;
+  const tenantId = activity.conversation?.tenantId;
+
+  if (!conversationId || !serviceUrl) {
+    console.warn("[Teams Interact] conversationUpdate missing conversation data");
+    return NextResponse.json({ ok: true });
+  }
+
+  console.log(
+    `[Teams Interact] Bot added to conversation: ${conversationId} (tenant: ${tenantId})`,
+  );
+
+  // Store the conversation reference in the database.
+  // This is stored as metadata that the proactive messaging system can use.
+  const admin = createAdminClient();
+
+  // We store the conversation reference as a messaging connection.
+  // The channel_id is the conversation ID, and metadata holds the service URL.
+  const conversationName =
+    activity.conversation?.name ?? `Teams conversation`;
+
+  // Check if a connection already exists for this conversation
+  const { data: existing } = await admin
+    .from("messaging_connections")
+    .select("id, org_id")
+    .eq("platform", "teams")
+    .eq("channel_id", conversationId)
+    .maybeSingle();
+
+  if (existing) {
+    // Update the existing connection with fresh service URL
+    await admin
+      .from("messaging_connections")
+      .update({
+        webhook_url: serviceUrl,
+        is_active: true,
+      })
+      .eq("id", existing.id);
+
+    console.log(
+      `[Teams Interact] Updated existing connection for conversation: ${conversationId}`,
+    );
+  } else {
+    console.log(
+      `[Teams Interact] No existing org connection for conversation ${conversationId}. ` +
+        "Bot install endpoint should be used to associate with an org.",
+    );
+  }
+
+  return NextResponse.json({ ok: true });
+}
+
+// ---------------------------------------------------------------------------
+// Handle Action.Submit from Adaptive Cards
+// ---------------------------------------------------------------------------
+
+async function handleActionSubmit(
+  activity: BotFrameworkActivity,
+): Promise<NextResponse> {
+  // Extract action data -- Bot Framework puts card submit data in activity.value
+  const actionData = activity.value;
 
   if (!actionData?.action || !actionData?.requestId) {
     return NextResponse.json({ ok: true, message: "No action to process" });
@@ -271,8 +591,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, message: "Unknown action" });
   }
 
-  const teamsUserId = payload.from?.id ?? "unknown";
-  const teamsUserName = payload.from?.name ?? "Teams User";
+  const teamsUserId = activity.from?.id ?? "unknown";
+  const teamsUserName = activity.from?.name ?? "Teams User";
 
   const admin = createAdminClient();
 

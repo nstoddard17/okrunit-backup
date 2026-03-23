@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "a0304d84-3629-49ef-8980-ac816a83b734",
+  "developer": {
+    "name": "OKRunit",
+    "websiteUrl": "https://okrunit.com",
+    "privacyUrl": "https://okrunit.com/privacy",
+    "termsOfUseUrl": "https://okrunit.com/terms"
+  },
+  "name": {
+    "short": "OKRunit",
+    "full": "OKRunit - Human-in-the-Loop Approvals"
+  },
+  "description": {
+    "short": "Approve or reject automated workflow actions from Teams",
+    "full": "OKRunit is a human-in-the-loop approval gateway. Get notified when automated workflows need approval, and approve or reject directly from Microsoft Teams with interactive Adaptive Cards."
+  },
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
+  "accentColor": "#4F46E5",
+  "bots": [
+    {
+      "botId": "a0304d84-3629-49ef-8980-ac816a83b734",
+      "scopes": ["team", "personal", "groupChat"],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": ["okrunit.com", "www.okrunit.com"]
+}
