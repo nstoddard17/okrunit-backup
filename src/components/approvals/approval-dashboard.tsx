@@ -540,9 +540,9 @@ export function ApprovalDashboard({
   };
 
   return (
-    <div className={`space-y-6 ${selectedIds.size > 0 ? "pb-20" : ""}`}>
+    <div className={`space-y-8 ${selectedIds.size > 0 ? "pb-20" : ""}`}>
       {/* Header row: live indicator + refresh + layout toggle */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span className="relative flex size-2">
@@ -556,9 +556,9 @@ export function ApprovalDashboard({
             size="sm"
             onClick={handleRefresh}
             disabled={isFetching}
-            className="h-7 gap-1.5 text-xs text-muted-foreground"
+            className="h-8 gap-1.5 text-xs text-muted-foreground"
           >
-            <RefreshCw className={`size-3 ${isFetching ? "animate-spin" : ""}`} />
+            <RefreshCw className={`size-4 ${isFetching ? "animate-spin" : ""}`} />
             Refresh
           </Button>
         </div>
@@ -566,7 +566,7 @@ export function ApprovalDashboard({
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-4">
         <StatCard
           title="Pending"
           value={pendingCount}

@@ -125,21 +125,21 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, 
   return (
     <aside className="flex h-full w-64 flex-col border-r border-[var(--sidebar-border)] bg-[var(--sidebar)]">
       {/* Logo / Org Header */}
-      <div className="flex flex-col gap-2 border-b border-[var(--sidebar-border)] px-4 py-3">
+      <div className="flex flex-col gap-3 border-b border-[var(--sidebar-border)] px-4 py-4">
         <Link href="/dashboard" className="flex justify-center">
-          <img src="/logo_text.png" alt="OKRunit" className="h-10 w-auto" />
+          <img src="/logo_text.png" alt="OKRunit" className="h-8 w-auto" />
         </Link>
         <OrgSwitcher currentOrgId={currentOrgId} orgs={userOrgs} />
       </div>
 
       {/* Search trigger */}
-      <div className="px-3 pt-3">
+      <div className="px-3 py-2">
         <button
-          className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[var(--ring)] hover:text-foreground"
+          className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-[var(--ring)] hover:text-foreground"
           onClick={() => {/* Command palette — future enhancement */}}
         >
-          <Search className="size-3.5" />
-          <span className="flex-1 text-left">Search...</span>
+          <Search className="size-3.5 shrink-0" />
+          <span className="flex-1 text-left text-xs">Search...</span>
           <kbd className="hidden rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium sm:inline-block">
             ⌘K
           </kbd>
@@ -147,9 +147,9 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, 
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-2">
+      <nav className="flex-1 overflow-y-auto px-3 py-3">
         {showSetup && (
-          <div className="mb-2">
+          <div className="mb-3">
             <Link
               href="/setup"
               className={cn(
@@ -177,13 +177,13 @@ export function Sidebar({ user, currentOrgId, userOrgs, pendingCount, userRole, 
           if (visibleItems.length === 0) return null;
 
           return (
-            <div key={sectionIndex} className={sectionIndex > 0 ? "sidebar-section-divider" : ""}>
+            <div key={sectionIndex} className={sectionIndex > 0 ? "sidebar-section-divider mt-4 pt-4" : ""}>
               {section.label && (
-                <p className="mb-1.5 px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                <p className="mb-2 px-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
                   {section.label}
                 </p>
               )}
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 {visibleItems.map((item) => {
                   const isActive =
                     pathname === item.href ||

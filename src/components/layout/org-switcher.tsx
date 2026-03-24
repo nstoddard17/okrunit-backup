@@ -36,17 +36,21 @@ export function OrgSwitcher({ currentOrgId, orgs }: OrgSwitcherProps) {
   // If only one org, just show the name without a dropdown
   if (orgs.length <= 1) {
     return (
-      <span className="text-muted-foreground truncate text-[11px] leading-tight">
-        {currentOrg?.org_name ?? "No organization"}
-      </span>
+      <div className="flex items-center gap-2">
+        <Building2 className="size-3.5 text-muted-foreground shrink-0" />
+        <span className="text-foreground truncate text-sm font-medium">
+          {currentOrg?.org_name ?? "No organization"}
+        </span>
+      </div>
     );
   }
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex cursor-pointer items-center gap-1 text-[11px] leading-tight text-muted-foreground hover:text-foreground transition-colors outline-none max-w-[170px]">
+      <DropdownMenuTrigger className="flex cursor-pointer items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors outline-none max-w-[170px] -mx-1 px-1 py-0.5 rounded hover:bg-[var(--sidebar-accent)]/60">
+        <Building2 className="size-3.5 shrink-0" />
         <span className="truncate">{currentOrg?.org_name}</span>
-        <ChevronsUpDown className="size-3 shrink-0 opacity-50" />
+        <ChevronsUpDown className="size-3.5 shrink-0 opacity-60 ml-auto" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuLabel className="flex items-center gap-2 text-xs">

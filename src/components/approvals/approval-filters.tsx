@@ -41,8 +41,8 @@ export function ApprovalFilters({
   const hasActiveFilters = currentFilters.status || currentFilters.priority || currentFilters.search || currentFilters.connectionId || currentFilters.source || currentFilters.showArchived;
 
   return (
-    <div className="rounded-xl bg-muted/30 p-3">
-      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:flex-wrap">
+    <div className="rounded-lg bg-muted/40 p-4 border border-border/40">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
         <div className="relative flex-1 min-w-[180px]">
           <Search className="text-muted-foreground absolute top-1/2 left-3 size-3.5 -translate-y-1/2" />
           <Input
