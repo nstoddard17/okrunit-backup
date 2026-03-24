@@ -69,11 +69,17 @@ export function TourTooltip({
         break;
     }
 
+    // Clamp to viewport
+    const tooltipWidth = 288; // w-72 = 18rem = 288px
+    const tooltipHeight = 160; // approximate
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    left = Math.max(16, Math.min(left, viewportWidth - tooltipWidth - 16));
+    top = Math.max(16, Math.min(top, viewportHeight + scrollTop - tooltipHeight - 16));
+
     setCoords({ top, left, targetRect: rect });
     setVisible(true);
-
-    // Scroll target into view if needed
-    target.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [targetSelector, position, onNext]);
 
   if (!visible || !coords.targetRect) return null;
@@ -99,13 +105,7 @@ export function TourTooltip({
       {/* Tooltip */}
       <div
         ref={tooltipRef}
-        className={cn(
-          "fixed z-[10000] w-72 rounded-lg border bg-popover p-4 shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-200",
-          position === "top" && "-translate-x-1/2 -translate-y-full",
-          position === "bottom" && "-translate-x-1/2",
-          position === "left" && "-translate-x-full -translate-y-1/2",
-          position === "right" && "-translate-y-1/2",
-        )}
+        className="fixed z-[10000] w-72 rounded-lg border bg-popover p-4 shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-200"
         style={{ top: coords.top, left: coords.left }}
       >
         <div className="flex items-start justify-between gap-2">
