@@ -29,6 +29,16 @@ export function DashboardShell({ children, sidebarProps, emergencyStopActive, us
     return () => document.removeEventListener("keydown", handleEscape);
   }, [setMobileOpen, setActivePanel]);
 
+  // Prevent body-level scrollbar — the dashboard manages its own scroll in <main>
+  useEffect(() => {
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, []);
+
   return (
     <div className="gk-v2 force-light flex h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
       {/* Mobile overlay backdrop */}
