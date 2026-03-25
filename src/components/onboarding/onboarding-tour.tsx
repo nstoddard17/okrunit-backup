@@ -12,7 +12,7 @@ interface TourStep {
 
 const TOUR_STEPS: TourStep[] = [
   {
-    targetSelector: '[href="/dashboard"]',
+    targetSelector: '[href="/org/overview"]',
     title: "Dashboard",
     description:
       "This is your main view. All pending approval requests appear here for you to review and decide on.",
@@ -33,10 +33,10 @@ const TOUR_STEPS: TourStep[] = [
     position: "right",
   },
   {
-    targetSelector: '[href="/rules"]',
-    title: "Rules",
+    targetSelector: '[href="/routes"]',
+    title: "Routes",
     description:
-      "Set up auto-approval rules, routing, and trust policies to streamline repetitive approvals.",
+      "Configure who must approve requests from each source, set notification channels, and manage approval flows.",
     position: "right",
   },
   {

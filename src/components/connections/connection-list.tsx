@@ -26,7 +26,9 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
   async function handleDeactivate(id: string) {
     try {
       const res = await fetch(`/api/v1/connections/${id}`, {
-        method: "DELETE",
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: false }),
       });
 
       if (!res.ok) {

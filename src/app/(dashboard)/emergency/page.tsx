@@ -15,7 +15,7 @@ export default async function EmergencyPage() {
   if (!ctx) redirect("/login");
   const { membership, org } = ctx;
 
-  if (membership.role !== "owner" && membership.role !== "admin") redirect("/dashboard");
+  if (membership.role !== "owner" && membership.role !== "admin") redirect("/org/overview");
 
   return (
     <PageContainer className="max-w-2xl">

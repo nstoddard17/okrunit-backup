@@ -106,12 +106,11 @@ function DashboardVisual() {
           </div>
           <div className="flex-1 space-y-0.5 px-2 py-2">
             {[
-              { icon: LayoutDashboard, label: "Dashboard", active: true, badge: "3" },
+              { icon: LayoutDashboard, label: "Org", active: true, badge: "3" },
               { icon: Key, label: "Connections" },
-              { icon: Users, label: "Team" },
               { icon: ShieldCheck, label: "Rules" },
-              { icon: FileText, label: "Audit Log" },
               { icon: BarChart3, label: "Analytics" },
+              { icon: Users, label: "Playground" },
             ].map((item) => (
               <div
                 key={item.label}

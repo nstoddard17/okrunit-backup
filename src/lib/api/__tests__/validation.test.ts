@@ -15,6 +15,16 @@ import {
   updateOrgSettingsSchema,
   exportQuerySchema,
   analyticsQuerySchema,
+  webhookLogQuerySchema,
+  createBulkRuleSchema,
+  updateBulkRuleSchema,
+  routingRulesSchema,
+  updateMessagingConnectionSchema,
+  createConditionSchema,
+  updateConditionSchema,
+  cancelScheduledExecutionSchema,
+  updateTeamSchema,
+  updateTrustCounterSchema,
 } from "@/lib/api/validation";
 
 describe("createApprovalSchema", () => {
@@ -487,6 +497,378 @@ describe("analyticsQuerySchema", () => {
 
   it("rejects invalid period", () => {
     const result = analyticsQuerySchema.safeParse({ period: "year" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts date-only start_date format", () => {
+    const result = analyticsQuerySchema.safeParse({ start_date: "2026-01-15" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts datetime start_date format with T and Z", () => {
+    const result = analyticsQuerySchema.safeParse({ start_date: "2026-01-15T10:30:00Z" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts datetime start_date without trailing Z", () => {
+    const result = analyticsQuerySchema.safeParse({ start_date: "2026-01-15T10:30:00" });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects malformed date string", () => {
+    const result = analyticsQuerySchema.safeParse({ start_date: "Jan 15, 2026" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects date with wrong separator", () => {
+    const result = analyticsQuerySchema.safeParse({ start_date: "2026/01/15" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts combined period and date range", () => {
+    const result = analyticsQuerySchema.safeParse({
+      period: "week",
+      start_date: "2026-01-01",
+      end_date: "2026-01-31",
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ---- Search max length (paginationSchema) ---------------------------------
+
+describe("paginationSchema - search field", () => {
+  it("accepts a short search string", () => {
+    const result = paginationSchema.safeParse({ search: "deploy" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts search at exactly 500 characters", () => {
+    const result = paginationSchema.safeParse({ search: "x".repeat(500) });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects search exceeding 500 characters", () => {
+    const result = paginationSchema.safeParse({ search: "x".repeat(501) });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts empty search string", () => {
+    const result = paginationSchema.safeParse({ search: "" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts search with special characters", () => {
+    const result = paginationSchema.safeParse({ search: "deploy:prod & version>=2.0" });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ---- webhookLogQuerySchema ------------------------------------------------
+
+describe("webhookLogQuerySchema", () => {
+  it("accepts empty object with defaults", () => {
+    const result = webhookLogQuerySchema.safeParse({});
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts valid request_id UUID", () => {
+    const result = webhookLogQuerySchema.safeParse({
+      request_id: "550e8400-e29b-41d4-a716-446655440000",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid request_id", () => {
+    const result = webhookLogQuerySchema.safeParse({ request_id: "not-uuid" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts status filter values", () => {
+    expect(webhookLogQuerySchema.safeParse({ status: "success" }).success).toBe(true);
+    expect(webhookLogQuerySchema.safeParse({ status: "failed" }).success).toBe(true);
+  });
+
+  it("rejects invalid status filter", () => {
+    expect(webhookLogQuerySchema.safeParse({ status: "pending" }).success).toBe(false);
+  });
+
+  it("accepts limit within range", () => {
+    expect(webhookLogQuerySchema.safeParse({ limit: 1 }).success).toBe(true);
+    expect(webhookLogQuerySchema.safeParse({ limit: 100 }).success).toBe(true);
+  });
+
+  it("rejects limit exceeding 100", () => {
+    expect(webhookLogQuerySchema.safeParse({ limit: 101 }).success).toBe(false);
+  });
+});
+
+// ---- createBulkRuleSchema -------------------------------------------------
+
+describe("createBulkRuleSchema", () => {
+  it("accepts valid bulk rule", () => {
+    const result = createBulkRuleSchema.safeParse({
+      name: "Auto-archive old requests",
+      action: "archive",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts bulk rule with all filters", () => {
+    const result = createBulkRuleSchema.safeParse({
+      name: "Bulk approve low priority",
+      action: "approve",
+      status_filter: "pending",
+      priority_filter: ["low", "medium"],
+      source_filter: ["zapier"],
+      older_than_minutes: 60,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid action", () => {
+    const result = createBulkRuleSchema.safeParse({
+      name: "Test",
+      action: "delete",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects name exceeding 200 chars", () => {
+    const result = createBulkRuleSchema.safeParse({
+      name: "x".repeat(201),
+      action: "approve",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts all valid bulk rule actions", () => {
+    for (const action of ["approve", "reject", "archive"]) {
+      const result = createBulkRuleSchema.safeParse({ name: "Test", action });
+      expect(result.success).toBe(true);
+    }
+  });
+});
+
+// ---- updateBulkRuleSchema -------------------------------------------------
+
+describe("updateBulkRuleSchema", () => {
+  it("accepts empty object (all fields optional via partial)", () => {
+    const result = updateBulkRuleSchema.safeParse({});
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts partial update with just name", () => {
+    const result = updateBulkRuleSchema.safeParse({ name: "Updated name" });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ---- routingRulesSchema ---------------------------------------------------
+
+describe("routingRulesSchema", () => {
+  it("accepts empty object", () => {
+    const result = routingRulesSchema.safeParse({});
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts valid routing rules", () => {
+    const result = routingRulesSchema.safeParse({
+      sources: ["zapier", "github"],
+      priorities: ["high", "critical"],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects sources array exceeding 50 items", () => {
+    const result = routingRulesSchema.safeParse({
+      sources: Array.from({ length: 51 }, (_, i) => `source-${i}`),
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+// ---- createConditionSchema ------------------------------------------------
+
+describe("createConditionSchema", () => {
+  it("accepts valid manual condition", () => {
+    const result = createConditionSchema.safeParse({
+      name: "Security review",
+      check_type: "manual",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts valid webhook condition with URL", () => {
+    const result = createConditionSchema.safeParse({
+      name: "CI check",
+      check_type: "webhook",
+      webhook_url: "https://ci.example.com/check",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects empty name", () => {
+    const result = createConditionSchema.safeParse({
+      name: "",
+      check_type: "manual",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects invalid check_type", () => {
+    const result = createConditionSchema.safeParse({
+      name: "Test",
+      check_type: "automatic",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+// ---- updateConditionSchema ------------------------------------------------
+
+describe("updateConditionSchema", () => {
+  it("accepts valid status update", () => {
+    expect(updateConditionSchema.safeParse({ status: "met" }).success).toBe(true);
+    expect(updateConditionSchema.safeParse({ status: "failed" }).success).toBe(true);
+    expect(updateConditionSchema.safeParse({ status: "pending" }).success).toBe(true);
+  });
+
+  it("rejects invalid status", () => {
+    expect(updateConditionSchema.safeParse({ status: "unknown" }).success).toBe(false);
+  });
+});
+
+// ---- cancelScheduledExecutionSchema ---------------------------------------
+
+describe("cancelScheduledExecutionSchema", () => {
+  it("accepts cancelled status", () => {
+    const result = cancelScheduledExecutionSchema.safeParse({ execution_status: "cancelled" });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects any other status", () => {
+    expect(cancelScheduledExecutionSchema.safeParse({ execution_status: "pending" }).success).toBe(false);
+    expect(cancelScheduledExecutionSchema.safeParse({ execution_status: "completed" }).success).toBe(false);
+  });
+});
+
+// ---- updateTeamSchema -----------------------------------------------------
+
+describe("updateTeamSchema", () => {
+  it("accepts empty object (all optional)", () => {
+    expect(updateTeamSchema.safeParse({}).success).toBe(true);
+  });
+
+  it("accepts name update", () => {
+    expect(updateTeamSchema.safeParse({ name: "New Team Name" }).success).toBe(true);
+  });
+
+  it("rejects name exceeding 100 chars", () => {
+    expect(updateTeamSchema.safeParse({ name: "x".repeat(101) }).success).toBe(false);
+  });
+});
+
+// ---- updateTrustCounterSchema ---------------------------------------------
+
+describe("updateTrustCounterSchema", () => {
+  it("accepts threshold update", () => {
+    const result = updateTrustCounterSchema.safeParse({ auto_approve_threshold: 10 });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts null threshold (to disable auto-approval)", () => {
+    const result = updateTrustCounterSchema.safeParse({ auto_approve_threshold: null });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts counter reset", () => {
+    const result = updateTrustCounterSchema.safeParse({ consecutive_approvals: 0 });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts auto_approve_active toggle", () => {
+    const result = updateTrustCounterSchema.safeParse({ auto_approve_active: false });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects negative consecutive_approvals", () => {
+    const result = updateTrustCounterSchema.safeParse({ consecutive_approvals: -1 });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects threshold exceeding 10000", () => {
+    const result = updateTrustCounterSchema.safeParse({ auto_approve_threshold: 10001 });
+    expect(result.success).toBe(false);
+  });
+});
+
+// ---- exportQuerySchema extended -------------------------------------------
+
+describe("exportQuerySchema - extended", () => {
+  it("rejects date with partial format (missing day)", () => {
+    const result = exportQuerySchema.safeParse({ start_date: "2026-01" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects date with time component (strict YYYY-MM-DD only)", () => {
+    const result = exportQuerySchema.safeParse({ start_date: "2026-01-01T00:00:00Z" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts valid JSON format", () => {
+    const result = exportQuerySchema.safeParse({ format: "json" });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid format", () => {
+    const result = exportQuerySchema.safeParse({ format: "xml" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts combined filters", () => {
+    const result = exportQuerySchema.safeParse({
+      format: "csv",
+      start_date: "2026-01-01",
+      end_date: "2026-12-31",
+      status: "approved",
+      priority: "high",
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ---- updateMessagingConnectionSchema --------------------------------------
+
+describe("updateMessagingConnectionSchema", () => {
+  it("accepts empty object", () => {
+    const result = updateMessagingConnectionSchema.safeParse({});
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts notification toggles", () => {
+    const result = updateMessagingConnectionSchema.safeParse({
+      notify_on_create: true,
+      notify_on_decide: false,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts routing rules with priorities", () => {
+    const result = updateMessagingConnectionSchema.safeParse({
+      routing_rules: {
+        priorities: ["high", "critical"],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid priority in routing_rules", () => {
+    const result = updateMessagingConnectionSchema.safeParse({
+      routing_rules: {
+        priorities: ["urgent"],
+      },
+    });
     expect(result.success).toBe(false);
   });
 });

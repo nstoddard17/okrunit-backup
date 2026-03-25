@@ -528,7 +528,7 @@ export function Hero({ user }: HeroProps) {
 
           <div className="flex items-center gap-2">
             {user ? (
-              <Link href="/dashboard" className="hidden rounded-lg px-4 py-2 text-sm font-semibold transition hover:opacity-90 md:inline-flex" style={{ backgroundColor: "var(--tess-text)", color: "var(--tess-bg)" }}>
+              <Link href="/org/overview" className="hidden rounded-lg px-4 py-2 text-sm font-semibold transition hover:opacity-90 md:inline-flex" style={{ backgroundColor: "var(--tess-text)", color: "var(--tess-bg)" }}>
                 Dashboard
               </Link>
             ) : (
@@ -552,7 +552,7 @@ export function Hero({ user }: HeroProps) {
               <a href="#pricing" className="text-sm" style={{ color: "var(--tess-text-secondary)" }} onClick={() => setMobileMenuOpen(false)}>Pricing</a>
               <a href="#testimonials" className="text-sm" style={{ color: "var(--tess-text-secondary)" }} onClick={() => setMobileMenuOpen(false)}>Testimonials</a>
               {!user && <Link href="/login" className="text-sm" style={{ color: "var(--tess-text-secondary)" }} onClick={() => setMobileMenuOpen(false)}>Log in</Link>}
-              <Link href={user ? "/dashboard" : "/signup"} className="mt-1 rounded-lg px-4 py-2 text-center text-sm font-semibold" style={{ backgroundColor: "var(--tess-text)", color: "var(--tess-bg)" }}>
+              <Link href={user ? "/org/overview" : "/signup"} className="mt-1 rounded-lg px-4 py-2 text-center text-sm font-semibold" style={{ backgroundColor: "var(--tess-text)", color: "var(--tess-bg)" }}>
                 {user ? "Dashboard" : "Start for free"}
               </Link>
             </div>
@@ -597,7 +597,7 @@ export function Hero({ user }: HeroProps) {
         <FadeIn delay={400}>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
-              href={user ? "/dashboard" : "/signup"}
+              href={user ? "/org/overview" : "/signup"}
               className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold transition hover:brightness-110"
               style={{ backgroundColor: "var(--tess-accent)", color: "#000" }}
             >
@@ -769,7 +769,7 @@ export function Hero({ user }: HeroProps) {
             <div className="max-w-2xl">
               <h3 className="text-2xl font-bold md:text-3xl" style={{ letterSpacing: "-0.02em" }}>{bigCard.title}</h3>
               <p className="mt-3 text-base leading-relaxed" style={{ color: "var(--tess-text-secondary)" }}>{bigCard.description}</p>
-              <Link href={user ? "/dashboard" : "/signup"} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold transition hover:opacity-70" style={{ color: "var(--tess-accent)" }}>
+              <Link href={user ? "/org/overview" : "/signup"} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold transition hover:opacity-70" style={{ color: "var(--tess-accent)" }}>
                 Get started <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
@@ -890,7 +890,7 @@ export function Hero({ user }: HeroProps) {
               Free to start. No credit card required. Add human oversight in minutes.
             </p>
             <Link
-              href={user ? "/dashboard" : "/signup"}
+              href={user ? "/org/overview" : "/signup"}
               className="mt-7 inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold transition hover:brightness-110"
               style={{ backgroundColor: "var(--tess-accent)", color: "#000" }}
             >
@@ -1006,7 +1006,7 @@ export function Hero({ user }: HeroProps) {
                   ))}
                 </ul>
                 <Link
-                  href={user ? "/dashboard" : "/signup"}
+                  href={user ? "/org/overview" : "/signup"}
                   className="mt-auto inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90"
                   style={tier.highlighted ? { backgroundColor: "var(--tess-bg)", color: "var(--tess-text)" } : { backgroundColor: "transparent", border: "1px solid var(--tess-border)", color: "var(--tess-text)" }}
                 >
@@ -1042,7 +1042,7 @@ export function Hero({ user }: HeroProps) {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-8 sm:flex-row">
           <p className="text-base font-semibold">Join the teams using OKRunit</p>
           <Link
-            href={user ? "/dashboard" : "/signup"}
+            href={user ? "/org/overview" : "/signup"}
             className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:brightness-110"
             style={{ backgroundColor: "var(--tess-accent)", color: "#000" }}
           >

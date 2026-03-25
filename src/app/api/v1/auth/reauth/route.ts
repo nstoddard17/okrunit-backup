@@ -12,6 +12,7 @@ import { ApiError, errorResponse } from "@/lib/api/errors";
 import { logAuditEvent } from "@/lib/api/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { checkIpRateLimit, getClientIp, AUTH_RATE_LIMIT, rateLimitResponse } from "@/lib/api/ip-rate-limiter";
 
 // ---- Validation -----------------------------------------------------------
 
@@ -22,6 +23,11 @@ const reauthSchema = z.object({
 // ---- POST /api/v1/auth/reauth ---------------------------------------------
 
 export async function POST(request: Request) {
+  // Rate limit: 10 attempts per minute per IP (brute-force protection)
+  const ip = getClientIp(request);
+  const rl = checkIpRateLimit(`reauth:${ip}`, AUTH_RATE_LIMIT);
+  if (!rl.allowed) return rateLimitResponse(rl);
+
   try {
     // 1. Authenticate -- session auth only
     const auth = await authenticateRequest(request);

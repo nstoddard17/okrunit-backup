@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Power, PowerOff, Trash2 } from "lucide-react";
+import { Power, PowerOff, Route, Trash2 } from "lucide-react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -172,6 +173,17 @@ export function ConnectionList({
                       ))}
                     </SelectContent>
                   </Select>
+
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    title="Configure notification routes"
+                    asChild
+                  >
+                    <Link href="/routes">
+                      <Route className="size-3.5" />
+                    </Link>
+                  </Button>
 
                   <Button
                     variant="outline"

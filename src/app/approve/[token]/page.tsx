@@ -136,7 +136,7 @@ function TokenErrorPage({ message }: { message: string }) {
             </div>
             <div className="mt-6 text-center">
               <a
-                href="/dashboard"
+                href="/org/overview"
                 className="inline-block rounded-lg bg-slate-800 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-700"
               >
                 Go to Dashboard
@@ -164,7 +164,7 @@ function TokenInfoPage({ title, message }: { title: string; message: string }) {
             </div>
             <div className="mt-6 text-center">
               <a
-                href="/dashboard"
+                href="/org/overview"
                 className="inline-block rounded-lg bg-slate-800 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-700"
               >
                 Go to Dashboard

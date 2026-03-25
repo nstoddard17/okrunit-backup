@@ -3,8 +3,8 @@ import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { RequestBuilder } from "@/components/playground/request-builder";
-import type { Connection } from "@/lib/types/database";
+import { PlaygroundTabs } from "@/components/playground/playground-tabs";
+import type { Connection, WebhookDeliveryLog } from "@/lib/types/database";
 
 export const metadata = {
   title: "API Playground - OKRunit",
@@ -20,22 +20,43 @@ export default async function PlaygroundPage() {
   const { membership } = ctx;
 
   const supabase = await createClient();
+  const isAdmin = membership.role === "owner" || membership.role === "admin";
 
-  const { data: connections } = await supabase
-    .from("connections")
-    .select(CONNECTION_COLUMNS)
-    .eq("org_id", membership.org_id)
-    .eq("is_active", true)
-    .order("name", { ascending: true })
-    .returns<Omit<Connection, "api_key_hash">[]>();
+  const [{ data: activeConnections }, { data: allConnections }, deliveryResult] = await Promise.all([
+    supabase
+      .from("connections")
+      .select(CONNECTION_COLUMNS)
+      .eq("org_id", membership.org_id)
+      .eq("is_active", true)
+      .order("name", { ascending: true })
+      .returns<Omit<Connection, "api_key_hash">[]>(),
+    supabase
+      .from("connections")
+      .select("id, name")
+      .eq("org_id", membership.org_id)
+      .order("name", { ascending: true }),
+    isAdmin
+      ? supabase
+          .from("webhook_delivery_log")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(50)
+          .returns<WebhookDeliveryLog[]>()
+      : Promise.resolve({ data: null }),
+  ]);
 
   return (
     <PageContainer wide>
       <PageHeader
         title="API Playground"
-        description="Build and send requests to the OKRunit API. Select a template to get started or construct a custom request."
+        description="Build and send requests, and inspect webhook delivery logs."
       />
-      <RequestBuilder connections={connections ?? []} />
+      <PlaygroundTabs
+        connections={(activeConnections ?? []) as Connection[]}
+        allConnections={(allConnections ?? []).map((c) => ({ id: c.id, name: c.name })) as Connection[]}
+        deliveryLogs={deliveryResult.data ?? []}
+        isAdmin={isAdmin}
+      />
     </PageContainer>
   );
 }

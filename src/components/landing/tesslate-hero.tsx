@@ -411,7 +411,7 @@ export function TesslateHero({ user }: TesslateHeroProps) {
           {/* CTA */}
           <div className="flex items-center gap-2">
             <Link
-              href={user ? "/dashboard" : "/signup"}
+              href={user ? "/org/overview" : "/signup"}
               className="hidden rounded-lg px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 md:inline-flex"
               style={{ backgroundColor: "#1f2323" }}
             >
@@ -430,7 +430,7 @@ export function TesslateHero({ user }: TesslateHeroProps) {
               <a href="#features" className="text-sm" style={{ color: "#525252" }} onClick={() => setMobileMenuOpen(false)}>About</a>
               <a href="#pricing" className="text-sm" style={{ color: "#525252" }} onClick={() => setMobileMenuOpen(false)}>Pricing</a>
               <a href="#testimonials" className="text-sm" style={{ color: "#525252" }} onClick={() => setMobileMenuOpen(false)}>Testimonials</a>
-              <Link href={user ? "/dashboard" : "/signup"} className="mt-1 rounded-lg px-4 py-2 text-center text-sm font-semibold text-white" style={{ backgroundColor: "#1f2323" }}>
+              <Link href={user ? "/org/overview" : "/signup"} className="mt-1 rounded-lg px-4 py-2 text-center text-sm font-semibold text-white" style={{ backgroundColor: "#1f2323" }}>
                 {user ? "Dashboard" : "Start for free"}
               </Link>
             </div>
@@ -468,7 +468,7 @@ export function TesslateHero({ user }: TesslateHeroProps) {
 
         <FadeIn delay={400}>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href={user ? "/dashboard" : "/signup"} className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold text-white transition hover:opacity-90" style={{ backgroundColor: "#1f2323" }}>
+            <Link href={user ? "/org/overview" : "/signup"} className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold text-white transition hover:opacity-90" style={{ backgroundColor: "#1f2323" }}>
               {user ? "Go to Dashboard" : "Get started free"}
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -513,7 +513,7 @@ export function TesslateHero({ user }: TesslateHeroProps) {
             <div className="max-w-2xl">
               <h3 className="text-2xl font-bold md:text-3xl" style={{ color: "#1f2323", letterSpacing: "-0.02em" }}>{bigCard.title}</h3>
               <p className="mt-3 text-base leading-relaxed" style={{ color: "#525252" }}>{bigCard.description}</p>
-              <Link href={user ? "/dashboard" : "/signup"} className="mt-6 inline-flex items-center gap-2 text-sm font-semibold transition hover:opacity-70" style={{ color: "#ff911d" }}>
+              <Link href={user ? "/org/overview" : "/signup"} className="mt-6 inline-flex items-center gap-2 text-sm font-semibold transition hover:opacity-70" style={{ color: "#ff911d" }}>
                 Get started <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
@@ -607,7 +607,7 @@ export function TesslateHero({ user }: TesslateHeroProps) {
           <div className="rounded-3xl p-8 text-center md:p-16 lg:p-20" style={{ backgroundColor: "#1f2323" }}>
             <h2 className="mx-auto max-w-2xl text-3xl font-bold text-white md:text-5xl" style={{ letterSpacing: "-0.03em" }}>Start protecting your automations today</h2>
             <p className="mx-auto mt-4 max-w-lg text-base text-white/50">Free to start. No credit card required. Add human oversight in minutes.</p>
-            <Link href={user ? "/dashboard" : "/signup"} className="mt-8 inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold transition hover:opacity-90" style={{ backgroundColor: "#e7e6c9", color: "#1f2323" }}>
+            <Link href={user ? "/org/overview" : "/signup"} className="mt-8 inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold transition hover:opacity-90" style={{ backgroundColor: "#e7e6c9", color: "#1f2323" }}>
               {user ? "Go to Dashboard" : "Get started free"}
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -651,7 +651,7 @@ export function TesslateHero({ user }: TesslateHeroProps) {
                   ))}
                 </ul>
                 <Link
-                  href={user ? "/dashboard" : "/signup"}
+                  href={user ? "/org/overview" : "/signup"}
                   className="mt-auto inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90"
                   style={tier.highlighted ? { backgroundColor: "#e7e6c9", color: "#1f2323" } : { backgroundColor: "transparent", border: "1px solid #e7e6e4", color: "#1f2323" }}
                 >
@@ -684,7 +684,7 @@ export function TesslateHero({ user }: TesslateHeroProps) {
       <footer className="relative z-10 border-t" style={{ borderColor: "#e7e6e4" }}>
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-10 sm:flex-row">
           <p className="text-base font-semibold" style={{ color: "#1f2323" }}>Join the teams using OKRunit</p>
-          <Link href={user ? "/dashboard" : "/signup"} className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90" style={{ backgroundColor: "#1f2323" }}>
+          <Link href={user ? "/org/overview" : "/signup"} className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90" style={{ backgroundColor: "#1f2323" }}>
             {user ? "Dashboard" : "Get started"} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>

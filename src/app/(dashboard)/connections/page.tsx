@@ -21,7 +21,7 @@ export default async function ConnectionsPage() {
   if (!ctx) redirect("/login");
   const { membership } = ctx;
 
-  if (membership.role !== "owner" && membership.role !== "admin") redirect("/dashboard");
+  if (membership.role !== "owner" && membership.role !== "admin") redirect("/org/overview");
 
   const supabase = await createClient();
 

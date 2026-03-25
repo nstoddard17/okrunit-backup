@@ -98,14 +98,14 @@ describe("hasFeature", () => {
     expect(hasFeature("free", "email_notifications")).toBe(true);
     expect(hasFeature("pro", "slack_notifications")).toBe(true);
     expect(hasFeature("business", "sso_saml")).toBe(true);
-    expect(hasFeature("enterprise", "on_prem")).toBe(true);
+    expect(hasFeature("enterprise", "dedicated_support")).toBe(true);
   });
 
   it("returns false for features not included in the plan", () => {
     expect(hasFeature("free", "slack_notifications")).toBe(false);
     expect(hasFeature("free", "rules_engine")).toBe(false);
     expect(hasFeature("pro", "sso_saml")).toBe(false);
-    expect(hasFeature("pro", "on_prem")).toBe(false);
+    expect(hasFeature("pro", "dedicated_support")).toBe(false);
   });
 
   it("returns false for a completely unknown feature", () => {

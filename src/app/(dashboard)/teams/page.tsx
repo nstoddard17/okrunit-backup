@@ -21,7 +21,7 @@ export default async function TeamsPage() {
   const { membership, org } = ctx;
 
   // Only admins and owners can manage teams.
-  if (membership.role !== "owner" && membership.role !== "admin") redirect("/dashboard");
+  if (membership.role !== "owner" && membership.role !== "admin") redirect("/org/overview");
 
   const admin = createAdminClient();
 

@@ -12,6 +12,7 @@ import { NextResponse } from "next/server";
 
 import { hashApiKey } from "@/lib/api/auth";
 import { logAuditEvent } from "@/lib/api/audit";
+import { checkIpRateLimit, getClientIp, AUTH_RATE_LIMIT, rateLimitResponse } from "@/lib/api/ip-rate-limiter";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   generateOAuthToken,
@@ -40,6 +41,11 @@ function oauthError(
 // ---- POST /api/v1/oauth/token ----------------------------------------------
 
 export async function POST(request: Request) {
+  // Rate limit: 10 requests per minute per IP
+  const ip = getClientIp(request);
+  const rl = checkIpRateLimit(`oauth-token:${ip}`, AUTH_RATE_LIMIT);
+  if (!rl.allowed) return rateLimitResponse(rl);
+
   try {
     // OAuth token endpoint accepts application/x-www-form-urlencoded or JSON.
     let body: Record<string, string>;

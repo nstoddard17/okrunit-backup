@@ -121,7 +121,7 @@ export async function dispatchNotifications(
         const pushPayload: PushPayload = {
           title: getNotificationTitle(event),
           body: getNotificationBody(event),
-          url: "/dashboard",
+          url: "/org/overview",
           requestId: event.requestId,
           tag: `gk-${event.requestId}`,
         };

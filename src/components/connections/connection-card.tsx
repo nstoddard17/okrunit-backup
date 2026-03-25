@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { Key, Pencil, Power, PowerOff, Trash2 } from "lucide-react";
+import { Key, Pencil, Power, PowerOff, Trash2, RefreshCw, Shield } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ConnectionForm } from "@/components/connections/connection-form";
+import { KeyRotationDialog } from "@/components/connections/key-rotation-dialog";
+import { ScopingForm } from "@/components/connections/scoping-form";
 import type { Connection } from "@/lib/types/database";
 
 // ---- Component --------------------------------------------------------------
@@ -39,12 +42,20 @@ export function ConnectionCard({
   onActivate,
   onDelete,
 }: ConnectionCardProps) {
+  const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [rotateOpen, setRotateOpen] = useState(false);
+  const [scopingOpen, setScopingOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const isActive = connection.is_active;
+
+  const hasScopingRules =
+    (connection.allowed_action_types && connection.allowed_action_types.length > 0) ||
+    connection.max_priority ||
+    (connection.scoping_rules && Object.keys(connection.scoping_rules).length > 0);
 
   // ---- Handlers -----------------------------------------------------------
 
@@ -84,6 +95,12 @@ export function ConnectionCard({
               <Badge variant={isActive ? "default" : "secondary"}>
                 {isActive ? "Active" : "Inactive"}
               </Badge>
+              {hasScopingRules && (
+                <Badge variant="outline" className="gap-1 text-xs font-normal">
+                  <Shield className="size-3" />
+                  Scoped
+                </Badge>
+              )}
             </CardTitle>
             {connection.description && (
               <CardDescription>{connection.description}</CardDescription>
@@ -118,6 +135,15 @@ export function ConnectionCard({
               </span>
             )}
 
+            {connection.rotated_at && (
+              <span>
+                Key rotated{" "}
+                {formatDistanceToNow(new Date(connection.rotated_at), {
+                  addSuffix: true,
+                })}
+              </span>
+            )}
+
             <span>
               Created{" "}
               {formatDistanceToNow(new Date(connection.created_at), {
@@ -127,7 +153,7 @@ export function ConnectionCard({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -135,6 +161,24 @@ export function ConnectionCard({
             >
               <Pencil />
               Edit
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setRotateOpen(true)}
+            >
+              <RefreshCw />
+              Rotate Key
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setScopingOpen(true)}
+            >
+              <Shield />
+              Scoping
             </Button>
 
             <Button
@@ -177,6 +221,31 @@ export function ConnectionCard({
           setEditOpen(false);
         }}
       />
+
+      {/* Key rotation dialog */}
+      <KeyRotationDialog
+        connectionId={connection.id}
+        connectionName={connection.name}
+        open={rotateOpen}
+        onClose={() => setRotateOpen(false)}
+        onSuccess={() => {
+          setRotateOpen(false);
+          router.refresh();
+        }}
+      />
+
+      {/* Scoping dialog */}
+      <Dialog open={scopingOpen} onOpenChange={setScopingOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <ScopingForm
+            connection={connection}
+            onSave={() => {
+              setScopingOpen(false);
+              router.refresh();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Confirmation dialog for activate / deactivate */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>

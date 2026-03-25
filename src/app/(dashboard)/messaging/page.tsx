@@ -18,7 +18,7 @@ export default async function MessagingPage() {
   const { membership } = ctx;
 
   if (membership.role !== "owner" && membership.role !== "admin")
-    redirect("/dashboard");
+    redirect("/org/overview");
 
   const supabase = await createClient();
 

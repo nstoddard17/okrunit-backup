@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { safeRedirectUrl } from "@/lib/redirect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,8 +52,9 @@ export function LoginForm() {
       }
 
       // If there's a redirect_to param (e.g. from OAuth authorize), go there instead.
+      // Validate it's a safe relative path to prevent open redirect attacks.
       const redirectTo = searchParams.get("redirect_to");
-      router.push(redirectTo || "/dashboard");
+      router.push(safeRedirectUrl(redirectTo));
     });
   }
 

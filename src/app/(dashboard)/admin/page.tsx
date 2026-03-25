@@ -46,7 +46,7 @@ const PAGE_SIZE = 50;
 
 export default async function AdminPage() {
   const profile = await getAppAdminContext();
-  if (!profile) redirect("/dashboard");
+  if (!profile) redirect("/org/overview");
 
   const admin = createAdminClient();
 

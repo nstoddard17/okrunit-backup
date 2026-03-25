@@ -240,6 +240,22 @@ export function ApprovalCard({
             )}
             <Badge variant={status.variant} className="text-[11px]">{status.label}</Badge>
 
+            {/* Quick flow config button */}
+            {approval.flow_id && onConfigureFlow && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="size-7 p-0 opacity-0 transition-opacity group-hover/card:opacity-100"
+                title="Set who must approve"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onConfigureFlow(approval);
+                }}
+              >
+                <Settings2 className="size-4" />
+              </Button>
+            )}
+
             {/* Three-dot menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

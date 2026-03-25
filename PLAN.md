@@ -205,16 +205,17 @@ The repo at `/Users/nathanielstoddard/okrunit` is a fresh git repo with no code.
 - [ ] Create `src/components/webhooks/delivery-log-filters.tsx` - filter by status, connection, date range
 - [ ] Add webhook log link to approval detail view (show delivery status for that approval)
 
-### Phase 23: Auto-Approve Rules
-- [ ] Create `src/lib/api/rules-engine.ts` - evaluate rules against incoming approval requests
-- [ ] Create `src/app/api/v1/rules/route.ts` - GET (list) + POST (create) rules
-- [ ] Create `src/app/api/v1/rules/[id]/route.ts` - PATCH (update) + DELETE rules
-  - [ ] Match conditions: priority level, connection ID, action_type glob/regex, business hours
-  - [ ] Actions: auto-approve (skip human), route to specific approvers
-- [ ] Wire rules engine into POST /api/v1/approvals (after validation, before insert)
-- [ ] Create `src/app/(dashboard)/rules/page.tsx` - rules management page
-- [ ] Create `src/components/rules/rule-list.tsx` - list of rules with priority ordering (drag to reorder)
-- [ ] Create `src/components/rules/rule-form.tsx` - create/edit rule with condition builder UI
+### Phase 23: Auto-Approve Rules & Routes
+- [x] Create `src/lib/api/rules-engine.ts` - evaluate rules against incoming approval requests
+- [x] Create `src/app/api/v1/rules/route.ts` - GET (list) + POST (create) rules
+- [x] Create `src/app/api/v1/rules/[id]/route.ts` - PATCH (update) + DELETE rules
+  - [x] Match conditions: priority level, connection ID, action_type glob/regex, business hours
+  - [x] Actions: auto-approve (skip human), route to specific approvers
+- [x] Wire rules engine into POST /api/v1/approvals (after validation, before insert)
+- [x] Create `src/app/(dashboard)/routes/page.tsx` - routes management page (replaces old rules page)
+- [x] Create `src/components/routes/routes-hub.tsx` - routes hub with flow and route cards
+- [x] Create `src/components/routes/route-card.tsx` - route card component
+- [x] Create `src/components/routes/flow-card.tsx` - flow card component
 
 ### Phase 24: Multi-Approver Workflows
 - [ ] Update approval creation to support `required_approvals` field (default 1)
@@ -743,27 +744,27 @@ Build intelligent automation that reduces approval fatigue while maintaining saf
 
 ### Phase 18: Developer Experience
 
-- [ ] **SDK libraries**
-  - [ ] `@okrunit/sdk` npm package (TypeScript) with typed API client
-  - [ ] `okrunit-python` PyPI package with async support
-  - [ ] `okrunit-go` Go module
-  - [ ] All SDKs: create, get, list, approve, reject, comment, wait-for-decision
+- [x] **SDK libraries** (`sdks/typescript/`, `sdks/python/`, `sdks/go/`)
+  - [x] `@okrunit/sdk` npm package (TypeScript) with typed API client
+  - [x] `okrunit-python` PyPI package with sync + async support
+  - [x] `okrunit-go` Go module
+  - [x] All SDKs: create, get, list, approve, reject, comment, wait-for-decision
 
-- [ ] **CLI tool**
-  - [ ] `okrunit` CLI: `request`, `list`, `approve`, `reject`, `wait`
-  - [ ] `okrunit request "Deploy v2.3" --priority high --wait` blocks until decided
-  - [ ] JSON and table output formats
-  - [ ] Config file for API key and base URL
+- [x] **CLI tool** (`sdks/cli/`)
+  - [x] `okrunit` CLI: `request`, `list`, `approve`, `reject`, `wait`, `comment`, `cancel`
+  - [x] `okrunit request "Deploy v2.3" --priority high --wait` blocks until decided
+  - [x] JSON and table output formats
+  - [x] Config file for API key and base URL (`~/.okrunit/config.json`)
 
-- [ ] **GitHub PR integration**
-  - [ ] GitHub App that adds OKRunit approval checks to PRs
-  - [ ] Required review via OKRunit before merge
-  - [ ] Status check updates in real-time as approval progresses
+- [x] **GitHub PR integration** (`src/app/api/v1/github/webhook/`, `src/lib/api/github.ts`)
+  - [x] GitHub App webhook handler for installation, PR, and check suite events
+  - [x] Auto-creates approval requests from PR events with check run integration
+  - [x] Status check updates in real-time as approval progresses
 
-- [ ] **Approval audit export**
-  - [ ] CSV and PDF export of approval history
-  - [ ] Filterable by date range, status, source, priority
-  - [ ] Compliance-ready format with all decision metadata
+- [x] **Approval audit export** (`src/app/api/v1/export/`)
+  - [x] CSV and JSON export of approval history
+  - [x] Filterable by date range, status, priority
+  - [x] Compliance-ready format with all decision metadata (17 fields)
 
 ---
 

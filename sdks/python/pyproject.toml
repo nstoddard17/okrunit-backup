@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "okrunit"
+version = "0.1.0"
+description = "Official Python SDK for the OKRunit approval gateway API"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+dependencies = ["httpx>=0.25.0"]
+keywords = ["okrunit", "approval", "human-in-the-loop", "workflow", "gateway"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "respx>=0.21"]

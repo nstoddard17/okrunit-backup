@@ -115,7 +115,7 @@ export const paginationSchema = z.object({
     .optional(),
   status: statusEnum.optional(),
   priority: priorityEnum.optional(),
-  search: z.string().optional(),
+  search: z.string().max(500).optional(),
 });
 
 export type PaginationInput = z.infer<typeof paginationSchema>;
@@ -338,8 +338,8 @@ export type ExportQueryInput = z.infer<typeof exportQuerySchema>;
 
 export const analyticsQuerySchema = z.object({
   period: z.enum(["day", "week", "month"]).optional(),
-  start_date: z.string().optional(),
-  end_date: z.string().optional(),
+  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}(T[\d:.]+Z?)?$/).optional(),
+  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}(T[\d:.]+Z?)?$/).optional(),
 });
 
 export type AnalyticsQueryInput = z.infer<typeof analyticsQuerySchema>;

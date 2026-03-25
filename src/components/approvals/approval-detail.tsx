@@ -8,13 +8,15 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { Separator } from "@/components/ui/separator";
 import { PriorityBadge } from "@/components/approvals/priority-badge";
 import { ApprovalResponseForm } from "@/components/approvals/approval-response-form";
 import { formatDistanceToNow, format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { SourceBadge } from "@/components/approvals/source-icons";
-import { Users, UserCheck, CheckCircle, Circle, ArrowRight, Shield } from "lucide-react";
+import { Users, UserCheck, CheckCircle, Circle, ArrowRight, Shield, Settings2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { ApprovalRequest, UserProfile, CreatedByInfo } from "@/lib/types/database";
 
 interface ApprovalDetailProps {
@@ -29,6 +31,7 @@ interface ApprovalDetailProps {
   isLoading: boolean;
   canApprove?: boolean;
   userProfiles?: Map<string, UserProfile>;
+  onConfigureFlow?: (approval: ApprovalRequest) => void;
 }
 
 const statusConfig: Record<
@@ -63,6 +66,7 @@ export function ApprovalDetail({
   isLoading,
   canApprove = true,
   userProfiles,
+  onConfigureFlow,
 }: ApprovalDetailProps) {
   if (!approval) return null;
 
@@ -234,6 +238,33 @@ export function ApprovalDetail({
             </>
           )}
 
+          {/* Configure who must approve — prominent action for flow-backed requests */}
+          {approval.flow_id && onConfigureFlow && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Settings2 className="size-3.5 text-muted-foreground" />
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Approval Rules
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Set who must approve future requests from this source — specific people, teams, or roles.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onConfigureFlow(approval)}
+                >
+                  <Settings2 className="size-3.5" />
+                  Set Approvers for This Flow
+                </Button>
+              </div>
+            </>
+          )}
+
           {approval.context_html && (
             <>
               <Separator />
@@ -243,7 +274,7 @@ export function ApprovalDetail({
                 </p>
                 <div
                   className="prose prose-sm max-w-none rounded-lg border border-[var(--border)] bg-muted/20 p-4"
-                  dangerouslySetInnerHTML={{ __html: approval.context_html }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(approval.context_html) }}
                 />
               </div>
             </>

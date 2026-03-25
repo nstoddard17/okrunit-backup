@@ -11,6 +11,7 @@ import { Resend } from "resend";
 import { authenticateRequest } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
 import { logAuditEvent } from "@/lib/api/audit";
+import { checkIpRateLimit, getClientIp, INVITE_RATE_LIMIT, rateLimitResponse } from "@/lib/api/ip-rate-limiter";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canAddTeamMember } from "@/lib/billing/enforce";
 import { INVITE_EXPIRY_DAYS } from "@/lib/constants";
@@ -31,6 +32,11 @@ const revokeBodySchema = z.object({
 // ---- POST /api/v1/team/invite ---------------------------------------------
 
 export async function POST(request: Request) {
+  // Rate limit: 10 invites per hour per IP
+  const ip = getClientIp(request);
+  const rl = checkIpRateLimit(`invite:${ip}`, INVITE_RATE_LIMIT);
+  if (!rl.allowed) return rateLimitResponse(rl);
+
   try {
     const auth = await authenticateRequest(request);
 

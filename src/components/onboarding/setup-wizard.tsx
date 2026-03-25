@@ -35,7 +35,7 @@ export function SetupWizard({
 
   // If already complete, redirect to dashboard
   if (loaded && isComplete) {
-    router.push("/dashboard");
+    router.push("/org/overview");
     return null;
   }
 
@@ -58,7 +58,7 @@ export function SetupWizard({
   function handleCompleteSetup() {
     // Mark as fully complete and navigate to dashboard
     completeStep(4);
-    router.push("/dashboard");
+    router.push("/org/overview");
   }
 
   return (
@@ -125,7 +125,7 @@ export function SetupWizard({
 
           {/* Edge case: step past the end */}
           {currentStep >= 5 && (() => {
-            router.push("/dashboard");
+            router.push("/org/overview");
             return null;
           })()}
         </CardContent>

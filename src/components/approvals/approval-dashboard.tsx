@@ -2,24 +2,21 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { ApprovalFilters } from "@/components/approvals/approval-filters";
-import { ApprovalList } from "@/components/approvals/approval-list";
 import { ApprovalListGrouped } from "@/components/approvals/approval-list-grouped";
-import { ApprovalListMasterDetail } from "@/components/approvals/approval-list-master-detail";
 import { ApprovalDetail } from "@/components/approvals/approval-detail";
-import { LayoutToggle } from "@/components/approvals/layout-toggle";
-import { StatCard } from "@/components/ui/stat-card";
 import { Pagination } from "@/components/ui/pagination";
 import { useApprovalFiltersStore } from "@/stores/approval-filters-store";
 import { useRealtime } from "@/hooks/use-realtime";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { Clock, CheckCircle, XCircle, RefreshCw, Archive } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BatchActionsBar } from "@/components/approvals/batch-actions-bar";
 import { FlowConfigDialog } from "@/components/approvals/flow-config-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
-import type { ApprovalRequest, Connection, DashboardLayout, UserProfile } from "@/lib/types/database";
+import type { ApprovalRequest, Connection, UserProfile } from "@/lib/types/database";
 
 interface ApprovalDashboardProps {
   initialApprovals: ApprovalRequest[];
@@ -42,7 +39,6 @@ export function ApprovalDashboard({
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [skipConfirmation, setSkipConfirmation] = useState(false);
-  const [layout, setLayout] = useState<DashboardLayout>("cards");
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const newIdTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const [userProfiles, setUserProfiles] = useState<Map<string, UserProfile>>(new Map());
@@ -99,33 +95,15 @@ export function ApprovalDashboard({
 
       const { data } = await supabase
         .from("notification_settings")
-        .select("skip_approval_confirmation, dashboard_layout")
+        .select("skip_approval_confirmation")
         .eq("user_id", user.id)
         .single();
 
       if (data?.skip_approval_confirmation) {
         setSkipConfirmation(true);
       }
-      if (data?.dashboard_layout) {
-        setLayout(data.dashboard_layout as DashboardLayout);
-      }
     };
     loadPreferences();
-  }, []);
-
-  // Persist layout preference
-  const handleLayoutChange = useCallback(async (newLayout: DashboardLayout) => {
-    setLayout(newLayout);
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    await supabase
-      .from("notification_settings")
-      .upsert({
-        user_id: user.id,
-        dashboard_layout: newLayout,
-      }, { onConflict: "user_id" });
   }, []);
 
   // Track new IDs with auto-clear
@@ -222,7 +200,10 @@ export function ApprovalDashboard({
         }
         if (filters.status) query = query.eq("status", filters.status);
         if (filters.priority) query = query.eq("priority", filters.priority);
-        if (filters.search) query = query.ilike("title", `%${filters.search}%`);
+        if (filters.search) {
+          const escaped = filters.search.replace(/[%_\\]/g, "\\$&");
+          query = query.ilike("title", `%${escaped}%`);
+        }
         if (filters.connectionId) query = query.eq("connection_id", filters.connectionId);
         if (filters.source) query = query.eq("source", filters.source);
 
@@ -269,10 +250,8 @@ export function ApprovalDashboard({
 
   const handleSelect = useCallback((approval: ApprovalRequest) => {
     setSelectedApproval(approval);
-    if (layout !== "split") {
-      setDetailOpen(true);
-    }
-  }, [layout]);
+    setDetailOpen(true);
+  }, []);
 
   const handleCloseDetail = useCallback(() => {
     setDetailOpen(false);
@@ -312,9 +291,7 @@ export function ApprovalDashboard({
           : "Request rejected"
       );
 
-      if (layout !== "split") {
-        handleCloseDetail();
-      }
+      handleCloseDetail();
 
       // Fire the API call in the background
       try {
@@ -353,7 +330,7 @@ export function ApprovalDashboard({
         );
       }
     },
-    [handleCloseDetail, layout, approvals, selectedApproval]
+    [handleCloseDetail, approvals, selectedApproval]
   );
 
   const handleRespond = useCallback(
@@ -557,10 +534,52 @@ export function ApprovalDashboard({
   };
 
   return (
-    <div className={`space-y-8 ${selectedIds.size > 0 ? "pb-20" : ""}`}>
-      {/* Header row: live indicator + refresh + layout toggle */}
-      <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-3">
+    <div className={`space-y-6 ${selectedIds.size > 0 ? "pb-20" : ""}`}>
+      {/* Stat badges + live indicator + refresh */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleStatClick(status === "pending" ? undefined : "pending")}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+              status === "pending"
+                ? "bg-amber-100 text-amber-800 ring-2 ring-amber-400/50"
+                : "bg-muted/60 text-muted-foreground hover:bg-muted",
+            )}
+          >
+            <Clock className="size-3" />
+            <span className="font-bold">{pendingCount}</span>
+            Pending
+          </button>
+          <button
+            onClick={() => handleStatClick(status === "approved" ? undefined : "approved")}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+              status === "approved"
+                ? "bg-emerald-100 text-emerald-800 ring-2 ring-emerald-400/50"
+                : "bg-muted/60 text-muted-foreground hover:bg-muted",
+            )}
+          >
+            <CheckCircle className="size-3" />
+            <span className="font-bold">{approvedCount}</span>
+            Approved
+          </button>
+          <button
+            onClick={() => handleStatClick(status === "rejected" ? undefined : "rejected")}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+              status === "rejected"
+                ? "bg-red-100 text-red-800 ring-2 ring-red-400/50"
+                : "bg-muted/60 text-muted-foreground hover:bg-muted",
+            )}
+          >
+            <XCircle className="size-3" />
+            <span className="font-bold">{rejectedCount}</span>
+            Rejected
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span className="relative flex size-2">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -573,44 +592,12 @@ export function ApprovalDashboard({
             size="sm"
             onClick={handleRefresh}
             disabled={isFetching}
-            className="h-8 gap-1.5 text-xs text-muted-foreground"
+            className="h-7 gap-1.5 text-xs text-muted-foreground"
           >
-            <RefreshCw className={`size-4 ${isFetching ? "animate-spin" : ""}`} />
+            <RefreshCw className={cn("size-3.5", isFetching && "animate-spin")} />
             Refresh
           </Button>
         </div>
-        <LayoutToggle layout={layout} onChange={handleLayoutChange} />
-      </div>
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <StatCard
-          title="Pending"
-          value={pendingCount}
-          icon={Clock}
-          iconColor="text-amber-500"
-          subtitle="Awaiting decision"
-          onClick={() => handleStatClick(status === "pending" ? undefined : "pending")}
-          className={status === "pending" ? "ring-2 ring-amber-400/50" : ""}
-        />
-        <StatCard
-          title="Approved"
-          value={approvedCount}
-          icon={CheckCircle}
-          iconColor="text-emerald-500"
-          subtitle="Recently approved"
-          onClick={() => handleStatClick(status === "approved" ? undefined : "approved")}
-          className={status === "approved" ? "ring-2 ring-emerald-400/50" : ""}
-        />
-        <StatCard
-          title="Rejected"
-          value={rejectedCount}
-          icon={XCircle}
-          iconColor="text-red-500"
-          subtitle="Recently rejected"
-          onClick={() => handleStatClick(status === "rejected" ? undefined : "rejected")}
-          className={status === "rejected" ? "ring-2 ring-red-400/50" : ""}
-        />
       </div>
 
       {/* Filters */}
@@ -644,21 +631,11 @@ export function ApprovalDashboard({
         />
       )}
 
-      {/* Approval list — conditional by layout */}
+      {/* Approval list — always grouped */}
       <div className={isFetching ? "pointer-events-none opacity-60 transition-opacity" : "transition-opacity"}>
-        {!showArchived || approvals.length > 0 ? (
-          <>
-            {layout === "cards" && <ApprovalList {...sharedListProps} />}
-            {layout === "grouped" && <ApprovalListGrouped {...sharedListProps} />}
-            {layout === "split" && (
-              <ApprovalListMasterDetail
-                {...sharedListProps}
-                onRespond={handleRespond}
-                userProfiles={userProfiles}
-              />
-            )}
-          </>
-        ) : null}
+        {(!showArchived || approvals.length > 0) && (
+          <ApprovalListGrouped {...sharedListProps} />
+        )}
       </div>
 
       {/* Pagination */}
@@ -674,18 +651,17 @@ export function ApprovalDashboard({
         />
       )}
 
-      {/* Detail slide-in panel (Cards & Grouped only) */}
-      {layout !== "split" && (
-        <ApprovalDetail
-          approval={selectedApproval}
-          open={detailOpen}
-          onClose={handleCloseDetail}
-          onRespond={handleRespond}
-          isLoading={isLoading}
-          canApprove={canApprove}
-          userProfiles={userProfiles}
-        />
-      )}
+      {/* Detail slide-in panel */}
+      <ApprovalDetail
+        approval={selectedApproval}
+        open={detailOpen}
+        onClose={handleCloseDetail}
+        onRespond={handleRespond}
+        isLoading={isLoading}
+        canApprove={canApprove}
+        userProfiles={userProfiles}
+        onConfigureFlow={handleConfigureFlow}
+      />
 
       {/* Batch actions bar */}
       <BatchActionsBar

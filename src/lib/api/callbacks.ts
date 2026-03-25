@@ -9,6 +9,7 @@ import {
   CALLBACK_TIMEOUT_MS,
   CALLBACK_RETRY_DELAYS,
 } from "@/lib/constants";
+import { isPrivateUrl } from "./ssrf";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -36,6 +37,8 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// isPrivateUrl is imported from ./ssrf.ts
+
 /** Truncate a string to `maxLen` characters. */
 function truncate(str: string, maxLen: number): string {
   if (str.length <= maxLen) return str;
@@ -60,6 +63,12 @@ function truncate(str: string, maxLen: number): string {
 export async function deliverCallback(params: CallbackParams): Promise<void> {
   const { requestId, connectionId, callbackUrl, callbackHeaders, payload } =
     params;
+
+  // SSRF protection: block callbacks to private/internal networks
+  if (isPrivateUrl(callbackUrl)) {
+    console.warn(`[Callback] Blocked SSRF attempt: ${callbackUrl} for request ${requestId}`);
+    return;
+  }
 
   const bodyString = JSON.stringify(payload);
   const hmacSecret = process.env.CALLBACK_HMAC_SECRET;

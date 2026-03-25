@@ -8,15 +8,13 @@ import {
   ClipboardList,
   Key,
   MessageSquare,
-  Users,
-  Webhook,
   Settings,
   AlertTriangle,
   BarChart3,
   CreditCard,
   FlaskConical,
+  Route,
   ShieldAlert,
-  ShieldCheck,
   Sparkles,
   MoreVertical,
   X,
@@ -51,23 +49,18 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { id: "home", href: "/dashboard", label: "Org", icon: Home },
+  { id: "home", href: "/org/overview", label: "Org", icon: Home },
   { id: "requests", href: "/requests", label: "Requests", icon: ClipboardList },
   { id: "connections", href: "/connections", label: "Connections", icon: Key, adminOnly: true },
-  { id: "rules", href: "/rules", label: "Rules", icon: ShieldCheck },
-  { id: "webhooks", href: "/webhooks", label: "Webhooks", icon: Webhook, adminOnly: true },
+  { id: "routes", href: "/routes", label: "Routes", icon: Route, adminOnly: true },
   { id: "messaging", href: "/messaging", label: "Messaging", icon: MessageSquare, adminOnly: true },
-  { id: "team", href: "/team", label: "Team", icon: Users, adminOnly: true },
   {
     id: "analytics", href: "/analytics", label: "Analytics", icon: BarChart3,
     children: [{ href: "/analytics", label: "Overview" }, { href: "/audit-log", label: "Audit Log" }],
   },
   { id: "billing", href: "/billing", label: "Billing", icon: CreditCard, overflow: true, adminOnly: true },
   { id: "playground", href: "/playground", label: "Playground", icon: FlaskConical, overflow: true },
-  {
-    id: "settings", href: "/settings", label: "Settings", icon: Settings, overflow: true,
-    children: [{ href: "/settings", label: "Preferences" }, { href: "/settings/oauth", label: "OAuth Apps" }, { href: "/settings/sso", label: "SSO" }],
-  },
+  { id: "settings", href: "/settings", label: "Settings", icon: Settings, overflow: true },
   { id: "emergency", href: "/emergency", label: "Emergency", icon: AlertTriangle, adminOnly: true, overflow: true },
   { id: "admin", href: "/admin", label: "Admin", icon: ShieldAlert, appAdminOnly: true, overflow: true },
 ];
@@ -79,7 +72,20 @@ export function Sidebar({ pendingCount, userRole, isAppAdmin, showSetup }: Sideb
   const [maxVisible, setMaxVisible] = useState(20);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
   const isAdmin = userRole === "owner" || userRole === "admin";
+
+  // Close "More" menu when clicking outside
+  useEffect(() => {
+    if (!moreOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [moreOpen]);
 
   // Measure available space and calculate how many items fit
   const calculateMaxItems = useCallback(() => {
@@ -196,7 +202,7 @@ export function Sidebar({ pendingCount, userRole, isAppAdmin, showSetup }: Sideb
       <div ref={sidebarRef} className="sidebar-icon-bar flex h-full w-20 flex-col items-center">
         {/* Logo */}
         <Link
-          href="/dashboard"
+          href="/org/overview"
           className="mb-2 flex w-full items-center justify-center px-2 py-1"
           onClick={() => { setActivePanel(null); setMobileOpen(false); }}
         >
@@ -236,7 +242,7 @@ export function Sidebar({ pendingCount, userRole, isAppAdmin, showSetup }: Sideb
 
         {/* More button */}
         {overflowItems.length > 0 && (
-          <div className="relative w-full pb-3">
+          <div ref={moreMenuRef} className="relative w-full pb-3">
             <button
               onClick={() => setMoreOpen(!moreOpen)}
               className="group flex w-full cursor-pointer flex-col items-center gap-1.5 py-3 text-white/80 transition-colors"

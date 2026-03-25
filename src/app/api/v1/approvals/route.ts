@@ -94,9 +94,10 @@ export async function POST(request: Request) {
     const connectionId = auth.type === "api_key" ? auth.connection.id : null;
     const connectionName = auth.type === "api_key" ? auth.connection.name : null;
 
-    // 4. Rate limit check (only for API key connections with rate limits)
+    // 4. Rate limit check
     let rateResult: RateLimitResult | null = null;
     if (auth.type === "api_key") {
+      // API key connections: per-connection sliding window
       rateResult = await checkRateLimit(
         auth.connection.id,
         auth.connection.rate_limit_per_hour,
@@ -110,6 +111,12 @@ export async function POST(request: Request) {
         addRateLimitHeaders(response, rateResult);
         return response;
       }
+    } else {
+      // OAuth/session: per-org IP-based rate limit (100/min)
+      const { checkIpRateLimit, getClientIp, API_RATE_LIMIT, rateLimitResponse: rlResponse } = await import("@/lib/api/ip-rate-limiter");
+      const ip = getClientIp(request);
+      const rl = checkIpRateLimit(`approval-create:${auth.orgId}:${ip}`, API_RATE_LIMIT);
+      if (!rl.allowed) return rlResponse(rl);
     }
 
     // 5. Validate request body

@@ -116,7 +116,7 @@ export default async function InviteAcceptPage({
       .update({ accepted_at: new Date().toISOString() })
       .eq("id", invite.id);
 
-    redirect("/dashboard");
+    redirect("/org/overview");
   }
 
   // 2. Ensure user profile exists.
@@ -159,5 +159,5 @@ export default async function InviteAcceptPage({
     details: { email: invite.email, role: invite.role },
   });
 
-  redirect("/dashboard");
+  redirect("/org/overview");
 }

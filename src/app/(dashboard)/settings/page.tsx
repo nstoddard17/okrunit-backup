@@ -1,99 +1,73 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { KeyRound, Shield } from "lucide-react";
 import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getOrgPlan } from "@/lib/billing/enforce";
+import { hasFeature } from "@/lib/billing/plans";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { AccountSettings } from "@/components/settings/account-settings";
-import { NotificationSettingsForm } from "@/components/settings/notification-settings-form";
-import type { NotificationSettings } from "@/lib/types/database";
+import { SettingsLayout } from "@/components/settings/settings-layout";
+import type { NotificationSettings, UserRole } from "@/lib/types/database";
 
 export const metadata = {
   title: "Settings - OKRunit",
-  description: "Manage your notification preferences and account settings.",
+  description: "Manage your account, notifications, OAuth apps, and SSO.",
 };
 
 export default async function SettingsPage() {
   const ctx = await getOrgContext();
   if (!ctx) redirect("/login");
-  const { profile, membership } = ctx;
+  const { profile, membership, org } = ctx;
   const isAdmin = membership.role === "owner" || membership.role === "admin";
 
   const supabase = await createClient();
 
+  // Fetch notification settings
   const { data: notificationSettings } = await supabase
     .from("notification_settings")
     .select("*")
     .eq("user_id", profile.id)
     .single<NotificationSettings>();
 
+  // Admin-only data: OAuth clients and SSO plan check
+  let oauthClients: unknown[] = [];
+  let hasSso = false;
+
+  if (isAdmin) {
+    const admin = createAdminClient();
+
+    const [clientsResult, plan] = await Promise.all([
+      admin
+        .from("oauth_clients")
+        .select(
+          "id, org_id, name, logo_url, client_id, client_secret_prefix, redirect_uris, scopes, is_active, created_by, created_at, updated_at",
+        )
+        .eq("org_id", org.id)
+        .order("created_at", { ascending: false }),
+      getOrgPlan(org.id),
+    ]);
+
+    oauthClients = clientsResult.data ?? [];
+    hasSso = hasFeature(plan, "sso_saml");
+  }
+
   return (
     <PageContainer>
       <PageHeader
         title="Settings"
-        description="Manage your notification preferences and account settings."
+        description="Manage your account, notifications, and organization settings."
       />
-
-      <AccountSettings
+      <SettingsLayout
         userId={profile.id}
         initialFullName={profile.full_name ?? ""}
         initialEmail={profile.email}
+        notificationSettings={notificationSettings ?? null}
+        isAdmin={isAdmin}
+        role={membership.role as UserRole}
+        oauthClients={oauthClients}
+        hasSso={hasSso}
+        orgId={org.id}
       />
-
-      <div className="mt-8">
-        <h2 className="mb-4 text-lg font-semibold">Notifications</h2>
-      </div>
-
-      <NotificationSettingsForm initialSettings={notificationSettings ?? null} />
-
-      {isAdmin && (
-        <div className="mt-6 space-y-4">
-          <div className="rounded-xl border border-[var(--border)] bg-card p-6 shadow-[var(--shadow-card)]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-muted/50 p-2.5">
-                  <KeyRound className="size-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <h3 className="font-medium">OAuth Apps</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Manage OAuth 2.0 applications for one-click platform integrations.
-                  </p>
-                </div>
-              </div>
-              <Link
-                href="/settings/oauth"
-                className="text-sm font-medium text-[var(--primary)] hover:underline"
-              >
-                Manage
-              </Link>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-[var(--border)] bg-card p-6 shadow-[var(--shadow-card)]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-muted/50 p-2.5">
-                  <Shield className="size-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Single Sign-On (SSO)</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Configure SAML-based SSO so your team can log in with your identity provider.
-                  </p>
-                </div>
-              </div>
-              <Link
-                href="/settings/sso"
-                className="text-sm font-medium text-[var(--primary)] hover:underline"
-              >
-                Configure
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </PageContainer>
   );
 }

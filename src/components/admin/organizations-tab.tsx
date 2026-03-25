@@ -67,7 +67,7 @@ export function OrganizationsTab({ organizations }: OrganizationsTabProps) {
 
       if (res.ok) {
         toast.success(`Switched to ${orgName}`);
-        router.push("/dashboard");
+        router.push("/org/overview");
         router.refresh();
       } else {
         const data = await res.json().catch(() => ({}));

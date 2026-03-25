@@ -1,12 +1,13 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SectionNav } from "@/components/ui/section-nav";
 import { MemberList } from "@/components/team/member-list";
 import { InviteForm } from "@/components/team/invite-form";
 import { PendingInvites } from "@/components/team/pending-invites";
 import { TeamList } from "@/components/teams/team-list";
 import { OrgSettingsForm } from "@/components/organization/org-settings-form";
 import { Users, Mail, UsersRound, Building2 } from "lucide-react";
+import type { SectionNavItem } from "@/components/ui/section-nav";
 import type { OrgInvite, Organization, UserRole } from "@/lib/types/database";
 
 interface TeamMember {
@@ -82,76 +83,61 @@ export function TeamPageTabs({
   memberStats,
   pendingLoadMap,
 }: TeamPageTabsProps) {
+  const items: SectionNavItem[] = [
+    { id: "members", label: "Members", icon: Users },
+    ...(canManageInvites
+      ? [{ id: "invites", label: "Invites", icon: Mail, badge: pendingInvites.length > 0 ? pendingInvites.length : undefined } as SectionNavItem]
+      : []),
+    { id: "groups", label: "Teams", icon: UsersRound },
+    { id: "organization", label: "Organization", icon: Building2 },
+  ];
+
   return (
-    <Tabs defaultValue="members" className="w-full">
-      <TabsList className="mb-6">
-        <TabsTrigger value="members" className="gap-1.5">
-          <Users className="size-3.5" />
-          Members
-        </TabsTrigger>
-        {canManageInvites && (
-          <TabsTrigger value="invites" className="gap-1.5">
-            <Mail className="size-3.5" />
-            Invites
-            {pendingInvites.length > 0 && (
-              <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">
-                {pendingInvites.length}
-              </span>
-            )}
-          </TabsTrigger>
-        )}
-        <TabsTrigger value="groups" className="gap-1.5">
-          <UsersRound className="size-3.5" />
-          Team Groups
-        </TabsTrigger>
-        <TabsTrigger value="organization" className="gap-1.5">
-          <Building2 className="size-3.5" />
-          Organization
-        </TabsTrigger>
-      </TabsList>
+    <SectionNav items={items} defaultSection="members">
+      {(section) => (
+        <>
+          {section === "members" && (
+            <MemberList
+              members={members}
+              currentUserId={currentUserId}
+              currentUserRole={currentUserRole}
+              memberStats={memberStats}
+              pendingLoadMap={pendingLoadMap}
+            />
+          )}
 
-      <TabsContent value="members">
-        <MemberList
-          members={members}
-          currentUserId={currentUserId}
-          currentUserRole={currentUserRole}
-          memberStats={memberStats}
-          pendingLoadMap={pendingLoadMap}
-        />
-      </TabsContent>
+          {section === "invites" && canManageInvites && (
+            <div className="space-y-6">
+              <InviteForm />
+              {pendingInvites.length > 0 && (
+                <PendingInvites
+                  invites={pendingInvites}
+                  canManage={canManageInvites}
+                />
+              )}
+            </div>
+          )}
 
-      {canManageInvites && (
-        <TabsContent value="invites">
-          <div className="space-y-6">
-            <InviteForm />
-            {pendingInvites.length > 0 && (
-              <PendingInvites
-                invites={pendingInvites}
-                canManage={canManageInvites}
-              />
-            )}
-          </div>
-        </TabsContent>
+          {section === "groups" && (
+            <TeamList
+              teams={teams}
+              memberCounts={memberCounts}
+              teamMemberships={teamMemberships}
+              orgMembers={orgMembers}
+              currentUserId={currentUserId}
+              currentUserRole={currentUserRole}
+            />
+          )}
+
+          {section === "organization" && (
+            <OrgSettingsForm
+              org={org}
+              role={currentUserRole as UserRole}
+              memberCount={memberCount}
+            />
+          )}
+        </>
       )}
-
-      <TabsContent value="groups">
-        <TeamList
-          teams={teams}
-          memberCounts={memberCounts}
-          teamMemberships={teamMemberships}
-          orgMembers={orgMembers}
-          currentUserId={currentUserId}
-          currentUserRole={currentUserRole}
-        />
-      </TabsContent>
-
-      <TabsContent value="organization">
-        <OrgSettingsForm
-          org={org}
-          role={currentUserRole as UserRole}
-          memberCount={memberCount}
-        />
-      </TabsContent>
-    </Tabs>
+    </SectionNav>
   );
 }

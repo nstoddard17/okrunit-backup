@@ -1,42 +1,5 @@
 import { redirect } from "next/navigation";
-import { getOrgContext } from "@/lib/org-context";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { PageContainer } from "@/components/ui/page-container";
-import { PageHeader } from "@/components/layout/page-header";
-import { OAuthClientList } from "@/components/settings/oauth-client-list";
 
-export const metadata = {
-  title: "OAuth Apps - OKRunit",
-  description: "Manage OAuth 2.0 applications for your organization.",
-};
-
-export default async function OAuthSettingsPage() {
-  const ctx = await getOrgContext();
-  if (!ctx) redirect("/login");
-
-  const isAdmin = ctx.membership.role === "owner" || ctx.membership.role === "admin";
-  if (!isAdmin) redirect("/dashboard");
-
-  const admin = createAdminClient();
-
-  const { data: clients } = await admin
-    .from("oauth_clients")
-    .select(
-      "id, org_id, name, logo_url, client_id, client_secret_prefix, redirect_uris, scopes, is_active, created_by, created_at, updated_at",
-    )
-    .eq("org_id", ctx.org.id)
-    .order("created_at", { ascending: false });
-
-  return (
-    <PageContainer>
-      <PageHeader
-        title="OAuth Apps"
-        description="Register and manage OAuth 2.0 applications that can access your OKRunit organization. OAuth apps enable one-click integration with platforms like Zapier, Make, and n8n."
-      />
-      <OAuthClientList
-        clients={clients || []}
-        role={ctx.membership.role}
-      />
-    </PageContainer>
-  );
+export default function OAuthSettingsPage() {
+  redirect("/settings");
 }

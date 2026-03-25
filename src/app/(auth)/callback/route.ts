@@ -27,5 +27,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL(`/invite/${inviteToken}`, origin));
   }
 
-  return NextResponse.redirect(new URL("/dashboard", origin));
+  return NextResponse.redirect(new URL("/org/overview", origin));
 }
