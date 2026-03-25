@@ -93,6 +93,11 @@ export async function dispatchNotifications(
   event: NotificationEvent,
 ): Promise<void> {
   try {
+    // Resolve decidedBy from user ID to display name if it looks like a UUID
+    if (event.decidedBy && isUuid(event.decidedBy)) {
+      event = { ...event, decidedBy: await resolveUserName(event.decidedBy) };
+    }
+
     // Load per-user settings and org-wide messaging connections in parallel
     const [orgUsers, messagingConnections] = await Promise.all([
       getOrgNotificationSettings(event.orgId),
@@ -627,6 +632,35 @@ function isDmChannel(conn: MessagingConnection): boolean {
   }
 
   return false;
+}
+
+/**
+ * Check if a string looks like a UUID (v4).
+ */
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
+/**
+ * Resolve a user ID to their display name (full_name or email).
+ * Falls back to the original ID if the lookup fails.
+ */
+async function resolveUserName(userId: string): Promise<string> {
+  try {
+    const admin = createAdminClient();
+    const { data: profile } = await admin
+      .from("user_profiles")
+      .select("full_name, email")
+      .eq("id", userId)
+      .single();
+
+    if (profile) {
+      return profile.full_name || profile.email || userId;
+    }
+  } catch (err) {
+    console.error("[Notifications] Failed to resolve user name:", err);
+  }
+  return userId;
 }
 
 /**
