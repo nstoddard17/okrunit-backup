@@ -1,9 +1,10 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SectionNav } from "@/components/ui/section-nav";
 import { RequestBuilder } from "@/components/playground/request-builder";
 import { DeliveryLogTable } from "@/components/webhooks/delivery-log-table";
 import { FlaskConical, Webhook } from "lucide-react";
+import type { SectionNavItem } from "@/components/ui/section-nav";
 import type { Connection, WebhookDeliveryLog } from "@/lib/types/database";
 
 interface PlaygroundTabsProps {
@@ -19,33 +20,29 @@ export function PlaygroundTabs({
   deliveryLogs,
   isAdmin,
 }: PlaygroundTabsProps) {
+  const items: SectionNavItem[] = [
+    { id: "builder", label: "Request Builder", icon: FlaskConical },
+    ...(isAdmin
+      ? [{ id: "deliveries", label: "Webhook Deliveries", icon: Webhook } as SectionNavItem]
+      : []),
+  ];
+
   return (
-    <Tabs defaultValue="builder" className="w-full">
-      <TabsList className="mb-6">
-        <TabsTrigger value="builder" className="gap-1.5">
-          <FlaskConical className="size-3.5" />
-          Request Builder
-        </TabsTrigger>
-        {isAdmin && (
-          <TabsTrigger value="deliveries" className="gap-1.5">
-            <Webhook className="size-3.5" />
-            Webhook Deliveries
-          </TabsTrigger>
-        )}
-      </TabsList>
+    <SectionNav items={items} defaultSection="builder">
+      {(section) => (
+        <>
+          {section === "builder" && (
+            <RequestBuilder connections={connections} />
+          )}
 
-      <TabsContent value="builder">
-        <RequestBuilder connections={connections} />
-      </TabsContent>
-
-      {isAdmin && (
-        <TabsContent value="deliveries">
-          <DeliveryLogTable
-            initialEntries={deliveryLogs}
-            connections={allConnections}
-          />
-        </TabsContent>
+          {section === "deliveries" && isAdmin && (
+            <DeliveryLogTable
+              initialEntries={deliveryLogs}
+              connections={allConnections}
+            />
+          )}
+        </>
       )}
-    </Tabs>
+    </SectionNav>
   );
 }
