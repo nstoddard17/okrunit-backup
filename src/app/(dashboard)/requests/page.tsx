@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ApprovalDashboard } from "@/components/approvals/approval-dashboard";
 import type { ApprovalRequest, Connection, UserProfile } from "@/lib/types/database";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Requests - OKRunit",
@@ -16,25 +18,28 @@ export default async function RequestsPage() {
   if (!ctx) redirect("/login");
   const { membership } = ctx;
 
-  const supabase = await createClient();
+  // Use admin client for read-only queries to avoid a second cookies() call
+  // which can stall RSC flight requests during client-side navigation.
+  const admin = createAdminClient();
 
-  const { data: approvals } = await supabase
-    .from("approval_requests")
-    .select("*")
-    .eq("org_id", membership.org_id)
-    .is("archived_at", null)
-    .order("status", { ascending: true })
-    .order("created_at", { ascending: false })
-    .limit(50)
-    .returns<ApprovalRequest[]>();
-
-  const { data: connections } = await supabase
-    .from("connections")
-    .select("*")
-    .eq("org_id", membership.org_id)
-    .eq("is_active", true)
-    .order("name")
-    .returns<Connection[]>();
+  const [{ data: approvals }, { data: connections }] = await Promise.all([
+    admin
+      .from("approval_requests")
+      .select("*")
+      .eq("org_id", membership.org_id)
+      .is("archived_at", null)
+      .order("status", { ascending: true })
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .returns<ApprovalRequest[]>(),
+    admin
+      .from("connections")
+      .select("id, org_id, name, description, api_key_prefix, is_active, rate_limit_per_hour, allowed_action_types, max_priority, scoping_rules, last_used_at, rotated_at, created_by, created_at, updated_at")
+      .eq("org_id", membership.org_id)
+      .eq("is_active", true)
+      .order("name")
+      .returns<Connection[]>(),
+  ]);
 
   const approvalCreators: Record<string, string> = {};
   const allApprovals = approvals ?? [];
@@ -57,7 +62,7 @@ export default async function RequestsPage() {
   }
 
   if (userIdsToResolve.size > 0) {
-    const { data: profiles } = await supabase
+    const { data: profiles } = await admin
       .from("user_profiles")
       .select("id, full_name, email")
       .in("id", [...userIdsToResolve])
@@ -84,8 +89,8 @@ export default async function RequestsPage() {
         description="View and manage approval requests across your organization."
       />
       <ApprovalDashboard
-        initialApprovals={approvals ?? []}
-        connections={connections ?? []}
+        initialApprovals={allApprovals}
+        connections={allConnections}
         approvalCreators={approvalCreators}
         canApprove={membership.can_approve ?? true}
         orgId={membership.org_id}
