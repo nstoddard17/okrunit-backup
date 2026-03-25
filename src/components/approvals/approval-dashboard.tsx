@@ -16,11 +16,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { BatchActionsBar } from "@/components/approvals/batch-actions-bar";
 import { FlowConfigDialog } from "@/components/approvals/flow-config-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { ApprovalRequest, Connection, UserProfile } from "@/lib/types/database";
 
 interface ApprovalDashboardProps {
-  initialApprovals: ApprovalRequest[];
-  connections: Connection[];
+  initialApprovals?: ApprovalRequest[];
+  connections?: Connection[];
   approvalCreators?: Record<string, string>;
   canApprove?: boolean;
   orgId: string;
@@ -28,16 +29,18 @@ interface ApprovalDashboardProps {
 
 export function ApprovalDashboard({
   initialApprovals,
-  connections,
+  connections: initialConnections,
   approvalCreators = {},
   canApprove = true,
   orgId,
 }: ApprovalDashboardProps) {
-  const [approvals, setApprovals] = useState<ApprovalRequest[]>(initialApprovals);
+  const [approvals, setApprovals] = useState<ApprovalRequest[]>(initialApprovals ?? []);
+  const [connections, setConnections] = useState<Connection[]>(initialConnections ?? []);
   const [selectedApproval, setSelectedApproval] = useState<ApprovalRequest | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(false);
+  const [isFetching, setIsFetching] = useState(!initialApprovals);
+  const [initialLoadDone, setInitialLoadDone] = useState(!!initialApprovals);
   const [skipConfirmation, setSkipConfirmation] = useState(false);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const newIdTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
@@ -85,6 +88,42 @@ export function ApprovalDashboard({
     };
     fetchProfiles();
   }, [referencedUserIds]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch data client-side on mount when no initial data was provided from the server.
+  // This avoids passing large approval payloads through the RSC protocol which can
+  // stall client-side navigation in Next.js.
+  useEffect(() => {
+    if (initialApprovals) return; // Server already provided the data
+
+    const loadInitialData = async () => {
+      setIsFetching(true);
+      try {
+        const supabase = createClient();
+        const [{ data: approvalsData }, { data: connectionsData }] = await Promise.all([
+          supabase
+            .from("approval_requests")
+            .select("*")
+            .is("archived_at", null)
+            .order("status", { ascending: true })
+            .order("created_at", { ascending: false })
+            .limit(50),
+          supabase
+            .from("connections")
+            .select("*")
+            .eq("is_active", true)
+            .order("name"),
+        ]);
+        setApprovals(approvalsData ?? []);
+        setConnections(connectionsData ?? []);
+      } catch {
+        toast.error("Failed to load approvals");
+      } finally {
+        setIsFetching(false);
+        setInitialLoadDone(true);
+      }
+    };
+    loadInitialData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load preferences from notification_settings
   useEffect(() => {
@@ -532,6 +571,52 @@ export function ApprovalDashboard({
     onUnarchive: handleSingleUnarchive,
     onConfigureFlow: handleConfigureFlow,
   };
+
+  // Show skeleton while loading initial data client-side
+  if (!initialLoadDone) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-7 w-[80px] rounded-full" />
+            <Skeleton className="h-7 w-[80px] rounded-full" />
+            <Skeleton className="h-7 w-[80px] rounded-full" />
+          </div>
+          <Skeleton className="h-7 w-[100px]" />
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Skeleton className="h-9 flex-1" />
+          <Skeleton className="h-9 w-[130px]" />
+          <Skeleton className="h-9 w-[130px]" />
+          <Skeleton className="h-9 w-[150px]" />
+        </div>
+        <div className="grid gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-xl border-0 border-l-4 border-l-zinc-200 p-0 shadow-[var(--shadow-card)]"
+            >
+              <div className="flex items-center gap-3 px-4 py-3">
+                <Skeleton className="size-8 rounded-lg" />
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <Skeleton className="h-4 w-[240px]" />
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-3 w-[60px]" />
+                    <Skeleton className="h-3 w-[80px]" />
+                    <Skeleton className="h-3 w-[70px]" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`space-y-6 ${selectedIds.size > 0 ? "pb-20" : ""}`}>
