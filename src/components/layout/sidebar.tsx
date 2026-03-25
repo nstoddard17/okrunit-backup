@@ -190,7 +190,7 @@ export function Sidebar({ pendingCount, userRole, isAppAdmin, showSetup }: Sideb
     }
 
     return (
-      <Link key={item.id} data-nav-item href={item.href} onClick={() => handleNavClick(item)} className={classes}>
+      <Link key={item.id} data-nav-item href={item.href} prefetch={false} onClick={() => handleNavClick(item)} className={classes}>
         {content}
       </Link>
     );
@@ -274,6 +274,7 @@ export function Sidebar({ pendingCount, userRole, isAppAdmin, showSetup }: Sideb
                     <Link
                       key={item.id}
                       href={item.href}
+                      prefetch={false}
                       onClick={() => handleNavClick(item)}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2 text-sm transition-colors",
@@ -306,6 +307,7 @@ export function Sidebar({ pendingCount, userRole, isAppAdmin, showSetup }: Sideb
                 <Link
                   key={child.href}
                   href={child.href}
+                  prefetch={false}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     "rounded-md px-3 py-2 text-sm transition-colors",
