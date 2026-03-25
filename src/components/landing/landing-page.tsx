@@ -19,6 +19,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { HeroNav } from "@/components/landing/hero-nav";
+import { HeroAnimation } from "@/components/landing/hero-animation";
+import { LogoTicker } from "@/components/landing/logo-ticker";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -208,7 +210,27 @@ export function LandingPage({ user }: LandingPageProps) {
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-5 pt-20 pb-16 lg:pt-28">
+      <section className="relative overflow-hidden">
+        {/* Dot grid background */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: "radial-gradient(circle, #d1d5db 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+            maskImage: "radial-gradient(ellipse 80% 70% at 50% 30%, black 20%, transparent 70%)",
+            WebkitMaskImage: "radial-gradient(ellipse 80% 70% at 50% 30%, black 20%, transparent 70%)",
+          }}
+        />
+        {/* Soft gradient wash */}
+        <div
+          className="pointer-events-none absolute -top-32 right-0 h-[500px] w-[500px] rounded-full opacity-30 blur-3xl"
+          style={{ background: "radial-gradient(circle, #d1fae5, transparent 70%)" }}
+        />
+        <div
+          className="pointer-events-none absolute -bottom-20 -left-20 h-[400px] w-[400px] rounded-full opacity-20 blur-3xl"
+          style={{ background: "radial-gradient(circle, #e0e7ff, transparent 70%)" }}
+        />
+        <div className="relative mx-auto max-w-6xl px-5 pt-20 pb-16 lg:pt-28">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           {/* Left: copy */}
           <div>
@@ -261,31 +283,11 @@ export function LandingPage({ user }: LandingPageProps) {
             </FadeIn>
           </div>
 
-          {/* Right: product screenshot */}
-          <FadeIn delay={300} className="relative">
-            <div className="relative rounded-xl border border-gray-200 bg-gray-50 p-1.5 shadow-2xl shadow-gray-200/50">
-              <Image
-                src="/screenshots/hero-requests.png"
-                alt="OKRunit approval dashboard showing pending requests"
-                width={1280}
-                height={800}
-                className="rounded-lg"
-                priority
-              />
-            </div>
-            {/* Floating approval notification */}
-            <div className="absolute -left-6 bottom-12 z-10 hidden rounded-xl border border-gray-200 bg-white p-3 shadow-lg sm:block">
-              <div className="flex items-center gap-2.5">
-                <div className="flex size-8 items-center justify-center rounded-full bg-emerald-100">
-                  <CheckCircle className="size-4 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold">Request approved</p>
-                  <p className="text-[10px] text-gray-400">Callback delivered in 0.3s</p>
-                </div>
-              </div>
-            </div>
+          {/* Right: 3D animated approval flow */}
+          <FadeIn delay={300}>
+            <HeroAnimation />
           </FadeIn>
+        </div>
         </div>
       </section>
 
@@ -296,13 +298,7 @@ export function LandingPage({ user }: LandingPageProps) {
             <p className="mb-5 text-center text-xs font-medium uppercase tracking-wider text-gray-400">
               Works with the tools you already use
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-              {integrations.map((name) => (
-                <span key={name} className="text-sm font-medium text-gray-400 transition hover:text-gray-600">
-                  {name}
-                </span>
-              ))}
-            </div>
+            <LogoTicker />
           </FadeIn>
         </div>
       </section>

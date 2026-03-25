@@ -297,7 +297,12 @@
       "Bash(ls \"/Users/nathanielstoddard/okrunit/okrunit/src/app/\\(dashboard\\)/requests/\")",
       "WebFetch(domain:neon.com)",
       "Bash(timeout 10 curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/requests)",
-      "Bash(E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"TestPass123!\" npx playwright test e2e/product-screenshots.spec.ts --reporter=line)"
+      "Bash(E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"TestPass123!\" npx playwright test e2e/product-screenshots.spec.ts --reporter=line)",
+      "Bash(kill %1)",
+      "Bash(E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"TestPass123!\" npx playwright test e2e/product-screenshots.spec.ts --grep \"requests\" --reporter=line)",
+      "Bash(E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"TestPass123!\" npx playwright test e2e/product-screenshots.spec.ts --grep \"overview|connections\" --reporter=line)",
+      "Bash(E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"TestPass123!\" npx playwright test /tmp/debug-avatar.ts)",
+      "Bash(E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"TestPass123!\" npx playwright test e2e/product-screenshots.spec.ts --grep \"overview\" --reporter=line)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",

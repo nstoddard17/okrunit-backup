@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LayoutDashboard, Settings, LogOut, ChevronDown } from "lucide-react";
@@ -19,6 +20,9 @@ interface HeroNavProps {
 
 export function HeroNav({ user }: HeroNavProps) {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -34,6 +38,18 @@ export function HeroNav({ user }: HeroNavProps) {
         </Button>
         <Button asChild>
           <Link href="/signup">Sign up</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  // Only render the dropdown after mount to avoid hydration mismatch
+  // (Radix generates different IDs on server vs client)
+  if (!mounted) {
+    return (
+      <div className="flex items-center gap-3">
+        <Button asChild>
+          <Link href="/org/overview">Go to Dashboard</Link>
         </Button>
       </div>
     );
