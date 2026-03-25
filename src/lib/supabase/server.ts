@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -26,3 +27,14 @@ export async function createClient() {
     }
   );
 }
+
+/**
+ * Cached getUser() — deduplicates the Supabase Auth call within a single
+ * React server render. Without this, the layout and page each call
+ * getUser() independently, doubling the auth latency on every navigation.
+ */
+export const getAuthUser = cache(async () => {
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  return { user, error };
+});

@@ -3,7 +3,8 @@
 // Server-side utilities for resolving the active org for the current user.
 // ---------------------------------------------------------------------------
 
-import { createClient } from "@/lib/supabase/server";
+import { cache } from "react";
+import { getAuthUser } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { OrgMembership, Organization, UserProfile } from "@/lib/types/database";
 
@@ -15,13 +16,11 @@ export interface OrgContext {
 
 /**
  * Get the current user's active org context.
+ * Cached per-request via React.cache so the layout and page share one call.
  * Returns null if not authenticated or no membership found.
  */
-export async function getOrgContext(): Promise<OrgContext | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export const getOrgContext = cache(async (): Promise<OrgContext | null> => {
+  const { user } = await getAuthUser();
 
   if (!user) return null;
 
@@ -56,7 +55,7 @@ export async function getOrgContext(): Promise<OrgContext | null> {
   if (!org) return null;
 
   return { profile, membership, org };
-}
+});
 
 /**
  * Get all orgs the user belongs to (for the org switcher).

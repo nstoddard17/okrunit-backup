@@ -3,19 +3,18 @@
 // Server-side utility for verifying app-level admin access.
 // ---------------------------------------------------------------------------
 
-import { createClient } from "@/lib/supabase/server";
+import { cache } from "react";
+import { getAuthUser } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { UserProfile } from "@/lib/types/database";
 
 /**
  * Get the current user's profile if they are an app admin.
  * Returns the profile when `is_app_admin` is true, otherwise null.
+ * Cached per-request via React.cache.
  */
-export async function getAppAdminContext(): Promise<UserProfile | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export const getAppAdminContext = cache(async (): Promise<UserProfile | null> => {
+  const { user } = await getAuthUser();
 
   if (!user) return null;
 
@@ -30,4 +29,4 @@ export async function getAppAdminContext(): Promise<UserProfile | null> {
   if (!profile || !profile.is_app_admin) return null;
 
   return profile;
-}
+});
