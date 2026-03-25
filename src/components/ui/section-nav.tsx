@@ -21,7 +21,7 @@ export function SectionNav({ items, defaultSection, children }: SectionNavProps)
   const [active, setActive] = useState(defaultSection ?? items[0]?.id ?? "");
 
   return (
-    <div className="flex gap-8">
+    <div className="flex flex-col md:flex-row md:gap-8">
       {/* Left nav */}
       <nav className="hidden w-48 shrink-0 md:block">
         <div className="sticky top-6 space-y-1">

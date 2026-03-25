@@ -536,12 +536,12 @@ export function ApprovalDashboard({
   return (
     <div className={`space-y-6 ${selectedIds.size > 0 ? "pb-20" : ""}`}>
       {/* Stat badges + live indicator + refresh */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => handleStatClick(status === "pending" ? undefined : "pending")}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+              "inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer sm:px-3",
               status === "pending"
                 ? "bg-amber-100 text-amber-800 ring-2 ring-amber-400/50"
                 : "bg-muted/60 text-muted-foreground hover:bg-muted",
@@ -549,12 +549,12 @@ export function ApprovalDashboard({
           >
             <Clock className="size-3" />
             <span className="font-bold">{pendingCount}</span>
-            Pending
+            <span className="hidden sm:inline">Pending</span>
           </button>
           <button
             onClick={() => handleStatClick(status === "approved" ? undefined : "approved")}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+              "inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer sm:px-3",
               status === "approved"
                 ? "bg-emerald-100 text-emerald-800 ring-2 ring-emerald-400/50"
                 : "bg-muted/60 text-muted-foreground hover:bg-muted",
@@ -562,12 +562,12 @@ export function ApprovalDashboard({
           >
             <CheckCircle className="size-3" />
             <span className="font-bold">{approvedCount}</span>
-            Approved
+            <span className="hidden sm:inline">Approved</span>
           </button>
           <button
             onClick={() => handleStatClick(status === "rejected" ? undefined : "rejected")}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+              "inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer sm:px-3",
               status === "rejected"
                 ? "bg-red-100 text-red-800 ring-2 ring-red-400/50"
                 : "bg-muted/60 text-muted-foreground hover:bg-muted",
@@ -575,7 +575,7 @@ export function ApprovalDashboard({
           >
             <XCircle className="size-3" />
             <span className="font-bold">{rejectedCount}</span>
-            Rejected
+            <span className="hidden sm:inline">Rejected</span>
           </button>
         </div>
 

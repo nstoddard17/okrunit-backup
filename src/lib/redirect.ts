@@ -12,7 +12,7 @@
  */
 export function safeRedirectUrl(
   redirectTo: string | null | undefined,
-  fallback = "/dashboard",
+  fallback = "/org/overview",
 ): string {
   if (!redirectTo) return fallback;
   if (typeof redirectTo !== "string") return fallback;

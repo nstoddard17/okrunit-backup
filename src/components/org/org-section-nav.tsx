@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, Users, Mail, UsersRound, Building2 } from "lucide-react";
 
@@ -22,6 +22,7 @@ interface OrgSectionNavProps {
 
 export function OrgSectionNav({ isAdmin, pendingInviteCount, children }: OrgSectionNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const items: NavItem[] = [
     { id: "overview", label: "Overview", href: "/org/overview", icon: LayoutDashboard },
@@ -34,7 +35,7 @@ export function OrgSectionNav({ isAdmin, pendingInviteCount, children }: OrgSect
   const visibleItems = items.filter((item) => !item.adminOnly || isAdmin);
 
   return (
-    <div className="flex gap-8">
+    <div className="flex flex-col md:flex-row md:gap-8">
       {/* Left nav — desktop */}
       <nav className="hidden w-48 shrink-0 md:block">
         <div className="sticky top-6 space-y-1">
@@ -73,7 +74,7 @@ export function OrgSectionNav({ isAdmin, pendingInviteCount, children }: OrgSect
         <select
           value={visibleItems.find((i) => pathname === i.href || pathname.startsWith(i.href + "/"))?.href ?? "/org/overview"}
           onChange={(e) => {
-            window.location.href = e.target.value;
+            router.push(e.target.value);
           }}
           className="mb-4 w-full rounded-lg border bg-background px-3 py-2 text-sm"
         >

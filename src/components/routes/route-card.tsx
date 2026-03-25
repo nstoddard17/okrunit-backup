@@ -343,7 +343,7 @@ export function RouteCard({
               </div>
 
               {/* Notification event toggles */}
-              <div className="flex items-center gap-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
                 <div className="flex items-center gap-2">
                   <Switch
                     id={`notify-create-${connection.id}`}

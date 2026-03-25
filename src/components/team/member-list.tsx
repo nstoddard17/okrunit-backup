@@ -277,7 +277,7 @@ export function MemberList({
         </div>
       </div>
 
-      <div className="rounded-xl border">
+      <div className="rounded-xl border overflow-x-auto">
         <div className="border-b px-4 py-3">
           <h2 className="text-sm font-medium">
             Members ({filteredMembers.length}{filteredMembers.length !== members.length ? ` of ${members.length}` : ""})
@@ -353,7 +353,7 @@ export function MemberList({
                           }
                           disabled={loading === member.id}
                         >
-                          <SelectTrigger size="sm" className="w-[120px]">
+                          <SelectTrigger size="sm" className="w-[100px] sm:w-[120px]">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>

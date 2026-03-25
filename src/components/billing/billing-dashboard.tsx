@@ -90,9 +90,9 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
         <h3 className="mb-4 text-lg font-semibold">Subscription</h3>
         <div className="divide-y rounded-lg border">
           {/* Row: My plan */}
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-muted-foreground w-24">My plan</span>
+          <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="text-sm font-medium text-muted-foreground w-20 sm:w-24">My plan</span>
               <Badge variant={currentPlan === "free" ? "secondary" : "default"} className="text-xs">
                 {limits.name}
               </Badge>
@@ -108,9 +108,9 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
           </div>
 
           {/* Row: Billing */}
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-muted-foreground w-24">Billing</span>
+          <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="text-sm font-medium text-muted-foreground w-20 sm:w-24">Billing</span>
               <span className="text-sm">
                 {limits.priceMonthly === 0 ? "$0.00" : `$${limits.priceMonthly}.00`} billed {subscription?.billing_cycle ?? "monthly"}
               </span>
@@ -127,9 +127,9 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
           </div>
 
           {/* Row: Usage */}
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3 flex-1">
-              <span className="text-sm font-medium text-muted-foreground w-24">Requests</span>
+          <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
+            <div className="flex flex-col gap-2 flex-1 sm:flex-row sm:items-center sm:gap-3">
+              <span className="text-sm font-medium text-muted-foreground w-20 sm:w-24">Requests</span>
               <div className="flex items-center gap-3 flex-1 max-w-md">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
@@ -152,9 +152,9 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
           </div>
 
           {/* Row: Connections */}
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-muted-foreground w-24">Connections</span>
+          <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="text-sm font-medium text-muted-foreground w-20 sm:w-24">Connections</span>
               <span className="text-sm">
                 {usage.connections} / {isUnlimited(limits.maxConnections) ? "Unlimited" : limits.maxConnections} active
               </span>
@@ -162,9 +162,9 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
           </div>
 
           {/* Row: Team */}
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-muted-foreground w-24">Team</span>
+          <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="text-sm font-medium text-muted-foreground w-20 sm:w-24">Team</span>
               <span className="text-sm">
                 {usage.teamMembers} / {isUnlimited(limits.maxTeamMembers) ? "Unlimited" : limits.maxTeamMembers} members
               </span>
@@ -175,11 +175,11 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
 
       {/* ── Compare Plans (like Make.com) ── */}
       <div id="plans">
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="text-lg font-semibold">Compare Plans</h3>
-          <div className="flex items-center gap-3 text-sm">
-            <span className={cn("font-medium", billingCycle === "monthly" ? "text-foreground" : "text-muted-foreground")}>
-              Billed monthly
+          <div className="flex items-center gap-2 text-sm sm:gap-3">
+            <span className={cn("font-medium text-xs sm:text-sm", billingCycle === "monthly" ? "text-foreground" : "text-muted-foreground")}>
+              Monthly
             </span>
             <button
               onClick={() => setBillingCycle(billingCycle === "monthly" ? "yearly" : "monthly")}
@@ -193,9 +193,9 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
                 billingCycle === "yearly" ? "translate-x-6" : "translate-x-1",
               )} />
             </button>
-            <span className={cn("font-medium", billingCycle === "yearly" ? "text-foreground" : "text-muted-foreground")}>
-              Billed yearly{" "}
-              <span className="text-primary font-semibold">(Save 15% or more)</span>
+            <span className={cn("font-medium text-xs sm:text-sm", billingCycle === "yearly" ? "text-foreground" : "text-muted-foreground")}>
+              Yearly{" "}
+              <span className="hidden text-primary font-semibold sm:inline">(Save 15%+)</span>
             </span>
           </div>
         </div>
@@ -328,7 +328,7 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b">
-                <th className="px-5 py-3 text-left font-normal text-muted-foreground w-[240px]" />
+                <th className="px-5 py-3 text-left font-normal text-muted-foreground w-[160px] sm:w-[240px]" />
                 {PLAN_ORDER.map((planId) => {
                   const isCurrent = planId === currentPlan;
                   return (

@@ -102,7 +102,7 @@ export function ConnectedAppCard({ grant, onRevoke }: ConnectedAppCardProps) {
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
+        <CardHeader className="flex flex-col gap-3 space-y-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="flex items-center gap-3 min-w-0">
             {/* Logo: use client_logo_url if available, otherwise fallback */}
             {grant.client_logo_url ? (

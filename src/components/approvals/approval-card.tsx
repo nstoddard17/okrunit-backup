@@ -168,7 +168,7 @@ export function ApprovalCard({
             </div>
 
             {/* Metadata row */}
-            <div className="text-muted-foreground mt-0.5 flex items-center gap-2 text-[11px]">
+            <div className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
               {/* Source label (text only — avatar already shows the icon) */}
               <span>{getSourceDisplay(approval, connectionName).label}</span>
               {/* Show the account owner who created the connection */}
@@ -208,10 +208,10 @@ export function ApprovalCard({
           </div>
 
           {/* Right side: badges + hover actions */}
-          <div className="flex shrink-0 items-center gap-1.5">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
             {/* Inline approve/reject — visible on hover */}
             {isPending && canApprove && onInlineAction && (
-              <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover/card:opacity-100">
+              <div className="hidden items-center gap-1.5 sm:flex sm:opacity-0 sm:transition-opacity sm:group-hover/card:opacity-100">
                 <Button
                   size="sm"
                   variant="success"
@@ -245,7 +245,7 @@ export function ApprovalCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="size-7 p-0 opacity-0 transition-opacity group-hover/card:opacity-100"
+                className="hidden size-7 p-0 sm:inline-flex sm:opacity-0 sm:transition-opacity sm:group-hover/card:opacity-100"
                 title="Set who must approve"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -262,7 +262,7 @@ export function ApprovalCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="size-7 p-0 opacity-0 transition-opacity group-hover/card:opacity-100 data-[state=open]:opacity-100"
+                  className="size-7 p-0 sm:opacity-0 sm:transition-opacity sm:group-hover/card:opacity-100 data-[state=open]:opacity-100"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <MoreVertical className="size-4" />

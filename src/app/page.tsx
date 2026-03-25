@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { Hero } from "@/components/landing/hero";
+import { LandingPage } from "@/components/landing/landing-page";
 import {
   OrganizationJsonLd,
   SoftwareAppJsonLd,
@@ -26,7 +26,7 @@ export default async function HomePage() {
       <SoftwareAppJsonLd />
       <WebsiteJsonLd />
       <FAQJsonLd />
-      <Hero
+      <LandingPage
         user={
           user
             ? {

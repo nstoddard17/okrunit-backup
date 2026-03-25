@@ -199,12 +199,9 @@ function TestimonialRow({ testimonials, reverse = false }: { testimonials: { quo
 
 function MockDashboard() {
   const sidebarItems = [
-    { icon: LayoutDashboard, label: "Dashboard", active: true, badge: "3" },
+    { icon: LayoutDashboard, label: "Org", active: true, badge: "3" },
     { icon: Key, label: "Connections", active: false },
-    { icon: Users, label: "Team", active: false },
     { icon: ShieldCheck, label: "Rules", active: false },
-    { icon: FileText, label: "Audit Log", active: false },
-    { icon: Webhook, label: "Webhooks", active: false },
     { icon: BarChart3, label: "Analytics", active: false },
     { icon: FlaskConical, label: "Playground", active: false },
     { icon: Settings, label: "Settings", active: false },

@@ -150,7 +150,7 @@ describe("BillingDashboard", () => {
       render(<BillingDashboard {...defaultProps} />);
 
       // Click the toggle to switch to yearly
-      const toggle = screen.getByText(/Billed yearly/);
+      const toggle = screen.getByText(/Yearly/);
       const toggleButton = toggle.closest("div")?.querySelector("button");
       if (toggleButton) await user.click(toggleButton);
 

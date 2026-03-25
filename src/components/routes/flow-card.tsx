@@ -231,7 +231,7 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground mt-0.5">
               <span className="flex items-center gap-1">
                 <UserCheck className="size-3" />
                 {getConfigSummary()}
@@ -326,7 +326,7 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
                 </Select>
                 <p className="text-[11px] text-muted-foreground">
                   Only members of this team will be notified and asked to approve. Create teams like &quot;HR&quot;, &quot;Management&quot;, or &quot;Engineering&quot; on the{" "}
-                  <a href="/team" className="underline underline-offset-2 hover:text-foreground">Team page</a>.
+                  <a href="/org/members" className="underline underline-offset-2 hover:text-foreground">Team page</a>.
                 </p>
               </div>
             )}
