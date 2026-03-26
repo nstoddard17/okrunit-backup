@@ -302,7 +302,9 @@
       "Bash(E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"TestPass123!\" npx playwright test e2e/product-screenshots.spec.ts --grep \"requests\" --reporter=line)",
       "Bash(E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"TestPass123!\" npx playwright test e2e/product-screenshots.spec.ts --grep \"overview|connections\" --reporter=line)",
       "Bash(E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"TestPass123!\" npx playwright test /tmp/debug-avatar.ts)",
-      "Bash(E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"TestPass123!\" npx playwright test e2e/product-screenshots.spec.ts --grep \"overview\" --reporter=line)"
+      "Bash(E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"TestPass123!\" npx playwright test e2e/product-screenshots.spec.ts --grep \"overview\" --reporter=line)",
+      "Bash(ls -la /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(dashboard\\\\\\)/*/)",
+      "Bash(grep -r price_1T /Users/nathanielstoddard/okrunit/okrunit/src --include=*.ts --include=*.tsx)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",
