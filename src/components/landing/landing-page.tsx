@@ -2,14 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowRight,
   Shield,
   Zap,
   Bell,
   GitBranch,
-  BarChart3,
   Code2,
   Menu,
   X,
@@ -27,8 +26,6 @@ import {
   Bot,
   FileCheck,
   ShieldCheck,
-  Star,
-  ExternalLink,
   Layers,
   AlertTriangle,
   Gauge,
@@ -114,21 +111,61 @@ function MakeLogo({ className }: { className?: string }) {
 /*  Hero product UI mockup panels (rendered as code, not images)       */
 /* ------------------------------------------------------------------ */
 
+function HeroQueuePanel() {
+  const items = [
+    { title: "Delete 10,247 stale user records", source: "Zapier", priority: "high", status: "pending", time: "2m" },
+    { title: "Deploy v3.2 to production", source: "GitHub Actions", priority: "critical", status: "pending", time: "5m" },
+    { title: "Update billing for Acme Corp", source: "Make", priority: "medium", status: "approved", time: "12m" },
+  ];
+  const priorityColors: Record<string, string> = { critical: "bg-red-50 text-red-700", high: "bg-amber-50 text-amber-700", medium: "bg-blue-50 text-blue-700" };
+  const statusColors: Record<string, string> = { pending: "bg-amber-50 text-amber-700", approved: "bg-emerald-50 text-emerald-700" };
+
+  return (
+    <div className="rounded-2xl border border-gray-200/70 bg-white lp-shadow-hero overflow-hidden" style={{ width: 380 }}>
+      {/* Window chrome */}
+      <div className="flex items-center gap-1.5 border-b border-gray-100 px-4 py-2.5">
+        <div className="size-2 rounded-full bg-red-300" />
+        <div className="size-2 rounded-full bg-amber-300" />
+        <div className="size-2 rounded-full bg-emerald-300" />
+        <span className="ml-2 text-[10px] font-medium text-gray-400">Approval Queue</span>
+        <span className="ml-auto rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-medium text-amber-700">3 pending</span>
+      </div>
+      {/* Rows */}
+      <div className="divide-y divide-gray-50">
+        {items.map((item) => (
+          <div key={item.title} className="flex items-center gap-2.5 px-4 py-2.5">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[11px] font-medium text-gray-800">{item.title}</p>
+              <p className="text-[9px] text-gray-400">{item.source} &middot; {item.time} ago</p>
+            </div>
+            <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-medium ${priorityColors[item.priority]}`}>
+              {item.priority}
+            </span>
+            <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-medium capitalize ${statusColors[item.status]}`}>
+              {item.status}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function HeroApprovalCard() {
   return (
-    <div className="rounded-2xl border border-gray-200/80 bg-white p-4 lp-shadow-hero" style={{ width: 340 }}>
+    <div className="rounded-2xl border border-gray-200/80 bg-white p-4 lp-shadow-float" style={{ width: 280 }}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex size-7 items-center justify-center rounded-lg bg-amber-50">
             <Clock className="size-3.5 text-amber-600" />
           </div>
-          <span className="text-xs font-semibold text-gray-900">Pending Approval</span>
+          <span className="text-xs font-semibold text-gray-900">Review Required</span>
         </div>
-        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">High Priority</span>
+        <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700">Critical</span>
       </div>
       <div className="mt-3 rounded-xl bg-gray-50 p-3">
-        <p className="text-[11px] font-medium text-gray-800">Delete 10,247 stale user records</p>
-        <p className="mt-1 text-[10px] text-gray-500">Source: Zapier &middot; database_cleanup</p>
+        <p className="text-[11px] font-medium text-gray-800">Deploy v3.2 to production</p>
+        <p className="mt-1 text-[10px] text-gray-500">Source: GitHub Actions &middot; deploy</p>
       </div>
       <div className="mt-3 flex items-center justify-between">
         <div className="flex -space-x-1.5">
@@ -138,6 +175,33 @@ function HeroApprovalCard() {
         <div className="flex gap-1.5">
           <button className="rounded-lg bg-red-50 px-2.5 py-1 text-[10px] font-semibold text-red-600">Reject</button>
           <button className="rounded-lg bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white">Approve</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroWorkflowNode() {
+  return (
+    <div className="rounded-xl border border-gray-200/60 bg-white p-3 lp-shadow-card" style={{ width: 200 }}>
+      <div className="flex items-center gap-2 mb-2">
+        <div className="flex size-5 items-center justify-center rounded-md bg-emerald-50">
+          <Shield className="size-2.5 text-emerald-600" />
+        </div>
+        <span className="text-[10px] font-semibold text-gray-700">Workflow Gate</span>
+      </div>
+      <div className="space-y-1">
+        <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-2 py-1.5">
+          <div className="size-1.5 rounded-full bg-emerald-500" />
+          <span className="text-[9px] text-gray-600">Automation paused</span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-amber-50/70 px-2 py-1.5">
+          <Clock className="size-2.5 text-amber-500" />
+          <span className="text-[9px] text-amber-700">Awaiting decision...</span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-2 py-1.5">
+          <Zap className="size-2.5 text-gray-400" />
+          <span className="text-[9px] text-gray-400">Resume on approve</span>
         </div>
       </div>
     </div>
@@ -332,77 +396,6 @@ function FeaturePanelAuditLog() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Platform / AI orchestration section panel                          */
-/* ------------------------------------------------------------------ */
-
-function PlatformOverviewPanel() {
-  return (
-    <div className="rounded-2xl border border-gray-200/80 bg-white lp-shadow-panel overflow-hidden">
-      <div className="border-b border-gray-100 px-5 py-3">
-        <span className="text-xs font-semibold text-gray-700">Platform Overview</span>
-      </div>
-      <div className="p-5">
-        {/* Stats row */}
-        <div className="grid grid-cols-4 gap-3 mb-4">
-          {[
-            { label: "Active Flows", value: "24", color: "text-emerald-600" },
-            { label: "Pending", value: "7", color: "text-amber-600" },
-            { label: "Approved Today", value: "143", color: "text-blue-600" },
-            { label: "Avg Response", value: "2.3m", color: "text-violet-600" },
-          ].map((stat) => (
-            <div key={stat.label} className="rounded-xl border border-gray-100 bg-gray-50/50 p-2.5 text-center">
-              <p className={`text-sm font-bold ${stat.color}`}>{stat.value}</p>
-              <p className="text-[9px] text-gray-500 mt-0.5">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-        {/* Mini flow diagram */}
-        <div className="rounded-xl border border-gray-100 bg-gray-50/30 p-4">
-          <div className="flex items-center justify-between">
-            {[
-              { icon: Bot, label: "AI Agent", color: "bg-violet-100 text-violet-600" },
-              { icon: ArrowRight, label: "", color: "text-gray-300" },
-              { icon: Shield, label: "OKRunit", color: "bg-emerald-100 text-emerald-600" },
-              { icon: ArrowRight, label: "", color: "text-gray-300" },
-              { icon: Users, label: "Approver", color: "bg-blue-100 text-blue-600" },
-              { icon: ArrowRight, label: "", color: "text-gray-300" },
-              { icon: Zap, label: "Execute", color: "bg-amber-100 text-amber-600" },
-            ].map((node, i) => (
-              <div key={i} className="flex flex-col items-center gap-1">
-                {node.label ? (
-                  <div className={`flex size-9 items-center justify-center rounded-xl ${node.color}`}>
-                    <node.icon className="size-4" />
-                  </div>
-                ) : (
-                  <node.icon className={`size-4 ${node.color}`} />
-                )}
-                {node.label && (
-                  <span className="text-[9px] font-medium text-gray-500">{node.label}</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-        {/* Recent connections */}
-        <div className="mt-4 space-y-2">
-          {[
-            { name: "Zapier Production", status: "active", requests: "1,247" },
-            { name: "Make.com Staging", status: "active", requests: "892" },
-            { name: "n8n Self-hosted", status: "active", requests: "456" },
-          ].map((conn) => (
-            <div key={conn.name} className="flex items-center gap-3 rounded-lg border border-gray-100 px-3 py-2">
-              <div className="size-1.5 rounded-full bg-emerald-500" />
-              <span className="text-[11px] font-medium text-gray-700 flex-1">{conn.name}</span>
-              <span className="text-[10px] text-gray-400">{conn.requests} req</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /*  Integration data                                                    */
 /* ------------------------------------------------------------------ */
 
@@ -477,24 +470,42 @@ const solutionsTabs = [
 
 function SolutionVisualDevOps() {
   return (
-    <div className="rounded-2xl border border-gray-200/80 bg-white lp-shadow-panel p-4">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="rounded-2xl border border-gray-200/80 bg-white lp-shadow-panel overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
         <div className="size-2 rounded-full bg-emerald-500" />
         <span className="text-[11px] font-semibold text-gray-700">Deployment Pipeline</span>
+        <span className="ml-auto text-[9px] text-gray-400">main → production</span>
       </div>
-      <div className="space-y-2">
-        {[
-          { stage: "Build", status: "passed", icon: CheckCircle, color: "text-emerald-500" },
-          { stage: "Test Suite", status: "passed", icon: CheckCircle, color: "text-emerald-500" },
-          { stage: "Staging Deploy", status: "auto-approved", icon: Zap, color: "text-blue-500" },
-          { stage: "Production Deploy", status: "awaiting approval", icon: Clock, color: "text-amber-500" },
-        ].map((s) => (
-          <div key={s.stage} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2.5">
-            <s.icon className={`size-3.5 shrink-0 ${s.color}`} />
-            <span className="text-[11px] font-medium text-gray-700 flex-1">{s.stage}</span>
-            <span className="text-[10px] text-gray-400 capitalize">{s.status}</span>
+      <div className="p-4">
+        <div className="space-y-2 mb-3">
+          {[
+            { stage: "Build & Lint", status: "passed", icon: CheckCircle, color: "text-emerald-500", duration: "34s" },
+            { stage: "Test Suite (247 tests)", status: "passed", icon: CheckCircle, color: "text-emerald-500", duration: "2m 12s" },
+            { stage: "Staging Deploy", status: "auto-approved", icon: Zap, color: "text-blue-500", duration: "instant" },
+            { stage: "Production Deploy", status: "awaiting approval", icon: Clock, color: "text-amber-500", duration: "" },
+          ].map((s) => (
+            <div key={s.stage} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2.5">
+              <s.icon className={`size-3.5 shrink-0 ${s.color}`} />
+              <span className="text-[11px] font-medium text-gray-700 flex-1">{s.stage}</span>
+              {s.duration && <span className="text-[9px] text-gray-400">{s.duration}</span>}
+              <span className="text-[10px] text-gray-400 capitalize">{s.status}</span>
+            </div>
+          ))}
+        </div>
+        {/* Gate panel */}
+        <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-semibold text-amber-700">OKRunit Gate — Approval Required</span>
+            <span className="text-[9px] text-amber-600">SLA: 4:22 remaining</span>
           </div>
-        ))}
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-1">
+              <div className="size-5 rounded-full bg-emerald-200 ring-1 ring-white" />
+              <div className="size-5 rounded-full bg-blue-200 ring-1 ring-white" />
+            </div>
+            <span className="text-[9px] text-gray-500">Routed to DevOps team (2 required)</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -502,22 +513,37 @@ function SolutionVisualDevOps() {
 
 function SolutionVisualAI() {
   return (
-    <div className="rounded-2xl border border-gray-200/80 bg-white lp-shadow-panel p-4">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="rounded-2xl border border-gray-200/80 bg-white lp-shadow-panel overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
         <Bot className="size-3.5 text-violet-500" />
         <span className="text-[11px] font-semibold text-gray-700">Agent Decision Gate</span>
+        <span className="ml-auto rounded-full bg-red-50 px-2 py-0.5 text-[9px] font-medium text-red-700">Risk: High</span>
       </div>
-      <div className="rounded-xl bg-violet-50/50 border border-violet-100 p-3 mb-3">
-        <p className="text-[10px] text-violet-700 font-medium">AI Agent wants to:</p>
-        <p className="text-[11px] text-gray-800 font-semibold mt-1">&ldquo;Transfer $45,000 to vendor account&rdquo;</p>
-        <div className="mt-2 flex items-center gap-2">
-          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-medium text-red-700">Risk: High</span>
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-medium text-amber-700">Threshold: Exceeded</span>
+      <div className="p-4">
+        <div className="rounded-xl bg-violet-50/50 border border-violet-100 p-3 mb-3">
+          <p className="text-[10px] text-violet-700 font-medium">AI Agent wants to execute:</p>
+          <p className="text-[11px] text-gray-800 font-semibold mt-1">&ldquo;Transfer $45,000 to vendor account ending in 4829&rdquo;</p>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-medium text-red-700">Amount: $45,000</span>
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-medium text-amber-700">Threshold: $10,000</span>
+          </div>
         </div>
-      </div>
-      <div className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-100 px-3 py-2">
-        <Clock className="size-3 text-amber-600" />
-        <span className="text-[10px] text-amber-700 font-medium">Paused — Waiting for human approval</span>
+        {/* Decision gate */}
+        <div className="rounded-xl bg-amber-50/70 border border-amber-100 p-3 mb-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="size-3 text-amber-600" />
+            <span className="text-[10px] text-amber-700 font-medium">Paused — Waiting for human approval</span>
+          </div>
+          <div className="h-1 rounded-full bg-amber-200">
+            <div className="h-1 w-[45%] rounded-full bg-amber-500 transition-all" />
+          </div>
+        </div>
+        {/* Routing */}
+        <div className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2">
+          <Bell className="size-3 text-violet-500" />
+          <span className="text-[9px] text-gray-600 flex-1">Notified: CFO via Slack, Finance Lead via email</span>
+          <CheckCircle className="size-3 text-emerald-500" />
+        </div>
       </div>
     </div>
   );
@@ -525,28 +551,49 @@ function SolutionVisualAI() {
 
 function SolutionVisualOps() {
   return (
-    <div className="rounded-2xl border border-gray-200/80 bg-white lp-shadow-panel p-4">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="rounded-2xl border border-gray-200/80 bg-white lp-shadow-panel overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
         <Activity className="size-3.5 text-blue-500" />
-        <span className="text-[11px] font-semibold text-gray-700">Operations Dashboard</span>
+        <span className="text-[11px] font-semibold text-gray-700">Operations Overview</span>
+        <span className="ml-auto text-[9px] text-gray-400">Last 7 days</span>
       </div>
-      <div className="grid grid-cols-2 gap-2 mb-3">
-        <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-2.5 text-center">
-          <p className="text-sm font-bold text-gray-900">98.2%</p>
-          <p className="text-[9px] text-gray-500">Approval Rate</p>
+      <div className="p-4">
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          {[
+            { label: "Approval Rate", value: "98.2%", color: "text-emerald-600" },
+            { label: "Avg Response", value: "1m 42s", color: "text-blue-600" },
+            { label: "Total Requests", value: "1,426", color: "text-violet-600" },
+          ].map((s) => (
+            <div key={s.label} className="rounded-xl border border-gray-100 bg-gray-50/50 p-2 text-center">
+              <p className={`text-sm font-bold ${s.color}`}>{s.value}</p>
+              <p className="text-[8px] text-gray-400 mt-0.5">{s.label}</p>
+            </div>
+          ))}
         </div>
-        <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-2.5 text-center">
-          <p className="text-sm font-bold text-gray-900">1m 42s</p>
-          <p className="text-[9px] text-gray-500">Avg Response</p>
-        </div>
-      </div>
-      <div className="space-y-1.5">
-        {["Zapier: 847 approved", "Make: 423 approved", "n8n: 156 approved"].map((line) => (
-          <div key={line} className="flex items-center gap-2 text-[10px] text-gray-600">
-            <CheckCircle className="size-2.5 text-emerald-500" />
-            {line}
+        {/* Source breakdown */}
+        <div className="rounded-xl border border-gray-100 p-3 mb-3">
+          <span className="text-[9px] font-semibold text-gray-500 uppercase tracking-wide">By Source</span>
+          <div className="mt-2 space-y-2">
+            {[
+              { name: "Zapier", count: 847, pct: 59 },
+              { name: "Make", count: 423, pct: 30 },
+              { name: "n8n", count: 156, pct: 11 },
+            ].map((s) => (
+              <div key={s.name} className="flex items-center gap-2">
+                <span className="text-[10px] font-medium text-gray-700 w-12">{s.name}</span>
+                <div className="h-1.5 flex-1 rounded-full bg-gray-100">
+                  <div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${s.pct}%` }} />
+                </div>
+                <span className="text-[9px] text-gray-400 w-8 text-right">{s.count}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+        {/* Bottleneck alert */}
+        <div className="flex items-center gap-2 rounded-xl border border-amber-100 bg-amber-50/50 px-3 py-2">
+          <AlertTriangle className="size-3 text-amber-500 shrink-0" />
+          <span className="text-[9px] text-amber-700">Bottleneck detected: Infrastructure team avg 8m response</span>
+        </div>
       </div>
     </div>
   );
@@ -766,35 +813,46 @@ export function LandingPage({ user }: LandingPageProps) {
 
             {/* Right: layered hero visual system */}
             <FadeIn delay={200} className="relative hidden lg:block">
-              <div className="relative" style={{ minHeight: 480 }}>
+              <div className="relative" style={{ minHeight: 520 }}>
                 {/* Base ambient glow */}
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-50/50 via-transparent to-blue-50/30" />
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-50/40 via-transparent to-blue-50/20" />
 
-                {/* Main approval card */}
-                <div className="absolute top-4 left-4 z-10 lp-float-slow">
+                {/* Base layer: Queue panel (largest, back) */}
+                <div className="absolute top-0 left-0 z-10 lp-float-slow">
+                  <HeroQueuePanel />
+                </div>
+
+                {/* Mid layer: Approval decision card (overlapping queue) */}
+                <div className="absolute top-36 right-0 z-20 lp-float">
                   <HeroApprovalCard />
                 </div>
 
-                {/* Notification card - floating offset */}
-                <div className="absolute top-8 right-0 z-20 lp-float">
+                {/* Workflow node - showing pause/continue logic */}
+                <div className="absolute bottom-24 left-2 z-20 lp-float-offset">
+                  <HeroWorkflowNode />
+                </div>
+
+                {/* Notification card - floating top right */}
+                <div className="absolute top-2 right-4 z-30 lp-float" style={{ animationDelay: "0.8s" }}>
                   <HeroNotificationCard />
                 </div>
 
-                {/* Callback card - lower right */}
-                <div className="absolute bottom-16 right-4 z-20 lp-float-offset">
-                  <HeroCallbackCard />
-                </div>
-
-                {/* Stats card - lower left */}
-                <div className="absolute bottom-4 left-8 z-10 lp-float-slow" style={{ animationDelay: "1s" }}>
+                {/* Stats card - bottom right */}
+                <div className="absolute bottom-0 right-8 z-10 lp-float-slow" style={{ animationDelay: "1.2s" }}>
                   <HeroStatsCard />
                 </div>
 
-                {/* Connecting line decoration */}
-                <svg className="absolute inset-0 z-0 h-full w-full" viewBox="0 0 600 480">
-                  <path d="M 180 180 Q 300 200, 380 120" stroke="#e5e7eb" strokeWidth="1.5" fill="none" strokeDasharray="6 4" />
-                  <path d="M 360 240 Q 400 300, 430 340" stroke="#e5e7eb" strokeWidth="1.5" fill="none" strokeDasharray="6 4" />
-                  <path d="M 180 300 Q 250 350, 200 400" stroke="#e5e7eb" strokeWidth="1.5" fill="none" strokeDasharray="6 4" />
+                {/* Connecting flow lines */}
+                <svg className="absolute inset-0 z-0 h-full w-full pointer-events-none" viewBox="0 0 620 520">
+                  <defs>
+                    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#d1d5db" stopOpacity="0.6" />
+                      <stop offset="100%" stopColor="#d1d5db" stopOpacity="0.2" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M 200 200 Q 320 180, 360 240" stroke="url(#lineGrad)" strokeWidth="1.5" fill="none" strokeDasharray="6 4" />
+                  <path d="M 380 340 Q 420 380, 460 420" stroke="url(#lineGrad)" strokeWidth="1.5" fill="none" strokeDasharray="6 4" />
+                  <path d="M 200 300 Q 180 380, 160 420" stroke="url(#lineGrad)" strokeWidth="1.5" fill="none" strokeDasharray="6 4" />
                 </svg>
               </div>
             </FadeIn>
@@ -802,10 +860,10 @@ export function LandingPage({ user }: LandingPageProps) {
             {/* Mobile hero visual (stacked simplified) */}
             <FadeIn delay={200} className="lg:hidden">
               <div className="space-y-3">
-                <HeroApprovalCard />
+                <HeroQueuePanel />
                 <div className="grid grid-cols-2 gap-3">
                   <HeroNotificationCard />
-                  <HeroCallbackCard />
+                  <HeroWorkflowNode />
                 </div>
               </div>
             </FadeIn>
@@ -857,57 +915,98 @@ export function LandingPage({ user }: LandingPageProps) {
             </div>
           </FadeIn>
 
-          <div className="grid gap-8 lg:grid-cols-3">
-            {[
-              {
-                step: "01",
-                title: "Your automation calls OKRunit",
-                description: "When your workflow hits a destructive action, it sends a POST request. Execution pauses automatically.",
-                icon: Code2,
-                color: "bg-blue-50 text-blue-600",
-                code: 'POST /v1/approvals\n{ "title": "Delete 10k rows" }',
-              },
-              {
-                step: "02",
-                title: "The right person gets notified",
-                description: "OKRunit routes the request by your rules — priority, source, action type. Notifications go to Slack, email, or Teams.",
-                icon: Bell,
-                color: "bg-violet-50 text-violet-600",
-                code: "→ Slack #ops-approvals\n→ Email: sarah@acme.com",
-              },
-              {
-                step: "03",
-                title: "They decide. You continue.",
-                description: "The approver clicks approve or reject. OKRunit fires your callback URL with the decision instantly.",
-                icon: CheckCircle,
-                color: "bg-emerald-50 text-emerald-600",
-                code: 'POST /your-webhook\n{ "status": "approved" }',
-              },
-            ].map((item, i) => (
-              <FadeIn key={item.step} delay={i * 100}>
-                <div className="group rounded-2xl border border-gray-200/80 bg-white p-6 lp-shadow-card lp-lift hover:lp-shadow-card-hover h-full">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`flex size-10 items-center justify-center rounded-xl ${item.color}`}>
-                      <item.icon className="size-5" />
-                    </div>
-                    <span className="text-xs font-bold text-gray-300">{item.step}</span>
+          <div className="relative grid gap-6 lg:grid-cols-3">
+            {/* Connecting line between cards (desktop only) */}
+            <div className="pointer-events-none absolute top-16 left-[33.33%] right-[33.33%] hidden h-px bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 lg:block" />
+
+            {/* Step 1 */}
+            <FadeIn delay={0}>
+              <div className="group rounded-2xl border border-gray-200/80 bg-white p-6 lp-shadow-card lp-lift hover:lp-shadow-card-hover h-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 relative">
+                    <Code2 className="size-5" />
+                    <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-gray-900 text-[9px] font-bold text-white">1</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-gray-500">{item.description}</p>
-                  <div className="mt-4 rounded-xl bg-gray-900 p-3">
-                    <pre className="text-[11px] leading-relaxed text-emerald-400 font-[var(--font-geist-mono)]">
-                      {item.code}
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Your automation calls OKRunit</h3>
+                <p className="mt-2 text-sm leading-relaxed text-gray-500">When your workflow hits a destructive action, it sends a POST request. Execution pauses automatically.</p>
+                {/* Mini UI panel */}
+                <div className="mt-4 rounded-xl border border-gray-100 overflow-hidden">
+                  <div className="bg-gray-900 px-3 py-2">
+                    <pre className="text-[10px] leading-relaxed text-emerald-400 font-[var(--font-geist-mono)]">
+                      {`POST /v1/approvals\n{ "title": "Delete 10k rows",\n  "priority": "high" }`}
+                    </pre>
+                  </div>
+                  <div className="bg-gray-50 px-3 py-2 flex items-center gap-2">
+                    <div className="size-1.5 rounded-full bg-amber-500" />
+                    <span className="text-[9px] font-medium text-amber-700">Execution paused</span>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Step 2 */}
+            <FadeIn delay={100}>
+              <div className="group rounded-2xl border border-gray-200/80 bg-white p-6 lp-shadow-card lp-lift hover:lp-shadow-card-hover h-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600 relative">
+                    <Bell className="size-5" />
+                    <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-gray-900 text-[9px] font-bold text-white">2</span>
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">The right person gets notified</h3>
+                <p className="mt-2 text-sm leading-relaxed text-gray-500">OKRunit routes the request by your rules. Notifications go to Slack, email, or Teams instantly.</p>
+                {/* Mini notification panel */}
+                <div className="mt-4 rounded-xl border border-gray-100 p-3 bg-gray-50/50">
+                  <div className="space-y-2">
+                    {[
+                      { channel: "Slack #ops-critical", status: "delivered", color: "text-purple-500" },
+                      { channel: "Email: sarah@acme.com", status: "delivered", color: "text-blue-500" },
+                      { channel: "Teams: DevOps", status: "delivered", color: "text-indigo-500" },
+                    ].map((n) => (
+                      <div key={n.channel} className="flex items-center gap-2 rounded-lg bg-white border border-gray-100 px-2.5 py-1.5">
+                        <div className={`size-1.5 rounded-full ${n.color.replace("text-", "bg-")}`} />
+                        <span className="text-[10px] font-medium text-gray-700 flex-1">{n.channel}</span>
+                        <CheckCircle className="size-3 text-emerald-500" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Step 3 */}
+            <FadeIn delay={200}>
+              <div className="group rounded-2xl border border-gray-200/80 bg-white p-6 lp-shadow-card lp-lift hover:lp-shadow-card-hover h-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 relative">
+                    <CheckCircle className="size-5" />
+                    <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-gray-900 text-[9px] font-bold text-white">3</span>
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">They decide. You continue.</h3>
+                <p className="mt-2 text-sm leading-relaxed text-gray-500">The approver clicks approve or reject. OKRunit fires your callback URL with the decision instantly.</p>
+                {/* Mini decision + callback panel */}
+                <div className="mt-4 rounded-xl border border-gray-100 overflow-hidden">
+                  <div className="bg-emerald-50/50 px-3 py-2 flex items-center gap-2 border-b border-emerald-100">
+                    <CheckCircle className="size-3 text-emerald-600" />
+                    <span className="text-[10px] font-semibold text-emerald-700">Approved by Sarah K.</span>
+                    <span className="ml-auto text-[9px] text-gray-400">1m 42s</span>
+                  </div>
+                  <div className="bg-gray-900 px-3 py-2">
+                    <pre className="text-[10px] leading-relaxed text-emerald-400 font-[var(--font-geist-mono)]">
+                      {`POST /your-webhook\n{ "status": "approved" }`}
                     </pre>
                   </div>
                 </div>
-              </FadeIn>
-            ))}
+              </div>
+            </FadeIn>
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/*  PRODUCT SCREENSHOT (perspective)                             */}
+      {/*  PRODUCT DASHBOARD (designed UI panel, no screenshot)         */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="bg-[#fafafa]">
         <div className="mx-auto max-w-[1280px] px-6 py-20 lg:px-10 lg:py-28">
@@ -924,18 +1023,112 @@ export function LandingPage({ user }: LandingPageProps) {
           <FadeIn delay={150}>
             <div className="relative mx-auto max-w-5xl">
               <div
-                className="rounded-2xl border border-gray-200/80 bg-white p-1.5 lp-shadow-hero"
+                className="rounded-2xl border border-gray-200/70 bg-white lp-shadow-hero overflow-hidden"
                 style={{ transform: "perspective(2400px) rotateX(2deg)" }}
               >
-                <Image
-                  src="/screenshots/hero-overview.png"
-                  alt="OKRunit organization overview dashboard"
-                  width={1280}
-                  height={800}
-                  className="rounded-xl"
-                />
+                {/* Window chrome */}
+                <div className="flex items-center gap-1.5 border-b border-gray-100 bg-gray-50/50 px-5 py-2.5">
+                  <div className="size-2.5 rounded-full bg-red-300" />
+                  <div className="size-2.5 rounded-full bg-amber-300" />
+                  <div className="size-2.5 rounded-full bg-emerald-300" />
+                  <span className="ml-3 text-[11px] font-medium text-gray-400">OKRunit — Organization Overview</span>
+                </div>
+                {/* Dashboard layout */}
+                <div className="p-5">
+                  {/* Stats row */}
+                  <div className="grid grid-cols-4 gap-4 mb-5">
+                    {[
+                      { label: "Pending", value: "7", change: "+2", color: "text-amber-600", bg: "bg-amber-50" },
+                      { label: "Approved Today", value: "143", change: "+18", color: "text-emerald-600", bg: "bg-emerald-50" },
+                      { label: "Avg Response", value: "2m 14s", change: "-22%", color: "text-blue-600", bg: "bg-blue-50" },
+                      { label: "Active Connections", value: "9", change: "", color: "text-violet-600", bg: "bg-violet-50" },
+                    ].map((stat) => (
+                      <div key={stat.label} className="rounded-xl border border-gray-100 bg-white p-3.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-medium text-gray-500">{stat.label}</span>
+                          {stat.change && (
+                            <span className={`text-[9px] font-medium ${stat.color}`}>{stat.change}</span>
+                          )}
+                        </div>
+                        <p className={`mt-1 text-xl font-bold ${stat.color}`}>{stat.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Main content: queue + sidebar */}
+                  <div className="grid grid-cols-[1fr_280px] gap-4">
+                    {/* Queue */}
+                    <div className="rounded-xl border border-gray-100 overflow-hidden">
+                      <div className="flex items-center justify-between border-b border-gray-50 bg-gray-50/30 px-4 py-2.5">
+                        <span className="text-[11px] font-semibold text-gray-700">Recent Requests</span>
+                        <span className="text-[10px] text-gray-400">Last 24h</span>
+                      </div>
+                      <div className="divide-y divide-gray-50">
+                        {[
+                          { title: "Delete 10,247 stale user records", source: "Zapier", priority: "high", status: "pending", time: "2m ago" },
+                          { title: "Deploy v3.2 to production", source: "GitHub Actions", priority: "critical", status: "pending", time: "5m ago" },
+                          { title: "Archive 1,200 inactive accounts", source: "Make", priority: "medium", status: "approved", time: "12m ago" },
+                          { title: "Send bulk notification to 50k users", source: "n8n", priority: "high", status: "approved", time: "18m ago" },
+                          { title: "Update DNS record TTL", source: "Temporal", priority: "low", status: "approved", time: "34m ago" },
+                        ].map((item) => {
+                          const pColor: Record<string, string> = { critical: "bg-red-50 text-red-700", high: "bg-amber-50 text-amber-700", medium: "bg-blue-50 text-blue-700", low: "bg-gray-50 text-gray-600" };
+                          const sColor: Record<string, string> = { pending: "bg-amber-50 text-amber-700", approved: "bg-emerald-50 text-emerald-700" };
+                          return (
+                            <div key={item.title} className="flex items-center gap-3 px-4 py-2.5">
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-[11px] font-medium text-gray-800">{item.title}</p>
+                                <p className="text-[9px] text-gray-400">{item.source} &middot; {item.time}</p>
+                              </div>
+                              <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-medium ${pColor[item.priority]}`}>{item.priority}</span>
+                              <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-medium capitalize ${sColor[item.status]}`}>{item.status}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* Sidebar panels */}
+                    <div className="space-y-4">
+                      {/* Connections */}
+                      <div className="rounded-xl border border-gray-100 p-3.5">
+                        <span className="text-[10px] font-semibold text-gray-600">Active Connections</span>
+                        <div className="mt-2.5 space-y-2">
+                          {[
+                            { name: "Zapier", status: "connected", count: "1,247" },
+                            { name: "GitHub Actions", status: "connected", count: "892" },
+                            { name: "Make.com", status: "connected", count: "456" },
+                          ].map((c) => (
+                            <div key={c.name} className="flex items-center gap-2">
+                              <div className="size-1.5 rounded-full bg-emerald-500" />
+                              <span className="text-[10px] font-medium text-gray-700 flex-1">{c.name}</span>
+                              <span className="text-[9px] text-gray-400">{c.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      {/* Activity */}
+                      <div className="rounded-xl border border-gray-100 p-3.5">
+                        <span className="text-[10px] font-semibold text-gray-600">Recent Activity</span>
+                        <div className="mt-2.5 space-y-2">
+                          {[
+                            { user: "Sarah K.", action: "approved", target: "Deploy v3.2", color: "text-emerald-600" },
+                            { user: "Mike R.", action: "rejected", target: "Delete staging DB", color: "text-red-600" },
+                            { user: "System", action: "auto-approved", target: "Update TTL", color: "text-blue-600" },
+                          ].map((a, i) => (
+                            <div key={i} className="flex items-start gap-2">
+                              <div className="mt-0.5 size-4 shrink-0 rounded-full bg-gray-100" />
+                              <p className="text-[9px] text-gray-600">
+                                <span className="font-medium">{a.user}</span>{" "}
+                                <span className={a.color}>{a.action}</span>{" "}
+                                <span className="text-gray-400">{a.target}</span>
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              {/* Ambient glow behind screenshot */}
+              {/* Ambient glow */}
               <div className="absolute -inset-8 -z-10 rounded-3xl bg-gradient-to-b from-emerald-100/20 via-transparent to-blue-100/20 blur-2xl" />
             </div>
           </FadeIn>
@@ -1161,43 +1354,188 @@ export function LandingPage({ user }: LandingPageProps) {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/*  10. PLATFORM SOPHISTICATION / ORCHESTRATION                  */}
+      {/*  10. PRODUCT DEPTH — Multi-panel ecosystem showcase            */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="bg-[#fafafa]">
         <div className="mx-auto max-w-[1280px] px-6 py-24 lg:px-10 lg:py-32">
-          <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.15fr] lg:gap-20">
-            <FadeIn>
-              <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 mb-5">
-                  <Layers className="size-3" /> Platform Overview
-                </span>
-                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                  Complete oversight across every workflow
-                </h2>
-                <p className="mt-4 text-base leading-relaxed text-gray-500">
-                  From a single dashboard, see every connected platform, every active flow, and every pending decision. Analytics track response times, approval rates, and bottlenecks so you can optimize your approval operations.
-                </p>
-                <div className="mt-6 grid grid-cols-2 gap-4">
+          <FadeIn>
+            <div className="text-center max-w-2xl mx-auto mb-16">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 mb-4">
+                <Layers className="size-3" /> Complete Platform
+              </span>
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-[2.75rem]">
+                Everything connects. Everything is visible.
+              </h2>
+              <p className="mt-4 text-lg text-gray-500">
+                Queue management, smart routing, SLA tracking, multi-user approvals, and audit trails — all in one place.
+              </p>
+            </div>
+          </FadeIn>
+
+          {/* Top row: 3 connected product modules */}
+          <div className="grid gap-5 lg:grid-cols-3">
+            {/* Request queue */}
+            <FadeIn delay={0}>
+              <div className="rounded-2xl border border-gray-200/80 bg-white lp-shadow-panel overflow-hidden h-full">
+                <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
+                  <Clock className="size-3.5 text-amber-500" />
+                  <span className="text-[11px] font-semibold text-gray-700">Request Queue</span>
+                  <span className="ml-auto rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-medium text-amber-700">5 pending</span>
+                </div>
+                <div className="divide-y divide-gray-50">
                   {[
-                    { icon: Activity, label: "Real-time analytics" },
-                    { icon: Network, label: "Multi-platform flows" },
-                    { icon: Gauge, label: "SLA monitoring" },
-                    { icon: Users, label: "Team performance" },
-                  ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-2.5">
-                      <div className="flex size-8 items-center justify-center rounded-lg bg-gray-100">
-                        <item.icon className="size-4 text-gray-600" />
+                    { title: "Delete stale records", pri: "high", t: "2m" },
+                    { title: "Deploy to production", pri: "critical", t: "5m" },
+                    { title: "Archive inactive users", pri: "medium", t: "8m" },
+                    { title: "Send bulk email", pri: "high", t: "12m" },
+                    { title: "Rotate API keys", pri: "low", t: "15m" },
+                  ].map((r) => {
+                    const pc: Record<string, string> = { critical: "text-red-600", high: "text-amber-600", medium: "text-blue-600", low: "text-gray-500" };
+                    return (
+                      <div key={r.title} className="flex items-center gap-2 px-4 py-2">
+                        <div className={`size-1.5 rounded-full ${pc[r.pri].replace("text-", "bg-")}`} />
+                        <span className="text-[10px] font-medium text-gray-700 flex-1 truncate">{r.title}</span>
+                        <span className="text-[9px] text-gray-400">{r.t}</span>
                       </div>
-                      <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                    );
+                  })}
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Routing + SLA */}
+            <FadeIn delay={100}>
+              <div className="rounded-2xl border border-gray-200/80 bg-white lp-shadow-panel overflow-hidden h-full">
+                <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
+                  <GitBranch className="size-3.5 text-blue-500" />
+                  <span className="text-[11px] font-semibold text-gray-700">Routing & SLA</span>
+                  <span className="ml-auto rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-medium text-emerald-700">3 rules active</span>
+                </div>
+                <div className="p-3 space-y-2">
+                  {[
+                    { rule: "Critical → #ops-critical", sla: "5m SLA", icon: AlertTriangle, color: "text-red-500 bg-red-50" },
+                    { rule: "Delete actions → Team Lead", sla: "15m SLA", icon: ShieldCheck, color: "text-amber-500 bg-amber-50" },
+                    { rule: "Low risk → Auto-approve", sla: "Instant", icon: Zap, color: "text-emerald-500 bg-emerald-50" },
+                  ].map((r, i) => (
+                    <div key={i} className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-gray-50/50 p-2.5">
+                      <div className={`flex size-6 items-center justify-center rounded-lg ${r.color.split(" ")[1]}`}>
+                        <r.icon className={`size-3 ${r.color.split(" ")[0]}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-medium text-gray-700 truncate">{r.rule}</p>
+                      </div>
+                      <span className="text-[9px] text-gray-400 shrink-0">{r.sla}</span>
+                    </div>
+                  ))}
+                  {/* SLA timer */}
+                  <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-2.5 mt-1">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-medium text-amber-700">SLA Timer</span>
+                      <span className="text-[10px] font-bold text-amber-700">3:42 remaining</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-amber-100">
+                      <div className="h-1.5 w-[60%] rounded-full bg-amber-500 transition-all" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Multi-user approval + audit */}
+            <FadeIn delay={200}>
+              <div className="rounded-2xl border border-gray-200/80 bg-white lp-shadow-panel overflow-hidden h-full">
+                <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
+                  <Users className="size-3.5 text-violet-500" />
+                  <span className="text-[11px] font-semibold text-gray-700">Multi-User Approval</span>
+                </div>
+                <div className="p-3">
+                  {/* Approval progress */}
+                  <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-3 mb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-medium text-gray-700">Deploy v3.2 to production</span>
+                      <span className="text-[9px] font-medium text-amber-700">1/2 approved</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="size-5 rounded-full bg-emerald-200 ring-1 ring-white" />
+                        <span className="text-[10px] text-gray-600 flex-1">Sarah K.</span>
+                        <CheckCircle className="size-3 text-emerald-500" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="size-5 rounded-full bg-blue-200 ring-1 ring-white" />
+                        <span className="text-[10px] text-gray-600 flex-1">Mike R.</span>
+                        <Clock className="size-3 text-amber-500" />
+                      </div>
+                    </div>
+                  </div>
+                  {/* Audit trail */}
+                  <div className="rounded-xl border border-gray-100 p-2.5">
+                    <span className="text-[9px] font-semibold text-gray-500 uppercase tracking-wide">Audit Trail</span>
+                    <div className="mt-2 space-y-1.5">
+                      {[
+                        { action: "Request created", time: "5m ago", color: "bg-blue-400" },
+                        { action: "Routed to DevOps team", time: "5m ago", color: "bg-violet-400" },
+                        { action: "Sarah K. approved", time: "3m ago", color: "bg-emerald-400" },
+                        { action: "Waiting for Mike R.", time: "now", color: "bg-amber-400" },
+                      ].map((a, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <div className={`size-1.5 rounded-full ${a.color}`} />
+                          <span className="text-[9px] text-gray-600 flex-1">{a.action}</span>
+                          <span className="text-[8px] text-gray-400">{a.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+
+          {/* Bottom: platform overview bar */}
+          <FadeIn delay={250}>
+            <div className="mt-5 rounded-2xl border border-gray-200/80 bg-white lp-shadow-panel p-5">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                {/* Flow diagram */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  {[
+                    { icon: Bot, label: "AI Agent / Automation", color: "bg-violet-100 text-violet-600" },
+                    { icon: ArrowRight, label: "", color: "text-gray-300" },
+                    { icon: Shield, label: "OKRunit Gate", color: "bg-emerald-100 text-emerald-600" },
+                    { icon: ArrowRight, label: "", color: "text-gray-300" },
+                    { icon: Users, label: "Human Approver", color: "bg-blue-100 text-blue-600" },
+                    { icon: ArrowRight, label: "", color: "text-gray-300" },
+                    { icon: Zap, label: "Execute / Block", color: "bg-amber-100 text-amber-600" },
+                  ].map((node, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      {node.label ? (
+                        <>
+                          <div className={`flex size-8 items-center justify-center rounded-lg ${node.color}`}>
+                            <node.icon className="size-4" />
+                          </div>
+                          <span className="text-[10px] font-medium text-gray-600 hidden sm:inline">{node.label}</span>
+                        </>
+                      ) : (
+                        <node.icon className={`size-4 ${node.color}`} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {/* Stats */}
+                <div className="flex items-center gap-6">
+                  {[
+                    { label: "Active Flows", value: "24" },
+                    { label: "Approved Today", value: "143" },
+                    { label: "Avg Response", value: "2.3m" },
+                  ].map((s) => (
+                    <div key={s.label} className="text-center">
+                      <p className="text-sm font-bold text-gray-900">{s.value}</p>
+                      <p className="text-[9px] text-gray-400">{s.label}</p>
                     </div>
                   ))}
                 </div>
               </div>
-            </FadeIn>
-            <FadeIn delay={150}>
-              <PlatformOverviewPanel />
-            </FadeIn>
-          </div>
+            </div>
+          </FadeIn>
         </div>
       </section>
 
@@ -1207,32 +1545,32 @@ export function LandingPage({ user }: LandingPageProps) {
       <section className="bg-white">
         <div className="mx-auto max-w-[1280px] px-6 py-24 lg:px-10 lg:py-32">
           <FadeIn>
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-[2.75rem]">
-                Built for enterprise scale
+            <div className="max-w-2xl mb-14">
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                Enterprise-grade from day one
               </h2>
-              <p className="mt-4 text-lg text-gray-500">
-                From startups to enterprises, OKRunit scales with your team.
+              <p className="mt-3 text-base text-gray-500">
+                The control, security, and governance that growing teams and regulated industries require.
               </p>
             </div>
           </FadeIn>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-px bg-gray-200/60 rounded-2xl overflow-hidden border border-gray-200/80 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { icon: Building2, title: "SSO & SAML", description: "Enterprise single sign-on with SAML 2.0. Centralized identity management for large teams." },
-              { icon: Users, title: "Team management", description: "Organize approvers into teams. Route requests by team expertise. Manage permissions per role." },
-              { icon: ShieldCheck, title: "Custom SLAs", description: "Set response time requirements per flow. Auto-escalate when SLAs are at risk. Track compliance." },
-              { icon: Headphones, title: "Priority support", description: "Dedicated account manager. Guaranteed response times. Custom onboarding assistance." },
-              { icon: KeyRound, title: "API key management", description: "Per-connection scoping. Automatic key rotation with grace periods. IP allowlists." },
-              { icon: Settings, title: "Fine-grained controls", description: "Emergency stop button. Geo-restrictions. Action type scoping. Rate limiting per connection." },
+              { icon: Building2, title: "SSO & SAML", description: "Enterprise single sign-on with SAML 2.0. Centralized identity management." },
+              { icon: Users, title: "Team management", description: "Organize approvers into teams. Route by expertise. Role-based permissions." },
+              { icon: ShieldCheck, title: "Custom SLAs", description: "Response time requirements per flow. Auto-escalate when SLAs are at risk." },
+              { icon: Headphones, title: "Dedicated support", description: "Named account manager. Guaranteed response times. Custom onboarding." },
+              { icon: KeyRound, title: "API key management", description: "Per-connection scoping. Automatic rotation with grace periods. IP allowlists." },
+              { icon: Settings, title: "Fine-grained controls", description: "Emergency stop. Geo-restrictions. Action type scoping. Rate limiting." },
             ].map((item, i) => (
-              <FadeIn key={item.title} delay={i * 70}>
-                <div className="rounded-2xl border border-gray-200/80 bg-white p-6 lp-shadow-subtle lp-lift hover:lp-shadow-card-hover h-full transition-all">
-                  <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-gray-100">
-                    <item.icon className="size-5 text-gray-600" />
+              <FadeIn key={item.title} delay={i * 50}>
+                <div className="bg-white p-6 h-full">
+                  <div className="mb-3 flex size-9 items-center justify-center rounded-xl bg-gray-100">
+                    <item.icon className="size-4 text-gray-600" />
                   </div>
-                  <h3 className="text-base font-semibold text-gray-900">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-gray-500">{item.description}</p>
+                  <h3 className="text-sm font-semibold text-gray-900">{item.title}</h3>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-gray-500">{item.description}</p>
                 </div>
               </FadeIn>
             ))}
