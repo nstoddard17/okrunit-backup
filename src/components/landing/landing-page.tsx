@@ -21,8 +21,6 @@ import {
   Users,
   Settings,
   Activity,
-  Globe,
-  Workflow,
   Bot,
   FileCheck,
   ShieldCheck,
@@ -70,7 +68,7 @@ function FadeIn({
           observer.disconnect();
         }
       },
-      { threshold: 0.1 },
+      { threshold: 0.08 },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -79,8 +77,12 @@ function FadeIn({
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"} ${className}`}
-      style={{ transitionDelay: visible ? "0ms" : `${delay}ms` }}
+      className={`transition-all duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        visible
+          ? "translate-y-0 opacity-100 scale-100 blur-0"
+          : "translate-y-8 opacity-0 scale-[0.98] blur-[2px]"
+      } ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
     </div>
@@ -88,24 +90,8 @@ function FadeIn({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Inline SVG logos for integrations                                   */
+/*  Integration logos are served from /public/logos/ as SVG files        */
 /* ------------------------------------------------------------------ */
-
-function ZapierLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 64 64" className={className} fill="currentColor">
-      <path d="M63.207 26.418H44.432l13.193-13.193c-1.015-1.522-2.03-2.537-3.045-4.06a29.025 29.025 0 01-4.059-3.552L37.33 18.807V.54a17.252 17.252 0 00-5.074-.507A15.629 15.629 0 0027.18.54v18.775l-13.7-13.7A13.7 13.7 0 009.42 9.166c-1.015 1.522-2.537 2.537-3.552 4.06L19.06 26.418H.794l-.507 5.074a15.629 15.629 0 00.507 5.074H19.57l-13.7 13.7a27.198 27.198 0 007.611 7.611l13.193-13.193V63.46a17.252 17.252 0 005.074.507 15.629 15.629 0 005.074-.507V44.686L50.014 57.88a13.7 13.7 0 004.059-3.552 29.025 29.025 0 003.552-4.059L44.432 37.074h18.775A17.252 17.252 0 0063.715 32a19.028 19.028 0 00-.507-5.582zm-23.342 5.074a25.726 25.726 0 01-1.015 6.597 15.223 15.223 0 01-6.597 1.015 25.726 25.726 0 01-6.597-1.015 15.223 15.223 0 01-1.015-6.597 25.726 25.726 0 011.015-6.597 15.223 15.223 0 016.597-1.015 25.726 25.726 0 016.597 1.015 29.684 29.684 0 011.015 6.597z" />
-    </svg>
-  );
-}
-
-function MakeLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-      <path d="M13.38 3.498c-.27 0-.511.19-.566.465L9.85 18.986a.578.578 0 0 0 .453.678l4.095.826a.58.58 0 0 0 .682-.455l2.963-15.021a.578.578 0 0 0-.453-.678l-4.096-.826a.589.589 0 0 0-.113-.012zm-5.876.098a.576.576 0 0 0-.516.318L.062 17.697a.575.575 0 0 0 .256.774l3.733 1.877a.578.578 0 0 0 .775-.258l6.926-13.781a.577.577 0 0 0-.256-.776L7.762 3.658a.571.571 0 0 0-.258-.062zm11.74.115a.576.576 0 0 0-.576.576v15.426c0 .318.258.578.576.578h4.178a.58.58 0 0 0 .578-.578V4.287a.578.578 0 0 0-.578-.576Z" />
-    </svg>
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /*  Hero product UI mockup panels (rendered as code, not images)       */
@@ -400,22 +386,20 @@ function FeaturePanelAuditLog() {
 /* ------------------------------------------------------------------ */
 
 const integrationTiles = [
-  { name: "Zapier", icon: ZapierLogo, color: "text-orange-500" },
-  { name: "Make", icon: MakeLogo, color: "text-violet-600" },
-  { name: "n8n", icon: Workflow, color: "text-rose-500" },
-  { name: "GitHub Actions", icon: Code2, color: "text-gray-700" },
-  { name: "Windmill", icon: Workflow, color: "text-sky-500" },
-  { name: "Temporal", icon: Workflow, color: "text-indigo-500" },
-  { name: "Prefect", icon: Workflow, color: "text-blue-500" },
-  { name: "Dagster", icon: Workflow, color: "text-purple-500" },
-  { name: "Pipedream", icon: Code2, color: "text-emerald-500" },
-  { name: "REST API", icon: Globe, color: "text-gray-500" },
-  { name: "Slack", icon: Bell, color: "text-purple-600" },
-  { name: "Microsoft Teams", icon: Users, color: "text-blue-600" },
-  { name: "Discord", icon: Bell, color: "text-indigo-600" },
-  { name: "Telegram", icon: Bell, color: "text-sky-500" },
-  { name: "Email (Resend)", icon: Bell, color: "text-gray-600" },
-  { name: "Webhooks", icon: Zap, color: "text-amber-600" },
+  { name: "Zapier", logo: "/logos/platforms/zapier.png" },
+  { name: "Make", logo: "/logos/platforms/make.png" },
+  { name: "n8n", logo: "/logos/platforms/n8n.png" },
+  { name: "GitHub Actions", logo: "/logos/platforms/github.png" },
+  { name: "Windmill", logo: "/logos/platforms/windmill.png" },
+  { name: "Temporal", logo: "/logos/platforms/temporal.png" },
+  { name: "Prefect", logo: "/logos/platforms/prefect.png" },
+  { name: "Dagster", logo: "/logos/platforms/dagster.png" },
+  { name: "Pipedream", logo: "/logos/platforms/pipedream.png" },
+  { name: "Slack", logo: "/logos/platforms/slack.png" },
+  { name: "Microsoft Teams", logo: "/logos/platforms/teams.png" },
+  { name: "Discord", logo: "/logos/platforms/discord.png" },
+  { name: "Telegram", logo: "/logos/platforms/telegram.png" },
+  { name: "Email (Resend)", logo: "/logos/platforms/resend.png" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -814,8 +798,10 @@ export function LandingPage({ user }: LandingPageProps) {
             {/* Right: layered hero visual system */}
             <FadeIn delay={200} className="relative hidden lg:block">
               <div className="relative" style={{ minHeight: 520 }}>
-                {/* Base ambient glow */}
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-50/40 via-transparent to-blue-50/20" />
+                {/* Ambient glow layers */}
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-100/30 via-transparent to-blue-100/20" />
+                <div className="absolute top-20 left-20 w-72 h-72 rounded-full bg-emerald-200/15 blur-3xl" />
+                <div className="absolute bottom-10 right-10 w-56 h-56 rounded-full bg-blue-200/15 blur-3xl" />
 
                 {/* Base layer: Queue panel (largest, back) */}
                 <div className="absolute top-0 left-0 z-10 lp-float-slow">
@@ -823,36 +809,41 @@ export function LandingPage({ user }: LandingPageProps) {
                 </div>
 
                 {/* Mid layer: Approval decision card (overlapping queue) */}
-                <div className="absolute top-36 right-0 z-20 lp-float">
+                <div className="absolute top-32 right-[-12px] z-20 lp-float">
                   <HeroApprovalCard />
                 </div>
 
                 {/* Workflow node - showing pause/continue logic */}
-                <div className="absolute bottom-24 left-2 z-20 lp-float-offset">
+                <div className="absolute bottom-20 left-0 z-20 lp-float-offset">
                   <HeroWorkflowNode />
                 </div>
 
-                {/* Notification card - floating top right */}
-                <div className="absolute top-2 right-4 z-30 lp-float" style={{ animationDelay: "0.8s" }}>
+                {/* Notification card - overlapping queue top-right */}
+                <div className="absolute top-[-8px] right-12 z-30 lp-float" style={{ animationDelay: "0.8s" }}>
                   <HeroNotificationCard />
                 </div>
 
-                {/* Stats card - bottom right */}
-                <div className="absolute bottom-0 right-8 z-10 lp-float-slow" style={{ animationDelay: "1.2s" }}>
+                {/* Stats card - bottom right, overlapping approval card */}
+                <div className="absolute bottom-[-4px] right-4 z-30 lp-float-slow" style={{ animationDelay: "1.2s" }}>
                   <HeroStatsCard />
                 </div>
 
-                {/* Connecting flow lines */}
-                <svg className="absolute inset-0 z-0 h-full w-full pointer-events-none" viewBox="0 0 620 520">
+                {/* Animated connecting flow lines */}
+                <svg className="absolute inset-0 z-5 h-full w-full pointer-events-none" viewBox="0 0 620 520">
                   <defs>
-                    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#d1d5db" stopOpacity="0.6" />
-                      <stop offset="100%" stopColor="#d1d5db" stopOpacity="0.2" />
+                    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.15" />
                     </linearGradient>
                   </defs>
-                  <path d="M 200 200 Q 320 180, 360 240" stroke="url(#lineGrad)" strokeWidth="1.5" fill="none" strokeDasharray="6 4" />
-                  <path d="M 380 340 Q 420 380, 460 420" stroke="url(#lineGrad)" strokeWidth="1.5" fill="none" strokeDasharray="6 4" />
-                  <path d="M 200 300 Q 180 380, 160 420" stroke="url(#lineGrad)" strokeWidth="1.5" fill="none" strokeDasharray="6 4" />
+                  {/* Queue → Approval */}
+                  <path d="M 350 150 Q 420 160, 400 250" stroke="url(#lineGrad)" strokeWidth="1.5" fill="none" strokeDasharray="8 5" className="lp-dash-animated" />
+                  {/* Approval → Stats */}
+                  <path d="M 430 370 Q 470 420, 490 440" stroke="url(#lineGrad)" strokeWidth="1.5" fill="none" strokeDasharray="8 5" className="lp-dash-animated" style={{ animationDelay: "0.5s" }} />
+                  {/* Queue → Workflow */}
+                  <path d="M 180 250 Q 160 340, 150 380" stroke="url(#lineGrad)" strokeWidth="1.5" fill="none" strokeDasharray="8 5" className="lp-dash-animated" style={{ animationDelay: "1s" }} />
+                  {/* Notification → Approval */}
+                  <path d="M 380 80 Q 420 140, 420 200" stroke="url(#lineGrad)" strokeWidth="1" fill="none" strokeDasharray="4 4" className="lp-dash-animated" style={{ animationDelay: "1.5s" }} />
                 </svg>
               </div>
             </FadeIn>
@@ -871,10 +862,13 @@ export function LandingPage({ user }: LandingPageProps) {
         </div>
       </section>
 
+      {/* Section divider */}
+      <div className="lp-divider" />
+
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  5. CUSTOMER LOGO CLOUD                                       */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="border-y border-gray-200/60 bg-white">
+      <section className="bg-white">
         <div className="mx-auto max-w-[1280px] px-6 py-10 lg:px-10">
           <FadeIn>
             <p className="mb-6 text-center text-xs font-medium uppercase tracking-widest text-gray-400">
@@ -884,15 +878,12 @@ export function LandingPage({ user }: LandingPageProps) {
               <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-24 bg-gradient-to-r from-white to-transparent" />
               <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-24 bg-gradient-to-l from-white to-transparent" />
               <div className="flex animate-[ticker_25s_linear_infinite] items-center gap-16">
-                {[...integrationTiles, ...integrationTiles].map((item, i) => {
-                  const Icon = item.icon;
-                  return (
+                {[...integrationTiles, ...integrationTiles].map((item, i) => (
                     <div key={`${item.name}-${i}`} className="flex shrink-0 items-center gap-2.5">
-                      <Icon className={`size-5 ${item.color} opacity-60`} />
+                      <Image src={item.logo} alt={item.name} width={20} height={20} className="size-5 opacity-60" />
                       <span className="whitespace-nowrap text-sm font-medium text-gray-400">{item.name}</span>
                     </div>
-                  );
-                })}
+                ))}
               </div>
             </div>
           </FadeIn>
@@ -1008,7 +999,7 @@ export function LandingPage({ user }: LandingPageProps) {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  PRODUCT DASHBOARD (designed UI panel, no screenshot)         */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-[#fafafa]">
+      <section className="lp-bg-elevated">
         <div className="mx-auto max-w-[1280px] px-6 py-20 lg:px-10 lg:py-28">
           <FadeIn>
             <div className="text-center max-w-2xl mx-auto mb-12">
@@ -1055,7 +1046,7 @@ export function LandingPage({ user }: LandingPageProps) {
                     ))}
                   </div>
                   {/* Main content: queue + sidebar */}
-                  <div className="grid grid-cols-[1fr_280px] gap-4">
+                  <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
                     {/* Queue */}
                     <div className="rounded-xl border border-gray-100 overflow-hidden">
                       <div className="flex items-center justify-between border-b border-gray-50 bg-gray-50/30 px-4 py-2.5">
@@ -1240,7 +1231,7 @@ export function LandingPage({ user }: LandingPageProps) {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  8. SOLUTIONS / USE CASE TABS                                 */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-[#fafafa]">
+      <section className="lp-bg-depth">
         <div className="mx-auto max-w-[1280px] px-6 py-24 lg:px-10 lg:py-32">
           <FadeIn>
             <div className="text-center max-w-2xl mx-auto mb-12">
@@ -1326,21 +1317,18 @@ export function LandingPage({ user }: LandingPageProps) {
           </FadeIn>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
-            {integrationTiles.map((tile, i) => {
-              const Icon = tile.icon;
-              return (
+            {integrationTiles.map((tile, i) => (
                 <FadeIn key={tile.name} delay={i * 40}>
                   <div className="group rounded-2xl border border-gray-200/80 bg-white p-4 lp-shadow-subtle lp-lift hover:lp-shadow-card-hover transition-all cursor-default">
                     <div className="flex items-center gap-3">
                       <div className="flex size-9 items-center justify-center rounded-xl bg-gray-50 border border-gray-100 group-hover:border-gray-200 transition">
-                        <Icon className={`size-4.5 ${tile.color}`} />
+                        <Image src={tile.logo} alt={tile.name} width={18} height={18} className="size-[18px]" />
                       </div>
                       <span className="text-sm font-medium text-gray-700">{tile.name}</span>
                     </div>
                   </div>
                 </FadeIn>
-              );
-            })}
+            ))}
           </div>
 
           <FadeIn delay={200}>
@@ -1356,7 +1344,7 @@ export function LandingPage({ user }: LandingPageProps) {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  10. PRODUCT DEPTH — Multi-panel ecosystem showcase            */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-[#fafafa]">
+      <section className="lp-bg-elevated">
         <div className="mx-auto max-w-[1280px] px-6 py-24 lg:px-10 lg:py-32">
           <FadeIn>
             <div className="text-center max-w-2xl mx-auto mb-16">
@@ -1555,7 +1543,7 @@ export function LandingPage({ user }: LandingPageProps) {
             </div>
           </FadeIn>
 
-          <div className="grid gap-px bg-gray-200/60 rounded-2xl overflow-hidden border border-gray-200/80 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { icon: Building2, title: "SSO & SAML", description: "Enterprise single sign-on with SAML 2.0. Centralized identity management." },
               { icon: Users, title: "Team management", description: "Organize approvers into teams. Route by expertise. Role-based permissions." },
@@ -1564,9 +1552,9 @@ export function LandingPage({ user }: LandingPageProps) {
               { icon: KeyRound, title: "API key management", description: "Per-connection scoping. Automatic rotation with grace periods. IP allowlists." },
               { icon: Settings, title: "Fine-grained controls", description: "Emergency stop. Geo-restrictions. Action type scoping. Rate limiting." },
             ].map((item, i) => (
-              <FadeIn key={item.title} delay={i * 50}>
-                <div className="bg-white p-6 h-full">
-                  <div className="mb-3 flex size-9 items-center justify-center rounded-xl bg-gray-100">
+              <FadeIn key={item.title} delay={i * 60}>
+                <div className="rounded-2xl border border-gray-200/80 bg-white p-6 lp-shadow-subtle lp-lift hover:lp-shadow-card-hover h-full transition-all">
+                  <div className="mb-3 flex size-9 items-center justify-center rounded-xl bg-gray-50 border border-gray-100">
                     <item.icon className="size-4 text-gray-600" />
                   </div>
                   <h3 className="text-sm font-semibold text-gray-900">{item.title}</h3>
@@ -1581,7 +1569,7 @@ export function LandingPage({ user }: LandingPageProps) {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  12. SECURITY / COMPLIANCE / TRUST                            */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-[#fafafa]">
+      <section className="lp-bg-depth">
         <div className="mx-auto max-w-[1280px] px-6 py-24 lg:px-10 lg:py-32">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
             <FadeIn>
@@ -1757,7 +1745,8 @@ export function LandingPage({ user }: LandingPageProps) {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  13. RATINGS / REVIEW STRIP                                   */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-[#fafafa] border-y border-gray-200/60">
+      <section className="bg-white">
+        <div className="lp-divider" />
         <div className="mx-auto max-w-[1280px] px-6 py-16 lg:px-10">
           <FadeIn>
             <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
@@ -1782,8 +1771,8 @@ export function LandingPage({ user }: LandingPageProps) {
       {/*  14. FINAL CTA BAND                                           */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="bg-gray-900 relative overflow-hidden">
-        {/* Subtle gradient accent */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800" />
+        {/* Rich gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800" />
         <div
           className="pointer-events-none absolute -top-32 -right-32 h-[400px] w-[400px] rounded-full opacity-10 blur-3xl"
           style={{ background: "radial-gradient(circle, #6ee7b7, transparent 70%)" }}
