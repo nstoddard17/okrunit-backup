@@ -1765,7 +1765,7 @@ export function LandingPage({ user }: LandingPageProps) {
                     <Button
                       variant="outline"
                       size="lg"
-                      className="h-11 rounded-2xl border-slate-200 !bg-white px-5 text-sm sm:h-12 sm:px-6"
+                      className="h-11 rounded-2xl border-slate-200 !bg-white px-5 text-sm text-slate-900 sm:h-12 sm:px-6"
                       asChild
                     >
                       <Link href="/docs">
