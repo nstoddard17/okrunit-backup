@@ -1642,7 +1642,7 @@ function ScrollFeatures({ steps }: { steps: FeatureStep[] }) {
 export function LandingPage({ user }: LandingPageProps) {
   return (
     <div className="gk-v2 force-light min-h-screen overflow-x-clip font-[var(--font-dm-sans)] text-[var(--foreground)]">
-      <header className="sticky top-0 z-50 border-b border-white/20 bg-white/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-white/20 bg-white lg:bg-white/80 lg:backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:gap-6 sm:py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <Image
@@ -1683,7 +1683,7 @@ export function LandingPage({ user }: LandingPageProps) {
               </Button>
             ) : (
               <>
-                <Button variant="ghost" size="sm" className="hidden h-8 px-2.5 text-xs text-slate-700 min-[360px]:flex" asChild>
+                <Button variant="outline" size="sm" className="hidden h-8 rounded-lg border-slate-200 bg-white px-2.5 text-xs text-slate-700 hover:bg-slate-50 min-[360px]:flex" asChild>
                   <Link href="/login">Log in</Link>
                 </Button>
                 <Button size="sm" className="h-8 rounded-lg bg-[#2e7d32] px-3 text-xs text-white hover:bg-[#1b5e20]" asChild>
@@ -1693,7 +1693,7 @@ export function LandingPage({ user }: LandingPageProps) {
             )}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-8 text-slate-700">
+                <Button variant="outline" size="icon" className="size-8 border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
                   <Menu className="size-5" />
                   <span className="sr-only">Open menu</span>
                 </Button>
@@ -1724,7 +1724,7 @@ export function LandingPage({ user }: LandingPageProps) {
                         <Button className="w-full bg-[#2e7d32] text-white hover:bg-[#1b5e20]" asChild>
                           <Link href="/signup">Sign up</Link>
                         </Button>
-                        <Button variant="outline" className="w-full border-slate-200 text-slate-700 hover:bg-slate-50" asChild>
+                        <Button variant="outline" className="w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50" asChild>
                           <Link href="/login">Log in</Link>
                         </Button>
                       </>
