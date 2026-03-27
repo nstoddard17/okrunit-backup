@@ -1,13 +1,9 @@
 "use client";
 
-import { ExternalLink, Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Mail } from "lucide-react";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import type { MessagingPlatform } from "@/lib/types/database";
@@ -18,9 +14,8 @@ import type { MessagingPlatform } from "@/lib/types/database";
 
 function SlackIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zm0 1.271a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zm-1.27 0a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.163 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.163 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.163 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zm0-1.27a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.315A2.528 2.528 0 0 1 24 15.163a2.528 2.528 0 0 1-2.522 2.523h-6.315z" />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/logos/platforms/slack.png" alt="Slack" className={className} />
   );
 }
 
@@ -34,9 +29,8 @@ function DiscordIcon({ className }: { className?: string }) {
 
 function TeamsIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M19.404 4.478c.456 0 .862.19 1.153.494.291.305.443.717.443 1.15v6.462c0 2.142-.753 3.96-2.128 5.234-1.363 1.263-3.259 1.936-5.468 1.936-.662 0-1.3-.073-1.907-.213a7.157 7.157 0 0 1-3.282-1.81A7.108 7.108 0 0 1 6.338 14.5a7.14 7.14 0 0 1-.21-1.74V6.122c0-.433.152-.845.443-1.15A1.577 1.577 0 0 1 7.724 4.478h11.68zM16.727 2.25a1.875 1.875 0 1 1 0 3.75 1.875 1.875 0 0 1 0-3.75zM21.75 6.75a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM13.5 8.25h-3a.75.75 0 0 0 0 1.5h.75v3a.75.75 0 0 0 1.5 0v-3h.75a.75.75 0 0 0 0-1.5z" />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/logos/platforms/teams.png" alt="Microsoft Teams" className={className} />
   );
 }
 
@@ -82,7 +76,6 @@ interface PlatformCardProps {
 export function PlatformCard({
   platform,
   name,
-  description,
   color,
   connectLabel,
   connectedCount,
@@ -92,38 +85,31 @@ export function PlatformCard({
 
   return (
     <Card
-      className="platform-card-accent flex flex-col justify-between border-0 shadow-[var(--shadow-card)]"
+      className="platform-card-accent border-0 shadow-[var(--shadow-card)] cursor-pointer hover:shadow-md transition-shadow"
       style={{ "--platform-color": color } as React.CSSProperties}
+      onClick={onConnect}
     >
-      <CardHeader>
-        <div className="flex items-center gap-3">
+      <CardContent className="flex items-center gap-2.5 py-3 px-3">
+        {platform === "slack" || platform === "teams" ? (
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm border">
+            <Icon className="size-5" />
+          </div>
+        ) : (
           <div
-            className="flex size-10 items-center justify-center rounded-lg shadow-sm"
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg shadow-sm"
             style={{ backgroundColor: color }}
           >
-            <Icon className="size-5 text-white" />
+            <Icon className="size-4 text-white" />
           </div>
-          <div className="flex-1 space-y-1">
-            <CardTitle className="text-base">{name}</CardTitle>
-            {connectedCount > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {connectedCount} channel{connectedCount !== 1 ? "s" : ""}
-              </Badge>
-            )}
-          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <CardTitle className="text-xs font-semibold truncate">{name}</CardTitle>
+          {connectedCount > 0 && (
+            <span className="text-[10px] text-muted-foreground">
+              {connectedCount} channel{connectedCount !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
-        <CardDescription className="mt-2">{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full transition-colors duration-150"
-          onClick={onConnect}
-        >
-          <ExternalLink className="size-3.5" />
-          {connectLabel}
-        </Button>
       </CardContent>
     </Card>
   );

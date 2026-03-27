@@ -10,7 +10,8 @@ import { ConnectionList } from "@/components/messaging/connection-list";
 import { EmailConnectDialog } from "@/components/messaging/email-connect-dialog";
 import { TelegramConnectDialog } from "@/components/messaging/telegram-connect-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
-import type { MessagingConnection, MessagingPlatform } from "@/lib/types/database";
+import { SOURCE_CONFIG } from "@/components/approvals/source-icons";
+import type { ApprovalFlow, MessagingConnection, MessagingPlatform, RoutingRules } from "@/lib/types/database";
 
 // ---------------------------------------------------------------------------
 // Platform definitions
@@ -33,16 +34,16 @@ const PLATFORMS: PlatformDef[] = [
       "Send approval notifications to email addresses or distribution lists with approve/reject links.",
     color: "#059669",
     installUrl: null,
-    connectLabel: "Add Email Channel",
+    connectLabel: "Connect Email",
   },
   {
     platform: "slack",
     name: "Slack",
     description:
       "Get approval notifications in Slack channels with interactive approve/reject buttons.",
-    color: "#4A154B",
+    color: "#E01E5A",
     installUrl: "/api/v1/messaging/slack/install",
-    connectLabel: "Add to Slack",
+    connectLabel: "Connect Slack",
   },
   {
     platform: "discord",
@@ -51,16 +52,16 @@ const PLATFORMS: PlatformDef[] = [
       "Receive approval notifications in Discord channels with button interactions.",
     color: "#5865F2",
     installUrl: "/api/v1/messaging/discord/install",
-    connectLabel: "Add to Discord",
+    connectLabel: "Connect Discord",
   },
   {
     platform: "teams",
     name: "Microsoft Teams",
     description:
       "Send approval notifications to Teams channels with adaptive card actions.",
-    color: "#6264A7",
+    color: "#5B5FC7",
     installUrl: "/api/v1/messaging/teams/install",
-    connectLabel: "Add to Teams",
+    connectLabel: "Connect Teams",
   },
   {
     platform: "telegram",
@@ -79,16 +80,25 @@ const PLATFORMS: PlatformDef[] = [
 
 interface MessagingConnectionsPageProps {
   connections: MessagingConnection[];
+  flows: Pick<ApprovalFlow, "id" | "source">[];
 }
 
 export function MessagingConnectionsPage({
   connections: initialConnections,
+  flows,
 }: MessagingConnectionsPageProps) {
   const router = useRouter();
   const [connections, setConnections] =
     useState<MessagingConnection[]>(initialConnections);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [telegramDialogOpen, setTelegramDialogOpen] = useState(false);
+
+  // Show all known sources — not just the ones with existing flows
+  const sources = Object.entries(SOURCE_CONFIG).map(([platform, config]) => ({
+    id: platform,
+    platform,
+    name: config.label,
+  }));
 
   // Count connections per platform
   function countForPlatform(platform: MessagingPlatform): number {
@@ -146,6 +156,29 @@ export function MessagingConnectionsPage({
     }
   }
 
+  // Handle routing rules update
+  async function handleUpdateRoute(id: string, routingRules: RoutingRules) {
+    try {
+      const res = await fetch(`/api/v1/messaging/connections/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ routing_rules: routingRules }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? "Failed to update route");
+      }
+      setConnections((prev) =>
+        prev.map((c) =>
+          c.id === id ? { ...c, routing_rules: routingRules } : c,
+        ),
+      );
+      toast.success("Notification route updated");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update route");
+    }
+  }
+
   // Handle toggle active
   async function handleToggleActive(id: string, isActive: boolean) {
     try {
@@ -169,6 +202,33 @@ export function MessagingConnectionsPage({
     }
   }
 
+  // Handle notification toggle
+  async function handleToggleNotify(
+    id: string,
+    field: "notify_on_create" | "notify_on_decide",
+    value: boolean,
+  ) {
+    try {
+      const res = await fetch(`/api/v1/messaging/connections/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? "Failed to update");
+      }
+      setConnections((prev) =>
+        prev.map((c) =>
+          c.id === id ? { ...c, [field]: value } : c,
+        ),
+      );
+      toast.success("Notification setting updated");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update");
+    }
+  }
+
   // Handle email connect success
   function handleEmailSuccess(connection: MessagingConnection) {
     setConnections((prev) => [connection, ...prev]);
@@ -186,7 +246,7 @@ export function MessagingConnectionsPage({
   return (
     <div className="space-y-8">
       {/* Platform cards grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
         {PLATFORMS.map((p) => (
           <PlatformCard
             key={p.platform}
@@ -209,9 +269,12 @@ export function MessagingConnectionsPage({
           </h2>
           <ConnectionList
             connections={connections}
+            sources={sources}
             onDisconnect={handleDisconnect}
             onPriorityChange={handlePriorityChange}
             onToggleActive={handleToggleActive}
+            onUpdateRoute={handleUpdateRoute}
+            onToggleNotify={handleToggleNotify}
           />
         </div>
       ) : (

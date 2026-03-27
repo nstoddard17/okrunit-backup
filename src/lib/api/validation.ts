@@ -52,6 +52,8 @@ export const createApprovalSchema = z.object({
   assigned_team_id: z.uuid().optional(),
   source: z.string().max(50).optional(),
   source_id: z.string().max(200).optional(),
+  source_name: z.string().max(200).optional(),
+  source_url: z.url().max(2000).optional(),
   is_sequential: z.boolean().optional(),
   auto_action: autoActionEnum.optional(),
   auto_action_after_minutes: z.int().min(1).max(43200).optional(),

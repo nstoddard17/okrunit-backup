@@ -111,14 +111,11 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
                 {limits.priceMonthly === 0 ? "$0.00" : `$${limits.priceMonthly}.00`} billed {subscription?.billing_cycle ?? "monthly"}
               </span>
             </div>
-            {isAdmin && subscription?.stripe_customer_id && (
+            {isAdmin && currentPlan !== "free" && subscription?.stripe_customer_id && (
               <Button variant="outline" size="sm" onClick={handlePortal} disabled={loading === "portal"} className="text-xs gap-1.5">
                 <CreditCard className="size-3.5" />
                 {loading === "portal" ? "Opening..." : "Manage billing"}
               </Button>
-            )}
-            {isAdmin && !subscription?.stripe_customer_id && currentPlan !== "free" && (
-              <Button variant="outline" size="sm" className="text-xs">Add payment method</Button>
             )}
           </div>
 

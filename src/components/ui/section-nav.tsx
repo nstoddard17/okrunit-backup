@@ -25,7 +25,7 @@ export function SectionNav({ items, defaultSection, title, titleIcon: TitleIcon,
   return (
     <div className="flex w-full flex-col md:flex-row md:min-h-[calc(100vh-52px)]">
       {/* Left sidebar — desktop */}
-      <aside className="hidden md:block w-56 shrink-0 border-r border-border/40 bg-white">
+      <aside className="hidden md:block w-56 shrink-0 border-r border-border/40 bg-[var(--card)]">
         <nav className="sticky top-0 pt-5 px-3">
           {title && (
             <div className="flex items-center gap-2 px-3 mb-2">

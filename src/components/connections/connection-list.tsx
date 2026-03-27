@@ -93,7 +93,7 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
     <>
       {/* Toolbar */}
       <div className="flex items-center justify-end">
-        <Button variant="outline" onClick={() => setCreateOpen(true)}>
+        <Button variant="outline" className="bg-[var(--card)]" onClick={() => setCreateOpen(true)}>
           <Plus />
           Create Connection
         </Button>

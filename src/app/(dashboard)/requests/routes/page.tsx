@@ -5,11 +5,11 @@ import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { RoutesHub } from "@/components/routes/routes-hub";
-import type { ApprovalFlow, Connection, MessagingConnection, Team, UserProfile } from "@/lib/types/database";
+import type { ApprovalFlow, Team, UserProfile } from "@/lib/types/database";
 
 export const metadata = {
   title: "Routes - OKRunit",
-  description: "Configure approval flows, notification routing, and who must approve for each source.",
+  description: "Configure approval flows and who must approve for each source.",
 };
 
 export default async function RoutesPage() {
@@ -25,7 +25,6 @@ export default async function RoutesPage() {
 
   const [
     { data: flows },
-    { data: messagingConnections },
     { data: teams },
     { data: memberships },
   ] = await Promise.all([
@@ -35,15 +34,6 @@ export default async function RoutesPage() {
       .eq("org_id", membership.org_id)
       .order("last_request_at", { ascending: false, nullsFirst: false })
       .returns<ApprovalFlow[]>(),
-    supabase
-      .from("messaging_connections")
-      .select(
-        "id, org_id, platform, workspace_id, workspace_name, channel_id, channel_name, webhook_url, is_active, notify_on_create, notify_on_decide, priority_filter, routing_rules, installed_by, created_at, updated_at",
-      )
-      .eq("org_id", membership.org_id)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .returns<MessagingConnection[]>(),
     supabase
       .from("teams")
       .select("id, name")
@@ -79,7 +69,6 @@ export default async function RoutesPage() {
   return (
     <RoutesHub
       flows={flows ?? []}
-      messagingConnections={messagingConnections ?? []}
       teams={teams ?? []}
       members={members}
       orgId={membership.org_id}

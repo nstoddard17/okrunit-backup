@@ -1,23 +1,35 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Team Members API: List + Add + Remove
+// OKRunit -- Team Members API: List + Add + Remove + Update Position
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Resend } from "resend";
 
 import { authenticateRequest } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
 import { logAuditEvent } from "@/lib/api/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { emailLayout, emailCard, emailButton, escapeHtml } from "@/lib/email/layout";
 
 // ---- Validation -----------------------------------------------------------
 
+// Supports both single user_id and bulk user_ids
 const addMemberSchema = z.object({
-  user_id: z.string().uuid("Invalid user ID"),
-});
+  user_id: z.string().uuid("Invalid user ID").optional(),
+  user_ids: z.array(z.string().uuid("Invalid user ID")).min(1).max(50).optional(),
+}).refine(
+  (data) => data.user_id || (data.user_ids && data.user_ids.length > 0),
+  { message: "Provide user_id or user_ids" },
+);
 
 const removeMemberSchema = z.object({
   user_id: z.string().uuid("Invalid user ID"),
+});
+
+const updateMemberSchema = z.object({
+  user_id: z.string().uuid("Invalid user ID"),
+  position_id: z.string().uuid().nullable(),
 });
 
 // ---- Helpers --------------------------------------------------------------
@@ -123,6 +135,44 @@ export async function GET(
   }
 }
 
+// ---- Email notification helper -------------------------------------------
+
+const FROM_EMAIL = process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+async function sendTeamAddedEmail(
+  to: string,
+  teamName: string,
+  teamId: string,
+  addedByName: string,
+) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return;
+
+  try {
+    const resend = new Resend(apiKey);
+    const teamsUrl = `${APP_URL}/org/teams/${teamId}`;
+    const html = emailLayout({
+      preheader: `You've been added to ${teamName}`,
+      body: emailCard(
+        `<p style="margin:0 0 8px;font-size:16px;font-weight:600;">You've been added to ${escapeHtml(teamName)}</p>` +
+        `<p style="margin:0 0 16px;color:#6b7280;">${escapeHtml(addedByName)} added you to this team. You can now participate in approvals routed to this team.</p>` +
+        emailButton({ label: "View Team", href: teamsUrl }),
+        { tone: "brand" },
+      ),
+    });
+
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: `You've been added to ${teamName}`,
+      html,
+    });
+  } catch (err) {
+    console.error("[Email] Failed to send team-added email:", err);
+  }
+}
+
 // ---- POST /api/v1/teams/[id]/members --------------------------------------
 
 export async function POST(
@@ -133,17 +183,14 @@ export async function POST(
     const { id } = await params;
     const auth = await authenticateRequest(request);
 
-    // Only dashboard (session) users may manage team members.
     if (auth.type !== "session") {
       throw new ApiError(403, "Only dashboard users can manage teams");
     }
 
-    // Must be owner or admin.
     if (auth.membership.role !== "owner" && auth.membership.role !== "admin") {
       throw new ApiError(403, "Insufficient permissions");
     }
 
-    // Validate request body.
     let body: z.infer<typeof addMemberSchema>;
     try {
       body = addMemberSchema.parse(await request.json());
@@ -157,62 +204,73 @@ export async function POST(
       throw err;
     }
 
-    const admin = createAdminClient();
+    // Normalize to array
+    const userIds = body.user_ids ?? (body.user_id ? [body.user_id] : []);
+    if (userIds.length === 0) {
+      throw new ApiError(400, "No user IDs provided");
+    }
 
-    // Verify the team exists and belongs to this org.
+    const admin = createAdminClient();
     const team = await fetchTeamOrThrow(admin, id, auth.orgId);
 
-    // Verify the user is a member of this org.
-    const { data: orgMembership, error: orgMemberError } = await admin
+    // Verify all users are org members
+    const { data: orgMembers } = await admin
       .from("org_memberships")
-      .select("id")
-      .eq("user_id", body.user_id)
+      .select("user_id")
       .eq("org_id", auth.orgId)
-      .single();
+      .in("user_id", userIds);
 
-    if (orgMemberError || !orgMembership) {
-      throw new ApiError(
-        400,
-        "User is not a member of this organization",
-        "NOT_ORG_MEMBER",
-      );
+    const validUserIds = new Set((orgMembers ?? []).map((m) => m.user_id));
+    const toAdd = userIds.filter((uid) => validUserIds.has(uid));
+
+    if (toAdd.length === 0) {
+      throw new ApiError(400, "None of the provided users are org members");
     }
 
-    // Add the user to the team.
-    const { data: membership, error: insertError } = await admin
+    // Bulk insert — skip duplicates
+    const rows = toAdd.map((uid) => ({ team_id: id, user_id: uid }));
+    const { data: inserted, error: insertError } = await admin
       .from("team_memberships")
-      .insert({
-        team_id: id,
-        user_id: body.user_id,
-      })
-      .select("*")
-      .single();
+      .upsert(rows, { onConflict: "team_id,user_id", ignoreDuplicates: true })
+      .select("*");
 
-    if (insertError || !membership) {
-      // Handle unique constraint violation (team_id + user_id).
-      if (insertError?.code === "23505") {
-        throw new ApiError(
-          409,
-          "User is already a member of this team",
-          "DUPLICATE_MEMBER",
-        );
-      }
-      console.error("[Teams] Failed to add team member:", insertError);
-      throw new ApiError(500, "Failed to add team member");
+    if (insertError) {
+      console.error("[Teams] Failed to add team members:", insertError);
+      throw new ApiError(500, "Failed to add team members");
     }
 
-    // Audit the addition.
-    await logAuditEvent({
-      orgId: auth.orgId,
-      userId: auth.user.id,
-      action: "team.member_added",
-      resourceType: "team",
-      resourceId: id,
-      details: { added_user_id: body.user_id, team_name: team.name },
-      ipAddress: getIpAddress(request),
-    });
+    const ipAddress = getIpAddress(request);
+    const addedByName = auth.profile.full_name || auth.user.email;
 
-    return NextResponse.json({ data: membership }, { status: 201 });
+    // Audit + send notifications for each added user
+    const { data: addedProfiles } = await admin
+      .from("user_profiles")
+      .select("id, email, full_name")
+      .in("id", toAdd);
+
+    const profileMap = new Map((addedProfiles ?? []).map((p) => [p.id, p]));
+
+    await Promise.allSettled(
+      toAdd.map(async (uid) => {
+        await logAuditEvent({
+          orgId: auth.orgId,
+          userId: auth.user.id,
+          action: "team.member_added",
+          resourceType: "team",
+          resourceId: id,
+          details: { added_user_id: uid, team_name: team.name },
+          ipAddress,
+        });
+
+        // Send email notification
+        const profile = profileMap.get(uid);
+        if (profile?.email) {
+          await sendTeamAddedEmail(profile.email, team.name, id, addedByName);
+        }
+      }),
+    );
+
+    return NextResponse.json({ data: inserted ?? [], added: toAdd.length }, { status: 201 });
   } catch (err) {
     return errorResponse(err);
   }
@@ -291,6 +349,56 @@ export async function DELETE(
       details: { removed_user_id: body.user_id, team_name: team.name },
       ipAddress: getIpAddress(request),
     });
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    return errorResponse(err);
+  }
+}
+
+// ---- PATCH /api/v1/teams/[id]/members ------------------------------------
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+    const auth = await authenticateRequest(request);
+
+    if (auth.type !== "session") {
+      throw new ApiError(403, "Only dashboard users can manage teams");
+    }
+    if (auth.membership.role !== "owner" && auth.membership.role !== "admin") {
+      throw new ApiError(403, "Insufficient permissions");
+    }
+
+    let body: z.infer<typeof updateMemberSchema>;
+    try {
+      body = updateMemberSchema.parse(await request.json());
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: "Validation failed", issues: err.issues },
+          { status: 400 },
+        );
+      }
+      throw err;
+    }
+
+    const admin = createAdminClient();
+    await fetchTeamOrThrow(admin, id, auth.orgId);
+
+    const { error } = await admin
+      .from("team_memberships")
+      .update({ position_id: body.position_id })
+      .eq("team_id", id)
+      .eq("user_id", body.user_id);
+
+    if (error) {
+      console.error("[Teams] Failed to update member position:", error);
+      throw new ApiError(500, "Failed to update member position");
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {

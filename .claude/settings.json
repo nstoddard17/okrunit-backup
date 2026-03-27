@@ -369,7 +369,33 @@
       "Bash(grep -r \"signInWithOAuth\\\\|oauth\\\\|OAUTH\" /Users/nathanielstoddard/okrunit/okrunit/.env*)",
       "Bash(ls -la /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(auth\\\\\\)/oauth/)",
       "Bash(ls -la /Users/nathanielstoddard/okrunit/okrunit/public/logo*)",
-      "Bash(ls -la /Users/nathanielstoddard/okrunit/okrunit/public/*.png)"
+      "Bash(ls -la /Users/nathanielstoddard/okrunit/okrunit/public/*.png)",
+      "Bash(find /Users/nathanielstoddard/okrunit/okrunit/src/app/'\\(docs\\)'/docs -type f -name \"page.tsx\")",
+      "Bash(find /Users/nathanielstoddard/okrunit/okrunit/src/app/'\\(docs\\)' -type f)",
+      "Bash(grep -r \"test@\\\\|e2e@\\\\|E2E_\" /Users/nathanielstoddard/okrunit/okrunit --include=*.ts --include=*.js --include=*.env* --include=*.toml)",
+      "Bash(grep -r \"test@okrunit\\\\|jamie@acme\" /Users/nathanielstoddard/okrunit/okrunit --include=*.ts --include=*.tsx --include=*.md)",
+      "Bash(find /Users/nathanielstoddard/okrunit -maxdepth 3 -name README* -o -name TESTING* -o -name SETUP*)",
+      "Bash(find /Users/nathanielstoddard/okrunit -path */.github/workflows/*.yml -o -path */.github/workflows/*.yaml)",
+      "Bash(grep -r \"E2E\\\\|test.*user\\\\|test.*email\" /Users/nathanielstoddard/okrunit/okrunit/e2e --include=*.ts --include=*.md)",
+      "Bash(curl -s \"https://srtqterqrmptljfwllfr.supabase.co/auth/v1/admin/users?page=1&per_page=5\" -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNydHF0ZXJxcm1wdGxqZndsbGZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTUzNzkzNCwiZXhwIjoyMDg3MTEzOTM0fQ.hnyBUDcb8tYLkBn8A30dZDdIPizlpIouF_pYAu651GY\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNydHF0ZXJxcm1wdGxqZndsbGZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1Mzc5MzQsImV4cCI6MjA4NzExMzkzNH0.UILWqbuf6av3YGkDKIUJS4aIS0VoxqiuhQUkfowR184\")",
+      "Bash(PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"e2e-test-password-2026!\" npx playwright test e2e/docs-screenshots.spec.ts --reporter=line)",
+      "Bash(PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"e2e-test-password-2026!\" npx playwright test e2e/docs-screenshots.spec.ts --reporter=line --workers=2)",
+      "Bash(find /Users/nathanielstoddard/okrunit/okrunit/src/app -path \"*\\(auth\\)/callback*\" -type f)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{redirect_url}\" http://localhost:3000/connections)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{redirect_url}\" http://localhost:3000/messaging)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{redirect_url}\" http://localhost:3000/analytics)",
+      "Bash(cat /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(auth\\\\\\)/callback/route.ts)",
+      "Bash(cat /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(auth\\\\\\)/invite/[token]/page.tsx)",
+      "Bash(cat /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(dashboard\\\\\\)/org/settings/page.tsx)",
+      "Bash(PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"e2e-test-password-2026!\" npx playwright test e2e/docs-screenshots.spec.ts --reporter=line --workers=1 -g \"connections page|messaging page|analytics page\")",
+      "Bash(find /Users/nathanielstoddard/okrunit/okrunit -name .env* -o -name supabase.json -o -name config.toml)",
+      "Bash(PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"e2e-test-password-2026!\" npx playwright test e2e/docs-screenshots.spec.ts --reporter=line --workers=1 -g \"analytics page\")",
+      "Bash(grep -r \"supabase migration\\\\|db push\\\\|migration\" /Users/nathanielstoddard/okrunit/okrunit/*.md)",
+      "Bash(ls -1 /Users/nathanielstoddard/okrunit/okrunit/*.md)",
+      "Bash(1:*)",
+      "Bash(ls -la /Users/nathanielstoddard/okrunit/okrunit/supabase/migrations/20260327100000*)",
+      "Bash(ls /Users/nathanielstoddard/okrunit/okrunit/supabase/migrations/20260327100000*)",
+      "Bash(grep -l \"messaging_connections\\\\|CREATE TABLE.*connections\" /Users/nathanielstoddard/okrunit/okrunit/supabase/migrations/*.sql)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",
@@ -380,7 +406,9 @@
       "/Users/nathanielstoddard/okrunit",
       "/Users/nathanielstoddard/okrunit/okrunit/src/app/api/v1/approvals/[id]",
       "/Users/nathanielstoddard/okrunit/okrunit/src/app/api/v1/approvals/[id]/steps",
-      "/dev"
+      "/dev",
+      "/Users/nathanielstoddard/okrunit/okrunit/src/app/(dashboard)/org/teams",
+      "/Users/nathanielstoddard/okrunit/okrunit/src/app/api/v1/teams/[id]"
     ]
   }
 }

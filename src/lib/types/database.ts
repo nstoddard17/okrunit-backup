@@ -230,6 +230,7 @@ export interface ApprovalFlow {
   org_id: string;
   source: string;
   source_id: string;
+  source_url: string | null;
   name: string;
   is_configured: boolean;
   default_priority: ApprovalPriority | null;

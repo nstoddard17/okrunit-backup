@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { DocsImage } from "@/components/docs/docs-image";
 
 export const metadata: Metadata = {
   title: "Webhooks & Callbacks",
@@ -14,14 +16,33 @@ export default function WebhooksPage() {
       </h1>
       <p className="mt-4 text-lg text-zinc-600 leading-relaxed">
         When an approver makes a decision, OKRunit delivers the result to your
-        callback URL via an HTTP POST request. This lets your automation
-        continue or abort without polling.
+        callback URL via an HTTP POST request. This lets your automation continue
+        or abort without polling.
       </p>
+
+      <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+        <h3 className="font-semibold text-emerald-900">
+          Using a no-code platform?
+        </h3>
+        <p className="mt-1 text-sm text-emerald-800">
+          If you connected OKRunit via Zapier, Make, n8n, or another platform
+          integration, webhooks are handled automatically — the platform receives
+          the decision and passes it to the next step. You don&apos;t need to set
+          up webhooks manually.{" "}
+          <Link href="/docs/integrations" className="underline font-medium">
+            See Integrations &rarr;
+          </Link>
+        </p>
+      </div>
 
       {/* How it works */}
       <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
         How callbacks work
       </h2>
+      <p className="mt-2 text-zinc-600">
+        Callbacks are for developers who call the API directly and want to
+        receive decisions at a URL they control.
+      </p>
       <ol className="mt-4 space-y-3 text-zinc-700">
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">
@@ -29,8 +50,10 @@ export default function WebhooksPage() {
           </span>
           <span>
             You provide a{" "}
-            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">callback_url</code> when
-            creating an approval request.
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+              callback_url
+            </code>{" "}
+            when creating an approval request via the API.
           </span>
         </li>
         <li className="flex gap-3">
@@ -47,8 +70,8 @@ export default function WebhooksPage() {
             3
           </span>
           <span>
-            Your endpoint should respond with a 2xx status code within 10
-            seconds to acknowledge receipt.
+            Your endpoint should respond with a 2xx status code within 10 seconds
+            to acknowledge receipt.
           </span>
         </li>
         <li className="flex gap-3">
@@ -61,6 +84,37 @@ export default function WebhooksPage() {
           </span>
         </li>
       </ol>
+
+      {/* Setting up a callback */}
+      <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
+        How to set up a callback
+      </h2>
+      <p className="mt-2 text-zinc-700">
+        Include a <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">callback_url</code> when
+        creating your approval request:
+      </p>
+      <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
+        <code className="text-zinc-100">{`curl -X POST https://okrunit.com/api/v1/approvals \\
+  -H "Authorization: Bearer gk_your_api_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "title": "Delete user account #4821",
+    "description": "Permanent deletion requested via support ticket",
+    "priority": "high",
+    "callback_url": "https://your-app.com/webhooks/okrunit",
+    "callback_headers": {
+      "X-Custom-Token": "your-secret-for-extra-verification"
+    }
+  }'`}</code>
+      </pre>
+      <p className="mt-3 text-sm text-zinc-500">
+        The optional{" "}
+        <code className="rounded bg-zinc-100 px-1 py-0.5 text-zinc-800">
+          callback_headers
+        </code>{" "}
+        field lets you include custom headers in the callback POST (e.g. an
+        extra auth token).
+      </p>
 
       {/* Callback payload */}
       <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
@@ -97,22 +151,29 @@ X-OKRunit-Signature: sha256=a1b2c3d4e5f6...
 }`}</code>
       </pre>
 
-      <p className="mt-4 text-zinc-700">
-        If you provided{" "}
-        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">callback_headers</code>{" "}
-        when creating the request, those headers are included in the callback
-        POST alongside the signature header.
-      </p>
+      <div className="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+        <h4 className="font-semibold text-zinc-900">Payload fields</h4>
+        <div className="mt-3 space-y-2 text-sm text-zinc-700">
+          <div><code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">event</code> — Always <code className="rounded bg-zinc-100 px-1 py-0.5 text-zinc-800">&quot;approval.decided&quot;</code></div>
+          <div><code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">request_id</code> — The approval request ID</div>
+          <div><code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">status</code> — &quot;approved&quot;, &quot;rejected&quot;, or &quot;cancelled&quot;</div>
+          <div><code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">decided_by</code> — The user who made the decision (id, email, name)</div>
+          <div><code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">comment</code> — Optional comment from the approver</div>
+          <div><code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">metadata</code> — The metadata you passed when creating the request (unchanged)</div>
+        </div>
+      </div>
 
       {/* HMAC Verification */}
       <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
-        HMAC-SHA256 signature verification
+        Verifying signatures (HMAC-SHA256)
       </h2>
       <p className="mt-4 text-zinc-700">
         Every callback includes an{" "}
-        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">X-OKRunit-Signature</code>{" "}
-        header. You should verify this signature to ensure the request came from
-        OKRunit and was not tampered with.
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+          X-OKRunit-Signature
+        </code>{" "}
+        header. <strong>Always verify this signature</strong> to ensure the
+        request came from OKRunit and was not tampered with.
       </p>
 
       <h3 className="mt-6 text-lg font-semibold text-zinc-900">
@@ -125,20 +186,24 @@ X-OKRunit-Signature: sha256=a1b2c3d4e5f6...
         </li>
         <li>
           <strong>2.</strong> The hex-encoded digest is sent in the{" "}
-          <code className="rounded bg-zinc-100 px-1 py-0.5 text-zinc-800">X-OKRunit-Signature</code>{" "}
-          header with a <code className="rounded bg-zinc-100 px-1 py-0.5 text-zinc-800">sha256=</code> prefix.
+          <code className="rounded bg-zinc-100 px-1 py-0.5 text-zinc-800">
+            X-OKRunit-Signature
+          </code>{" "}
+          header with a{" "}
+          <code className="rounded bg-zinc-100 px-1 py-0.5 text-zinc-800">
+            sha256=
+          </code>{" "}
+          prefix.
         </li>
         <li>
-          <strong>3.</strong> On your end, compute the same HMAC and compare
-          using a constant-time comparison function.
+          <strong>3.</strong> On your end, compute the same HMAC and compare using
+          a constant-time comparison function.
         </li>
       </ol>
 
       <h3 className="mt-6 text-lg font-semibold text-zinc-900">
-        Verification examples
+        Node.js / TypeScript
       </h3>
-
-      <p className="mt-3 text-sm font-medium text-zinc-600">Node.js</p>
       <pre className="mt-2 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
         <code className="text-zinc-100">{`import { createHmac, timingSafeEqual } from "crypto";
 
@@ -165,13 +230,23 @@ if (!verifySignature(rawBody, signature, secret)) {
 }
 
 const payload = JSON.parse(rawBody);
-// Process the decision...`}</code>
+
+// Now handle the decision:
+if (payload.status === "approved") {
+  // Continue with the action
+  await performAction(payload.metadata);
+} else {
+  // Abort — request was rejected or cancelled
+  await cancelAction(payload.metadata);
+}`}</code>
       </pre>
 
-      <p className="mt-6 text-sm font-medium text-zinc-600">Python</p>
+      <h3 className="mt-6 text-lg font-semibold text-zinc-900">Python</h3>
       <pre className="mt-2 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
         <code className="text-zinc-100">{`import hmac
 import hashlib
+import json
+import os
 
 def verify_signature(body: bytes, signature: str, secret: str) -> bool:
     expected = "sha256=" + hmac.new(
@@ -190,7 +265,12 @@ if not verify_signature(raw_body, signature, secret):
     return Response("Invalid signature", status=401)
 
 payload = json.loads(raw_body)
-# Process the decision...`}</code>
+
+# Handle the decision:
+if payload["status"] == "approved":
+    perform_action(payload["metadata"])
+else:
+    cancel_action(payload["metadata"])`}</code>
       </pre>
 
       {/* Retry Logic */}
@@ -206,7 +286,9 @@ payload = json.loads(raw_body)
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-zinc-200 text-left">
-              <th className="pb-2 pr-6 font-semibold text-zinc-900">Attempt</th>
+              <th className="pb-2 pr-6 font-semibold text-zinc-900">
+                Attempt
+              </th>
               <th className="pb-2 pr-6 font-semibold text-zinc-900">Delay</th>
               <th className="pb-2 font-semibold text-zinc-900">Notes</th>
             </tr>
@@ -237,34 +319,28 @@ payload = json.loads(raw_body)
       </div>
 
       <p className="mt-4 text-zinc-700">
-        After all retry attempts are exhausted, the delivery is marked as failed
-        in the webhook delivery log. You can view delivery status and retry
-        manually from the dashboard or via the{" "}
-        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
-          GET /api/v1/approvals/:id/webhooks
-        </code>{" "}
-        endpoint.
+        After all retry attempts are exhausted, the delivery is marked as failed.
+        You can view delivery status and retry manually from the dashboard or via
+        the API.
       </p>
 
       {/* Timeout */}
-      <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
-        Timeout
-      </h2>
+      <h2 className="mt-12 text-2xl font-semibold text-zinc-900">Timeout</h2>
       <p className="mt-4 text-zinc-700">
         Each delivery attempt has a <strong>10 second</strong> timeout. If your
         server does not respond within this window, the attempt is considered
-        failed and the next retry is scheduled. Design your webhook handler to
-        acknowledge quickly and process the payload asynchronously if needed.
+        failed. Design your webhook handler to acknowledge quickly (return 200)
+        and process the payload asynchronously if needed.
       </p>
 
       {/* Delivery logs */}
       <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
-        Delivery logs
+        Checking delivery logs
       </h2>
       <p className="mt-4 text-zinc-700">
         Every callback delivery attempt is logged with the HTTP status code,
-        response body (truncated), and timing information. Query the logs via
-        the API:
+        response body (truncated), and timing information. You can check delivery
+        status in the dashboard or query the logs via the API:
       </p>
 
       <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
@@ -287,6 +363,12 @@ payload = json.loads(raw_body)
 }`}</code>
       </pre>
 
+      <DocsImage
+        src="/screenshots/docs/audit-log.png"
+        alt="Audit log showing webhook delivery events and approval actions"
+        caption="All webhook deliveries are logged and visible in the audit log."
+      />
+
       {/* Testing */}
       <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
         Testing webhooks
@@ -294,38 +376,61 @@ payload = json.loads(raw_body)
       <p className="mt-4 text-zinc-700">
         During development, you can test webhook delivery in several ways:
       </p>
-      <ul className="mt-4 space-y-3 text-zinc-700">
-        <li>
-          <strong className="text-zinc-900">Local tunnel:</strong> Use{" "}
-          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">ngrok</code>,{" "}
-          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">localtunnel</code>, or{" "}
-          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">cloudflared</code> to
-          expose your local server and use the tunnel URL as your callback.
-        </li>
-        <li>
-          <strong className="text-zinc-900">Request catchers:</strong> Services
-          like <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">webhook.site</code> or{" "}
-          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">requestbin.com</code>{" "}
-          let you inspect the raw callback payload without writing any code.
-        </li>
-        <li>
-          <strong className="text-zinc-900">Test endpoint:</strong> The OKRunit
-          API includes a test webhook endpoint at{" "}
-          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
-            POST /api/v1/test-webhook
-          </code>{" "}
-          that sends a sample payload to any URL you specify.
-        </li>
-      </ul>
 
+      <h3 className="mt-6 text-lg font-semibold text-zinc-900">
+        Option 1: Use the test endpoint
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        The OKRunit API includes a test webhook endpoint that sends a sample
+        payload to any URL:
+      </p>
       <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
         <code className="text-zinc-100">{`curl -X POST https://okrunit.com/api/v1/test-webhook \\
-  -H "Authorization: Bearer gk_your_api_key_here" \\
+  -H "Authorization: Bearer gk_your_api_key" \\
   -H "Content-Type: application/json" \\
-  -d '{
-    "url": "https://your-app.com/webhooks/okrunit"
-  }'`}</code>
+  -d '{ "url": "https://your-app.com/webhooks/okrunit" }'`}</code>
       </pre>
+
+      <h3 className="mt-6 text-lg font-semibold text-zinc-900">
+        Option 2: Use a local tunnel
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        Expose your local server to the internet using{" "}
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+          ngrok
+        </code>
+        ,{" "}
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+          localtunnel
+        </code>
+        , or{" "}
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+          cloudflared
+        </code>{" "}
+        and use the tunnel URL as your callback:
+      </p>
+      <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
+        <code className="text-zinc-100">{`# Start a tunnel to your local server
+ngrok http 3000
+
+# Use the tunnel URL as your callback_url
+# https://abc123.ngrok.io/webhooks/okrunit`}</code>
+      </pre>
+
+      <h3 className="mt-6 text-lg font-semibold text-zinc-900">
+        Option 3: Use a request catcher
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        Services like{" "}
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+          webhook.site
+        </code>{" "}
+        or{" "}
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+          requestbin.com
+        </code>{" "}
+        let you inspect the raw callback payload without writing any code.
+      </p>
 
       {/* Best practices */}
       <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
@@ -339,19 +444,26 @@ payload = json.loads(raw_body)
         </li>
         <li>
           <strong className="text-zinc-900">Respond quickly.</strong> Return a
-          200 immediately and process the payload asynchronously. Do not block
-          the response on downstream work.
+          200 immediately and process the payload asynchronously. Do not block the
+          response on downstream work.
         </li>
         <li>
           <strong className="text-zinc-900">Handle duplicates.</strong> In rare
-          cases (e.g. network issues), you may receive the same callback more
-          than once. Use the{" "}
-          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">request_id</code> to
-          deduplicate.
+          cases (e.g. network issues), you may receive the same callback more than
+          once. Use the{" "}
+          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+            request_id
+          </code>{" "}
+          to deduplicate.
         </li>
         <li>
           <strong className="text-zinc-900">Use HTTPS.</strong> Callback URLs
           must use HTTPS in production to protect the payload in transit.
+        </li>
+        <li>
+          <strong className="text-zinc-900">Log everything.</strong> Store the
+          raw payload and signature for debugging. OKRunit also keeps delivery
+          logs on its side.
         </li>
       </ul>
     </article>

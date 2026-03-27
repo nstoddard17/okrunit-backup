@@ -6,6 +6,7 @@ import { formatDistanceToNow } from "date-fns";
 import {
   ChevronDown,
   Check,
+  ExternalLink,
   Settings2,
   Users,
   UserCheck,
@@ -36,6 +37,9 @@ import { SOURCE_CONFIG } from "@/components/approvals/source-icons";
 import { cn } from "@/lib/utils";
 import type { ApprovalFlow, ApproverMode, UserRole } from "@/lib/types/database";
 import type { TeamOption, MemberOption } from "@/components/routes/routes-hub";
+
+// UI-level approver mode — "by_position" maps to "designated" + assigned_team_id on save
+type UIApproverMode = ApproverMode | "by_position";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -72,8 +76,19 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Flow name and URL (editable)
+  const [flowName, setFlowName] = useState(flow.name || "");
+  const [flowSourceUrl, setFlowSourceUrl] = useState(flow.source_url || "");
+
   // Form state — initialized from flow
-  const [approverMode, setApproverMode] = useState<ApproverMode>(flow.approver_mode || "any");
+  // Detect "by_position" mode: designated with a team but no individual approvers
+  const initialUIMode: UIApproverMode =
+    flow.approver_mode === "designated" &&
+    flow.assigned_team_id &&
+    (!flow.assigned_approvers || flow.assigned_approvers.length === 0)
+      ? "by_position"
+      : flow.approver_mode || "any";
+  const [approverMode, setApproverMode] = useState<UIApproverMode>(initialUIMode);
   const [selectedApprovers, setSelectedApprovers] = useState<string[]>(flow.assigned_approvers ?? []);
   const [selectedTeamId, setSelectedTeamId] = useState(flow.assigned_team_id ?? "none");
   const [requiredRole, setRequiredRole] = useState<UserRole | "none">(flow.required_role ?? "none");
@@ -100,12 +115,22 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
 
   const sourceConfig = SOURCE_CONFIG[flow.source];
   const SourceIcon = sourceConfig?.icon;
-  const flowLabel = flow.name || `${sourceConfig?.label ?? flow.source} / ${flow.source_id}`;
+  const sourcePlatformLabel = sourceConfig?.label ?? flow.source;
+  const flowLabel = flow.name || `${sourcePlatformLabel} flow`;
 
   // ---- Summary of current config -------------------------------------------
 
   function getConfigSummary(): string {
     if (!flow.is_configured) return "Not configured — any member can approve";
+    // By-position mode: designated with team but no individual approvers
+    if (
+      flow.approver_mode === "designated" &&
+      flow.assigned_team_id &&
+      (!flow.assigned_approvers || flow.assigned_approvers.length === 0)
+    ) {
+      const team = teams.find((t) => t.id === flow.assigned_team_id);
+      return team ? `By position: ${team.name}` : "By position (team)";
+    }
     if (flow.approver_mode === "designated" && flow.assigned_approvers?.length) {
       const names = flow.assigned_approvers.map((id) => {
         const m = members.find((mem) => mem.id === id);
@@ -143,13 +168,28 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
       applyForNext = parseInt(durationPreset, 10);
     }
 
+    // Map UI mode to API mode — "by_position" saves as "designated" with team
+    const apiMode: ApproverMode = approverMode === "by_position" ? "designated" : approverMode;
+
     const payload: Record<string, unknown> = {
-      approver_mode: approverMode,
+      approver_mode: apiMode,
       is_sequential: isSequential,
       apply_for_next: applyForNext,
+      name: flowName.trim() || undefined,
+      source_url: flowSourceUrl.trim() || null,
     };
 
-    if (approverMode === "designated" || approverMode === "any") {
+    if (approverMode === "by_position") {
+      // By position: team-based, no individual approvers
+      if (selectedTeamId === "none") {
+        toast.error("Select a team for position-based approval");
+        return;
+      }
+      payload.assigned_team_id = selectedTeamId;
+      payload.assigned_approvers = null;
+      payload.required_role = null;
+      payload.default_required_approvals = requiredApprovals || 1;
+    } else if (approverMode === "designated") {
       payload.assigned_approvers = selectedApprovers.length > 0 ? selectedApprovers : null;
       payload.assigned_team_id = selectedTeamId !== "none" ? selectedTeamId : null;
       payload.required_role = null;
@@ -160,6 +200,11 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
       } else {
         payload.default_required_approvals = requiredApprovals || 1;
       }
+    } else if (approverMode === "any") {
+      payload.assigned_approvers = null;
+      payload.assigned_team_id = selectedTeamId !== "none" ? selectedTeamId : null;
+      payload.required_role = null;
+      payload.default_required_approvals = requiredApprovals || 1;
     } else if (approverMode === "role_based") {
       payload.required_role = requiredRole !== "none" ? requiredRole : null;
       payload.assigned_approvers = null;
@@ -188,7 +233,7 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
     } finally {
       setSaving(false);
     }
-  }, [flow.id, approverMode, selectedApprovers, selectedTeamId, requiredRole, isSequential, requiredApprovals, durationPreset, customCount, router]);
+  }, [flow.id, flowName, flowSourceUrl, approverMode, selectedApprovers, selectedTeamId, requiredRole, isSequential, requiredApprovals, durationPreset, customCount, router]);
 
   // ---- Approver toggle -----------------------------------------------------
 
@@ -223,10 +268,13 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="truncate text-sm font-medium">{flowLabel}</span>
+              <Badge variant="secondary" className="text-[10px] shrink-0">
+                {sourcePlatformLabel}
+              </Badge>
               {flow.is_configured ? (
-                <Badge variant="default" className="text-[10px]">Configured</Badge>
+                <Badge variant="default" className="text-[10px] shrink-0">Configured</Badge>
               ) : (
-                <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">
+                <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300 shrink-0">
                   Needs setup
                 </Badge>
               )}
@@ -251,19 +299,65 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
             </div>
           </div>
 
-          {/* Expand chevron */}
-          <ChevronDown className={cn("size-4 text-muted-foreground transition-transform shrink-0", expanded && "rotate-180")} />
+          {/* Source link + Expand chevron */}
+          <div className="flex items-center gap-2 shrink-0">
+            {flow.source_url && (
+              <a
+                href={flow.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                title={`Open in ${sourcePlatformLabel}`}
+              >
+                <ExternalLink className="size-3" />
+                <span className="hidden sm:inline">Open</span>
+              </a>
+            )}
+            <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", expanded && "rotate-180")} />
+          </div>
         </button>
 
         {/* Expanded config form */}
         {expanded && (
           <div className="mt-4 space-y-4 border-t pt-4">
+            {/* Flow name */}
+            <div className="space-y-2">
+              <Label className="text-xs">Flow name</Label>
+              <Input
+                value={flowName}
+                onChange={(e) => setFlowName(e.target.value)}
+                placeholder="e.g. New Customer Onboarding Zap"
+                disabled={saving}
+                className="h-9"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                A friendly name to identify this workflow. Auto-populated when the integration sends a name.
+              </p>
+            </div>
+
+            {/* Source URL */}
+            <div className="space-y-2">
+              <Label className="text-xs">Workflow URL</Label>
+              <Input
+                value={flowSourceUrl}
+                onChange={(e) => setFlowSourceUrl(e.target.value)}
+                placeholder="https://zapier.com/editor/12345 or https://make.com/scenario/67890"
+                disabled={saving}
+                className="h-9"
+                type="url"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Link to the Zap, scenario, or workflow in your automation platform. Shows an &quot;Open&quot; button on the card.
+              </p>
+            </div>
+
             {/* Approver Mode */}
             <div className="space-y-2">
               <Label className="text-xs">Who must approve?</Label>
               <Select
                 value={approverMode}
-                onValueChange={(v) => setApproverMode(v as ApproverMode)}
+                onValueChange={(v) => setApproverMode(v as UIApproverMode)}
                 disabled={saving}
               >
                 <SelectTrigger className="w-full">
@@ -272,6 +366,7 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
                 <SelectContent>
                   <SelectItem value="any">Any member with approval permission</SelectItem>
                   <SelectItem value="designated">Specific people</SelectItem>
+                  <SelectItem value="by_position">By position (team)</SelectItem>
                   <SelectItem value="role_based">By role</SelectItem>
                 </SelectContent>
               </Select>
@@ -303,8 +398,57 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
               </div>
             )}
 
-            {/* Team selection — available in all modes */}
-            {teams.length > 0 && (
+            {/* By Position — team selection (required) */}
+            {approverMode === "by_position" && (
+              <div className="space-y-2">
+                <Label className="text-xs">Select Position (Team)</Label>
+                {teams.length === 0 ? (
+                  <div className="rounded-lg border border-dashed p-4 text-center">
+                    <Users className="mx-auto size-6 text-muted-foreground/40 mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      You need at least one team to use position-based approval.
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-3 gap-1.5"
+                      asChild
+                    >
+                      <a href="/org/teams">
+                        Go to Teams
+                        <ArrowRight className="size-3" />
+                      </a>
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <Select
+                      value={selectedTeamId}
+                      onValueChange={setSelectedTeamId}
+                      disabled={saving}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a team..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teams.map((team) => (
+                          <SelectItem key={team.id} value={team.id}>
+                            {team.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[11px] text-muted-foreground">
+                      All members of the selected team can approve. Manage teams and positions on the{" "}
+                      <a href="/org/teams" className="underline underline-offset-2 hover:text-foreground">Teams page</a>.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Team selection — optional scope for any/designated/role_based */}
+            {approverMode !== "by_position" && teams.length > 0 && (
               <div className="space-y-2">
                 <Label className="text-xs">Assign to Team</Label>
                 <Select
@@ -326,13 +470,13 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
                 </Select>
                 <p className="text-[11px] text-muted-foreground">
                   Only members of this team will be notified and asked to approve. Create teams like &quot;HR&quot;, &quot;Management&quot;, or &quot;Engineering&quot; on the{" "}
-                  <a href="/org/members" className="underline underline-offset-2 hover:text-foreground">Team page</a>.
+                  <a href="/org/teams" className="underline underline-offset-2 hover:text-foreground">Teams page</a>.
                 </p>
               </div>
             )}
 
-            {/* Individual approvers — available in designated and any modes */}
-            {(approverMode === "designated" || approverMode === "any") && (
+            {/* Individual approvers — only for "Specific people" mode */}
+            {approverMode === "designated" && (
               <div className="space-y-2">
                 <Label className="text-xs">Select Approvers</Label>
                 {selectedApprovers.length > 0 && (
@@ -384,7 +528,7 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
             )}
 
             {/* Sequential approval */}
-            {(approverMode === "designated" || approverMode === "any") && selectedApprovers.length > 1 && (
+            {approverMode === "designated" && selectedApprovers.length > 1 && (
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="space-y-0.5">
                   <Label htmlFor={`seq-${flow.id}`} className="text-sm">Sequential Approval</Label>
@@ -402,7 +546,7 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
             )}
 
             {/* Required approvals count */}
-            {(approverMode === "designated" || approverMode === "any") && selectedApprovers.length > 1 && !isSequential && (
+            {approverMode === "designated" && selectedApprovers.length > 1 && !isSequential && (
               <div className="space-y-2">
                 <Label className="text-xs">Required Approvals</Label>
                 <Input

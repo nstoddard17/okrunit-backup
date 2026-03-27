@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { DocsImage } from "@/components/docs/docs-image";
 
 export const metadata: Metadata = {
   title: "Integrations",
@@ -204,44 +206,210 @@ export default function IntegrationsPage() {
       </h1>
       <p className="mt-4 text-lg text-zinc-600 leading-relaxed">
         OKRunit connects to 19 platforms across automation, AI agents,
-        infrastructure, and workflow engines. Every integration uses the same
-        underlying REST API, so you can also build your own with a few HTTP
-        calls.
+        infrastructure, and workflow engines. The easiest way to connect is to
+        select the OKRunit node directly inside your automation platform — no
+        code required.
       </p>
 
-      {/* Universal API */}
-      <div className="mt-8 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-        <h3 className="font-semibold text-emerald-900">
-          Works with any HTTP client
+      {/* Main approach callout */}
+      <div className="mt-8 rounded-lg border border-emerald-200 bg-emerald-50 p-5">
+        <h3 className="text-lg font-semibold text-emerald-900">
+          How to connect (the easy way)
         </h3>
-        <p className="mt-1 text-sm text-emerald-800">
-          Every platform listed below uses the OKRunit REST API under the hood.
-          If your platform is not listed, you can integrate directly with a
-          single POST request.{" "}
-          <a href="/docs/api" className="underline">
-            See the API reference.
-          </a>
+        <p className="mt-2 text-sm text-emerald-800 leading-relaxed">
+          For every supported platform, the process is the same:
+        </p>
+        <ol className="mt-3 space-y-2 text-sm text-emerald-800">
+          <li className="flex gap-2">
+            <span className="font-bold">1.</span>
+            <span>
+              Open your automation platform (Zapier, Make, n8n, monday.com,
+              GitHub Actions, Temporal, etc.)
+            </span>
+          </li>
+          <li className="flex gap-2">
+            <span className="font-bold">2.</span>
+            <span>
+              Add a new step and search for <strong>&quot;OKRunit&quot;</strong>
+            </span>
+          </li>
+          <li className="flex gap-2">
+            <span className="font-bold">3.</span>
+            <span>
+              Select the OKRunit node/module and connect your account when
+              prompted
+            </span>
+          </li>
+          <li className="flex gap-2">
+            <span className="font-bold">4.</span>
+            <span>
+              Fill in the request details (title, description, priority) and
+              you&apos;re done
+            </span>
+          </li>
+        </ol>
+        <p className="mt-3 text-sm text-emerald-800">
+          Your workflow will pause at the OKRunit step until a human approves or
+          rejects. The decision is automatically passed to the next step.
         </p>
       </div>
 
-      {/* Categories */}
+      <DocsImage
+        src="/screenshots/docs/connections-list.png"
+        alt="OKRunit connections page showing active API connections"
+        caption="Connections are created automatically when you link your account from a platform, or you can create them manually for API access."
+      />
+
+      {/* Platform-specific guides */}
+      <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
+        Platform-specific setup
+      </h2>
+
+      {/* Zapier */}
+      <h3 className="mt-8 text-xl font-semibold text-zinc-900">
+        Zapier
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        OKRunit is available as a native Zapier app. Here&apos;s how to add it to
+        any Zap:
+      </p>
+      <ol className="mt-4 space-y-3 text-zinc-700">
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
+          <span>In the Zap editor, click <strong>+</strong> to add a new step.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
+          <span>Search for <strong>&quot;OKRunit&quot;</strong> in the app search.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
+          <span>Select the <strong>Create Approval Request</strong> action.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
+          <span>Click <strong>Sign in to OKRunit</strong> — this opens the OAuth flow. Sign in with your OKRunit credentials and authorize access.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">5</span>
+          <span>Map your trigger data to the approval fields (title, description, priority).</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">6</span>
+          <span>Test the step — you should see a new pending request appear in your OKRunit dashboard.</span>
+        </li>
+      </ol>
+      <p className="mt-3 text-sm text-zinc-500">
+        Zapier also supports triggers for <strong>Approval Decided</strong> and
+        <strong> Approval Created</strong>, so you can build Zaps that react to
+        decisions.
+      </p>
+
+      {/* Make */}
+      <h3 className="mt-8 text-xl font-semibold text-zinc-900">
+        Make (Integromat)
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        OKRunit has a custom Make app with modules for creating and managing
+        approval requests:
+      </p>
+      <ol className="mt-4 space-y-3 text-zinc-700">
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
+          <span>In your Make scenario, click <strong>+</strong> to add a module.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
+          <span>Search for <strong>&quot;OKRunit&quot;</strong>.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
+          <span>Choose a module: <strong>Create an Approval</strong>, <strong>Watch Approvals</strong>, or <strong>Search Approvals</strong>.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
+          <span>Click <strong>Add</strong> next to the Connection field and authorize your OKRunit account.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">5</span>
+          <span>Configure the fields and run the scenario.</span>
+        </li>
+      </ol>
+
+      {/* n8n */}
+      <h3 className="mt-8 text-xl font-semibold text-zinc-900">n8n</h3>
+      <p className="mt-2 text-zinc-700">
+        OKRunit provides a community node for n8n:
+      </p>
+      <ol className="mt-4 space-y-3 text-zinc-700">
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
+          <span>In your n8n workflow, click <strong>+</strong> and search for <strong>&quot;OKRunit&quot;</strong>.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
+          <span>Add the <strong>OKRunit</strong> node (trigger or action).</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
+          <span>Create credentials by entering your OKRunit API key (from the Connections page in the dashboard).</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
+          <span>Configure the node and execute.</span>
+        </li>
+      </ol>
+
+      {/* GitHub Actions */}
+      <h3 className="mt-8 text-xl font-semibold text-zinc-900">
+        GitHub Actions
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        Add a human approval gate to any GitHub Actions workflow:
+      </p>
+      <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
+        <code className="text-zinc-100">{`- name: Request deployment approval
+  uses: okrunit/approve-action@v1
+  with:
+    api-key: \${{ secrets.OKRUNIT_API_KEY }}
+    title: "Deploy \${{ github.sha }} to production"
+    description: "Triggered by \${{ github.actor }}"
+    priority: high
+    # The action waits until the request is approved or rejected
+    # If rejected, the step fails and the workflow stops`}</code>
+      </pre>
+
+      <DocsImage
+        src="/screenshots/docs/routes-list.png"
+        alt="Approval routes configuration in the OKRunit dashboard"
+        caption="Configure routing rules to control who gets notified and how many approvals are required per source."
+      />
+
+      {/* All integrations grid */}
+      <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
+        All integrations
+      </h2>
+      <p className="mt-2 text-zinc-600">
+        Below is the full list of 19 supported platforms, grouped by category.
+      </p>
+
       {CATEGORIES.map((category) => (
-        <section key={category.name} className="mt-12">
-          <h2 className="text-2xl font-semibold text-zinc-900">
+        <section key={category.name} className="mt-10">
+          <h3 className="text-xl font-semibold text-zinc-900">
             {category.name}
-          </h2>
+          </h3>
           <p className="mt-2 text-zinc-600">{category.description}</p>
 
-          <div className="mt-6 space-y-4">
+          <div className="mt-4 space-y-3">
             {category.integrations.map((integration) => (
               <div
                 key={integration.name}
                 className="rounded-lg border border-zinc-200 p-4"
               >
                 <div className="flex items-center gap-3">
-                  <h3 className="font-semibold text-zinc-900">
+                  <h4 className="font-semibold text-zinc-900">
                     {integration.name}
-                  </h3>
+                  </h4>
                   <StatusBadge status={integration.status} />
                 </div>
                 <p className="mt-2 text-sm text-zinc-600 leading-relaxed">
@@ -253,62 +421,69 @@ export default function IntegrationsPage() {
         </section>
       ))}
 
-      {/* Building your own */}
+      {/* API for technical users */}
       <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
-        Building your own integration
+        For developers: use the API directly
       </h2>
       <p className="mt-4 text-zinc-700">
-        All OKRunit integrations use the same REST API. To build your own:
+        Every integration above uses the OKRunit REST API under the hood. If
+        your platform is not listed, or you prefer to work in code, you can
+        replicate everything with standard HTTP requests:
       </p>
-      <ol className="mt-4 space-y-3 text-zinc-700">
-        <li className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">
-            1
-          </span>
-          <span>
-            Create a connection in the OKRunit dashboard and save the API key.
-          </span>
-        </li>
-        <li className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">
-            2
-          </span>
-          <span>
-            POST to <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">/api/v1/approvals</code> with
-            your approval details and a callback URL.
-          </span>
-        </li>
-        <li className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">
-            3
-          </span>
-          <span>
-            Handle the webhook callback (or poll the GET endpoint) to receive
-            the decision.
-          </span>
-        </li>
-        <li className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">
-            4
-          </span>
-          <span>
-            Set the{" "}
-            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">source</code> field
-            to your platform name for filtering and analytics.
-          </span>
-        </li>
-      </ol>
+
+      <h3 className="mt-6 text-lg font-semibold text-zinc-900">
+        Create an approval request
+      </h3>
+      <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
+        <code className="text-zinc-100">{`curl -X POST https://okrunit.com/api/v1/approvals \\
+  -H "Authorization: Bearer gk_your_api_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "title": "Delete user account #4821",
+    "description": "Permanent deletion requested via support ticket",
+    "priority": "high",
+    "callback_url": "https://your-app.com/webhooks/okrunit",
+    "source": "support-bot"
+  }'`}</code>
+      </pre>
+
+      <h3 className="mt-6 text-lg font-semibold text-zinc-900">
+        Poll for the decision
+      </h3>
+      <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
+        <code className="text-zinc-100">{`curl https://okrunit.com/api/v1/approvals/a1b2c3d4-... \\
+  -H "Authorization: Bearer gk_your_api_key"
+
+# Response when decided:
+{
+  "id": "a1b2c3d4-...",
+  "status": "approved",
+  "decided_at": "2026-03-24T11:30:00.000Z",
+  "decided_by": "user-uuid"
+}`}</code>
+      </pre>
+
+      <h3 className="mt-6 text-lg font-semibold text-zinc-900">
+        Or receive a webhook callback
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        If you provided a{" "}
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+          callback_url
+        </code>
+        , OKRunit will POST the decision to your endpoint automatically. See the{" "}
+        <Link href="/docs/webhooks" className="text-emerald-600 hover:underline">
+          Webhooks guide
+        </Link>{" "}
+        for payload format and HMAC verification.
+      </p>
 
       <p className="mt-6 text-zinc-700">
-        Refer to the{" "}
-        <a href="/docs/api" className="text-emerald-600 hover:underline">
+        For complete endpoint documentation, see the{" "}
+        <Link href="/docs/api" className="text-emerald-600 hover:underline">
           API Reference
-        </a>{" "}
-        for complete endpoint documentation and the{" "}
-        <a href="/docs/webhooks" className="text-emerald-600 hover:underline">
-          Webhooks guide
-        </a>{" "}
-        for callback signature verification.
+        </Link>
+        .
       </p>
     </article>
   );

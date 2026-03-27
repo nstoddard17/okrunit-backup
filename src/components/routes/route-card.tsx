@@ -16,7 +16,7 @@ import { PLATFORM_ICONS } from "@/components/messaging/platform-card";
 import { SOURCE_CONFIG } from "@/components/approvals/source-icons";
 import { cn } from "@/lib/utils";
 import type { MessagingConnection, RoutingRules } from "@/lib/types/database";
-import type { SourceInfo } from "@/components/routes/routes-hub";
+import type { SourceInfo } from "@/components/messaging/connection-list";
 
 // ---------------------------------------------------------------------------
 // Constants

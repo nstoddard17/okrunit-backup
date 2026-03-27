@@ -17,12 +17,35 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Connection } from "@/lib/types/database";
+
+// ---- Rate limit presets ---------------------------------------------------
+
+const RATE_LIMIT_PRESETS = [
+  { value: "none", label: "No limit", rate: 10000 },
+  { value: "10", label: "10/hr — Low", rate: 10 },
+  { value: "60", label: "60/hr — Standard", rate: 60 },
+  { value: "100", label: "100/hr — Default", rate: 100 },
+  { value: "300", label: "300/hr — High", rate: 300 },
+  { value: "1000", label: "1,000/hr — Very high", rate: 1000 },
+  { value: "custom", label: "Custom", rate: -1 },
+] as const;
+
+function getPresetValue(rate: number): string {
+  const match = RATE_LIMIT_PRESETS.find((p) => p.value !== "custom" && p.rate === rate);
+  return match?.value ?? "custom";
+}
 
 // ---- Component --------------------------------------------------------------
 
 interface ConnectionFormProps {
-  /** Pass an existing connection to enter edit mode. */
   connection?: Connection;
   open: boolean;
   onClose: () => void;
@@ -38,26 +61,28 @@ export function ConnectionForm({
   const router = useRouter();
   const isEdit = !!connection;
 
-  // Form state.
+  const initialRate = connection?.rate_limit_per_hour ?? 100;
+
+  // Form state
   const [name, setName] = useState(connection?.name ?? "");
-  const [description, setDescription] = useState(
-    connection?.description ?? "",
-  );
-  const [rateLimit, setRateLimit] = useState<number>(
-    connection?.rate_limit_per_hour ?? 100,
-  );
+  const [description, setDescription] = useState(connection?.description ?? "");
+  const [rateLimitPreset, setRateLimitPreset] = useState(getPresetValue(initialRate));
+  const [customRateLimit, setCustomRateLimit] = useState(initialRate);
   const [loading, setLoading] = useState(false);
 
-  // API key reveal state (create mode only).
+  // API key reveal state (create mode only)
   const [revealedKey, setRevealedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const effectiveRateLimit =
+    rateLimitPreset === "custom"
+      ? customRateLimit
+      : RATE_LIMIT_PRESETS.find((p) => p.value === rateLimitPreset)?.rate ?? 100;
 
   // ---- Reset form when dialog opens/closes --------------------------------
 
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) {
-      // If we are in the "key revealed" state, treat close as success since
-      // the connection was already created.
       if (revealedKey) {
         resetForm();
         onSuccess();
@@ -72,7 +97,8 @@ export function ConnectionForm({
     if (!isEdit) {
       setName("");
       setDescription("");
-      setRateLimit(100);
+      setRateLimitPreset("100");
+      setCustomRateLimit(100);
     }
     setRevealedKey(null);
     setCopied(false);
@@ -90,18 +116,22 @@ export function ConnectionForm({
       return;
     }
 
+    if (rateLimitPreset === "custom" && (customRateLimit < 1 || customRateLimit > 10000)) {
+      toast.error("Rate limit must be between 1 and 10,000");
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (isEdit) {
-        // PATCH existing connection.
         const res = await fetch(`/api/v1/connections/${connection.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: trimmedName,
             description: description.trim() || null,
-            rate_limit_per_hour: rateLimit,
+            rate_limit_per_hour: effectiveRateLimit,
           }),
         });
 
@@ -114,14 +144,13 @@ export function ConnectionForm({
         router.refresh();
         onSuccess();
       } else {
-        // POST new connection.
         const res = await fetch("/api/v1/connections", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: trimmedName,
             description: description.trim() || null,
-            rate_limit_per_hour: rateLimit,
+            rate_limit_per_hour: effectiveRateLimit,
           }),
         });
 
@@ -132,7 +161,6 @@ export function ConnectionForm({
 
         const result = await res.json();
 
-        // Show the one-time API key reveal.
         if (result.api_key) {
           setRevealedKey(result.api_key);
           router.refresh();
@@ -181,7 +209,6 @@ export function ConnectionForm({
             </DialogDescription>
           </DialogHeader>
 
-          {/* Key display */}
           <div className="space-y-3">
             <div className="bg-muted relative rounded-lg border p-4">
               <code className="block break-all text-sm leading-relaxed">
@@ -276,18 +303,46 @@ export function ConnectionForm({
 
           {/* Rate limit */}
           <div className="space-y-2">
-            <Label htmlFor="connection-rate-limit">
-              Rate limit (requests per hour)
-            </Label>
-            <Input
-              id="connection-rate-limit"
-              type="number"
-              min={1}
-              max={10000}
-              value={rateLimit}
-              onChange={(e) => setRateLimit(Number(e.target.value))}
+            <Label htmlFor="connection-rate-limit">Rate limit</Label>
+            <Select
+              value={rateLimitPreset}
+              onValueChange={(v) => {
+                setRateLimitPreset(v);
+                if (v !== "custom") {
+                  const preset = RATE_LIMIT_PRESETS.find((p) => p.value === v);
+                  if (preset) setCustomRateLimit(preset.rate);
+                }
+              }}
               disabled={loading}
-            />
+            >
+              <SelectTrigger id="connection-rate-limit" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {RATE_LIMIT_PRESETS.map((preset) => (
+                  <SelectItem key={preset.value} value={preset.value}>
+                    {preset.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {rateLimitPreset === "custom" && (
+              <div className="space-y-1">
+                <Input
+                  type="number"
+                  min={1}
+                  max={10000}
+                  value={customRateLimit}
+                  onChange={(e) => setCustomRateLimit(Number(e.target.value))}
+                  disabled={loading}
+                  placeholder="Requests per hour"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Between 1 and 10,000 requests per hour
+                </p>
+              </div>
+            )}
           </div>
 
           <DialogFooter>

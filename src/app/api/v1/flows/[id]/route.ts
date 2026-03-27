@@ -16,6 +16,7 @@ const priorityEnum = z.enum(["low", "medium", "high", "critical"]);
 
 const updateFlowSchema = z.object({
   name: z.string().min(1).max(200).optional(),
+  source_url: z.string().url().max(2000).nullable().optional(),
   default_priority: priorityEnum.nullable().optional(),
   default_expiration_hours: z.number().int().min(1).max(720).nullable().optional(),
   default_required_approvals: z.number().int().min(1).max(10).nullable().optional(),

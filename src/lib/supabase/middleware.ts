@@ -1,6 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const PUBLIC_PATHS = new Set([
+  "/",
+  "/about",
+  "/contact",
+  "/privacy",
+  "/security",
+  "/sitemap.xml",
+  "/robots.txt",
+]);
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -46,9 +56,7 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/approve") &&
     !request.nextUrl.pathname.startsWith("/reject") &&
     !request.nextUrl.pathname.startsWith("/docs") &&
-    request.nextUrl.pathname !== "/" &&
-    request.nextUrl.pathname !== "/sitemap.xml" &&
-    request.nextUrl.pathname !== "/robots.txt"
+    !PUBLIC_PATHS.has(request.nextUrl.pathname)
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

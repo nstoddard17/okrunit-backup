@@ -178,6 +178,12 @@ export default async function V2OrgOverviewPage() {
 
   return (
     <div className="space-y-8">
+      {/* Org header — only on overview */}
+      <div>
+        <p className="text-xs font-medium text-primary mb-0.5">Organization</p>
+        <h1 className="text-xl font-semibold tracking-tight">{org.name}</h1>
+      </div>
+
       {/* Stats row */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {stats.map((stat) => {

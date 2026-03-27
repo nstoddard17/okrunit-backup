@@ -10,7 +10,6 @@ import {
   UsersRound,
   Settings,
   CreditCard,
-  BarChart3,
   Receipt,
   Building2,
   Wallet,
@@ -48,6 +47,7 @@ export function V2OrgNav({ isAdmin, pendingInviteCount, planName, mobile }: V2Or
       icon: Building2,
       items: [
         { id: "overview", label: "Overview", href: "/org/overview", icon: LayoutDashboard },
+        { id: "organizations", label: "Organizations", href: "/org/organizations", icon: Building2 },
         { id: "teams", label: "Teams", href: "/org/teams", icon: UsersRound, adminOnly: true },
         { id: "members", label: "Members", href: "/org/members", icon: Users, adminOnly: true },
         {
@@ -72,7 +72,6 @@ export function V2OrgNav({ isAdmin, pendingInviteCount, planName, mobile }: V2Or
           adminOnly: true,
           badge: planName,
         },
-        { id: "usage", label: "Credit Usage", href: "/org/usage", icon: BarChart3, adminOnly: true },
         { id: "payments", label: "Payments", href: "/org/payments", icon: Receipt, adminOnly: true },
       ],
     },
@@ -82,7 +81,7 @@ export function V2OrgNav({ isAdmin, pendingInviteCount, planName, mobile }: V2Or
   const settingsItem: NavItem = {
     id: "settings",
     label: "Settings",
-    href: "/org/organization",
+    href: "/org/settings",
     icon: Settings,
     adminOnly: true,
   };

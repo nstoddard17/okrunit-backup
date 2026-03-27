@@ -227,10 +227,18 @@ export async function POST(request: Request) {
 
         // Fire-and-forget: bump request_count, last_request_at, and
         // decrement apply_for_next when it is a positive integer.
+        // Also update name if source_name is provided and better than auto-generated
         const flowUpdate: Record<string, unknown> = {
           request_count: existingFlow.request_count + 1,
           last_request_at: new Date().toISOString(),
         };
+
+        if (validated.source_name && existingFlow.name !== validated.source_name) {
+          flowUpdate.name = validated.source_name;
+        }
+        if (validated.source_url && existingFlow.source_url !== validated.source_url) {
+          flowUpdate.source_url = validated.source_url;
+        }
 
         if (flowStillActive && typeof existingFlow.apply_for_next === "number" && existingFlow.apply_for_next > 0) {
           flowUpdate.apply_for_next = existingFlow.apply_for_next - 1;
@@ -249,7 +257,8 @@ export async function POST(request: Request) {
             org_id: auth.orgId,
             source: validated.source,
             source_id: validated.source_id,
-            name: `${validated.source} flow ${validated.source_id}`,
+            name: validated.source_name || `${validated.source} flow ${validated.source_id}`,
+            source_url: validated.source_url ?? null,
             is_configured: false,
             request_count: 1,
             last_request_at: new Date().toISOString(),

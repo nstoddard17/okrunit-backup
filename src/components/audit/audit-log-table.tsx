@@ -7,7 +7,8 @@
 
 import { Fragment, useCallback, useMemo, useState, useTransition } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronDown, ChevronRight, FileText, Loader2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Download, FileText, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
 import type { AuditLogEntry } from "@/lib/types/database";
@@ -162,6 +163,34 @@ export function AuditLogTable({
   const hasActiveFilters =
     actionFilter !== ALL_VALUE || resourceTypeFilter !== ALL_VALUE;
 
+  function exportCsv() {
+    const headers = ["Timestamp", "Action", "Resource Type", "Resource ID", "User ID", "Connection ID", "IP Address", "Details"];
+    const rows = filteredEntries.map((entry) =>
+      [
+        new Date(entry.created_at).toISOString(),
+        entry.action,
+        entry.resource_type,
+        entry.resource_id,
+        entry.user_id ?? "",
+        entry.connection_id ?? "",
+        entry.ip_address ?? "",
+        entry.details ? JSON.stringify(entry.details).replace(/"/g, '""') : "",
+      ]
+        .map((v) => `"${v}"`)
+        .join(","),
+    );
+
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `okrunit-audit-log-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${filteredEntries.length} entries exported`);
+  }
+
   return (
     <div className="space-y-4">
       {/* ---- Filters ---- */}
@@ -203,9 +232,21 @@ export function AuditLogTable({
           </Button>
         )}
 
-        <span className="text-muted-foreground ml-auto text-sm">
-          {filteredEntries.length} of {entries.length} entries
-        </span>
+        <div className="ml-auto flex items-center gap-3">
+          <span className="text-muted-foreground text-sm">
+            {filteredEntries.length} of {entries.length} entries
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportCsv}
+            disabled={filteredEntries.length === 0}
+            className="gap-1.5"
+          >
+            <Download className="size-3.5" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* ---- Table ---- */}

@@ -24,6 +24,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { HeroNav } from "@/components/landing/hero-nav";
+import { SiteFooter } from "@/components/marketing/site-footer";
 import { PriorityBadge } from "@/components/approvals/priority-badge";
 import { SOURCE_CONFIG } from "@/components/approvals/source-icons";
 import { PLATFORM_ICONS } from "@/components/messaging/platform-card";
@@ -439,7 +440,6 @@ function FadeIn({
 function IntegrationMarquee() {
   // Double the list for seamless loop
   const items = [...marqueeIntegrations, ...marqueeIntegrations];
-  const total = items.length;
 
   return (
     <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
@@ -447,16 +447,16 @@ function IntegrationMarquee() {
         {items.map((item, i) => (
           <div
             key={`${item.label}-${i}`}
-            className="flex items-center gap-2.5 rounded-full border border-white/25 bg-white/10 px-4 py-2 backdrop-blur-sm"
+            className="flex items-center gap-2.5 rounded-full border border-white/70 bg-white/92 px-4 py-2 shadow-[0_12px_32px_rgba(15,23,42,0.10)] backdrop-blur-sm"
           >
             <Image
               src={item.src}
               alt={item.label}
               width={20}
               height={20}
-              className="size-5 object-contain brightness-0 invert"
+              className="size-5 object-contain"
             />
-            <span className="whitespace-nowrap text-sm font-medium text-white/90">
+            <span className="whitespace-nowrap text-sm font-medium text-slate-700">
               {item.label}
             </span>
           </div>
@@ -615,9 +615,51 @@ function MetricCard({
   );
 }
 
+interface SidebarNavItem {
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+  badge?: string;
+}
+
+function SidebarNavButton({ item }: { item: SidebarNavItem }) {
+  const Icon = item.icon;
+
+  return (
+    <div
+      className={cn(
+        "group flex w-full cursor-pointer flex-col items-center gap-1.5 py-3 transition-colors",
+        item.active ? "text-white" : "text-white/80",
+      )}
+    >
+      <div
+        className={cn(
+          "relative flex size-9 items-center justify-center rounded-lg transition-colors",
+          item.active ? "bg-white/20" : "group-hover:bg-white/15",
+        )}
+      >
+        <Icon className="size-[22px] shrink-0" />
+        {item.badge && (
+          <span className="absolute -right-1.5 -top-1.5 flex size-[18px] items-center justify-center rounded-full bg-white text-[9px] font-bold text-[var(--sidebar-gradient-to)]">
+            {item.badge}
+          </span>
+        )}
+      </div>
+      <span
+        className={cn(
+          "text-[11px] leading-tight",
+          item.active ? "font-semibold text-white" : "font-medium",
+        )}
+      >
+        {item.label}
+      </span>
+    </div>
+  );
+}
+
 function SidebarContext() {
-  const topItem = { label: "Org", icon: Home, active: false };
-  const navItems = [
+  const topItem: SidebarNavItem = { label: "Org", icon: Home, active: false };
+  const navItems: SidebarNavItem[] = [
     { label: "Requests", icon: ClipboardList, active: true, badge: "12" },
     { label: "Connections", icon: KeyRound, active: false },
     { label: "Routes", icon: Route, active: false },
@@ -625,34 +667,6 @@ function SidebarContext() {
     { label: "Analytics", icon: BarChart3, active: false },
     { label: "Settings", icon: Settings, active: false },
   ];
-
-  function NavItem({ item }: { item: { label: string; icon: LucideIcon; active: boolean; badge?: string } }) {
-    const Icon = item.icon;
-    return (
-      <div
-        className={cn(
-          "group flex w-full cursor-pointer flex-col items-center gap-1.5 py-3 transition-colors",
-          item.active ? "text-white" : "text-white/80",
-        )}
-      >
-        <div className={cn(
-          "relative flex size-9 items-center justify-center rounded-lg transition-colors",
-          item.active ? "bg-white/20" : "group-hover:bg-white/15",
-        )}>
-          <Icon className="size-[22px] shrink-0" />
-          {item.badge && (
-            <span className="absolute -right-1.5 -top-1.5 flex size-[18px] items-center justify-center rounded-full bg-white text-[9px] font-bold text-[var(--sidebar-gradient-to)]">
-              {item.badge}
-            </span>
-          )}
-        </div>
-        <span className={cn(
-          "text-[11px] leading-tight",
-          item.active ? "font-semibold text-white" : "font-medium",
-        )}>{item.label}</span>
-      </div>
-    );
-  }
 
   return (
     <div className="sidebar-icon-bar flex w-20 shrink-0 flex-col items-center text-white">
@@ -668,14 +682,14 @@ function SidebarContext() {
       </div>
 
       {/* First nav item */}
-      <NavItem item={topItem} />
+      <SidebarNavButton item={topItem} />
 
       {/* Divider */}
       <div className="mx-auto my-2 h-px w-7 bg-white/25" />
 
       {/* Remaining nav items */}
       {navItems.map((item) => (
-        <NavItem key={item.label} item={item} />
+        <SidebarNavButton key={item.label} item={item} />
       ))}
     </div>
   );
@@ -1322,7 +1336,17 @@ function HeroTopBar() {
 }
 
 /** Wrapper that renders children at a fixed internal width, then CSS-scales to fit the container. */
-function ScaledMockup({ children, internalWidth = 960, className }: { children: ReactNode; internalWidth?: number; className?: string }) {
+function ScaledMockup({
+  children,
+  internalWidth = 960,
+  maxViewportHeightOffset,
+  className,
+}: {
+  children: ReactNode;
+  internalWidth?: number;
+  maxViewportHeightOffset?: number;
+  className?: string;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -1332,19 +1356,35 @@ function ScaledMockup({ children, internalWidth = 960, className }: { children: 
     function measure() {
       if (!containerRef.current || !innerRef.current) return;
       const containerW = containerRef.current.offsetWidth;
-      const s = Math.min(1, containerW / internalWidth);
+      const contentHeight = innerRef.current.scrollHeight || innerRef.current.offsetHeight;
+      let s = Math.min(1, containerW / internalWidth);
+
+      if (maxViewportHeightOffset !== undefined && contentHeight > 0) {
+        const viewportHeight = Math.max(240, window.innerHeight - maxViewportHeightOffset);
+        s = Math.min(s, viewportHeight / contentHeight);
+      }
+
       setScale(s);
-      setHeight(innerRef.current.offsetHeight * s);
+      setHeight(contentHeight * s);
     }
+
     measure();
     const ro = new ResizeObserver(measure);
     if (containerRef.current) ro.observe(containerRef.current);
     if (innerRef.current) ro.observe(innerRef.current);
-    return () => ro.disconnect();
-  }, [internalWidth]);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [internalWidth, maxViewportHeightOffset]);
 
   return (
-    <div ref={containerRef} className={cn("relative overflow-hidden", className)} style={{ height }}>
+    <div
+      ref={containerRef}
+      className={cn("relative w-full min-w-0 overflow-hidden", className)}
+      style={{ height }}
+    >
       <div
         ref={innerRef}
         style={{
@@ -1408,7 +1448,11 @@ function HeroMockupContent() {
 
 function HeroProductSystem() {
   return (
-    <ScaledMockup internalWidth={680} className="max-h-[calc(100vh-12rem)] overflow-hidden">
+    <ScaledMockup
+      internalWidth={640}
+      maxViewportHeightOffset={320}
+      className="mx-auto w-full max-w-[640px] overflow-hidden"
+    >
       <HeroMockupContent />
     </ScaledMockup>
   );
@@ -1460,14 +1504,16 @@ function ScrollFeatures({ steps }: { steps: FeatureStep[] }) {
                   <div
                     className={cn(
                       "space-y-4 transition-opacity duration-500",
-                      activeIndex === i ? "opacity-100" : "lg:opacity-30",
+                      activeIndex === i ? "opacity-100" : "lg:opacity-50",
                     )}
                   >
                     <SectionEyebrow>{step.eyebrow}</SectionEyebrow>
-                    <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                    <h2 className="text-2xl font-semibold tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.18)] sm:text-3xl">
                       {step.title}
                     </h2>
-                    <p className="text-base leading-7 text-white/70">{step.description}</p>
+                    <p className="text-base leading-8 text-emerald-50/92 drop-shadow-[0_1px_8px_rgba(0,0,0,0.12)]">
+                      {step.description}
+                    </p>
                   </div>
 
                   {/* Mobile: show visual inline */}
@@ -1493,6 +1539,7 @@ function ScrollFeatures({ steps }: { steps: FeatureStep[] }) {
             </div>
           </div>
         </div>
+        <div aria-hidden className="hidden lg:block lg:h-[20rem] xl:h-[24rem]" />
       </div>
     </section>
   );
@@ -1536,16 +1583,16 @@ export function LandingPage({ user }: LandingPageProps) {
 
       <main>
         <section id="hero" className="relative bg-[linear-gradient(180deg,#e8f5e9_0%,#c8e6c9_25%,#81c784_55%,#2e7d32_85%,#1b5e20_100%)]">
-          <div className="mx-auto max-w-7xl px-4 pb-8 pt-10 sm:px-6 lg:px-8 lg:pb-12 lg:pt-12">
-            <div className="grid gap-8 lg:gap-10 lg:grid-cols-[1fr_1.3fr] lg:items-center">
-              <FadeIn>
-                <div className="max-w-xl space-y-6">
+          <div className="mx-auto flex max-w-7xl flex-col px-4 pb-6 pt-8 sm:px-6 sm:pb-8 sm:pt-10 lg:min-h-[calc(100svh-69px)] lg:px-8 lg:pb-6 lg:pt-6 xl:pb-12 xl:pt-12">
+            <div className="grid gap-8 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-center lg:gap-6 xl:gap-10">
+              <FadeIn className="min-w-0">
+                <div className="min-w-0 max-w-xl space-y-6 lg:max-w-[31rem] xl:max-w-xl">
                   <SectionEyebrow>Human-in-the-Loop Approvals</SectionEyebrow>
                   <div className="space-y-5">
-                    <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-[3.25rem] lg:leading-[1.15]">
+                    <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-[3rem] lg:leading-[1.12] xl:text-[3.25rem] xl:leading-[1.15]">
                       The approval gateway for your automations and AI&nbsp;agents.
                     </h1>
-                    <p className="text-lg leading-8 text-slate-700">
+                    <p className="text-lg leading-8 text-slate-700 lg:text-[1.0625rem] lg:leading-7 xl:text-lg xl:leading-8">
                       Route high-risk actions from Zapier, Make, n8n, GitHub Actions, and any API
                       through a human approval queue before they execute. One dashboard for every
                       workflow that needs a second pair of eyes.
@@ -1575,15 +1622,17 @@ export function LandingPage({ user }: LandingPageProps) {
                 </div>
               </FadeIn>
 
-              <FadeIn delay={120}>
-                <HeroProductSystem />
+              <FadeIn delay={120} className="min-w-0 w-full">
+                <div className="min-w-0">
+                  <HeroProductSystem />
+                </div>
               </FadeIn>
             </div>
 
             {/* Integration marquee — full width below hero grid */}
             <FadeIn delay={200}>
-              <div className="mt-12 space-y-4">
-                <p className="text-center text-sm font-medium text-white/80">
+              <div className="mt-10 space-y-4 sm:mt-12 lg:mt-6 xl:mt-12">
+                <p className="text-center text-sm font-medium text-white/85">
                   Works with your existing tools
                 </p>
                 <IntegrationMarquee />
@@ -1593,7 +1642,7 @@ export function LandingPage({ user }: LandingPageProps) {
         </section>
 
         {/* Dark scrollytelling feature section */}
-        <div className="bg-[#1b5e20]">
+        <div className="relative bg-[#1b5e20]">
           <ScrollFeatures
             steps={[
               {
@@ -1651,9 +1700,13 @@ export function LandingPage({ user }: LandingPageProps) {
               },
             ]}
           />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-64 bg-gradient-to-b from-transparent via-[#1b5e20] to-[#1b5e20] lg:block"
+          />
         </div>
 
-        <section className="bg-[linear-gradient(180deg,#1b5e20_0%,#2e7d32_15%,#81c784_45%,#c8e6c9_75%,#e8f5e9_100%)] py-20 sm:py-24">
+        <section className="bg-[linear-gradient(180deg,#1b5e20_0%,#2e7d32_12%,#81c784_42%,#c8e6c9_74%,#e8f5e9_100%)] py-16 sm:py-20 lg:py-[4.5rem]">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <FadeIn>
               <div className="mx-auto max-w-2xl text-center">
@@ -1690,27 +1743,7 @@ export function LandingPage({ user }: LandingPageProps) {
         </section>
       </main>
 
-      <footer className="border-t border-green-200 bg-[#e8f5e9]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 text-sm text-slate-500 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div className="flex items-center gap-2">
-            <Image src="/logo-icon.png" alt="OKRunit" width={24} height={24} className="size-6 object-contain" />
-            <span className="font-semibold text-slate-700">OKRunit</span>
-            <span className="text-slate-300">·</span>
-            <span>Human approval for automations and agents</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-4">
-            <Link href="/docs" className="transition-colors hover:text-slate-950">
-              Docs
-            </Link>
-            <Link href="/login" className="transition-colors hover:text-slate-950">
-              Log in
-            </Link>
-            <Link href="/signup" className="transition-colors hover:text-slate-950">
-              Sign up
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

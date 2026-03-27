@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DocsImage } from "@/components/docs/docs-image";
 
 export const metadata: Metadata = {
   title: "Changelog",
@@ -63,6 +64,12 @@ export default function ChangelogPage() {
       <p className="mt-2 text-base text-zinc-500">
         A history of updates, improvements, and new features in OKRunit.
       </p>
+
+      <DocsImage
+        src="/screenshots/docs/dashboard-overview.png"
+        alt="OKRunit dashboard showing the current state of the product"
+        caption="The OKRunit dashboard as of v1.0.0."
+      />
 
       <div className="mt-10 space-y-0">
         {releases.map((release, i) => (

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Unplug, UsersRound, Calendar, Crown, Shield, User } from "lucide-react";
+import { Crown, Shield, User } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,9 @@ const roleConfig = {
 interface V2OrgSettingsProps {
   org: Organization;
   role: UserRole;
-  memberCount: number;
-  connectionCount: number;
-  teamCount: number;
 }
 
-export function V2OrgSettings({ org, role, memberCount, connectionCount, teamCount }: V2OrgSettingsProps) {
+export function V2OrgSettings({ org, role }: V2OrgSettingsProps) {
   const router = useRouter();
   const [name, setName] = useState(org.name);
   const [saving, setSaving] = useState(false);
@@ -56,38 +53,9 @@ export function V2OrgSettings({ org, role, memberCount, connectionCount, teamCou
   }
 
   return (
-    <div className="space-y-10">
-      {/* Stats row */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[
-          { icon: Users, label: "Members", value: memberCount, color: "text-violet-500", bg: "bg-violet-500/10" },
-          { icon: Unplug, label: "Connections", value: connectionCount, color: "text-blue-500", bg: "bg-blue-500/10" },
-          { icon: UsersRound, label: "Teams", value: teamCount, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-          {
-            icon: Calendar,
-            label: "Created",
-            value: new Date(org.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }),
-            color: "text-amber-500",
-            bg: "bg-amber-500/10",
-          },
-        ].map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className="rounded-xl border border-border/50 p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`flex size-7 items-center justify-center rounded-lg ${stat.bg}`}>
-                  <Icon className={`size-3.5 ${stat.color}`} />
-                </div>
-                <span className="text-xs text-muted-foreground">{stat.label}</span>
-              </div>
-              <p className="text-xl font-bold tracking-tight">{stat.value}</p>
-            </div>
-          );
-        })}
-      </div>
-
+    <div className="space-y-6">
       {/* Settings rows */}
-      <div className="rounded-xl border border-border/50 divide-y divide-border/40">
+      <div className="rounded-xl border border-border/50 bg-[var(--card)] divide-y divide-border/40">
         {/* Organization name */}
         <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
           <div className="space-y-1 flex-1">

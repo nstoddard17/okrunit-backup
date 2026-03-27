@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { DocsImage } from "@/components/docs/docs-image";
 
 export const metadata: Metadata = {
   title: "API Reference",
@@ -78,8 +80,32 @@ export default function ApiReferencePage() {
       <p className="mt-4 text-lg text-zinc-600 leading-relaxed">
         The OKRunit REST API lets you create approval requests, check their
         status, and manage decisions programmatically. All endpoints are under
-        the <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">/api/v1</code> base path.
+        the{" "}
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+          /api/v1
+        </code>{" "}
+        base path.
       </p>
+
+      <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+        <h3 className="font-semibold text-emerald-900">
+          Prefer no-code?
+        </h3>
+        <p className="mt-1 text-sm text-emerald-800">
+          You don&apos;t need to use the API directly. The easiest way to connect
+          is to select the OKRunit node inside your automation platform (Zapier,
+          Make, n8n, etc.) and connect your account — no code required.{" "}
+          <Link href="/docs/integrations" className="underline font-medium">
+            See Integrations &rarr;
+          </Link>
+        </p>
+      </div>
+
+      <DocsImage
+        src="/screenshots/docs/api-playground.png"
+        alt="OKRunit API Playground for testing API calls interactively"
+        caption="Use the API Playground in the dashboard to test API calls interactively before writing code."
+      />
 
       {/* Base URL */}
       <h2 className="mt-12 text-2xl font-semibold text-zinc-900">Base URL</h2>
@@ -100,35 +126,77 @@ export default function ApiReferencePage() {
       </h3>
       <p className="mt-2 text-zinc-700">
         Each connection has an API key with the{" "}
-        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">gk_</code> prefix followed
-        by 64 hex characters. Pass it as a Bearer token:
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+          gk_
+        </code>{" "}
+        prefix followed by 64 hex characters. Pass it as a Bearer token:
       </p>
       <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm">
         <code className="text-zinc-100">{`Authorization: Bearer gk_a1b2c3d4e5f6...`}</code>
       </pre>
-      <p className="mt-3 text-sm text-zinc-500">
-        API keys are SHA-256 hashed before storage. Once generated, the raw key
-        cannot be retrieved again.
-      </p>
+
+      <h4 className="mt-4 text-base font-semibold text-zinc-900">
+        How to get an API key
+      </h4>
+      <ol className="mt-2 space-y-2 text-sm text-zinc-700">
+        <li className="flex gap-2">
+          <span className="font-bold">1.</span>
+          <span>
+            Go to{" "}
+            <Link href="/connections" className="text-emerald-600 hover:underline">
+              Connections
+            </Link>{" "}
+            in the dashboard
+          </span>
+        </li>
+        <li className="flex gap-2">
+          <span className="font-bold">2.</span>
+          <span>Click <strong>New Connection</strong></span>
+        </li>
+        <li className="flex gap-2">
+          <span className="font-bold">3.</span>
+          <span>Give it a name and save</span>
+        </li>
+        <li className="flex gap-2">
+          <span className="font-bold">4.</span>
+          <span>
+            Copy the API key immediately — it&apos;s SHA-256 hashed before
+            storage and cannot be retrieved again
+          </span>
+        </li>
+      </ol>
+
+      <DocsImage
+        src="/screenshots/docs/connections-list.png"
+        alt="Connections page showing API key management"
+        caption="Create and manage API keys from the Connections page."
+      />
 
       <h3 className="mt-6 text-lg font-semibold text-zinc-900">
         OAuth 2.0 (with PKCE)
       </h3>
       <p className="mt-2 text-zinc-700">
-        For user-facing integrations, OKRunit supports OAuth 2.0 with PKCE.
+        For user-facing integrations (like Zapier, Make, and other platforms
+        that connect on behalf of users), OKRunit supports OAuth 2.0 with PKCE.
         Available scopes:
       </p>
       <ul className="mt-2 space-y-1 text-sm text-zinc-700">
         <li>
-          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">approvals:read</code>{" "}
+          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">
+            approvals:read
+          </code>{" "}
           &mdash; Read approval requests and their status
         </li>
         <li>
-          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">approvals:write</code>{" "}
+          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">
+            approvals:write
+          </code>{" "}
           &mdash; Create, approve, reject, and cancel approval requests
         </li>
         <li>
-          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">comments:write</code>{" "}
+          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">
+            comments:write
+          </code>{" "}
           &mdash; Add comments to approval requests
         </li>
       </ul>
@@ -140,7 +208,8 @@ export default function ApiReferencePage() {
       <p className="mt-4 text-zinc-700">
         API requests are rate-limited per connection. The default limit is{" "}
         <strong>100 requests per hour</strong> per connection, configurable up to
-        10,000/hour. Rate limit headers are included in every response:
+        10,000/hour depending on your plan. Rate limit headers are included in
+        every response:
       </p>
       <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm">
         <code className="text-zinc-100">{`X-RateLimit-Limit: 100
@@ -149,7 +218,10 @@ X-RateLimit-Reset: 1711296000`}</code>
       </pre>
       <p className="mt-3 text-sm text-zinc-500">
         When the limit is exceeded, the API returns HTTP 429 with a{" "}
-        <code className="rounded bg-zinc-100 px-1 py-0.5 text-zinc-800">Retry-After</code> header.
+        <code className="rounded bg-zinc-100 px-1 py-0.5 text-zinc-800">
+          Retry-After
+        </code>{" "}
+        header.
       </p>
 
       {/* Response Format */}
@@ -157,8 +229,8 @@ X-RateLimit-Reset: 1711296000`}</code>
         Response Format
       </h2>
       <p className="mt-4 text-zinc-700">
-        All successful responses return JSON. Error responses follow a
-        consistent structure:
+        All successful responses return JSON. Error responses follow a consistent
+        structure:
       </p>
       <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
         <code className="text-zinc-100">{`{
@@ -205,7 +277,9 @@ X-RateLimit-Reset: 1711296000`}</code>
             </tr>
             <tr className="border-b border-zinc-100">
               <td className="py-2 pr-4 font-mono">409</td>
-              <td className="py-2">Conflict (e.g. duplicate idempotency key)</td>
+              <td className="py-2">
+                Conflict (e.g. duplicate idempotency key)
+              </td>
             </tr>
             <tr className="border-b border-zinc-100">
               <td className="py-2 pr-4 font-mono">429</td>
@@ -268,6 +342,76 @@ X-RateLimit-Reset: 1711296000`}</code>
   "expires_at": "2026-03-25T10:00:00.000Z"
 }`}
       />
+
+      <div className="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+        <h4 className="font-semibold text-zinc-900">Request body fields</h4>
+        <div className="mt-3 space-y-2 text-sm text-zinc-700">
+          <div>
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">title</code>{" "}
+            <span className="text-red-600 text-xs font-medium">required</span> — Short
+            description of what needs approval
+          </div>
+          <div>
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">description</code>{" "}
+            <span className="text-red-600 text-xs font-medium">required</span> — Detailed
+            context for the approver
+          </div>
+          <div>
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">priority</code>{" "}
+            <span className="text-red-600 text-xs font-medium">required</span> — One of:
+            low, medium, high, critical
+          </div>
+          <div>
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">callback_url</code>{" "}
+            <span className="text-zinc-400 text-xs">optional</span> — URL to POST the
+            decision to (see{" "}
+            <Link href="/docs/webhooks" className="text-emerald-600 hover:underline">
+              Webhooks
+            </Link>
+            )
+          </div>
+          <div>
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">callback_headers</code>{" "}
+            <span className="text-zinc-400 text-xs">optional</span> — Custom headers
+            included in the webhook callback
+          </div>
+          <div>
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">action_type</code>{" "}
+            <span className="text-zinc-400 text-xs">optional</span> — Custom label for
+            filtering and routing (e.g. &quot;user.delete&quot;, &quot;deploy.production&quot;)
+          </div>
+          <div>
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">metadata</code>{" "}
+            <span className="text-zinc-400 text-xs">optional</span> — Arbitrary JSON
+            object passed through to the callback
+          </div>
+          <div>
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">expires_at</code>{" "}
+            <span className="text-zinc-400 text-xs">optional</span> — ISO 8601 timestamp;
+            auto-expires if no decision by this time
+          </div>
+          <div>
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">required_approvals</code>{" "}
+            <span className="text-zinc-400 text-xs">optional</span> — Number of approvals
+            needed (default: 1)
+          </div>
+          <div>
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">is_sequential</code>{" "}
+            <span className="text-zinc-400 text-xs">optional</span> — If true, approvers
+            must approve in order (default: false)
+          </div>
+          <div>
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">source</code>{" "}
+            <span className="text-zinc-400 text-xs">optional</span> — Name of the
+            integration for filtering and analytics
+          </div>
+          <div>
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-800">idempotency_key</code>{" "}
+            <span className="text-zinc-400 text-xs">optional</span> — Prevents duplicate
+            requests (see Idempotency below)
+          </div>
+        </div>
+      </div>
 
       <Endpoint
         method="GET"
@@ -371,11 +515,13 @@ X-RateLimit-Reset: 1711296000`}</code>
 
       {/* --- Steps --- */}
       <h3 className="mt-12 text-xl font-semibold text-zinc-900">
-        Approval Steps
+        Approval Steps (Multi-Step)
       </h3>
       <p className="mt-2 text-zinc-600">
         Multi-step approvals allow you to configure sequential or parallel
-        approval chains. Each step can have a different approver.
+        approval chains. Each step can have a different approver. This is useful
+        for workflows that require sign-off from multiple people (e.g. manager
+        then legal).
       </p>
 
       <Endpoint
@@ -456,8 +602,11 @@ X-RateLimit-Reset: 1711296000`}</code>
         Query Parameters
       </h2>
       <p className="mt-4 text-zinc-700">
-        The list approvals endpoint (<code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">GET /api/v1/approvals</code>)
-        supports the following query parameters:
+        The list approvals endpoint (
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+          GET /api/v1/approvals
+        </code>
+        ) supports the following query parameters:
       </p>
 
       <div className="mt-4 overflow-x-auto">
@@ -509,18 +658,101 @@ X-RateLimit-Reset: 1711296000`}</code>
         </table>
       </div>
 
+      <h3 className="mt-6 text-lg font-semibold text-zinc-900">
+        Example: filtering requests
+      </h3>
+      <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
+        <code className="text-zinc-100">{`# Get all pending high-priority requests
+curl "https://okrunit.com/api/v1/approvals?status=pending&priority=high" \\
+  -H "Authorization: Bearer gk_your_api_key"
+
+# Search requests by keyword
+curl "https://okrunit.com/api/v1/approvals?search=deploy+production" \\
+  -H "Authorization: Bearer gk_your_api_key"
+
+# Paginate through results
+curl "https://okrunit.com/api/v1/approvals?page=2&page_size=50" \\
+  -H "Authorization: Bearer gk_your_api_key"`}</code>
+      </pre>
+
       {/* Idempotency */}
       <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
         Idempotency
       </h2>
       <p className="mt-4 text-zinc-700">
-        To prevent duplicate approval requests, include an{" "}
-        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">idempotency_key</code> in
-        your create request. If a request with the same key already exists
+        To prevent duplicate approval requests (e.g. if your automation retries
+        on a timeout), include an{" "}
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+          idempotency_key
+        </code>{" "}
+        in your create request. If a request with the same key already exists
         within your organization, the API returns the existing request with a
-        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800"> 200</code> status
-        instead of creating a duplicate.
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
+          {" "}
+          200
+        </code>{" "}
+        status instead of creating a duplicate.
       </p>
+      <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
+        <code className="text-zinc-100">{`curl -X POST https://okrunit.com/api/v1/approvals \\
+  -H "Authorization: Bearer gk_your_api_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "title": "Deploy v2.4.0",
+    "description": "Production release",
+    "priority": "high",
+    "idempotency_key": "deploy-v2.4.0-20260324"
+  }'
+
+# If you send the exact same request again with the same key,
+# you'll get back the existing request (200) instead of a new one (201)`}</code>
+      </pre>
+
+      {/* Code examples */}
+      <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
+        Code examples
+      </h2>
+
+      <h3 className="mt-6 text-lg font-semibold text-zinc-900">
+        Node.js / TypeScript
+      </h3>
+      <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
+        <code className="text-zinc-100">{`const response = await fetch("https://okrunit.com/api/v1/approvals", {
+  method: "POST",
+  headers: {
+    Authorization: "Bearer gk_your_api_key",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    title: "Deploy v2.4.0 to production",
+    description: "Release includes database migration",
+    priority: "high",
+    callback_url: "https://your-app.com/webhooks/okrunit",
+  }),
+});
+
+const approval = await response.json();
+console.log(approval.id, approval.status); // "a1b2c3d4-..." "pending"`}</code>
+      </pre>
+
+      <h3 className="mt-6 text-lg font-semibold text-zinc-900">Python</h3>
+      <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
+        <code className="text-zinc-100">{`import requests
+
+response = requests.post(
+    "https://okrunit.com/api/v1/approvals",
+    headers={"Authorization": "Bearer gk_your_api_key"},
+    json={
+        "title": "Deploy v2.4.0 to production",
+        "description": "Release includes database migration",
+        "priority": "high",
+        "callback_url": "https://your-app.com/webhooks/okrunit",
+    },
+)
+
+approval = response.json()
+print(approval["id"], approval["status"])  # "a1b2c3d4-..." "pending"`}</code>
+      </pre>
     </article>
   );
 }

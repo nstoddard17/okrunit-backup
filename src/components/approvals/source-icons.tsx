@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe, Link2, Code2, Workflow } from "lucide-react";
+import { Bot, Globe, Link2, Cloud, Code2, GitBranch, Rocket, Server, Workflow, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ApprovalRequest } from "@/lib/types/database";
 
@@ -77,6 +77,84 @@ export const SOURCE_CONFIG: Record<string, SourceDisplayConfig> = {
     icon: Workflow,
     color: "text-sky-600",
     bgColor: "bg-sky-100",
+  },
+  pipedream: {
+    label: "Pipedream",
+    icon: Zap,
+    color: "text-emerald-600",
+    bgColor: "bg-emerald-100",
+  },
+  "github-actions": {
+    label: "GitHub Actions",
+    icon: GitBranch,
+    color: "text-gray-800",
+    bgColor: "bg-gray-100",
+  },
+  "power-automate": {
+    label: "Power Automate",
+    icon: Workflow,
+    color: "text-blue-700",
+    bgColor: "bg-blue-100",
+  },
+  temporal: {
+    label: "Temporal",
+    icon: Server,
+    color: "text-indigo-600",
+    bgColor: "bg-indigo-100",
+  },
+  prefect: {
+    label: "Prefect",
+    icon: Workflow,
+    color: "text-blue-600",
+    bgColor: "bg-blue-100",
+  },
+  dagster: {
+    label: "Dagster",
+    icon: Workflow,
+    color: "text-purple-600",
+    bgColor: "bg-purple-100",
+  },
+  langchain: {
+    label: "LangChain",
+    icon: Bot,
+    color: "text-teal-600",
+    bgColor: "bg-teal-100",
+  },
+  crewai: {
+    label: "CrewAI",
+    icon: Bot,
+    color: "text-red-600",
+    bgColor: "bg-red-100",
+  },
+  autogen: {
+    label: "AutoGen",
+    icon: Bot,
+    color: "text-cyan-600",
+    bgColor: "bg-cyan-100",
+  },
+  retool: {
+    label: "Retool",
+    icon: Code2,
+    color: "text-orange-700",
+    bgColor: "bg-orange-100",
+  },
+  terraform: {
+    label: "Terraform",
+    icon: Cloud,
+    color: "text-violet-700",
+    bgColor: "bg-violet-100",
+  },
+  vercel: {
+    label: "Vercel",
+    icon: Rocket,
+    color: "text-gray-900",
+    bgColor: "bg-gray-100",
+  },
+  netlify: {
+    label: "Netlify",
+    icon: Rocket,
+    color: "text-teal-700",
+    bgColor: "bg-teal-100",
   },
   api: {
     label: "API",

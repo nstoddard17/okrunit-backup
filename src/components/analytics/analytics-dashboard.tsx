@@ -1,7 +1,9 @@
 "use client";
 
 import { StatCard } from "@/components/ui/stat-card";
-import { Clock, CheckCircle, Timer, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Clock, CheckCircle, Timer, BarChart3, Download } from "lucide-react";
+import { toast } from "sonner";
 import type { VolumeDataPoint } from "./volume-chart";
 import type { ApprovalRateDataPoint } from "./approval-rate-chart";
 import type { ResponseTimeDataPoint } from "./response-time-chart";
@@ -46,8 +48,61 @@ export function AnalyticsDashboard({
   const makeTrend = (value: number | null, label: string) =>
     value !== null ? { value, label } : undefined;
 
+  function exportCsv() {
+    // Merge all chart data by date into a single CSV
+    const dateMap = new Map<string, Record<string, string | number>>();
+
+    for (const d of volumeData) {
+      dateMap.set(d.date, { date: d.date, requests: d.count });
+    }
+    for (const d of approvalRateData) {
+      const row = dateMap.get(d.date) ?? { date: d.date };
+      row.approved = d.approved;
+      row.rejected = d.rejected;
+      dateMap.set(d.date, row);
+    }
+    for (const d of responseTimeData) {
+      const row = dateMap.get(d.date) ?? { date: d.date };
+      row.avg_response_hours = d.avg_response_time_hours;
+      dateMap.set(d.date, row);
+    }
+
+    const headers = ["Date", "Requests", "Approved", "Rejected", "Avg Response Time (hrs)"];
+    const rows = Array.from(dateMap.values())
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+      .map((row) =>
+        [
+          row.date,
+          row.requests ?? 0,
+          row.approved ?? 0,
+          row.rejected ?? 0,
+          typeof row.avg_response_hours === "number"
+            ? row.avg_response_hours.toFixed(2)
+            : "0.00",
+        ].join(","),
+      );
+
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `okrunit-analytics-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Analytics exported");
+  }
+
   return (
     <div className="space-y-8">
+      {/* Header with export */}
+      <div className="flex items-center justify-end">
+        <Button variant="outline" size="sm" onClick={exportCsv} className="gap-1.5">
+          <Download className="size-3.5" />
+          Export CSV
+        </Button>
+      </div>
+
       {/* Stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard

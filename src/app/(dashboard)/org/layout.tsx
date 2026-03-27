@@ -67,10 +67,6 @@ export default async function OrgLayout({
       {/* Main content — fills remaining space */}
       <main className="flex-1 min-w-0">
         <div className="px-6 lg:px-8 py-6">
-          <div className="mb-6">
-            <p className="text-xs font-medium text-primary mb-0.5">Organization</p>
-            <h1 className="text-xl font-semibold tracking-tight">{org.name}</h1>
-          </div>
           {children}
         </div>
       </main>
