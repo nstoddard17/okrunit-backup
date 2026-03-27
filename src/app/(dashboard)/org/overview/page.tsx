@@ -128,6 +128,14 @@ export default async function V2OrgOverviewPage() {
       href: null,
     },
     {
+      label: "Approval Rate",
+      value: `${approvalRate}%`,
+      icon: TrendingUp,
+      color: "text-emerald-500",
+      bg: "bg-emerald-500/10",
+      href: null,
+    },
+    {
       label: "Connections",
       value: connectionCount ?? 0,
       icon: Unplug,
@@ -170,22 +178,22 @@ export default async function V2OrgOverviewPage() {
 
   return (
     <div className="space-y-8">
-      {/* Stats + Metrics row */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      {/* Stats row */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {stats.map((stat) => {
           const Icon = stat.icon;
           const inner = (
-            <div className="group relative rounded-xl border border-border/50 bg-white p-4 transition-colors hover:border-border">
-              <div className="flex items-center justify-between mb-3">
-                <div className={`flex size-9 items-center justify-center rounded-lg ${stat.bg}`}>
-                  <Icon className={`size-4.5 ${stat.color}`} strokeWidth={1.75} />
-                </div>
-                {stat.href && (
-                  <ArrowUpRight className="size-3.5 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground" />
-                )}
+            <div className="group relative flex items-center gap-3 rounded-xl border border-border/50 bg-[var(--card)] px-4 py-3.5 transition-colors hover:border-border">
+              <div className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${stat.bg}`}>
+                <Icon className={`size-5 ${stat.color}`} strokeWidth={1.75} />
               </div>
-              <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
+              <div className="min-w-0">
+                <p className="text-2xl font-bold tracking-tight leading-none">{stat.value}</p>
+                <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+              </div>
+              {stat.href && (
+                <ArrowUpRight className="absolute right-3 top-3 size-3.5 text-muted-foreground/30 transition-colors group-hover:text-muted-foreground" />
+              )}
             </div>
           );
           return stat.href ? (
@@ -194,23 +202,6 @@ export default async function V2OrgOverviewPage() {
             <div key={stat.label}>{inner}</div>
           );
         })}
-
-        {/* Approval rate card — inline with stats */}
-        <div className="rounded-xl border border-border/50 bg-white p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10">
-              <TrendingUp className="size-4.5 text-emerald-500" strokeWidth={1.75} />
-            </div>
-          </div>
-          <p className="text-2xl font-bold tracking-tight">{approvalRate}%</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Approval Rate</p>
-          <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full bg-emerald-500 transition-all"
-              style={{ width: `${approvalRate}%` }}
-            />
-          </div>
-        </div>
       </div>
 
       {/* Recent activity — request card style */}
@@ -234,7 +225,7 @@ export default async function V2OrgOverviewPage() {
               <Link
                 key={item.id}
                 href="/requests"
-                className={`group flex items-center gap-3 rounded-xl border-0 border-l-4 bg-white px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] ${
+                className={`group flex items-center gap-3 rounded-xl border-0 border-l-4 bg-[var(--card)] px-4 py-3 shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-card-hover)] ${
                   statusBorderColor[item.status] ?? "border-l-zinc-300"
                 }`}
               >

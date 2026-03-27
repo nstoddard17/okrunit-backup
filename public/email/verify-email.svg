@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" fill="none">
+  <!-- Envelope body -->
+  <rect x="40" y="50" width="160" height="110" rx="12" fill="#fff" stroke="#c8e6c9" stroke-width="2"/>
+  <!-- Envelope flap -->
+  <path d="M40 62 L120 115 L200 62" fill="#e8f5e9" stroke="#c8e6c9" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Checkmark circle -->
+  <circle cx="165" cy="55" r="28" fill="#4caf50"/>
+  <circle cx="165" cy="55" r="24" fill="#fff"/>
+  <path d="M153 55 L162 64 L178 48" stroke="#4caf50" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Decorative dots -->
+  <circle cx="75" cy="95" r="4" fill="#c8e6c9"/>
+  <circle cx="90" cy="105" r="3" fill="#a5d6a7"/>
+  <circle cx="105" cy="95" r="5" fill="#e8f5e9"/>
+  <!-- Letter lines -->
+  <rect x="70" y="120" width="60" height="4" rx="2" fill="#e8f5e9"/>
+  <rect x="70" y="130" width="45" height="4" rx="2" fill="#e8f5e9"/>
+</svg>

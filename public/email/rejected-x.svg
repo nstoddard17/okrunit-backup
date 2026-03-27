@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200" fill="none">
+  <!-- Document -->
+  <rect x="60" y="30" width="120" height="150" rx="12" fill="#fff" stroke="#ef9a9a" stroke-width="2"/>
+  <rect x="80" y="70" width="80" height="5" rx="2.5" fill="#ffebee"/>
+  <rect x="80" y="85" width="60" height="4" rx="2" fill="#fce4ec"/>
+  <rect x="80" y="100" width="70" height="4" rx="2" fill="#ffebee"/>
+  <rect x="80" y="115" width="50" height="4" rx="2" fill="#fce4ec"/>
+  <!-- X circle -->
+  <circle cx="160" cy="50" r="32" fill="#f44336"/>
+  <circle cx="160" cy="50" r="27" fill="#fff"/>
+  <path d="M150 40 L170 60" stroke="#f44336" stroke-width="5" stroke-linecap="round"/>
+  <path d="M170 40 L150 60" stroke="#f44336" stroke-width="5" stroke-linecap="round"/>
+  <!-- Subtle accents -->
+  <circle cx="50" cy="70" r="3" fill="#ffcdd2"/>
+  <circle cx="195" cy="90" r="4" fill="#ffebee"/>
+  <circle cx="45" cy="120" r="2" fill="#ef9a9a"/>
+</svg>

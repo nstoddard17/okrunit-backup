@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200" fill="none">
+  <!-- Cloud bg -->
+  <ellipse cx="120" cy="170" rx="80" ry="12" fill="#e8f5e9"/>
+  <!-- Rocket body -->
+  <path d="M120 30 C120 30 95 70 95 120 L145 120 C145 70 120 30 120 30Z" fill="#37474f"/>
+  <path d="M120 30 C120 30 108 60 105 90 L135 90 C132 60 120 30 120 30Z" fill="#546e7a"/>
+  <!-- Window -->
+  <circle cx="120" cy="80" r="12" fill="#e8f5e9" stroke="#c8e6c9" stroke-width="2"/>
+  <circle cx="120" cy="80" r="7" fill="#4caf50"/>
+  <!-- Fins -->
+  <path d="M95 110 L75 140 L95 130Z" fill="#4caf50"/>
+  <path d="M145 110 L165 140 L145 130Z" fill="#4caf50"/>
+  <!-- Flame -->
+  <path d="M108 120 L120 155 L132 120Z" fill="#ff9800"/>
+  <path d="M113 120 L120 145 L127 120Z" fill="#ffc107"/>
+  <!-- Stars -->
+  <circle cx="60" cy="50" r="3" fill="#c8e6c9"/>
+  <circle cx="180" cy="40" r="4" fill="#a5d6a7"/>
+  <circle cx="50" cy="90" r="2" fill="#e8f5e9"/>
+  <circle cx="190" cy="80" r="3" fill="#e8f5e9"/>
+  <circle cx="170" cy="110" r="2" fill="#c8e6c9"/>
+</svg>

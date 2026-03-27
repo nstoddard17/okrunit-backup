@@ -1,29 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   CheckCircle2,
   Loader2,
   Mail,
   Monitor,
-  ShieldCheck,
   Smartphone,
-  Sparkles,
+  Code2,
+  Copy,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface EmailPreview {
   id: string;
   name: string;
   description: string;
+  category: string;
   html: string;
 }
+
+const DESKTOP_FRAME_WIDTH = 700;
+const MOBILE_FRAME_WIDTH = 390;
+
+const CATEGORY_ORDER = [
+  "Onboarding",
+  "Approvals",
+  "Billing",
+  "Reports",
+  "Account",
+];
 
 export function EmailPreviewClient() {
   const [previews, setPreviews] = useState<EmailPreview[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
   const [viewport, setViewport] = useState<"desktop" | "mobile">("desktop");
+  const [showSource, setShowSource] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -41,10 +58,26 @@ export function EmailPreviewClient() {
   }, []);
 
   const activePreview = previews.find((p) => p.id === selected);
+  const frameWidth =
+    viewport === "desktop" ? DESKTOP_FRAME_WIDTH : MOBILE_FRAME_WIDTH;
+
+  async function handleCopyHtml() {
+    if (!activePreview) return;
+    await navigator.clipboard.writeText(activePreview.html);
+    setCopied(true);
+    toast.success("HTML copied to clipboard");
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  // Group previews by category
+  const grouped = CATEGORY_ORDER.map((cat) => ({
+    category: cat,
+    items: previews.filter((p) => p.category === cat),
+  })).filter((g) => g.items.length > 0);
 
   if (loading) {
     return (
-      <div className="flex min-h-[480px] items-center justify-center rounded-[28px] border border-border/60 bg-white shadow-[var(--shadow-card)]">
+      <div className="flex min-h-[480px] items-center justify-center rounded-2xl border border-border/60 bg-white">
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <Loader2 className="size-5 animate-spin" />
           Loading email previews...
@@ -54,172 +87,173 @@ export function EmailPreviewClient() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-152px)] flex-col gap-6 xl:flex-row">
-      <aside className="w-full shrink-0 overflow-hidden rounded-[28px] border border-border/60 bg-white shadow-[var(--shadow-card)] xl:w-[320px]">
-        <div className="bg-[linear-gradient(135deg,var(--sidebar-gradient-from),var(--sidebar-gradient-to))] px-5 py-6 text-white">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/85">
-            <Sparkles className="size-3.5" />
-            Internal QA
-          </div>
-          <h2 className="mt-4 text-2xl font-semibold tracking-tight">Email previews</h2>
-          <p className="mt-2 text-sm leading-6 text-white/75">
-            Review every transactional email in the refreshed OKRunit shell and switch between desktop and mobile framing.
-          </p>
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/65">
-                Templates
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-white">{previews.length}</p>
+    <div className="flex h-[calc(100dvh-116px)] min-h-0 flex-col gap-5 overflow-hidden xl:flex-row">
+      {/* Sidebar */}
+      <aside className="flex h-full w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-border/60 bg-white shadow-sm xl:w-[280px]">
+        {/* Header */}
+        <div className="border-b border-border/40 px-5 py-4">
+          <div className="flex items-center gap-2">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+              <Mail className="size-4 text-primary" />
             </div>
-            <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/65">
-                Preview Mode
-              </p>
-              <p className="mt-2 text-sm font-semibold text-white">
-                {viewport === "desktop" ? "Desktop" : "Mobile"}
-              </p>
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">Email Templates</h2>
+              <p className="text-[11px] text-muted-foreground">{previews.length} templates</p>
             </div>
           </div>
         </div>
-        <div className="max-h-[52vh] space-y-2 overflow-y-auto p-3 xl:max-h-[calc(100vh-320px)]">
-          {previews.map((preview) => (
-            <button
-              key={preview.id}
-              onClick={() => setSelected(preview.id)}
-              className={cn(
-                "w-full cursor-pointer rounded-2xl border px-4 py-3 text-left transition-all",
-                selected === preview.id
-                  ? "border-primary/25 bg-primary/[0.08] shadow-[var(--shadow-card)]"
-                  : "border-transparent text-foreground hover:border-border/60 hover:bg-muted/50",
-              )}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p
-                    className={cn(
-                      "text-sm font-semibold tracking-tight",
-                      selected === preview.id ? "text-primary" : "text-foreground",
-                    )}
-                  >
-                    {preview.name}
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    {preview.description}
-                  </p>
-                </div>
-                <CheckCircle2
+
+        {/* Template list */}
+        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+          {grouped.map((group) => (
+            <div key={group.category} className="mb-3">
+              <p className="px-3 pb-1.5 pt-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                {group.category}
+              </p>
+              {group.items.map((preview) => (
+                <button
+                  key={preview.id}
+                  onClick={() => { setSelected(preview.id); setShowSource(false); }}
                   className={cn(
-                    "mt-0.5 size-4 shrink-0 transition-opacity",
-                    selected === preview.id ? "opacity-100 text-primary" : "opacity-0",
+                    "w-full cursor-pointer rounded-xl px-3 py-2.5 text-left transition-all",
+                    selected === preview.id
+                      ? "bg-primary/[0.08] shadow-sm ring-1 ring-primary/20"
+                      : "hover:bg-muted/50",
                   )}
-                />
-              </div>
-            </button>
+                >
+                  <div className="flex items-center gap-2.5">
+                    <CheckCircle2
+                      className={cn(
+                        "size-3.5 shrink-0 transition-all",
+                        selected === preview.id
+                          ? "text-primary opacity-100"
+                          : "text-muted-foreground/30 opacity-100",
+                      )}
+                    />
+                    <div className="min-w-0">
+                      <p
+                        className={cn(
+                          "truncate text-[13px] font-medium",
+                          selected === preview.id ? "text-primary" : "text-foreground",
+                        )}
+                      >
+                        {preview.name}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-4">
+      {/* Preview pane */}
+      <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-hidden">
         {activePreview && (
           <>
-            <div className="rounded-[28px] border border-border/60 bg-white px-6 py-5 shadow-[var(--shadow-card)]">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div className="max-w-2xl">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
-                    <Mail className="size-3.5" />
-                    Transactional Template
-                  </div>
-                  <h3 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                    {activePreview.name}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {activePreview.description}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                    <ShieldCheck className="size-3.5 text-primary" />
-                    Live HTML Preview
-                  </div>
-                  <div className="flex items-center gap-1 rounded-full border border-border/60 bg-background p-1 shadow-[var(--shadow-card)]">
-                    <button
-                      onClick={() => setViewport("desktop")}
-                      className={cn(
-                        "rounded-full px-3 py-2 text-xs font-semibold transition-colors",
-                        viewport === "desktop"
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground",
-                      )}
-                      title="Desktop view"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Monitor className="size-3.5" />
-                        Desktop
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => setViewport("mobile")}
-                      className={cn(
-                        "rounded-full px-3 py-2 text-xs font-semibold transition-colors",
-                        viewport === "mobile"
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground",
-                      )}
-                      title="Mobile view"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Smartphone className="size-3.5" />
-                        Mobile
-                      </span>
-                    </button>
-                  </div>
+            {/* Toolbar */}
+            <div className="flex shrink-0 items-center justify-between rounded-2xl border border-border/60 bg-white px-5 py-3 shadow-sm">
+              <div className="min-w-0">
+                <h3 className="truncate text-sm font-semibold text-foreground">
+                  {activePreview.name}
+                </h3>
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                  {activePreview.description}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  onClick={handleCopyHtml}
+                  className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-background px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  title="Copy HTML"
+                >
+                  {copied ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
+
+                <button
+                  onClick={() => setShowSource(!showSource)}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors",
+                    showSource
+                      ? "border-primary/30 bg-primary/10 text-primary"
+                      : "border-border/60 bg-background text-muted-foreground hover:text-foreground",
+                  )}
+                  title="View source"
+                >
+                  <Code2 className="size-3.5" />
+                  Source
+                </button>
+
+                <div className="flex items-center rounded-lg border border-border/60 bg-background p-0.5">
+                  <button
+                    onClick={() => setViewport("desktop")}
+                    className={cn(
+                      "rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
+                      viewport === "desktop"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Monitor className="size-3.5" />
+                      Desktop
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setViewport("mobile")}
+                    className={cn(
+                      "rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
+                      viewport === "mobile"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Smartphone className="size-3.5" />
+                      Mobile
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
 
-            <div className="flex-1 overflow-hidden rounded-[32px] border border-border/60 bg-[radial-gradient(circle_at_top,rgba(22,163,74,0.12),transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] p-4 shadow-[var(--shadow-xl)]">
-              <div className="flex h-full flex-col rounded-[28px] border border-white/80 bg-white/70 p-3 backdrop-blur-sm">
-                <div className="mb-3 flex items-center justify-between rounded-[20px] border border-border/60 bg-white px-4 py-3 shadow-[var(--shadow-card)]">
-                  <div className="flex items-center gap-2">
-                    <span className="size-2.5 rounded-full bg-red-400" />
-                    <span className="size-2.5 rounded-full bg-amber-400" />
-                    <span className="size-2.5 rounded-full bg-emerald-500" />
-                    <span className="ml-2 text-sm font-medium text-foreground">
-                      OKRunit Email Renderer
-                    </span>
-                  </div>
-                  <div className="hidden rounded-full bg-muted px-3 py-1 text-[11px] font-medium text-muted-foreground sm:block">
-                    {viewport === "desktop" ? "1366px preview" : "390px preview"}
-                  </div>
-                </div>
-
-                <div className="flex-1 overflow-auto rounded-[24px] border border-black/5 bg-white/40 p-4">
+            {/* Content area — scrollable, full-size rendering */}
+            {showSource ? (
+              <div className="min-h-0 flex-1 overflow-auto rounded-2xl border border-border/60 bg-[#1e1e2e] p-6 shadow-sm">
+                <pre className="text-xs leading-6 text-[#cdd6f4]">
+                  <code>{activePreview.html}</code>
+                </pre>
+              </div>
+            ) : (
+              <div className="flex min-h-0 flex-1 justify-center overflow-hidden rounded-2xl border border-border/60 bg-slate-100 p-6 shadow-sm">
                   <div
-                    className={cn(
-                      "mx-auto overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.14)] transition-all duration-300",
-                      viewport === "desktop" ? "w-full max-w-[760px]" : "w-[390px] max-w-full",
-                    )}
+                    className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg"
+                    style={{ width: frameWidth, maxWidth: "100%" }}
                   >
-                    <div className="flex items-center gap-2 border-b border-zinc-200 bg-zinc-50 px-4 py-3">
+                    {/* Browser chrome */}
+                    <div className="flex shrink-0 items-center gap-2 border-b border-zinc-100 bg-zinc-50 px-4 py-2.5">
                       <span className="size-2.5 rounded-full bg-red-300" />
                       <span className="size-2.5 rounded-full bg-amber-300" />
                       <span className="size-2.5 rounded-full bg-emerald-400" />
-                      <span className="ml-2 text-xs font-medium text-zinc-500">
-                        preview.html
-                      </span>
+                      <div className="ml-3 flex-1 rounded-md bg-white px-3 py-1 text-center">
+                        <span className="text-[11px] font-medium text-zinc-400">
+                          {viewport === "desktop" ? "mail.google.com" : "mail.app"}
+                        </span>
+                      </div>
                     </div>
                     <iframe
+                      ref={iframeRef}
                       srcDoc={activePreview.html}
-                      className="w-full border-0 bg-white"
-                      style={{ height: viewport === "desktop" ? "980px" : "820px" }}
+                      className="block min-h-0 flex-1 border-0 bg-white"
+                      style={{ width: frameWidth }}
                       title={`Preview: ${activePreview.name}`}
                       sandbox="allow-same-origin"
                     />
                   </div>
-                </div>
               </div>
-            </div>
+            )}
           </>
         )}
       </div>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 140" fill="none">
+  <!-- Phone -->
+  <rect x="25" y="20" width="40" height="70" rx="8" fill="#37474f"/>
+  <rect x="29" y="30" width="32" height="48" rx="4" fill="#546e7a"/>
+  <rect x="33" y="36" width="24" height="4" rx="2" fill="#e8f5e9"/>
+  <rect x="33" y="44" width="18" height="3" rx="1.5" fill="#c8e6c9"/>
+  <!-- Green notification dot -->
+  <circle cx="58" cy="28" r="6" fill="#4caf50"/>
+  <circle cx="58" cy="28" r="3" fill="#fff"/>
+  <!-- Monitor -->
+  <rect x="80" y="25" width="55" height="40" rx="6" fill="#37474f"/>
+  <rect x="84" y="29" width="47" height="30" rx="3" fill="#546e7a"/>
+  <rect x="100" y="65" width="15" height="8" rx="1" fill="#37474f"/>
+  <rect x="92" y="73" width="31" height="4" rx="2" fill="#37474f"/>
+  <!-- Check on monitor screen -->
+  <circle cx="107" cy="44" r="8" fill="#4caf50"/>
+  <path d="M103 44 L106 47 L112 41" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Chat bubble -->
+  <rect x="85" y="95" width="50" height="30" rx="8" fill="#e8f5e9" stroke="#c8e6c9" stroke-width="1.5"/>
+  <path d="M95 125 L90 135 L102 125" fill="#e8f5e9" stroke="#c8e6c9" stroke-width="1.5" stroke-linejoin="round"/>
+  <rect x="94" y="104" width="22" height="3" rx="1.5" fill="#4caf50"/>
+  <rect x="94" y="112" width="16" height="3" rx="1.5" fill="#a5d6a7"/>
+  <!-- Lightning bolt -->
+  <path d="M55 100 L65 100 L60 112 L72 112 L55 130 L60 118 L50 118 Z" fill="#ff9800"/>
+</svg>

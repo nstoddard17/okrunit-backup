@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" fill="none">
+  <!-- Person 1 -->
+  <circle cx="90" cy="65" r="22" fill="#37474f"/>
+  <circle cx="90" cy="58" r="14" fill="#546e7a"/>
+  <circle cx="90" cy="52" r="10" fill="#e8f5e9"/>
+  <path d="M65 105 C65 88 78 75 90 75 C102 75 115 88 115 105Z" fill="#37474f"/>
+  <!-- Person 2 -->
+  <circle cx="150" cy="65" r="22" fill="#4caf50"/>
+  <circle cx="150" cy="58" r="14" fill="#66bb6a"/>
+  <circle cx="150" cy="52" r="10" fill="#e8f5e9"/>
+  <path d="M125 105 C125 88 138 75 150 75 C162 75 175 88 175 105Z" fill="#4caf50"/>
+  <!-- Plus badge -->
+  <circle cx="120" cy="95" r="16" fill="#fff" stroke="#c8e6c9" stroke-width="2"/>
+  <rect x="114" y="91" width="12" height="4" rx="2" fill="#4caf50"/>
+  <rect x="118" y="87" width="4" height="12" rx="2" fill="#4caf50"/>
+  <!-- Connection line -->
+  <path d="M108 70 L132 70" stroke="#c8e6c9" stroke-width="2" stroke-dasharray="4 3"/>
+  <!-- Decorative -->
+  <circle cx="55" cy="45" r="4" fill="#e8f5e9"/>
+  <circle cx="185" cy="50" r="3" fill="#c8e6c9"/>
+  <rect x="60" y="120" width="120" height="5" rx="2.5" fill="#e8f5e9"/>
+  <rect x="80" y="132" width="80" height="4" rx="2" fill="#f1f8e9"/>
+</svg>

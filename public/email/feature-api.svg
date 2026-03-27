@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 140" fill="none">
+  <!-- Center node -->
+  <circle cx="80" cy="70" r="22" fill="#37474f"/>
+  <circle cx="80" cy="70" r="16" fill="#546e7a"/>
+  <text x="80" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="bold" fill="#fff">&lt;/&gt;</text>
+  <!-- Connectors -->
+  <!-- Top -->
+  <line x1="80" y1="48" x2="80" y2="25" stroke="#c8e6c9" stroke-width="2"/>
+  <circle cx="80" cy="20" r="10" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="2"/>
+  <circle cx="80" cy="20" r="4" fill="#4caf50"/>
+  <!-- Left -->
+  <line x1="60" y1="80" x2="35" y2="95" stroke="#c8e6c9" stroke-width="2"/>
+  <circle cx="30" cy="98" r="10" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="2"/>
+  <circle cx="30" cy="98" r="4" fill="#4caf50"/>
+  <!-- Right -->
+  <line x1="100" y1="80" x2="125" y2="95" stroke="#c8e6c9" stroke-width="2"/>
+  <circle cx="130" cy="98" r="10" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="2"/>
+  <circle cx="130" cy="98" r="4" fill="#4caf50"/>
+  <!-- Bottom left -->
+  <line x1="65" y1="88" x2="50" y2="115" stroke="#c8e6c9" stroke-width="2"/>
+  <circle cx="47" cy="120" r="8" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="1.5"/>
+  <circle cx="47" cy="120" r="3" fill="#66bb6a"/>
+  <!-- Bottom right -->
+  <line x1="95" y1="88" x2="110" y2="115" stroke="#c8e6c9" stroke-width="2"/>
+  <circle cx="113" cy="120" r="8" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="1.5"/>
+  <circle cx="113" cy="120" r="3" fill="#66bb6a"/>
+</svg>

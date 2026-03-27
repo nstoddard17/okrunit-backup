@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { HeroNav } from "@/components/landing/hero-nav";
 import { PriorityBadge } from "@/components/approvals/priority-badge";
+import { SOURCE_CONFIG } from "@/components/approvals/source-icons";
 import { PLATFORM_ICONS } from "@/components/messaging/platform-card";
 import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -176,7 +177,7 @@ const queueAttention: RequestItem[] = [
     owner: "Operations",
   },
   {
-    title: "Update billing address for Acme Corp",
+    title: "Update billing address for OKRunit",
     source: "make",
     priority: "medium",
     status: "pending",
@@ -438,27 +439,24 @@ function FadeIn({
 function IntegrationMarquee() {
   // Double the list for seamless loop
   const items = [...marqueeIntegrations, ...marqueeIntegrations];
+  const total = items.length;
 
   return (
-    <div className="relative overflow-hidden">
-      {/* Fade edges */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent" />
-
+    <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
       <div className="flex w-max animate-[lp-marquee_40s_linear_infinite] items-center gap-6">
         {items.map((item, i) => (
           <div
             key={`${item.label}-${i}`}
-            className="flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-white px-4 py-2 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+            className="flex items-center gap-2.5 rounded-full border border-white/25 bg-white/10 px-4 py-2 backdrop-blur-sm"
           >
             <Image
               src={item.src}
               alt={item.label}
               width={20}
               height={20}
-              className="size-5 object-contain"
+              className="size-5 object-contain brightness-0 invert"
             />
-            <span className="whitespace-nowrap text-sm font-medium text-slate-700">
+            <span className="whitespace-nowrap text-sm font-medium text-white/90">
               {item.label}
             </span>
           </div>
@@ -585,31 +583,31 @@ function MetricCard({
   return (
     <Card
       className={cn(
-        "w-full gap-0 rounded-[26px] border-white/80 bg-white/95 py-0 lp-shadow-float",
+        "w-full gap-0 rounded-xl border-slate-200/80 bg-white py-0 shadow-[var(--shadow-card)]",
         className,
       )}
     >
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-2">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               {metric.title}
             </p>
-            <p className="text-4xl font-semibold leading-none tracking-tight text-slate-950">
+            <p className="text-3xl font-semibold leading-none tracking-tight text-foreground">
               {metric.value}
             </p>
           </div>
           <div
             className={cn(
-              "flex size-11 items-center justify-center rounded-2xl border",
+              "flex size-10 items-center justify-center rounded-xl border",
               tone.wrap,
             )}
           >
             <Icon className={cn("size-5", tone.icon)} />
           </div>
         </div>
-        <div className="mt-4 flex items-center gap-2 text-xs text-slate-600">
-          <span className={cn("size-2 rounded-full", tone.dot)} />
+        <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+          <span className={cn("size-1.5 rounded-full", tone.dot)} />
           <span>{metric.subtitle}</span>
         </div>
       </CardContent>
@@ -618,8 +616,8 @@ function MetricCard({
 }
 
 function SidebarContext() {
+  const topItem = { label: "Org", icon: Home, active: false };
   const navItems = [
-    { label: "Org", icon: Home, active: false },
     { label: "Requests", icon: ClipboardList, active: true, badge: "12" },
     { label: "Connections", icon: KeyRound, active: false },
     { label: "Routes", icon: Route, active: false },
@@ -628,47 +626,57 @@ function SidebarContext() {
     { label: "Settings", icon: Settings, active: false },
   ];
 
+  function NavItem({ item }: { item: { label: string; icon: LucideIcon; active: boolean; badge?: string } }) {
+    const Icon = item.icon;
+    return (
+      <div
+        className={cn(
+          "group flex w-full cursor-pointer flex-col items-center gap-1.5 py-3 transition-colors",
+          item.active ? "text-white" : "text-white/80",
+        )}
+      >
+        <div className={cn(
+          "relative flex size-9 items-center justify-center rounded-lg transition-colors",
+          item.active ? "bg-white/20" : "group-hover:bg-white/15",
+        )}>
+          <Icon className="size-[22px] shrink-0" />
+          {item.badge && (
+            <span className="absolute -right-1.5 -top-1.5 flex size-[18px] items-center justify-center rounded-full bg-white text-[9px] font-bold text-[var(--sidebar-gradient-to)]">
+              {item.badge}
+            </span>
+          )}
+        </div>
+        <span className={cn(
+          "text-[11px] leading-tight",
+          item.active ? "font-semibold text-white" : "font-medium",
+        )}>{item.label}</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex w-20 shrink-0 flex-col items-center bg-[linear-gradient(180deg,var(--sidebar-gradient-from),var(--sidebar-gradient-to))] px-2 py-3 text-white">
-      <div className="mb-3 flex items-center justify-center">
+    <div className="sidebar-icon-bar flex w-20 shrink-0 flex-col items-center text-white">
+      {/* Logo */}
+      <div className="flex items-center justify-center py-3">
         <Image
           src="/logo-icon.png"
           alt="OKRunit"
-          width={24}
-          height={24}
-          className="size-6 object-contain drop-shadow-sm"
+          width={56}
+          height={56}
+          className="size-14 object-contain drop-shadow-md"
         />
       </div>
-      <div className="flex flex-col items-center gap-0.5">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <div
-              key={item.label}
-              className={cn(
-                "group flex flex-col items-center gap-0.5 rounded-xl px-1.5 py-1.5 text-center transition-colors",
-                item.active ? "text-white" : "text-white/70 hover:bg-white/10",
-              )}
-            >
-              <div className={cn(
-                "relative flex size-9 items-center justify-center rounded-xl",
-                item.active ? "bg-white/20" : "",
-              )}>
-                <Icon className="size-[22px]" />
-                {item.badge && (
-                  <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white">
-                    {item.badge}
-                  </span>
-                )}
-              </div>
-              <span className={cn(
-                "text-[11px] leading-tight",
-                item.active ? "font-semibold" : "font-medium",
-              )}>{item.label}</span>
-            </div>
-          );
-        })}
-      </div>
+
+      {/* First nav item */}
+      <NavItem item={topItem} />
+
+      {/* Divider */}
+      <div className="mx-auto my-2 h-px w-7 bg-white/25" />
+
+      {/* Remaining nav items */}
+      {navItems.map((item) => (
+        <NavItem key={item.label} item={item} />
+      ))}
     </div>
   );
 }
@@ -879,7 +887,32 @@ function MetaField({
   );
 }
 
-/** Mimics the real request card from the approval dashboard — left color border, source avatar, metadata row, hover actions, priority/status badges. */
+const SOURCE_LANDING_CONFIG: Record<ProductSource, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; bgColor: string }> = {
+  zapier: SOURCE_CONFIG.zapier,
+  make: SOURCE_CONFIG.make,
+  n8n: SOURCE_CONFIG.n8n,
+  github: { label: "GitHub Actions", icon: ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+    </svg>
+  ), color: "text-slate-800", bgColor: "bg-slate-100" },
+  windmill: SOURCE_CONFIG.windmill,
+};
+
+function LandingSourceAvatar({ source, size = "md" }: { source: ProductSource; size?: "sm" | "md" }) {
+  const config = SOURCE_LANDING_CONFIG[source];
+  const Icon = config.icon;
+  const sizeClasses = size === "sm" ? "size-6 rounded" : "size-8 rounded-lg";
+  const iconSize = size === "sm" ? "size-3.5" : "size-4.5";
+
+  return (
+    <span className={cn("inline-flex shrink-0 items-center justify-center", sizeClasses, config.bgColor)}>
+      <Icon className={cn(iconSize, config.color)} />
+    </span>
+  );
+}
+
+/** Mimics the real request card from the approval dashboard */
 function AppRequestCard({
   item,
   active = false,
@@ -889,23 +922,31 @@ function AppRequestCard({
 }) {
   const borderColor = {
     pending: "border-l-amber-400",
-    approved: "border-l-emerald-500",
-    rejected: "border-l-red-500",
+    approved: "border-l-emerald-400",
+    rejected: "border-l-red-400",
   }[item.status];
 
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-xl border border-slate-200/80 border-l-[3px] bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-colors",
+        "group/card flex items-center gap-3 border-0 border-l-4 bg-white px-4 py-3 shadow-[var(--shadow-card)] transition-all card-interactive",
         borderColor,
-        active && "ring-2 ring-primary/20 bg-primary/[0.02]",
+        active && "ring-2 ring-primary/20",
       )}
     >
-      <SourcePill source={item.source} showLabel={false} size="sm" />
+      <LandingSourceAvatar source={item.source} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-slate-900">{item.title}</p>
-        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-          <span>{sourceAssets[item.source].label}</span>
+        <div className="flex items-center gap-2">
+          {item.status === "pending" && (
+            <span className="relative flex size-2 shrink-0">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
+            </span>
+          )}
+          <p className="line-clamp-1 text-sm font-medium text-slate-900">{item.title}</p>
+        </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+          <span>{SOURCE_LANDING_CONFIG[item.source].label}</span>
           <span className="text-slate-300">|</span>
           <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600">
             {item.actionType}
@@ -914,15 +955,14 @@ function AppRequestCard({
           <span>{item.age}</span>
         </div>
       </div>
-      <div className="flex shrink-0 items-center gap-1.5">
-        {/* Hover approve/reject buttons — shown as always visible for the landing page */}
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
         {item.status === "pending" && active && (
           <>
-            <Button variant="success" size="sm" className="h-7 rounded-lg px-2 text-xs">
+            <Button variant="success" size="sm" className="h-7 gap-1 px-2.5 text-xs">
               <CheckCircle2 className="size-3" />
               Approve
             </Button>
-            <Button variant="destructive" size="sm" className="h-7 rounded-lg px-2 text-xs">
+            <Button variant="destructive" size="sm" className="h-7 gap-1 px-2.5 text-xs">
               <XCircle className="size-3" />
               Reject
             </Button>
@@ -956,7 +996,12 @@ function DetailSheetPreview() {
         <div className="grid grid-cols-2 gap-2">
           <MetaField label="Status"><StatusPill status="pending" /></MetaField>
           <MetaField label="Priority"><PriorityBadge priority="critical" /></MetaField>
-          <MetaField label="Source"><SourcePill source="github" size="sm" /></MetaField>
+          <MetaField label="Source">
+            <div className="flex items-center gap-1.5">
+              <LandingSourceAvatar source="github" size="sm" />
+              <span className="text-xs">GitHub Actions</span>
+            </div>
+          </MetaField>
           <MetaField label="Action Type">
             <span className="font-mono text-xs text-slate-700">deploy.production</span>
           </MetaField>
@@ -1021,29 +1066,31 @@ function ApprovalFlowVisual() {
   const allItems = [...queueAttention, ...queueResolved.slice(0, 1)];
 
   return (
-    <div className="flex gap-3 overflow-hidden rounded-2xl border border-slate-200/60 bg-slate-50/80 p-3 lp-shadow-panel">
-      {/* Request list (left side) */}
-      <div className="min-w-0 flex-1 space-y-1.5">
-        <div className="mb-2 flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-900">Needs Your Attention</span>
-          <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
-            {queueAttention.length}
-          </span>
+    <ScaledMockup internalWidth={1000}>
+      <div className="gk-v2 force-light flex gap-3 overflow-hidden rounded-xl border border-slate-200/60 bg-slate-50/80 p-3 shadow-2xl shadow-black/20">
+        {/* Request list (left side) */}
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-900">Needs Your Attention</span>
+            <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+              {queueAttention.length}
+            </span>
+          </div>
+          {allItems.map((item, i) => (
+            <AppRequestCard
+              key={`${item.title}-${item.age}`}
+              item={item}
+              active={i === 0}
+            />
+          ))}
         </div>
-        {allItems.map((item, i) => (
-          <AppRequestCard
-            key={`${item.title}-${item.age}`}
-            item={item}
-            active={i === 0}
-          />
-        ))}
-      </div>
 
-      {/* Detail sheet (right side) */}
-      <div className="hidden w-[300px] shrink-0 lg:block">
-        <DetailSheetPreview />
+        {/* Detail sheet (right side) */}
+        <div className="w-[340px] shrink-0">
+          <DetailSheetPreview />
+        </div>
       </div>
-    </div>
+    </ScaledMockup>
   );
 }
 
@@ -1253,7 +1300,7 @@ function HeroTopBar() {
   return (
     <div className="flex h-[52px] items-center justify-between border-b border-slate-200 bg-white px-4">
       <div className="flex items-center gap-2">
-        <span className="text-sm font-semibold text-slate-900">Acme Corp</span>
+        <span className="text-sm font-semibold text-slate-900">OKRunit</span>
         <ChevronRight className="size-3.5 text-slate-400" />
         <span className="text-sm text-slate-500">Requests</span>
       </div>
@@ -1267,7 +1314,110 @@ function HeroTopBar() {
           </span>
         </div>
         <div className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
-          SK
+          OK
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Wrapper that renders children at a fixed internal width, then CSS-scales to fit the container. */
+function ScaledMockup({ children, internalWidth = 960, className }: { children: ReactNode; internalWidth?: number; className?: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [height, setHeight] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    function measure() {
+      if (!containerRef.current || !innerRef.current) return;
+      const containerW = containerRef.current.offsetWidth;
+      const s = Math.min(1, containerW / internalWidth);
+      setScale(s);
+      setHeight(innerRef.current.offsetHeight * s);
+    }
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (containerRef.current) ro.observe(containerRef.current);
+    if (innerRef.current) ro.observe(innerRef.current);
+    return () => ro.disconnect();
+  }, [internalWidth]);
+
+  return (
+    <div ref={containerRef} className={cn("relative overflow-hidden", className)} style={{ height }}>
+      <div
+        ref={innerRef}
+        style={{
+          width: internalWidth,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function HeroMockupContent() {
+  return (
+    <div className="gk-v2 force-light overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-2xl shadow-black/10">
+      {/* Browser chrome */}
+      <div className="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-4 py-2">
+        <span className="size-2.5 rounded-full bg-[#FF5F57]" />
+        <span className="size-2.5 rounded-full bg-[#FEBC2E]" />
+        <span className="size-2.5 rounded-full bg-[#28C840]" />
+        <span className="ml-3 flex-1 rounded-md border border-slate-200 bg-white/80 px-3 py-0.5 text-center text-[11px] text-slate-400">
+          okrunit.com/requests
+        </span>
+      </div>
+
+      {/* App shell */}
+      <div className="flex">
+        <SidebarContext />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <HeroTopBar />
+          <div className="bg-slate-50/50 p-4">
+            {/* Stat cards */}
+            <div className="mb-4 grid grid-cols-3 gap-3">
+              {heroMetrics.map((metric) => (
+                <MetricCard key={metric.title} metric={metric} className="max-w-none" />
+              ))}
+            </div>
+
+            {/* Needs attention */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-slate-900">Needs Your Attention</span>
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                    {queueAttention.length}
+                  </span>
+                </div>
+                <span className="text-xs text-slate-500">View all →</span>
+              </div>
+              <div className="space-y-1.5">
+                {queueAttention.map((item) => (
+                  <AppRequestCard key={`${item.title}-${item.age}`} item={item} />
+                ))}
+              </div>
+            </div>
+
+            {/* Previously resolved */}
+            <div className="mt-3 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-slate-500">Previously Resolved</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">
+                  {queueResolved.length}
+                </span>
+              </div>
+              <div className="space-y-1.5 opacity-75">
+                {queueResolved.slice(0, 2).map((item) => (
+                  <AppRequestCard key={`${item.title}-${item.age}`} item={item} />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1277,75 +1427,18 @@ function HeroTopBar() {
 function HeroProductSystem() {
   return (
     <div className="relative">
-      {/* Mobile / Tablet layout */}
-      <div className="space-y-4 lg:hidden">
-        <div className="grid gap-3 sm:grid-cols-3">
-          {heroMetrics.map((metric) => (
-            <MetricCard key={metric.title} metric={metric} className="max-w-none" />
-          ))}
-        </div>
-        <div className="space-y-3">
-          {queueAttention.map((item) => (
-            <RequestRow key={`${item.title}-${item.age}`} item={item} compact />
-          ))}
-        </div>
+      {/* Mobile / Tablet — scaled mockup */}
+      <div className="lg:hidden">
+        <ScaledMockup internalWidth={700}>
+          <HeroMockupContent />
+        </ScaledMockup>
       </div>
 
-      {/* Desktop layout — mimics real app shell */}
-      <div className="gk-v2 force-light hidden lg:block">
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white lp-shadow-hero">
-          {/* Browser-style dots */}
-          <div className="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-4 py-2.5">
-            <span className="size-3 rounded-full bg-[#FF5F57]" />
-            <span className="size-3 rounded-full bg-[#FEBC2E]" />
-            <span className="size-3 rounded-full bg-[#28C840]" />
-            <span className="ml-4 flex-1 rounded-md bg-white/80 border border-slate-200 px-3 py-1 text-center text-[11px] text-slate-400">
-              okrunit.com/requests
-            </span>
-          </div>
-
-          {/* App shell: sidebar + top bar + content */}
-          <div className="flex">
-            <SidebarContext />
-
-            <div className="flex min-w-0 flex-1 flex-col">
-              <HeroTopBar />
-
-              {/* Dashboard content area */}
-              <div className="bg-slate-50/50 p-5">
-                {/* Stat cards row */}
-                <div className="mb-5 grid grid-cols-3 gap-3">
-                  {heroMetrics.map((metric) => (
-                    <MetricCard key={metric.title} metric={metric} className="max-w-none" />
-                  ))}
-                </div>
-
-                {/* Request queue */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-slate-900">Needs Your Attention</span>
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                        {queueAttention.length}
-                      </span>
-                    </div>
-                    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-slate-500" asChild>
-                      <Link href="/requests">
-                        View all
-                        <ArrowRight className="size-3" />
-                      </Link>
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    {queueAttention.map((item) => (
-                      <AppRequestCard key={`${item.title}-${item.age}`} item={item} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Desktop — scaled mockup */}
+      <div className="hidden lg:block">
+        <ScaledMockup internalWidth={900}>
+          <HeroMockupContent />
+        </ScaledMockup>
       </div>
     </div>
   );
@@ -1437,8 +1530,8 @@ function ScrollFeatures({ steps }: { steps: FeatureStep[] }) {
 
 export function LandingPage({ user }: LandingPageProps) {
   return (
-    <div className="gk-v2 force-light min-h-screen overflow-x-clip bg-white font-[var(--font-dm-sans)] text-[var(--foreground)]">
-      <header className="sticky top-0 z-50 border-b border-white/60 bg-white/72 backdrop-blur-xl">
+    <div className="gk-v2 force-light min-h-screen overflow-x-clip font-[var(--font-dm-sans)] text-[var(--foreground)]">
+      <header className="sticky top-0 z-50 border-b border-white/20 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <Image
@@ -1472,17 +1565,17 @@ export function LandingPage({ user }: LandingPageProps) {
       </header>
 
       <main>
-        <section id="hero" className="relative">
+        <section id="hero" className="relative bg-[linear-gradient(180deg,#e8f5e9_0%,#c8e6c9_25%,#81c784_55%,#2e7d32_85%,#1b5e20_100%)]">
           <div className="mx-auto max-w-7xl px-4 pb-10 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
             <div className="grid gap-10 lg:gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-start">
               <FadeIn>
                 <div className="max-w-xl space-y-6">
                   <SectionEyebrow>Human-in-the-Loop Approvals</SectionEyebrow>
                   <div className="space-y-5">
-                    <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-[3.25rem] lg:leading-[1.15]">
+                    <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-[3.25rem] lg:leading-[1.15]">
                       The approval gateway for your automations and AI&nbsp;agents.
                     </h1>
-                    <p className="text-lg leading-8 text-slate-600">
+                    <p className="text-lg leading-8 text-slate-700">
                       Route high-risk actions from Zapier, Make, n8n, GitHub Actions, and any API
                       through a human approval queue before they execute. One dashboard for every
                       workflow that needs a second pair of eyes.
@@ -1520,7 +1613,7 @@ export function LandingPage({ user }: LandingPageProps) {
             {/* Integration marquee — full width below hero grid */}
             <FadeIn delay={200}>
               <div className="mt-12 space-y-4">
-                <p className="text-center text-sm font-medium text-slate-500">
+                <p className="text-center text-sm font-medium text-white/80">
                   Works with your existing tools
                 </p>
                 <IntegrationMarquee />
@@ -1530,7 +1623,7 @@ export function LandingPage({ user }: LandingPageProps) {
         </section>
 
         {/* Dark scrollytelling feature section */}
-        <div className="bg-slate-950">
+        <div className="bg-[#1b5e20]">
           <ScrollFeatures
             steps={[
               {
@@ -1546,15 +1639,17 @@ export function LandingPage({ user }: LandingPageProps) {
                 title: "Pending requests surface first. Resolved history stays accessible below.",
                 description: "The queue separates what needs attention right now from what’s already been decided. Source markers, action types, timestamps, and status badges let operators scan without opening every row.",
                 visual: (
-                  <div className="relative max-h-[calc(100vh-8rem)] overflow-hidden rounded-2xl bg-white p-1 shadow-2xl shadow-black/20">
-                    <QueuePanel
-                      attentionItems={queueAttention}
-                      resolvedItems={queueResolved}
-                      title="Approval Queue"
-                      description="Grouped rows, visible status chips, and enough metadata to make the next decision without guessing."
-                    />
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-2xl bg-gradient-to-t from-white to-transparent" />
-                  </div>
+                  <ScaledMockup internalWidth={800}>
+                    <div className="gk-v2 force-light relative overflow-hidden rounded-xl bg-white p-1 shadow-2xl shadow-black/20">
+                      <QueuePanel
+                        attentionItems={queueAttention}
+                        resolvedItems={queueResolved}
+                        title="Approval Queue"
+                        description="Grouped rows, visible status chips, and enough metadata to make the next decision without guessing."
+                      />
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-xl bg-gradient-to-t from-white to-transparent" />
+                    </div>
+                  </ScaledMockup>
                 ),
               },
               {
@@ -1563,9 +1658,11 @@ export function LandingPage({ user }: LandingPageProps) {
                 title: "Define who approves and which channels get notified — per source.",
                 description: "Approval flows carry source ownership, request counts, and last activity. Messaging channels show exactly which sources notify them so route behavior is always visible.",
                 visual: (
-                  <div className="max-h-[calc(100vh-8rem)] overflow-hidden rounded-2xl bg-white p-4 shadow-2xl shadow-black/20 sm:p-5">
-                    <RoutingSystemPanel />
-                  </div>
+                  <ScaledMockup internalWidth={800}>
+                    <div className="gk-v2 force-light overflow-hidden rounded-xl bg-white p-4 shadow-2xl shadow-black/20">
+                      <RoutingSystemPanel />
+                    </div>
+                  </ScaledMockup>
                 ),
               },
               {
@@ -1574,30 +1671,32 @@ export function LandingPage({ user }: LandingPageProps) {
                 title: "Every decision, rule change, and route update in one searchable history.",
                 description: "Approval decisions, flow edits, and route changes appear together with actor, timestamp, resource, and expanded detail payloads. Built for compliance and debugging.",
                 visual: (
-                  <div className="relative max-h-[calc(100vh-8rem)] overflow-hidden rounded-2xl bg-white p-1 shadow-2xl shadow-black/20">
-                    <AuditTrailPanel />
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 rounded-b-2xl bg-gradient-to-t from-white to-transparent" />
-                  </div>
+                  <ScaledMockup internalWidth={900}>
+                    <div className="gk-v2 force-light relative overflow-hidden rounded-xl bg-white p-1 shadow-2xl shadow-black/20">
+                      <AuditTrailPanel />
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 rounded-b-xl bg-gradient-to-t from-white to-transparent" />
+                    </div>
+                  </ScaledMockup>
                 ),
               },
             ]}
           />
         </div>
 
-        <section className="py-20 sm:py-24">
+        <section className="bg-[linear-gradient(180deg,#1b5e20_0%,#2e7d32_15%,#81c784_45%,#c8e6c9_75%,#e8f5e9_100%)] py-20 sm:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <FadeIn>
               <div className="mx-auto max-w-2xl text-center">
                 <SectionEyebrow>Get Started</SectionEyebrow>
-                <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+                <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
                   Start approving in minutes, not days.
                 </h2>
-                <p className="mt-3 text-base leading-7 text-slate-600">
+                <p className="mt-3 text-base leading-7 text-slate-700">
                   Create a workspace, connect your first source, and send a test
                   approval request. Your team can be reviewing live actions today.
                 </p>
                 <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                  <Button size="lg" className="h-12 rounded-2xl px-6 text-sm" asChild>
+                  <Button size="lg" className="h-12 rounded-2xl bg-slate-900 px-6 text-sm text-white hover:bg-slate-800" asChild>
                     <Link href={user ? "/org/overview" : "/signup"}>
                       {user ? "Open Dashboard" : "Create Free Workspace"}
                       <ArrowRight className="size-4" />
@@ -1606,7 +1705,7 @@ export function LandingPage({ user }: LandingPageProps) {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="h-12 rounded-2xl border-slate-200 bg-white px-6 text-sm"
+                    className="h-12 rounded-2xl border-slate-300 bg-white px-6 text-sm text-slate-900 hover:bg-slate-50"
                     asChild
                   >
                     <Link href="/docs">
@@ -1621,7 +1720,7 @@ export function LandingPage({ user }: LandingPageProps) {
         </section>
       </main>
 
-      <footer className="border-t border-white/70 bg-white/70">
+      <footer className="border-t border-green-200 bg-[#e8f5e9]">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 text-sm text-slate-500 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="flex items-center gap-2">
             <Image src="/logo-icon.png" alt="OKRunit" width={24} height={24} className="size-6 object-contain" />

@@ -31,37 +31,44 @@ export async function GET() {
   }
 
   const previews = [
+    // Onboarding
     {
       id: "signup-confirmation",
       name: "Signup Confirmation",
-      description: "Sent when a user signs up - asks them to confirm their email.",
+      description: "Sent when a user signs up - asks them to verify their email address.",
+      category: "Onboarding",
       html: buildConfirmEmailHtml({
-        fullName: "Jane Doe",
+        fullName: "Sarah Chen",
         confirmLink: `${APP_URL}/callback?code=sample_confirmation_code`,
       }),
     },
     {
       id: "welcome",
       name: "Welcome",
-      description: "Sent after a user confirms their email and first signs in.",
+      description: "Sent after a user confirms their email and signs in for the first time.",
+      category: "Onboarding",
       html: buildWelcomeEmailHtml({
-        fullName: "Jane Doe",
+        fullName: "Sarah",
       }),
     },
     {
       id: "team-invite",
       name: "Team Invite",
-      description: "Sent when an admin invites someone to their organization.",
+      description: "Sent when an admin invites someone to join their organization.",
+      category: "Onboarding",
       html: buildInviteEmailHtml({
         orgName: "Acme Corp",
-        role: "member",
+        role: "admin",
         inviteLink: `${APP_URL}/invite/sample_invite_token`,
       }),
     },
+
+    // Approvals
     {
       id: "approval-request",
       name: "Approval Request",
-      description: "Sent when a new approval request is created and needs review.",
+      description: "Sent when a new approval request needs review. Includes one-click actions.",
+      category: "Approvals",
       html: buildApprovalEmailHtml({
         to: "reviewer@acme.com",
         subject: "Approval needed: Deploy v2.4.0 to production",
@@ -76,13 +83,14 @@ export async function GET() {
     {
       id: "approval-request-critical",
       name: "Approval Request (Critical)",
-      description: "Critical priority approval request notification.",
+      description: "Critical priority approval request with elevated urgency.",
+      category: "Approvals",
       html: buildApprovalEmailHtml({
         to: "reviewer@acme.com",
         subject: "CRITICAL: Delete production database backup",
         requestId: "req_def456",
         title: "Delete production database backup",
-        description: "Requested by automated cleanup pipeline. This will permanently remove the 30-day-old backup snapshot.",
+        description: "Requested by automated cleanup pipeline. This will permanently remove the 30-day-old backup snapshot for us-east-1.",
         priority: "critical",
         approveToken: "tok_approve_sample2",
         rejectToken: "tok_reject_sample2",
@@ -91,73 +99,86 @@ export async function GET() {
     {
       id: "decision-approved",
       name: "Decision - Approved",
-      description: "Sent to the request creator when their request is approved.",
+      description: "Sent when a request is approved, including the reviewer's comment.",
+      category: "Approvals",
       html: buildDecisionEmailHtml({
         to: "developer@acme.com",
         subject: "Approved: Deploy v2.4.0 to production",
         requestTitle: "Deploy v2.4.0 to production",
         decision: "approved",
-        decidedBy: "Jane Doe",
-        comment: "Looks good! Checked the migration scripts and they're safe to run.",
+        decidedBy: "Sarah Chen",
+        comment: "Looks good! Checked the migration scripts and they're safe to run. Ship it.",
       }),
     },
     {
       id: "decision-rejected",
       name: "Decision - Rejected",
-      description: "Sent to the request creator when their request is rejected.",
+      description: "Sent when a request is rejected with reasoning from the reviewer.",
+      category: "Approvals",
       html: buildDecisionEmailHtml({
         to: "developer@acme.com",
         subject: "Rejected: Delete production database backup",
         requestTitle: "Delete production database backup",
         decision: "rejected",
-        decidedBy: "Bob Smith",
-        comment: "We need to retain backups for at least 90 days per compliance policy.",
+        decidedBy: "Alex Rivera",
+        comment: "We need to retain backups for at least 90 days per our compliance policy. Please update the retention window.",
       }),
     },
+
+    // Billing
     {
       id: "usage-alert",
       name: "Usage Alert",
-      description: "Sent daily to org owners/admins when usage approaches plan limits.",
+      description: "Sent to org admins when usage is approaching plan limits.",
+      category: "Billing",
       html: buildUsageAlertEmailHtml({
         orgName: "Acme Corp",
         plan: "Pro",
         alerts: [
-          { type: "requests", current: 450, limit: 500 },
+          { type: "requests", current: 465, limit: 500 },
           { type: "connections", current: 9, limit: 10 },
+          { type: "team_members", current: 14, limit: 15 },
         ],
       }),
     },
+
+    // Reports
     {
       id: "weekly-digest",
       name: "Weekly Digest",
-      description: "Sent weekly with a summary of org activity.",
+      description: "Weekly summary of org activity with stats, approval rates, and top sources.",
+      category: "Reports",
       html: buildWeeklyDigestEmailHtml({
-        fullName: "Jane Doe",
+        fullName: "Sarah",
         orgName: "Acme Corp",
-        periodStart: "Mar 17",
-        periodEnd: "Mar 24, 2026",
+        periodStart: "Mar 20",
+        periodEnd: "Mar 27, 2026",
         stats: {
-          totalRequests: 42,
-          approved: 35,
-          rejected: 4,
-          pending: 3,
-          avgResponseTimeHours: 2.4,
+          totalRequests: 47,
+          approved: 38,
+          rejected: 5,
+          pending: 4,
+          avgResponseTimeHours: 1.8,
         },
         topConnections: [
           { name: "Zapier - Production", count: 18 },
-          { name: "GitHub Actions CI", count: 12 },
-          { name: "n8n Staging", count: 7 },
-          { name: "Make.com Workflows", count: 5 },
+          { name: "GitHub Actions CI", count: 14 },
+          { name: "n8n Staging Workflows", count: 9 },
+          { name: "Make.com Automations", count: 6 },
         ],
       }),
     },
+
+    // Account
     {
       id: "account-deletion",
       name: "Account Deletion",
-      description: "Sent when a user requests account deletion - contains confirmation link.",
+      description: "Sent when a user requests account deletion. Contains confirmation link.",
+      category: "Account",
       html: buildAccountDeletionEmailHtml({
-        confirmLink: `${APP_URL}/api/v1/account/delete/confirm?token=sample_token`,
+        confirmLink: `${APP_URL}/api/v1/account/delete/confirm?token=sample_deletion_token`,
         graceDays: 30,
+        expiryHours: 24,
       }),
     },
   ];

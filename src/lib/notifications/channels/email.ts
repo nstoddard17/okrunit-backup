@@ -5,10 +5,12 @@
 import { Resend } from "resend";
 import {
   type EmailTone,
+  PROD_URL,
   emailButton,
   emailButtonRow,
   emailCard,
   emailHero,
+  emailHeroBanner,
   emailLayout,
   emailMetadataRows,
   emailPill,
@@ -18,8 +20,6 @@ import {
 
 const FROM_EMAIL =
   process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
-const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -98,27 +98,26 @@ function priorityConfig(priority: string): {
 // ---------------------------------------------------------------------------
 
 export function buildApprovalEmailHtml(params: EmailNotificationParams): string {
-  const approveUrl = `${APP_URL}/api/email-actions/${params.approveToken}`;
-  const rejectUrl = `${APP_URL}/api/email-actions/${params.rejectToken}`;
-  const dashboardUrl = `${APP_URL}/requests`;
+  const approveUrl = `${PROD_URL}/api/email-actions/${params.approveToken}`;
+  const rejectUrl = `${PROD_URL}/api/email-actions/${params.rejectToken}`;
+  const dashboardUrl = `${PROD_URL}/requests`;
   const p = priorityConfig(params.priority);
 
   const descriptionBlock = params.description
-    ? `<p style="margin:8px 0 0;color:${emailTheme.text};font-size:14px;line-height:22px;">${escapeHtml(params.description)}</p>`
+    ? `<p style="margin:12px 0 0;color:${emailTheme.text};font-size:14px;line-height:23px;">${escapeHtml(params.description)}</p>`
     : "";
 
   const body = [
     emailHero({
-      eyebrow: "Approval Center",
       title: "Approval required",
       descriptionHtml: "A new request is waiting for your review.",
     }),
     emailCard(
       `
-        <p style="margin:0 0 6px;color:${emailTheme.subtle};font-size:11px;font-weight:700;line-height:16px;letter-spacing:1.2px;text-transform:uppercase;">
+        <p style="margin:0 0 4px;color:${emailTheme.subtle};font-size:11px;font-weight:700;line-height:16px;letter-spacing:1.4px;text-transform:uppercase;">
           Request
         </p>
-        <p style="margin:0;color:${emailTheme.ink};font-size:18px;font-weight:700;line-height:26px;letter-spacing:-0.3px;">
+        <p style="margin:0;color:${emailTheme.ink};font-size:20px;font-weight:700;line-height:28px;letter-spacing:-0.3px;">
           ${escapeHtml(params.title)}
         </p>
         ${descriptionBlock}
@@ -159,11 +158,11 @@ export function buildApprovalEmailHtml(params: EmailNotificationParams): string 
         ${emailMetadataRows([
           {
             label: "Action Window",
-            valueHtml: "One-click links stay active for 72 hours.",
+            valueHtml: "One-click links stay active for <strong>72 hours</strong>.",
           },
           {
             label: "Full Context",
-            valueHtml: `<a href="${dashboardUrl}" style="color:${emailTheme.brand};font-weight:700;text-decoration:none;">Open the request in OKRunit &rarr;</a>`,
+            valueHtml: `<a href="${dashboardUrl}" style="color:${emailTheme.brandDark};font-weight:700;text-decoration:none;">Open the request in OKRunit &rarr;</a>`,
             borderless: true,
           },
         ])}
@@ -173,6 +172,7 @@ export function buildApprovalEmailHtml(params: EmailNotificationParams): string 
   ].join("");
 
   return emailLayout({
+    heroBanner: emailHeroBanner({ image: "approval-bell.svg", imageWidth: 200, imageHeight: 170, alt: "Approval required" }),
     body,
     preheader: `New approval request: ${params.title}`,
     footerText: "Action links expire in 72 hours. If you did not expect this email, you can safely ignore it.",
@@ -180,14 +180,16 @@ export function buildApprovalEmailHtml(params: EmailNotificationParams): string 
 }
 
 export function buildDecisionEmailHtml(params: DecisionEmailParams): string {
-  const dashboardUrl = `${APP_URL}/requests`;
+  const dashboardUrl = `${PROD_URL}/requests`;
 
   const isApproved = params.decision === "approved";
   const statusTone: EmailTone = isApproved ? "brand" : "danger";
   const statusColor = isApproved ? emailTheme.brand : emailTheme.danger;
   const statusLabel = isApproved ? "Approved" : "Rejected";
+  const heroImage = isApproved ? "approved-check.svg" : "rejected-x.svg";
+  const heroAlt = isApproved ? "Request approved" : "Request rejected";
 
-  const rows = [
+  const rows: { label: string; valueHtml: string; borderless?: boolean }[] = [
     {
       label: "Request",
       valueHtml: `<span style="font-weight:700;color:${emailTheme.ink};">${escapeHtml(params.requestTitle)}</span>`,
@@ -214,7 +216,6 @@ export function buildDecisionEmailHtml(params: DecisionEmailParams): string {
 
   const body = [
     emailHero({
-      eyebrow: "Request Update",
       title: `Request ${statusLabel}`,
       descriptionHtml: "A decision has been made on your approval request.",
     }),
@@ -225,10 +226,10 @@ export function buildDecisionEmailHtml(params: DecisionEmailParams): string {
     params.comment
       ? emailCard(
           `
-            <p style="margin:0 0 8px;color:${emailTheme.subtle};font-size:11px;font-weight:700;line-height:16px;letter-spacing:1.2px;text-transform:uppercase;">
+            <p style="margin:0 0 8px;color:${emailTheme.subtle};font-size:11px;font-weight:700;line-height:16px;letter-spacing:1.4px;text-transform:uppercase;">
               Reviewer Comment
             </p>
-            <p style="margin:0;color:${emailTheme.ink};font-size:14px;line-height:23px;font-style:italic;">
+            <p style="margin:0;color:${emailTheme.ink};font-size:15px;line-height:25px;font-style:italic;">
               &ldquo;${escapeHtml(params.comment)}&rdquo;
             </p>
           `,
@@ -245,6 +246,7 @@ export function buildDecisionEmailHtml(params: DecisionEmailParams): string {
   ].join("");
 
   return emailLayout({
+    heroBanner: emailHeroBanner({ image: heroImage, imageWidth: 200, imageHeight: 170, alt: heroAlt }),
     body,
     preheader: `${params.requestTitle} has been ${params.decision}`,
     footerText: "You received this email because you are a member of this OKRunit organization.",

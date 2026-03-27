@@ -41,6 +41,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import type { UserRole } from "@/lib/types/database";
 import type { MemberActivityStats } from "@/components/team/team-page-tabs";
 
@@ -93,6 +98,7 @@ export function V2MemberList({
   const [removeTarget, setRemoveTarget] = useState<TeamMember | null>(null);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [optimisticApprove, setOptimisticApprove] = useState<Record<string, boolean>>({});
 
   const isOwner = currentUserRole === "owner";
   const canRemove = currentUserRole === "owner" || currentUserRole === "admin";
@@ -135,7 +141,10 @@ export function V2MemberList({
   }
 
   async function handleCanApproveChange(userId: string, canApprove: boolean) {
-    setLoading(userId);
+    // Optimistic update — toggle immediately
+    setOptimisticApprove((prev) => ({ ...prev, [userId]: canApprove }));
+    toast.success(canApprove ? "Approval permission granted" : "Approval permission revoked");
+
     try {
       const res = await fetch("/api/v1/team/members", {
         method: "PATCH",
@@ -146,12 +155,11 @@ export function V2MemberList({
         const data = await res.json();
         throw new Error(data.error ?? "Failed to update");
       }
-      toast.success(canApprove ? "Approval permission granted" : "Approval permission revoked");
       router.refresh();
     } catch (err) {
+      // Revert on failure
+      setOptimisticApprove((prev) => ({ ...prev, [userId]: !canApprove }));
       toast.error(err instanceof Error ? err.message : "Failed to update");
-    } finally {
-      setLoading(null);
     }
   }
 
@@ -326,20 +334,34 @@ export function V2MemberList({
                 </div>
 
                 {/* Can approve toggle */}
-                <div className="hidden sm:flex items-center gap-2 shrink-0">
-                  <span className="text-[11px] text-muted-foreground">
-                    {member.can_approve ? (
-                      <ShieldCheck className="size-3.5 text-emerald-500" />
-                    ) : (
-                      <ShieldOff className="size-3.5 text-muted-foreground/40" />
-                    )}
-                  </span>
-                  <Switch
-                    checked={member.can_approve}
-                    onCheckedChange={(checked) => handleCanApproveChange(member.id, checked)}
-                    disabled={loading === member.id || isSelf}
-                  />
-                </div>
+                {(() => {
+                  const canApproveValue = optimisticApprove[member.id] ?? member.can_approve;
+                  return (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="hidden sm:flex items-center gap-2 shrink-0 cursor-default">
+                          <span>
+                            {canApproveValue ? (
+                              <ShieldCheck className="size-3.5 text-emerald-500" />
+                            ) : (
+                              <ShieldOff className="size-3.5 text-muted-foreground/40" />
+                            )}
+                          </span>
+                          <Switch
+                            checked={canApproveValue}
+                            onCheckedChange={(checked) => handleCanApproveChange(member.id, checked)}
+                            disabled={isSelf}
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        {canApproveValue
+                          ? "This member can approve or reject requests. Toggle off to revoke."
+                          : "This member cannot approve requests. Toggle on to grant permission."}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })()}
 
                 {/* Role */}
                 <div className="shrink-0">
@@ -349,7 +371,7 @@ export function V2MemberList({
                       onValueChange={(value) => handleRoleChange(member.id, value)}
                       disabled={loading === member.id}
                     >
-                      <SelectTrigger size="sm" className="w-[100px] h-8 text-xs">
+                      <SelectTrigger size="sm" className="w-[120px] h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -378,7 +400,7 @@ export function V2MemberList({
                     size="icon-sm"
                     onClick={() => setRemoveTarget(member)}
                     disabled={loading === member.id}
-                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="shrink-0"
                     title="Remove member"
                   >
                     <Trash2 className="size-3.5 text-destructive" />

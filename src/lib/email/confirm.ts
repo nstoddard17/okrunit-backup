@@ -1,13 +1,21 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Email Confirmation Template
+// OKRunit -- Email Confirmation Template (v3)
+// ---------------------------------------------------------------------------
+// Warm, Vend-inspired design with hero banner, illustration sections,
+// and personal sign-off using the shared layout helpers.
 // ---------------------------------------------------------------------------
 
 import {
+  PROD_URL,
   emailButton,
   emailButtonRow,
   emailCard,
+  emailDivider,
   emailHero,
+  emailHeroBanner,
+  emailIllustrationSection,
   emailLayout,
+  emailSignoff,
   emailTheme,
   escapeHtml,
 } from "@/lib/email/layout";
@@ -20,131 +28,122 @@ export interface ConfirmEmailParams {
 export function buildConfirmEmailHtml(params: ConfirmEmailParams): string {
   const { fullName, confirmLink } = params;
 
-  const features = [
-    {
-      icon: "&#10003;",
-      tone: "brand" as const,
-      title: "Human approval gates",
-      description:
-        "Require a sign-off before destructive actions or high-risk automations execute.",
-    },
-    {
-      icon: "&#8644;",
-      tone: "info" as const,
-      title: "Universal API",
-      description:
-        "Connect Zapier, Make, n8n, internal agents, or any custom workflow over HTTP.",
-    },
-    {
-      icon: "&#9889;",
-      tone: "warning" as const,
-      title: "Multi-channel alerts",
-      description:
-        "Approve or reject from email, Slack, Teams, Discord, or the dashboard.",
-    },
-  ];
+  // --- Hero banner (envelope emoji) ---
+  const heroBanner = emailHeroBanner({ image: "verify-email.svg", imageWidth: 200, imageHeight: 150, alt: "Verify your email" });
 
-  const featureRows = features
-    .map((feature, index) => {
-      const isLast = index === features.length - 1;
-      const toneColors = {
-        brand: {
-          background: "#f0fdf4",
-          border: "#bbf7d0",
-          text: "#166534",
-        },
-        info: {
-          background: "#eff6ff",
-          border: "#bfdbfe",
-          text: "#1d4ed8",
-        },
-        warning: {
-          background: "#fff7ed",
-          border: "#fed7aa",
-          text: "#9a3412",
-        },
-      }[feature.tone];
+  // --- Hero ---
+  const hero = emailHero({
+    title: "Welcome to OKRunit! Let&rsquo;s get started.",
+    descriptionHtml: `Hi ${escapeHtml(fullName)}! We&rsquo;re thrilled you&rsquo;re here. To activate your account and start routing approval flows, please verify your email address.`,
+  });
 
-      return `
-        <tr>
-          <td style="padding:0 0 ${isLast ? 0 : 18}px;${isLast ? "" : `border-bottom:1px solid ${emailTheme.divider};`}">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td style="width:52px;vertical-align:top;padding-right:14px;">
-                  <div style="width:40px;height:40px;border-radius:14px;background:${toneColors.background};border:1px solid ${toneColors.border};text-align:center;line-height:40px;">
-                    <span style="color:${toneColors.text};font-size:18px;font-weight:700;">${feature.icon}</span>
-                  </div>
-                </td>
-                <td style="vertical-align:top;">
-                  <p style="margin:0;color:${emailTheme.ink};font-size:14px;font-weight:700;line-height:22px;">
-                    ${feature.title}
-                  </p>
-                  <p style="margin:4px 0 0;color:${emailTheme.text};font-size:13px;line-height:21px;">
-                    ${feature.description}
-                  </p>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        ${isLast ? "" : `<tr><td style="height:18px;font-size:0;line-height:0;">&nbsp;</td></tr>`}
-      `;
-    })
-    .join("");
+  // --- Account info card ---
+  const accountCard = emailCard(
+    `
+      <p style="margin:0;color:${emailTheme.ink};font-size:15px;font-weight:700;line-height:24px;">
+        Your account is almost ready
+      </p>
+      <p style="margin:8px 0 0;color:${emailTheme.text};font-size:14px;line-height:24px;">
+        Once confirmed you&rsquo;ll be able to connect tools, submit approval requests, and
+        review pending actions &mdash; all from a single dashboard.
+      </p>
+    `,
+    { tone: "brand" },
+  );
+
+  // --- Verify button ---
+  const verifyButton = emailButtonRow([
+    emailButton({
+      label: "Verify Email Address",
+      href: confirmLink,
+    }),
+  ]);
+
+  // --- "What you unlock" section header ---
+  const sectionHeader = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:36px 0 0;">
+      <tr>
+        <td align="center">
+          <p style="margin:0;color:${emailTheme.ink};font-size:20px;font-weight:700;line-height:28px;text-align:center;">
+            What you unlock
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
+
+  // --- Feature illustration sections ---
+  const feature1 = emailIllustrationSection({
+    image: "feature-approval.svg",
+    imageWidth: 140,
+    imageHeight: 120,
+    title: "Human approval gates",
+    descriptionHtml:
+      "Require sign-offs before destructive actions or high-risk automations execute.",
+  });
+
+  const feature2 = emailIllustrationSection({
+    image: "feature-api.svg",
+    imageWidth: 140,
+    imageHeight: 120,
+    title: "Universal API",
+    descriptionHtml:
+      "Connect Zapier, Make, n8n, internal agents, or any custom workflow over HTTP.",
+    linkText: "View integrations",
+    linkHref: `${PROD_URL}/docs/integrations`,
+  });
+
+  const feature3 = emailIllustrationSection({
+    image: "feature-channels.svg",
+    imageWidth: 140,
+    imageHeight: 120,
+    title: "Multi-channel alerts",
+    descriptionHtml:
+      "Approve or reject from email, Slack, Teams, Discord, or the dashboard.",
+  });
+
+  // --- Sign-off ---
+  const signoff = emailSignoff({
+    message: "Welcome aboard!",
+    name: "The OKRunit Team",
+    title: "Human-in-the-loop, always",
+  });
+
+  // --- Fallback link ---
+  const fallbackLink = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0;">
+      <tr>
+        <td>
+          <p style="margin:0;color:${emailTheme.muted};font-size:12px;line-height:20px;">
+            Button not working? Copy and paste this link into your browser:
+          </p>
+          <p style="margin:8px 0 0;">
+            <a href="${confirmLink}" style="color:${emailTheme.brand};font-size:12px;font-weight:600;line-height:20px;word-break:break-all;text-decoration:none;">${confirmLink}</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
 
   const body = [
-    emailHero({
-      eyebrow: "Account Setup",
-      title: "Confirm your email",
-      descriptionHtml: `Hey ${escapeHtml(fullName)}, verify your email address to unlock your workspace and start routing approval flows through OKRunit.`,
-    }),
-    emailCard(
-      `
-        <p style="margin:0;color:${emailTheme.ink};font-size:14px;font-weight:700;line-height:22px;">
-          Your account is almost ready
-        </p>
-        <p style="margin:6px 0 0;color:${emailTheme.text};font-size:13px;line-height:21px;">
-          Once confirmed, you can connect tools, submit approval requests, and review actions from one place.
-        </p>
-      `,
-      { tone: "brand" },
-    ),
-    emailButtonRow([
-      emailButton({
-        label: "Verify Email Address",
-        href: confirmLink,
-      }),
-    ]),
-    emailCard(
-      `
-        <p style="margin:0 0 18px;color:${emailTheme.subtle};font-size:11px;font-weight:700;line-height:16px;letter-spacing:1.2px;text-transform:uppercase;">
-          What you unlock
-        </p>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-          ${featureRows}
-        </table>
-      `,
-      { tone: "neutral", marginTop: 24 },
-    ),
-    `
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;">
-        <tr>
-          <td>
-            <p style="margin:0;color:${emailTheme.muted};font-size:12px;line-height:19px;">
-              Button not working? Use this secure link:
-            </p>
-            <p style="margin:8px 0 0;">
-              <a href="${confirmLink}" style="color:${emailTheme.brand};font-size:12px;font-weight:700;line-height:19px;word-break:break-all;text-decoration:none;">${confirmLink}</a>
-            </p>
-          </td>
-        </tr>
-      </table>
-    `,
+    hero,
+    accountCard,
+    verifyButton,
+    sectionHeader,
+    feature1,
+    emailDivider(0, 0),
+    feature2,
+    emailDivider(0, 0),
+    feature3,
+    signoff,
+    fallbackLink,
   ].join("");
 
   return emailLayout({
     body,
+    heroBanner,
     preheader: "Confirm your email to start using OKRunit",
-    footerText: "If you did not create an OKRunit account, you can safely ignore this email.",
+    footerText:
+      "If you did not create an OKRunit account, you can safely ignore this email.",
   });
 }

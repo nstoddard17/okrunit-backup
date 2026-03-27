@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 140" fill="none">
+  <!-- Key -->
+  <circle cx="65" cy="55" r="22" fill="#e8f5e9" stroke="#c8e6c9" stroke-width="2"/>
+  <circle cx="65" cy="55" r="12" fill="#4caf50"/>
+  <circle cx="65" cy="55" r="6" fill="#fff"/>
+  <!-- Key shaft -->
+  <rect x="82" y="51" width="45" height="8" rx="4" fill="#37474f"/>
+  <!-- Key teeth -->
+  <rect x="108" y="55" width="3" height="10" rx="1.5" fill="#37474f"/>
+  <rect x="118" y="55" width="3" height="12" rx="1.5" fill="#37474f"/>
+  <!-- Plug -->
+  <rect x="55" y="85" width="50" height="30" rx="6" fill="#37474f"/>
+  <rect x="62" y="90" width="10" height="6" rx="2" fill="#4caf50"/>
+  <rect x="78" y="90" width="10" height="6" rx="2" fill="#4caf50"/>
+  <rect x="62" y="100" width="10" height="6" rx="2" fill="#66bb6a"/>
+  <rect x="78" y="100" width="10" height="6" rx="2" fill="#66bb6a"/>
+  <!-- Sparks -->
+  <circle cx="40" cy="35" r="3" fill="#c8e6c9"/>
+  <circle cx="130" cy="40" r="2" fill="#a5d6a7"/>
+</svg>
