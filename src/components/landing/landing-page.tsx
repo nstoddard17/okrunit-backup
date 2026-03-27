@@ -88,6 +88,7 @@ const marqueeIntegrations = [
   { label: "Discord", src: "/logos/platforms/discord.png" },
   { label: "Microsoft Teams", src: "/logos/platforms/teams.png" },
   { label: "Telegram", src: "/logos/platforms/telegram.png" },
+  { label: "monday.com", src: "/logos/platforms/monday.png" },
 ];
 
 type ProductSource = keyof typeof sourceAssets;
@@ -299,6 +300,7 @@ const routePlatforms: Record<
   MessagingPlatform,
   { label: string; color: string }
 > = {
+  email: { label: "Email", color: "#059669" },
   slack: { label: "Slack", color: "#4A154B" },
   discord: { label: "Discord", color: "#5865F2" },
   teams: { label: "Microsoft Teams", color: "#6264A7" },
@@ -440,8 +442,8 @@ function IntegrationMarquee() {
   return (
     <div className="relative overflow-hidden">
       {/* Fade edges */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-[#f3f7f4] to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-[#f3f7f4] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent" />
 
       <div className="flex w-max animate-[lp-marquee_40s_linear_infinite] items-center gap-6">
         {items.map((item, i) => (
@@ -1349,54 +1351,85 @@ function HeroProductSystem() {
   );
 }
 
-function FeatureSection({
-  id,
-  eyebrow,
-  title,
-  description,
-  bullets,
-  visual,
-  reverse = false,
-}: {
+interface FeatureStep {
   id: string;
   eyebrow: string;
   title: string;
   description: string;
-  bullets: string[];
   visual: ReactNode;
-  reverse?: boolean;
-}) {
+}
+
+function ScrollFeatures({ steps }: { steps: FeatureStep[] }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    function onScroll() {
+      const trigger = window.innerHeight * 0.35;
+      let best = 0;
+      stepRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= trigger) best = i;
+      });
+      setActiveIndex(best);
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <section id={id} className="scroll-mt-28 border-t border-slate-100 py-16 sm:py-20">
-      <div
-        className={cn(
-          "mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[2fr_3fr] lg:items-center lg:gap-12 lg:px-8",
-          reverse && "lg:grid-cols-[3fr_2fr]",
-        )}
-      >
-        <FadeIn className={cn(reverse && "lg:order-2")}>
-          <div className="max-w-lg space-y-5">
-            <SectionEyebrow>{eyebrow}</SectionEyebrow>
-            <div className="space-y-3">
-              <h2 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
-                {title}
-              </h2>
-              <p className="text-base leading-7 text-slate-600">{description}</p>
-            </div>
-            <div className="space-y-2.5">
-              {bullets.map((bullet) => (
-                <div key={bullet} className="flex items-start gap-2.5 text-sm leading-6 text-slate-600">
-                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-emerald-500" />
-                  <span>{bullet}</span>
+    <section className="relative">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="lg:grid lg:grid-cols-[340px_1fr] lg:gap-12 xl:grid-cols-[400px_1fr]">
+          {/* Left: scrolling text steps */}
+          <div className="relative py-16 lg:py-20">
+            {steps.map((step, i) => (
+              <div
+                key={step.id}
+                id={step.id}
+                ref={(el) => { stepRefs.current[i] = el; }}
+                className="scroll-mt-28 lg:min-h-[70vh] lg:flex lg:items-center"
+              >
+                <div>
+                  <div
+                    className={cn(
+                      "space-y-4 transition-opacity duration-500",
+                      activeIndex === i ? "opacity-100" : "lg:opacity-30",
+                    )}
+                  >
+                    <SectionEyebrow>{step.eyebrow}</SectionEyebrow>
+                    <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                      {step.title}
+                    </h2>
+                    <p className="text-base leading-7 text-white/70">{step.description}</p>
+                  </div>
+
+                  {/* Mobile: show visual inline */}
+                  <div className="mt-8 lg:hidden">
+                    {step.visual}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Right: sticky visual that changes */}
+          <div className="relative hidden lg:block">
+            <div className="sticky top-28 py-8">
+              {steps.map((step, i) => (
+                <div
+                  key={step.id}
+                  style={{ display: activeIndex === i ? "block" : "none" }}
+                >
+                  {step.visual}
                 </div>
               ))}
             </div>
           </div>
-        </FadeIn>
-
-        <FadeIn delay={80} className={cn(reverse && "lg:order-1")}>
-          {visual}
-        </FadeIn>
+        </div>
       </div>
     </section>
   );
@@ -1404,7 +1437,7 @@ function FeatureSection({
 
 export function LandingPage({ user }: LandingPageProps) {
   return (
-    <div className="gk-v2 force-light min-h-screen overflow-x-hidden bg-[linear-gradient(180deg,#f3f7f4_0%,#f8fbf9_20%,#ffffff_52%,#f4f7f8_100%)] font-[var(--font-dm-sans)] text-[var(--foreground)]">
+    <div className="gk-v2 force-light min-h-screen overflow-x-clip bg-white font-[var(--font-dm-sans)] text-[var(--foreground)]">
       <header className="sticky top-0 z-50 border-b border-white/60 bg-white/72 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
@@ -1496,74 +1529,62 @@ export function LandingPage({ user }: LandingPageProps) {
           </div>
         </section>
 
-        <FeatureSection
-          id="approvals"
-          eyebrow="Approval Flow"
-          title="Review the full request, the approvers, and the decision state in one place."
-          description="The approval experience is not reduced to a floating CTA. The real UI shows status, source, role requirements, progress through the chain, and the actual approve or reject action side by side."
-          bullets={[
-            "Critical requests keep the full metadata grid instead of hiding context behind a modal step.",
-            "Sequential and multi-approver flows stay visible, including who approved already and who is next.",
-            "Approved, rejected, and still-pending cards keep the same structure so the queue reads instantly.",
-          ]}
-          visual={<ApprovalFlowVisual />}
-        />
+        {/* Dark scrollytelling feature section */}
+        <div className="bg-slate-950">
+          <ScrollFeatures
+            steps={[
+              {
+                id: "approvals",
+                eyebrow: "Approval Flow",
+                title: "Click a request, review the full context, and decide — all in one view.",
+                description: "Each request card shows its source, priority, and status at a glance. Click to open the detail panel with the full metadata grid, approval chain progress, and approve or reject actions.",
+                visual: <ApprovalFlowVisual />,
+              },
+              {
+                id: "queue",
+                eyebrow: "Queue System",
+                title: "Pending requests surface first. Resolved history stays accessible below.",
+                description: "The queue separates what needs attention right now from what’s already been decided. Source markers, action types, timestamps, and status badges let operators scan without opening every row.",
+                visual: (
+                  <div className="relative max-h-[calc(100vh-8rem)] overflow-hidden rounded-2xl bg-white p-1 shadow-2xl shadow-black/20">
+                    <QueuePanel
+                      attentionItems={queueAttention}
+                      resolvedItems={queueResolved}
+                      title="Approval Queue"
+                      description="Grouped rows, visible status chips, and enough metadata to make the next decision without guessing."
+                    />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-2xl bg-gradient-to-t from-white to-transparent" />
+                  </div>
+                ),
+              },
+              {
+                id: "routing",
+                eyebrow: "Routing & Notifications",
+                title: "Define who approves and which channels get notified — per source.",
+                description: "Approval flows carry source ownership, request counts, and last activity. Messaging channels show exactly which sources notify them so route behavior is always visible.",
+                visual: (
+                  <div className="max-h-[calc(100vh-8rem)] overflow-hidden rounded-2xl bg-white p-4 shadow-2xl shadow-black/20 sm:p-5">
+                    <RoutingSystemPanel />
+                  </div>
+                ),
+              },
+              {
+                id: "audit",
+                eyebrow: "Audit Trail",
+                title: "Every decision, rule change, and route update in one searchable history.",
+                description: "Approval decisions, flow edits, and route changes appear together with actor, timestamp, resource, and expanded detail payloads. Built for compliance and debugging.",
+                visual: (
+                  <div className="relative max-h-[calc(100vh-8rem)] overflow-hidden rounded-2xl bg-white p-1 shadow-2xl shadow-black/20">
+                    <AuditTrailPanel />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 rounded-b-2xl bg-gradient-to-t from-white to-transparent" />
+                  </div>
+                ),
+              },
+            ]}
+          />
+        </div>
 
-        <FeatureSection
-          id="queue"
-          eyebrow="Queue System"
-          title="Run the day from a queue that separates active risk from resolved history."
-          description="The queue is the product’s core: pending requests get the visual weight, resolved items drop below, and operators can scan source, action type, timestamps, priority, and state without opening every row."
-          bullets={[
-            "Needs Your Attention and Previously Resolved are preserved from the product list instead of flattened into one generic table.",
-            "Request rows keep the same structure your team already uses: source marker, action type, age, owner, priority, and status.",
-            "The queue looks polished enough for the homepage but still feels like something an operator could use immediately.",
-          ]}
-          reverse
-          visual={
-            <div>
-              <QueuePanel
-                attentionItems={queueDeepDiveAttention}
-                resolvedItems={queueDeepDiveResolved}
-                title="Approval Queue"
-                description="The activity feed stays operational: grouped rows, visible status chips, and enough metadata to make the next decision without guessing."
-              />
-            </div>
-          }
-        />
-
-        <FeatureSection
-          id="routing"
-          eyebrow="Routing"
-          title="Configure who must approve and where the request gets routed without leaving the system."
-          description="Routing is shown with the real flow and channel patterns from the product: source-specific approval rules, messaging destinations, filters by source, and recent outcomes directly beneath the configuration."
-          bullets={[
-            "Flows carry source ownership, request counts, and last activity so routing feels tied to real traffic.",
-            "Messaging channels show exactly which sources notify them instead of disappearing into a separate settings screen.",
-            "Recent outcomes keep approved, rejected, and pending states visible so route behavior is easy to verify.",
-          ]}
-          visual={
-            <div className="rounded-2xl border border-slate-200/60 bg-white/80 p-4 lp-shadow-panel sm:p-5">
-              <RoutingSystemPanel />
-            </div>
-          }
-        />
-
-        <FeatureSection
-          id="audit"
-          eyebrow="Audit Trail"
-          title="Keep a readable history of every decision, rule change, and route update."
-          description="The audit section is presented as the actual history UI: timestamp, action badge, resource, actor, IP address, and expanded details when a flow or route changes under the hood."
-          bullets={[
-            "Approval decisions, flow edits, and route changes appear in one history instead of splitting trust signals across multiple panels.",
-            "Rows stay dense and table-driven so the interface reads like a working tool, not a decorative timeline.",
-            "Expanded details make it obvious that configuration changes are tracked with real payload data.",
-          ]}
-          reverse
-          visual={<AuditTrailPanel />}
-        />
-
-        <section className="border-t border-slate-100 py-16 sm:py-20">
+        <section className="py-20 sm:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <FadeIn>
               <div className="mx-auto max-w-2xl text-center">

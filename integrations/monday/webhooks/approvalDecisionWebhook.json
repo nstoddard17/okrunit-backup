@@ -1,0 +1,9 @@
+{
+  "label": "Approval Decision Webhook",
+  "type": "web",
+  "parameters": [],
+  "response": {
+    "output": "{{body}}",
+    "type": "object"
+  }
+}

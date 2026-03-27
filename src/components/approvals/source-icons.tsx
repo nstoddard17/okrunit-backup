@@ -22,6 +22,14 @@ function MakeLogo({ className }: { className?: string }) {
   );
 }
 
+function MondayLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M3.283 14.682a3.283 3.283 0 0 1-2.878-4.874l3.337-6.063a3.283 3.283 0 0 1 5.756 3.166L6.161 12.97a3.283 3.283 0 0 1-2.878 1.712zm8.249 0a3.283 3.283 0 0 1-2.878-4.874l3.337-6.063a3.283 3.283 0 0 1 5.756 3.166l-3.337 6.063a3.283 3.283 0 0 1-2.878 1.708zm8.25-3.282a3.283 3.283 0 1 1 0-6.565 3.283 3.283 0 0 1 0 6.565z" />
+    </svg>
+  );
+}
+
 function N8nLogo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="currentColor">
@@ -57,6 +65,12 @@ export const SOURCE_CONFIG: Record<string, SourceDisplayConfig> = {
     icon: N8nLogo,
     color: "text-rose-600",
     bgColor: "bg-rose-100",
+  },
+  monday: {
+    label: "monday.com",
+    icon: MondayLogo,
+    color: "text-yellow-600",
+    bgColor: "bg-yellow-100",
   },
   windmill: {
     label: "Windmill",

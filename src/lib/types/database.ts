@@ -24,7 +24,7 @@ export type UserRole = "owner" | "admin" | "member";
 
 export type InviteRole = "admin" | "member";
 
-export type MessagingPlatform = "discord" | "slack" | "teams" | "telegram";
+export type MessagingPlatform = "discord" | "email" | "slack" | "teams" | "telegram";
 
 export type DecisionSource =
   | "dashboard"
@@ -104,6 +104,7 @@ export interface Organization {
   require_reauth_for_critical: boolean;
   session_timeout_minutes: number;
   four_eyes_config: FourEyesConfig;
+  sso_domain: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -114,6 +115,7 @@ export interface UserProfile {
   full_name: string | null;
   avatar_url: string | null;
   is_app_admin: boolean;
+  deletion_scheduled_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -125,6 +127,7 @@ export interface OrgMembership {
   role: UserRole;
   can_approve: boolean;
   is_default: boolean;
+  auto_approvals_paused: boolean;
   created_at: string;
   updated_at: string;
 }

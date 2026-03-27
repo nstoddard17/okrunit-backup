@@ -165,9 +165,9 @@ export function V2InviteSection({ invites }: V2InviteSectionProps) {
                   )}
                 </p>
               </div>
-              <div className="flex items-end gap-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="bulk-role" className="text-xs">Role</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="bulk-role" className="text-xs">Role</Label>
+                <div className="flex items-center gap-2">
                   <Select value={role} onValueChange={(v) => setRole(v as "admin" | "member")} disabled={loading}>
                     <SelectTrigger id="bulk-role" className="w-[120px] h-9">
                       <SelectValue />
@@ -177,11 +177,11 @@ export function V2InviteSection({ invites }: V2InviteSectionProps) {
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Button type="submit" disabled={loading || parsedCount === 0} size="sm" className="h-9 gap-1.5">
+                    <Send className="size-3.5" />
+                    {loading ? "Sending..." : `Send ${parsedCount}`}
+                  </Button>
                 </div>
-                <Button type="submit" disabled={loading || parsedCount === 0} size="sm" className="h-9 gap-1.5">
-                  <Send className="size-3.5" />
-                  {loading ? "Sending..." : `Send ${parsedCount}`}
-                </Button>
               </div>
             </form>
           ) : (
@@ -202,9 +202,9 @@ export function V2InviteSection({ invites }: V2InviteSectionProps) {
                   />
                 </div>
               </div>
-              <div className="flex items-end gap-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="invite-role" className="text-xs">Role</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="invite-role" className="text-xs">Role</Label>
+                <div className="flex items-center gap-2">
                   <Select value={role} onValueChange={(v) => setRole(v as "admin" | "member")} disabled={loading}>
                     <SelectTrigger id="invite-role" className="w-[120px] h-9">
                       <SelectValue />
@@ -214,11 +214,11 @@ export function V2InviteSection({ invites }: V2InviteSectionProps) {
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Button type="submit" disabled={loading} size="sm" className="h-9 gap-1.5">
+                    <Send className="size-3.5" />
+                    {loading ? "Sending..." : "Send"}
+                  </Button>
                 </div>
-                <Button type="submit" disabled={loading} size="sm" className="h-9 gap-1.5">
-                  <Send className="size-3.5" />
-                  {loading ? "Sending..." : "Send"}
-                </Button>
               </div>
             </form>
           )}

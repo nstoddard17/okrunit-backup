@@ -16,7 +16,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { checkRateLimit, addRateLimitHeaders, type RateLimitResult } from "@/lib/api/rate-limiter";
 import { enforceConnectionScoping } from "@/lib/api/connection-scoping";
 import { checkForAnomalies } from "@/lib/api/anomaly-detection";
-import { evaluateRules } from "@/lib/api/rules-engine";
+import { evaluateRules, type RuleEvaluationResult } from "@/lib/api/rules-engine";
 import { calculateRiskScore } from "@/lib/api/risk-scoring";
 import { resolveDelegates } from "@/lib/api/delegation";
 import { checkTrustThreshold } from "@/lib/api/trust-engine";
@@ -141,6 +141,7 @@ export async function POST(request: Request) {
         else if (clientNameLower.includes("make")) autoDetectedSource = "make";
         else if (clientNameLower.includes("n8n")) autoDetectedSource = "n8n";
         else if (clientNameLower.includes("windmill")) autoDetectedSource = "windmill";
+        else if (clientNameLower.includes("monday")) autoDetectedSource = "monday";
       }
     }
 
@@ -151,6 +152,7 @@ export async function POST(request: Request) {
         type: "api_key",
         connection_id: auth.connection.id,
         connection_name: auth.connection.name,
+        user_id: auth.connection.created_by,
       };
     } else if (auth.type === "oauth") {
       createdBy = {
@@ -320,19 +322,30 @@ export async function POST(request: Request) {
       }
     }
 
-    // 11. Auto-approve rules check
-    const ruleResult = await evaluateRules({
-      orgId: auth.orgId,
-      connectionId: connectionId ?? undefined,
-      actionType: effectiveActionType ?? undefined,
-      priority: effectivePriority,
-      title: validated.title,
-      metadata: validated.metadata as Record<string, unknown> | undefined,
-    });
+    // 10b. Check if any org member has paused auto-approvals
+    const { count: pausedCount } = await admin
+      .from("org_memberships")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", auth.orgId)
+      .eq("auto_approvals_paused", true);
+
+    const autoApprovalsPaused = (pausedCount ?? 0) > 0;
+
+    // 11. Auto-approve rules check (skipped if any member paused auto-approvals)
+    const ruleResult: RuleEvaluationResult = autoApprovalsPaused
+      ? { matched: false }
+      : await evaluateRules({
+          orgId: auth.orgId,
+          connectionId: connectionId ?? undefined,
+          actionType: effectiveActionType ?? undefined,
+          priority: effectivePriority,
+          title: validated.title,
+          metadata: validated.metadata as Record<string, unknown> | undefined,
+        });
 
     // 11b. Trust threshold check (auto-approve after N consecutive approvals)
     let trustResult: { autoApprove: boolean; reason: string; counterId: string | null } | null = null;
-    if (!ruleResult.matched || ruleResult.action !== "auto_approve") {
+    if (!autoApprovalsPaused && (!ruleResult.matched || ruleResult.action !== "auto_approve")) {
       trustResult = await checkTrustThreshold(auth.orgId, {
         action_type: effectiveActionType,
         source: validated.source ?? autoDetectedSource,
@@ -446,8 +459,9 @@ export async function POST(request: Request) {
 
     // 13b. Compute auto-action deadline (time-based auto-approve/reject)
     //       Request values take precedence, then org defaults.
-    const effectiveAutoAction = validated.auto_action ?? org.default_auto_action ?? null;
-    const effectiveAutoMinutes = validated.auto_action_after_minutes ?? org.default_auto_action_minutes ?? null;
+    //       Skipped when auto-approvals are paused by any org member.
+    const effectiveAutoAction = autoApprovalsPaused ? null : (validated.auto_action ?? org.default_auto_action ?? null);
+    const effectiveAutoMinutes = autoApprovalsPaused ? null : (validated.auto_action_after_minutes ?? org.default_auto_action_minutes ?? null);
 
     let autoActionDeadline: string | null = null;
     if (!isAutoApproved && effectiveAutoAction && effectiveAutoMinutes) {

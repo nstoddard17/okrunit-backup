@@ -1,0 +1,10 @@
+{
+  "url": "/api/v1/approvals",
+  "method": "GET",
+  "qs": {
+    "page_size": "1"
+  },
+  "response": {
+    "output": "{{body.data}}"
+  }
+}

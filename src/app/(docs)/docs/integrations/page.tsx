@@ -46,6 +46,12 @@ const CATEGORIES: Category[] = [
           "Community node for n8n that provides trigger and action nodes for approval workflows within your self-hosted or cloud n8n instance.",
         status: "available",
       },
+      {
+        name: "monday.com",
+        description:
+          "Native monday.com app with triggers and actions for adding human approval gates to your monday.com automations and workflows.",
+        status: "available",
+      },
     ],
   },
   {

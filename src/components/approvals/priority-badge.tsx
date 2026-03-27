@@ -12,20 +12,19 @@ const priorityConfig: Record<
 > = {
   low: {
     label: "Low",
-    className: "bg-muted text-muted-foreground hover:bg-muted/80",
+    className: "border-zinc-300 text-zinc-500 bg-transparent",
   },
   medium: {
     label: "Medium",
-    className: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+    className: "border-blue-300 text-blue-600 bg-transparent",
   },
   high: {
     label: "High",
-    className:
-      "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300",
+    className: "border-orange-300 text-orange-600 bg-transparent",
   },
   critical: {
     label: "Critical",
-    className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+    className: "border-red-300 text-red-600 bg-transparent",
   },
 };
 
@@ -33,7 +32,7 @@ export function PriorityBadge({ priority }: PriorityBadgeProps) {
   const config = priorityConfig[priority];
 
   return (
-    <Badge variant="outline" className={cn("border-transparent", config.className)}>
+    <Badge variant="outline" className={cn(config.className)}>
       {config.label}
     </Badge>
   );

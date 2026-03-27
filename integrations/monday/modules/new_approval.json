@@ -1,0 +1,68 @@
+{
+  "label": "New Approval Request",
+  "description": "Triggers when a new approval request is created in your OKRunit organization.",
+  "actionType": "trigger",
+  "type": "polling",
+  "connection": "oauth2",
+  "parameters": [
+    {
+      "name": "status_filter",
+      "type": "select",
+      "label": "Status",
+      "required": false,
+      "options": [
+        { "label": "Any Status", "value": "" },
+        { "label": "Pending", "value": "pending" },
+        { "label": "Approved", "value": "approved" },
+        { "label": "Rejected", "value": "rejected" },
+        { "label": "Cancelled", "value": "cancelled" },
+        { "label": "Expired", "value": "expired" }
+      ],
+      "help": "Only trigger for approvals with this status. Leave empty for all."
+    },
+    {
+      "name": "priority_filter",
+      "type": "select",
+      "label": "Priority",
+      "required": false,
+      "options": [
+        { "label": "Any Priority", "value": "" },
+        { "label": "Low", "value": "low" },
+        { "label": "Medium", "value": "medium" },
+        { "label": "High", "value": "high" },
+        { "label": "Critical", "value": "critical" }
+      ],
+      "help": "Only trigger for approvals with this priority. Leave empty for all."
+    }
+  ],
+  "url": "/api/v1/approvals",
+  "method": "GET",
+  "qs": {
+    "status": "{{ifempty(parameters.status_filter, undefined)}}",
+    "priority": "{{ifempty(parameters.priority_filter, undefined)}}",
+    "page_size": "50"
+  },
+  "response": {
+    "output": "{{body.data}}",
+    "iterate": "{{body.data}}",
+    "trigger": {
+      "id": "{{item.id}}",
+      "date": "{{item.created_at}}",
+      "order": "desc"
+    }
+  },
+  "samples": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "title": "Deploy v2.3.1 to production",
+    "description": "Release includes new payment flow",
+    "status": "pending",
+    "priority": "high",
+    "action_type": "deploy",
+    "source": "api",
+    "required_approvals": 1,
+    "current_approvals": 0,
+    "requested_by_name": "Jane Smith",
+    "created_at": "2026-02-21T10:00:00.000Z",
+    "updated_at": "2026-02-21T10:00:00.000Z"
+  }
+}

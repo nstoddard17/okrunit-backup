@@ -3,7 +3,18 @@
 // ---------------------------------------------------------------------------
 
 import { Resend } from "resend";
-import { emailLayout, escapeHtml } from "@/lib/email/layout";
+import {
+  type EmailTone,
+  emailButton,
+  emailButtonRow,
+  emailCard,
+  emailHero,
+  emailLayout,
+  emailMetadataRows,
+  emailPill,
+  emailTheme,
+  escapeHtml,
+} from "@/lib/email/layout";
 
 const FROM_EMAIL =
   process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
@@ -49,41 +60,31 @@ function getResendClient(): Resend | null {
 
 /** Map a priority string to its display colour. */
 function priorityConfig(priority: string): {
-  bg: string;
-  text: string;
-  border: string;
+  tone: EmailTone;
   dot: string;
   label: string;
 } {
   const configs: Record<
     string,
-    { bg: string; text: string; border: string; dot: string; label: string }
+    { tone: EmailTone; dot: string; label: string }
   > = {
     critical: {
-      bg: "#fef2f2",
-      text: "#991b1b",
-      border: "#fecaca",
+      tone: "danger",
       dot: "#dc2626",
       label: "Critical",
     },
     high: {
-      bg: "#fff7ed",
-      text: "#9a3412",
-      border: "#fed7aa",
+      tone: "warning",
       dot: "#ea580c",
       label: "High",
     },
     medium: {
-      bg: "#fefce8",
-      text: "#854d0e",
-      border: "#fef08a",
+      tone: "neutral",
       dot: "#ca8a04",
       label: "Medium",
     },
     low: {
-      bg: "#f0fdf4",
-      text: "#166534",
-      border: "#bbf7d0",
+      tone: "brand",
       dot: "#16a34a",
       label: "Low",
     },
@@ -99,189 +100,154 @@ function priorityConfig(priority: string): {
 export function buildApprovalEmailHtml(params: EmailNotificationParams): string {
   const approveUrl = `${APP_URL}/api/email-actions/${params.approveToken}`;
   const rejectUrl = `${APP_URL}/api/email-actions/${params.rejectToken}`;
-  const dashboardUrl = `${APP_URL}/dashboard#request-${params.requestId}`;
+  const dashboardUrl = `${APP_URL}/requests`;
   const p = priorityConfig(params.priority);
 
   const descriptionBlock = params.description
-    ? `<p style="margin:8px 0 0;color:#64748b;font-size:14px;line-height:22px;">${escapeHtml(params.description)}</p>`
+    ? `<p style="margin:8px 0 0;color:${emailTheme.text};font-size:14px;line-height:22px;">${escapeHtml(params.description)}</p>`
     : "";
 
-  const body = `
-    <!-- Icon + heading -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-      <tr>
-        <td align="center">
-          <div style="width:48px;height:48px;border-radius:12px;background:#eef2ff;text-align:center;line-height:48px;margin:0 auto 20px;">
-            <span style="font-size:24px;">&#128276;</span>
-          </div>
-          <h1 style="margin:0 0 6px;font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.3px;text-align:center;">Approval Required</h1>
-          <p style="margin:0;font-size:15px;color:#64748b;line-height:22px;text-align:center;">A new request is waiting for your review.</p>
-        </td>
-      </tr>
-    </table>
-
-    <!-- Divider -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
-      <tr><td style="border-top:1px solid #e2e8f0;"></td></tr>
-    </table>
-
-    <!-- Request details card -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
-      <tr>
-        <td style="padding:20px 24px;border-bottom:1px solid #e2e8f0;">
-          <p style="margin:0 0 4px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">Request</p>
-          <p style="margin:0;color:#0f172a;font-size:17px;font-weight:600;line-height:24px;">${escapeHtml(params.title)}</p>
-          ${descriptionBlock}
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:16px 24px;">
-          <p style="margin:0 0 8px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">Priority</p>
-          <table role="presentation" cellpadding="0" cellspacing="0">
-            <tr>
-              <td style="background:${p.bg};border:1px solid ${p.border};border-radius:20px;padding:4px 14px 4px 10px;">
-                <table role="presentation" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td style="vertical-align:middle;padding-right:6px;">
-                      <div style="width:8px;height:8px;border-radius:50%;background:${p.dot};"></div>
-                    </td>
-                    <td style="vertical-align:middle;">
-                      <span style="font-size:13px;font-weight:600;color:${p.text};letter-spacing:0.2px;">${p.label}</span>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-
-    <!-- Action buttons -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0;">
-      <tr>
-        <td align="center" width="50%" style="padding-right:6px;">
-          <a href="${approveUrl}" style="display:block;padding:14px 24px;background:#16a34a;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;text-align:center;box-shadow:0 1px 2px rgba(22,163,74,0.3);">Approve</a>
-        </td>
-        <td align="center" width="50%" style="padding-left:6px;">
-          <a href="${rejectUrl}" style="display:block;padding:14px 24px;background:#ffffff;color:#dc2626;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;text-align:center;border:1.5px solid #fecaca;">Reject</a>
-        </td>
-      </tr>
-    </table>
-
-    <!-- Dashboard link -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;">
-      <tr>
-        <td align="center">
-          <a href="${dashboardUrl}" style="color:#6366f1;font-size:13px;font-weight:500;text-decoration:none;">View in Dashboard &rarr;</a>
-        </td>
-      </tr>
-    </table>
-  `;
+  const body = [
+    emailHero({
+      eyebrow: "Approval Center",
+      title: "Approval required",
+      descriptionHtml: "A new request is waiting for your review.",
+    }),
+    emailCard(
+      `
+        <p style="margin:0 0 6px;color:${emailTheme.subtle};font-size:11px;font-weight:700;line-height:16px;letter-spacing:1.2px;text-transform:uppercase;">
+          Request
+        </p>
+        <p style="margin:0;color:${emailTheme.ink};font-size:18px;font-weight:700;line-height:26px;letter-spacing:-0.3px;">
+          ${escapeHtml(params.title)}
+        </p>
+        ${descriptionBlock}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0 0;">
+          <tr>
+            <td style="vertical-align:middle;">
+              ${emailPill({
+                label: p.label,
+                tone: p.tone,
+                dotColor: p.dot,
+              })}
+            </td>
+            <td align="right" style="vertical-align:middle;">
+              <span style="display:inline-block;color:${emailTheme.muted};font-size:12px;font-weight:700;line-height:18px;letter-spacing:0.2px;">
+                ID ${escapeHtml(params.requestId)}
+              </span>
+            </td>
+          </tr>
+        </table>
+      `,
+      { tone: "neutral" },
+    ),
+    emailButtonRow([
+      emailButton({
+        label: "Approve",
+        href: approveUrl,
+        block: true,
+      }),
+      emailButton({
+        label: "Reject",
+        href: rejectUrl,
+        variant: "danger-secondary",
+        block: true,
+      }),
+    ]),
+    emailCard(
+      `
+        ${emailMetadataRows([
+          {
+            label: "Action Window",
+            valueHtml: "One-click links stay active for 72 hours.",
+          },
+          {
+            label: "Full Context",
+            valueHtml: `<a href="${dashboardUrl}" style="color:${emailTheme.brand};font-weight:700;text-decoration:none;">Open the request in OKRunit &rarr;</a>`,
+            borderless: true,
+          },
+        ])}
+      `,
+      { tone: "brand", marginTop: 20 },
+    ),
+  ].join("");
 
   return emailLayout({
     body,
     preheader: `New approval request: ${params.title}`,
-    footerText:
-      "This action link expires in 72 hours. If you did not expect this email, you can safely ignore it.",
+    footerText: "Action links expire in 72 hours. If you did not expect this email, you can safely ignore it.",
   });
 }
 
 export function buildDecisionEmailHtml(params: DecisionEmailParams): string {
-  const dashboardUrl = `${APP_URL}/dashboard`;
+  const dashboardUrl = `${APP_URL}/requests`;
 
   const isApproved = params.decision === "approved";
-  const statusColor = isApproved ? "#16a34a" : "#dc2626";
-  const statusBg = isApproved ? "#f0fdf4" : "#fef2f2";
-  const statusBorder = isApproved ? "#bbf7d0" : "#fecaca";
+  const statusTone: EmailTone = isApproved ? "brand" : "danger";
+  const statusColor = isApproved ? emailTheme.brand : emailTheme.danger;
   const statusLabel = isApproved ? "Approved" : "Rejected";
-  const statusEmoji = isApproved ? "&#9989;" : "&#10060;";
 
-  const decidedByBlock = params.decidedBy
-    ? `<tr>
-        <td style="padding:14px 24px;border-bottom:1px solid #e2e8f0;">
-          <p style="margin:0 0 4px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">Decided By</p>
-          <p style="margin:0;color:#0f172a;font-size:14px;font-weight:500;">${escapeHtml(params.decidedBy)}</p>
-        </td>
-      </tr>`
-    : "";
+  const rows = [
+    {
+      label: "Request",
+      valueHtml: `<span style="font-weight:700;color:${emailTheme.ink};">${escapeHtml(params.requestTitle)}</span>`,
+    },
+    {
+      label: "Decision",
+      valueHtml: emailPill({
+        label: statusLabel,
+        tone: statusTone,
+        dotColor: statusColor,
+      }),
+      borderless: !params.decidedBy && !params.comment,
+    },
+    ...(params.decidedBy
+      ? [
+          {
+            label: "Decided By",
+            valueHtml: escapeHtml(params.decidedBy),
+            borderless: !params.comment,
+          },
+        ]
+      : []),
+  ];
 
-  const commentBlock = params.comment
-    ? `<tr>
-        <td style="padding:14px 24px;">
-          <p style="margin:0 0 4px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">Comment</p>
-          <p style="margin:0;color:#334155;font-size:14px;line-height:22px;font-style:italic;">&ldquo;${escapeHtml(params.comment)}&rdquo;</p>
-        </td>
-      </tr>`
-    : "";
-
-  const body = `
-    <!-- Icon + heading -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-      <tr>
-        <td align="center">
-          <div style="width:48px;height:48px;border-radius:12px;background:${statusBg};border:1px solid ${statusBorder};text-align:center;line-height:48px;margin:0 auto 20px;">
-            <span style="font-size:22px;">${statusEmoji}</span>
-          </div>
-          <h1 style="margin:0 0 6px;font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.3px;text-align:center;">Request ${statusLabel}</h1>
-          <p style="margin:0;font-size:15px;color:#64748b;line-height:22px;text-align:center;">A decision has been made on your approval request.</p>
-        </td>
-      </tr>
-    </table>
-
-    <!-- Divider -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
-      <tr><td style="border-top:1px solid #e2e8f0;"></td></tr>
-    </table>
-
-    <!-- Request details card -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
-      <tr>
-        <td style="padding:14px 24px;border-bottom:1px solid #e2e8f0;">
-          <p style="margin:0 0 4px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">Request</p>
-          <p style="margin:0;color:#0f172a;font-size:16px;font-weight:600;">${escapeHtml(params.requestTitle)}</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:14px 24px;border-bottom:1px solid #e2e8f0;">
-          <p style="margin:0 0 8px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">Decision</p>
-          <table role="presentation" cellpadding="0" cellspacing="0">
-            <tr>
-              <td style="background:${statusBg};border:1px solid ${statusBorder};border-radius:20px;padding:4px 14px 4px 10px;">
-                <table role="presentation" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td style="vertical-align:middle;padding-right:6px;">
-                      <div style="width:8px;height:8px;border-radius:50%;background:${statusColor};"></div>
-                    </td>
-                    <td style="vertical-align:middle;">
-                      <span style="font-size:13px;font-weight:600;color:${statusColor};">${statusLabel}</span>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      ${decidedByBlock}
-      ${commentBlock}
-    </table>
-
-    <!-- Dashboard button -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0;">
-      <tr>
-        <td align="center">
-          <a href="${dashboardUrl}" style="display:inline-block;padding:14px 36px;background:#0f172a;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.2);">View in Dashboard</a>
-        </td>
-      </tr>
-    </table>
-  `;
+  const body = [
+    emailHero({
+      eyebrow: "Request Update",
+      title: `Request ${statusLabel}`,
+      descriptionHtml: "A decision has been made on your approval request.",
+    }),
+    emailCard(
+      emailMetadataRows(rows),
+      { tone: "neutral" },
+    ),
+    params.comment
+      ? emailCard(
+          `
+            <p style="margin:0 0 8px;color:${emailTheme.subtle};font-size:11px;font-weight:700;line-height:16px;letter-spacing:1.2px;text-transform:uppercase;">
+              Reviewer Comment
+            </p>
+            <p style="margin:0;color:${emailTheme.ink};font-size:14px;line-height:23px;font-style:italic;">
+              &ldquo;${escapeHtml(params.comment)}&rdquo;
+            </p>
+          `,
+          { tone: statusTone, marginTop: 20 },
+        )
+      : "",
+    emailButtonRow([
+      emailButton({
+        label: "View in Dashboard",
+        href: dashboardUrl,
+        variant: "dark",
+      }),
+    ]),
+  ].join("");
 
   return emailLayout({
     body,
     preheader: `${params.requestTitle} has been ${params.decision}`,
-    footerText:
-      "You received this email because you are a member of this OKRunit organization.",
+    footerText: "You received this email because you are a member of this OKRunit organization.",
   });
 }
 

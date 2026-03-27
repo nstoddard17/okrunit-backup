@@ -4,8 +4,6 @@ import { getAppAdminContext } from "@/lib/app-admin";
 import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { PageContainer } from "@/components/ui/page-container";
-import { PageHeader } from "@/components/layout/page-header";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import type {
   Organization,
@@ -133,6 +131,14 @@ export default async function AdminPage() {
   let auditEntries: AuditLogEntry[] = [];
   let webhookOrgId: string | null = null;
 
+  // Fetch OAuth clients (app-level, across all orgs)
+  const { data: oauthClientsData } = await admin
+    .from("oauth_clients")
+    .select(
+      "id, org_id, name, logo_url, client_id, client_secret_prefix, redirect_uris, scopes, is_active, created_by, created_at, updated_at",
+    )
+    .order("created_at", { ascending: false });
+
   if (orgContext) {
     webhookOrgId = orgContext.org.id;
 
@@ -185,20 +191,15 @@ export default async function AdminPage() {
   }
 
   return (
-    <PageContainer wide>
-      <PageHeader
-        title="Admin Dashboard"
-        description="Cross-organization overview and system management tools."
-      />
-      <AdminDashboard
-        systemStats={systemStats}
-        organizations={orgsWithCounts}
-        users={usersWithMemberships}
-        webhookEndpoint={webhookEndpoint}
-        webhookOrgId={webhookOrgId}
-        webhookTestRequests={webhookTestRequests}
-        auditEntries={auditEntries}
-      />
-    </PageContainer>
+    <AdminDashboard
+      systemStats={systemStats}
+      organizations={orgsWithCounts}
+      users={usersWithMemberships}
+      webhookEndpoint={webhookEndpoint}
+      webhookOrgId={webhookOrgId}
+      webhookTestRequests={webhookTestRequests}
+      auditEntries={auditEntries}
+      oauthClients={oauthClientsData ?? []}
+    />
   );
 }

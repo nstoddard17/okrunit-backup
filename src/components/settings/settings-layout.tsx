@@ -2,49 +2,55 @@
 
 import { SectionNav } from "@/components/ui/section-nav";
 import { AccountSettings } from "@/components/settings/account-settings";
-import { NotificationSettingsForm } from "@/components/settings/notification-settings-form";
-import { OAuthClientList } from "@/components/settings/oauth-client-list";
+import { SafetySettings } from "@/components/settings/safety-settings";
 import { SSOConfigForm } from "@/components/settings/sso-config-form";
-import { User, Bell, KeyRound, Shield } from "lucide-react";
+import { User, Shield, Settings, AlertTriangle } from "lucide-react";
 import type { SectionNavItem } from "@/components/ui/section-nav";
-import type { NotificationSettings, UserRole } from "@/lib/types/database";
+import type { NotificationSettings } from "@/lib/types/database";
 
 interface SettingsLayoutProps {
   userId: string;
   initialFullName: string;
   initialEmail: string;
+  deletionScheduledAt?: string | null;
   notificationSettings: NotificationSettings | null;
   isAdmin: boolean;
-  role: UserRole;
-  oauthClients: unknown[];
   hasSso: boolean;
   orgId: string;
+  emergencyStopActive: boolean;
+  emergencyStopActivatedAt: string | null;
+  emergencyStopActivatedBy: string | null;
+  autoApprovalsPaused: boolean;
+  initialSection?: string;
 }
 
 export function SettingsLayout({
   userId,
   initialFullName,
   initialEmail,
+  deletionScheduledAt,
   notificationSettings,
   isAdmin,
-  role,
-  oauthClients,
   hasSso,
   orgId,
+  emergencyStopActive,
+  emergencyStopActivatedAt,
+  emergencyStopActivatedBy,
+  autoApprovalsPaused,
+  initialSection,
 }: SettingsLayoutProps) {
   const items: SectionNavItem[] = [
     { id: "account", label: "Account", icon: User },
-    { id: "notifications", label: "Notifications", icon: Bell },
+    { id: "safety", label: "Safety", icon: AlertTriangle },
     ...(isAdmin
       ? [
-          { id: "oauth", label: "OAuth Apps", icon: KeyRound } as SectionNavItem,
           { id: "sso", label: "SSO", icon: Shield } as SectionNavItem,
         ]
       : []),
   ];
 
   return (
-    <SectionNav items={items} defaultSection="account">
+    <SectionNav items={items} defaultSection={initialSection ?? "account"} title="Settings" titleIcon={Settings}>
       {(section) => (
         <>
           {section === "account" && (
@@ -52,17 +58,19 @@ export function SettingsLayout({
               userId={userId}
               initialFullName={initialFullName}
               initialEmail={initialEmail}
+              deletionScheduledAt={deletionScheduledAt}
+              notificationSettings={notificationSettings}
             />
           )}
 
-          {section === "notifications" && (
-            <NotificationSettingsForm initialSettings={notificationSettings} />
-          )}
-
-          {section === "oauth" && isAdmin && (
-            <OAuthClientList
-              clients={oauthClients as Parameters<typeof OAuthClientList>[0]["clients"]}
-              role={role}
+          {section === "safety" && (
+            <SafetySettings
+              isAdmin={isAdmin}
+              emergencyStopActive={emergencyStopActive}
+              emergencyStopActivatedAt={emergencyStopActivatedAt}
+              emergencyStopActivatedBy={emergencyStopActivatedBy}
+              orgId={orgId}
+              autoApprovalsPaused={autoApprovalsPaused}
             />
           )}
 

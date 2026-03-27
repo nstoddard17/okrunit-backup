@@ -9,6 +9,7 @@
     "deploy:make": "npx tsx deploy-make.ts",
     "deploy:pipedream": "npx tsx deploy-pipedream.ts",
     "deploy:windmill": "npx tsx deploy-windmill.ts",
+    "deploy:monday": "npx tsx deploy-monday.ts",
     "deploy:all": "npx tsx deploy-all.ts"
   },
   "dependencies": {

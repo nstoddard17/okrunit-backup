@@ -43,6 +43,7 @@ const PRIORITY_OPTIONS = [
 ] as const;
 
 const PLATFORM_NAMES: Record<string, string> = {
+  email: "Email",
   slack: "Slack",
   discord: "Discord",
   teams: "Microsoft Teams",
@@ -50,6 +51,7 @@ const PLATFORM_NAMES: Record<string, string> = {
 };
 
 const PLATFORM_COLORS: Record<string, string> = {
+  email: "#059669",
   slack: "#4A154B",
   discord: "#5865F2",
   teams: "#6264A7",

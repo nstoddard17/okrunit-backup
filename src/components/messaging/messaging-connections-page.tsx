@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { PlatformCard } from "@/components/messaging/platform-card";
 import { ConnectionList } from "@/components/messaging/connection-list";
+import { EmailConnectDialog } from "@/components/messaging/email-connect-dialog";
 import { TelegramConnectDialog } from "@/components/messaging/telegram-connect-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { MessagingConnection, MessagingPlatform } from "@/lib/types/database";
@@ -25,6 +26,15 @@ interface PlatformDef {
 }
 
 const PLATFORMS: PlatformDef[] = [
+  {
+    platform: "email",
+    name: "Email",
+    description:
+      "Send approval notifications to email addresses or distribution lists with approve/reject links.",
+    color: "#059669",
+    installUrl: null,
+    connectLabel: "Add Email Channel",
+  },
   {
     platform: "slack",
     name: "Slack",
@@ -77,6 +87,7 @@ export function MessagingConnectionsPage({
   const router = useRouter();
   const [connections, setConnections] =
     useState<MessagingConnection[]>(initialConnections);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [telegramDialogOpen, setTelegramDialogOpen] = useState(false);
 
   // Count connections per platform
@@ -86,7 +97,9 @@ export function MessagingConnectionsPage({
 
   // Handle connect button click
   function handleConnect(platform: MessagingPlatform, installUrl: string | null) {
-    if (platform === "telegram") {
+    if (platform === "email") {
+      setEmailDialogOpen(true);
+    } else if (platform === "telegram") {
       setTelegramDialogOpen(true);
     } else if (installUrl) {
       window.location.href = installUrl;
@@ -156,6 +169,13 @@ export function MessagingConnectionsPage({
     }
   }
 
+  // Handle email connect success
+  function handleEmailSuccess(connection: MessagingConnection) {
+    setConnections((prev) => [connection, ...prev]);
+    setEmailDialogOpen(false);
+    router.refresh();
+  }
+
   // Handle Telegram connect success
   function handleTelegramSuccess(connection: MessagingConnection) {
     setConnections((prev) => [connection, ...prev]);
@@ -201,6 +221,13 @@ export function MessagingConnectionsPage({
           description="Connect a messaging platform above to start receiving approval notifications with interactive buttons."
         />
       )}
+
+      {/* Email dialog */}
+      <EmailConnectDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        onSuccess={handleEmailSuccess}
+      />
 
       {/* Telegram dialog */}
       <TelegramConnectDialog

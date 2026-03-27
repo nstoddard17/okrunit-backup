@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { V2OrgNav } from "@/components/org/v2-org-nav";
+
 export default async function OrgLayout({
   children,
 }: {
@@ -40,7 +41,7 @@ export default async function OrgLayout({
   return (
     <div className="flex w-full flex-col md:flex-row md:min-h-[calc(100vh-52px)]">
       {/* Left sidebar — desktop, sticks to top while content scrolls */}
-      <aside className="hidden md:block w-52 shrink-0 border-r border-border/40 bg-card">
+      <aside className="hidden md:block w-56 shrink-0 border-r border-border/40 bg-white">
         <div className="sticky top-0 pt-5">
           <V2OrgNav isAdmin={isAdmin} pendingInviteCount={pendingInviteCount} planName={planName} />
         </div>

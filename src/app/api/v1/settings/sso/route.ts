@@ -22,6 +22,11 @@ const ssoConfigSchema = z.object({
     .max(10000)
     .optional()
     .default(""),
+  sso_domain: z
+    .string()
+    .min(1, "Email domain is required")
+    .max(255)
+    .regex(/^[a-z0-9.-]+\.[a-z]{2,}$/, "Must be a valid domain (e.g. company.com)"),
   attribute_mapping: z
     .record(z.string(), z.string())
     .optional()
@@ -83,6 +88,17 @@ export async function GET(request: NextRequest) {
       throw new ApiError(500, "Failed to fetch SSO configuration");
     }
 
+    // Look up the org's sso_domain
+    let ssoDomain: string | null = null;
+    if (data) {
+      const { data: org } = await admin
+        .from("organizations")
+        .select("sso_domain")
+        .eq("id", orgId)
+        .single();
+      ssoDomain = org?.sso_domain ?? null;
+    }
+
     return NextResponse.json({
       configured: !!data,
       config: data
@@ -91,6 +107,7 @@ export async function GET(request: NextRequest) {
             provider: data.provider,
             entity_id: data.entity_id,
             sso_url: data.sso_url,
+            sso_domain: ssoDomain,
             // Do NOT return the full certificate for security; return a truncated preview
             certificate_preview: data.certificate.substring(0, 60) + "...",
             attribute_mapping: data.attribute_mapping,
@@ -208,6 +225,12 @@ export async function POST(request: NextRequest) {
       result = data;
     }
 
+    // Save the SSO domain on the organization
+    await admin
+      .from("organizations")
+      .update({ sso_domain: input.sso_domain })
+      .eq("id", orgId);
+
     // Audit log
     await logAuditEvent({
       orgId,
@@ -232,6 +255,7 @@ export async function POST(request: NextRequest) {
           provider: result.provider,
           entity_id: result.entity_id,
           sso_url: result.sso_url,
+          sso_domain: input.sso_domain,
           certificate_preview: result.certificate.substring(0, 60) + "...",
           attribute_mapping: result.attribute_mapping,
           is_active: result.is_active,

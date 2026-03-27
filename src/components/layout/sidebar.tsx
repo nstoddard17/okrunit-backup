@@ -9,7 +9,6 @@ import {
   Key,
   MessageSquare,
   Settings,
-  AlertTriangle,
   BarChart3,
   CreditCard,
   FlaskConical,
@@ -53,7 +52,6 @@ const navItems: NavItem[] = [
   { id: "requests", href: "/requests", label: "Requests", icon: ClipboardList },
   { id: "playground", href: "/playground", label: "Playground", icon: FlaskConical, overflow: true },
   { id: "settings", href: "/settings", label: "Settings", icon: Settings, overflow: true },
-  { id: "emergency", href: "/emergency", label: "Emergency", icon: AlertTriangle, adminOnly: true, overflow: true },
   { id: "admin", href: "/admin", label: "Admin", icon: ShieldAlert, appAdminOnly: true, overflow: true },
 ];
 

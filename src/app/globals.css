@@ -201,6 +201,42 @@
   color-scheme: light;
 }
 
+/* V2 Dark mode */
+.dark .gk-v2 {
+  --background: oklch(0.13 0.02 265);
+  --foreground: oklch(0.95 0.005 265);
+  --card: oklch(0.18 0.02 265);
+  --card-foreground: oklch(0.95 0.005 265);
+  --popover: oklch(0.18 0.02 265);
+  --popover-foreground: oklch(0.95 0.005 265);
+
+  /* Keep OKRunit green primary */
+  --primary: oklch(0.62 0.19 145);
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.22 0.02 265);
+  --secondary-foreground: oklch(0.90 0.005 265);
+  --muted: oklch(0.22 0.015 265);
+  --muted-foreground: oklch(0.65 0.02 265);
+  --accent: oklch(0.24 0.02 265);
+  --accent-foreground: oklch(0.90 0.005 265);
+
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.62 0.19 145);
+
+  /* Sidebar stays the same green gradient in dark mode */
+
+  --success: oklch(0.55 0.18 155);
+  --success-foreground: oklch(1 0 0);
+  --warning: oklch(0.75 0.16 70);
+  --warning-foreground: oklch(0.20 0.04 70);
+  --info: oklch(0.55 0.15 250);
+  --info-foreground: oklch(1 0 0);
+
+  color-scheme: dark;
+}
+
 /* V2 Shadow scale */
 .gk-v2 {
   --shadow-xs: 0 1px 2px oklch(0.15 0.02 265 / 0.04);
@@ -210,6 +246,16 @@
   --shadow-xl: 0 20px 25px -5px oklch(0.15 0.02 265 / 0.08), 0 8px 10px -6px oklch(0.15 0.02 265 / 0.04);
   --shadow-card: 0 0 0 1px oklch(0.15 0.02 265 / 0.05), 0 1px 3px oklch(0.15 0.02 265 / 0.04);
   --shadow-card-hover: 0 0 0 1px oklch(0.15 0.02 265 / 0.08), 0 4px 12px oklch(0.15 0.02 265 / 0.07);
+}
+
+.dark .gk-v2 {
+  --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.2);
+  --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.3), 0 1px 2px oklch(0 0 0 / 0.2);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.3), 0 2px 4px -2px oklch(0 0 0 / 0.2);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.3), 0 4px 6px -4px oklch(0 0 0 / 0.2);
+  --shadow-xl: 0 20px 25px -5px oklch(0 0 0 / 0.35), 0 8px 10px -6px oklch(0 0 0 / 0.2);
+  --shadow-card: 0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 3px oklch(0 0 0 / 0.2);
+  --shadow-card-hover: 0 0 0 1px oklch(1 0 0 / 0.1), 0 4px 12px oklch(0 0 0 / 0.3);
 }
 
 /* V2 micro-interactions */

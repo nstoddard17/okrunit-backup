@@ -14,53 +14,61 @@ export interface SectionNavItem {
 interface SectionNavProps {
   items: SectionNavItem[];
   defaultSection?: string;
+  title?: string;
+  titleIcon?: LucideIcon;
   children: (activeSection: string) => React.ReactNode;
 }
 
-export function SectionNav({ items, defaultSection, children }: SectionNavProps) {
+export function SectionNav({ items, defaultSection, title, titleIcon: TitleIcon, children }: SectionNavProps) {
   const [active, setActive] = useState(defaultSection ?? items[0]?.id ?? "");
 
   return (
-    <div className="flex flex-col md:flex-row md:gap-8">
-      {/* Left nav */}
-      <nav className="hidden w-48 shrink-0 md:block">
-        <div className="sticky top-6 space-y-1">
-          {items.map((item) => {
-            const Icon = item.icon;
-            const isActive = active === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActive(item.id)}
-                className={cn(
-                  "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors text-left cursor-pointer",
-                  isActive
-                    ? "bg-primary/10 font-medium text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                {Icon && <Icon className="size-4 shrink-0" />}
-                <span className="flex-1 truncate">{item.label}</span>
-                {item.badge !== undefined && (
-                  <span className={cn(
-                    "ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-medium",
-                    isActive ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground",
-                  )}>
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+    <div className="flex w-full flex-col md:flex-row md:min-h-[calc(100vh-52px)]">
+      {/* Left sidebar — desktop */}
+      <aside className="hidden md:block w-56 shrink-0 border-r border-border/40 bg-white">
+        <nav className="sticky top-0 pt-5 px-3">
+          {title && (
+            <div className="flex items-center gap-2 px-3 mb-2">
+              {TitleIcon && <TitleIcon className="size-4 text-foreground" />}
+              <span className="text-sm font-semibold text-foreground">{title}</span>
+            </div>
+          )}
+          <div className="space-y-0.5">
+            {items.map((item) => {
+              const isActive = active === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActive(item.id)}
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-[13px] transition-colors text-left cursor-pointer",
+                    isActive
+                      ? "bg-primary/10 font-medium text-primary"
+                      : "text-foreground hover:bg-muted",
+                  )}
+                >
+                  <span>{item.label}</span>
+                  {item.badge !== undefined && (
+                    <span className={cn(
+                      "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                      isActive ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground",
+                    )}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      </aside>
 
-      {/* Mobile dropdown — shown below md breakpoint */}
-      <div className="w-full md:hidden">
+      {/* Mobile dropdown */}
+      <div className="md:hidden border-b border-border/40 bg-background px-4 py-3">
         <select
           value={active}
           onChange={(e) => setActive(e.target.value)}
-          className="mb-4 w-full rounded-lg border bg-background px-3 py-2 text-sm"
+          className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
         >
           {items.map((item) => (
             <option key={item.id} value={item.id}>
@@ -70,10 +78,12 @@ export function SectionNav({ items, defaultSection, children }: SectionNavProps)
         </select>
       </div>
 
-      {/* Content area */}
-      <div className="min-w-0 flex-1">
-        {children(active)}
-      </div>
+      {/* Main content */}
+      <main className="flex-1 min-w-0 overflow-y-auto">
+        <div className="px-6 lg:px-8 py-6">
+          {children(active)}
+        </div>
+      </main>
     </div>
   );
 }

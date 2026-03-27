@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
-import { PageContainer } from "@/components/ui/page-container";
-import { PageHeader } from "@/components/layout/page-header";
 import { PlaygroundTabs } from "@/components/playground/playground-tabs";
 import type { Connection, WebhookDeliveryLog } from "@/lib/types/database";
 
@@ -46,17 +44,11 @@ export default async function PlaygroundPage() {
   ]);
 
   return (
-    <PageContainer wide>
-      <PageHeader
-        title="API Playground"
-        description="Build and send requests, and inspect webhook delivery logs."
-      />
-      <PlaygroundTabs
-        connections={(activeConnections ?? []) as Connection[]}
-        allConnections={(allConnections ?? []).map((c) => ({ id: c.id, name: c.name })) as Connection[]}
-        deliveryLogs={deliveryResult.data ?? []}
-        isAdmin={isAdmin}
-      />
-    </PageContainer>
+    <PlaygroundTabs
+      connections={(activeConnections ?? []) as Connection[]}
+      allConnections={(allConnections ?? []).map((c) => ({ id: c.id, name: c.name })) as Connection[]}
+      deliveryLogs={deliveryResult.data ?? []}
+      isAdmin={isAdmin}
+    />
   );
 }

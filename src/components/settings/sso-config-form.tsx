@@ -31,6 +31,7 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
   const [entityId, setEntityId] = useState("");
   const [ssoUrl, setSsoUrl] = useState("");
   const [certificate, setCertificate] = useState("");
+  const [ssoDomain, setSsoDomain] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [attrEmail, setAttrEmail] = useState("email");
   const [attrFirstName, setAttrFirstName] = useState("firstName");
@@ -45,6 +46,7 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
         setExistingConfig(data.config);
         setEntityId(data.config.entity_id);
         setSsoUrl(data.config.sso_url);
+        setSsoDomain(data.config.sso_domain || "");
         setIsActive(data.config.is_active);
         if (data.config.attribute_mapping) {
           setAttrEmail(data.config.attribute_mapping.email || "email");
@@ -78,6 +80,7 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
           entity_id: entityId,
           sso_url: ssoUrl,
           certificate,
+          sso_domain: ssoDomain,
           is_active: isActive,
           attribute_mapping: {
             email: attrEmail,
@@ -233,6 +236,28 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
             )}
             <p className="mt-1 text-xs text-muted-foreground">
               The public X.509 certificate from your identity provider in PEM format.
+            </p>
+          </div>
+
+          {/* Email domain */}
+          <div>
+            <label htmlFor="sso-domain" className="mb-1.5 block text-sm font-medium">
+              Email Domain
+            </label>
+            <input
+              id="sso-domain"
+              type="text"
+              value={ssoDomain}
+              onChange={(e) => setSsoDomain(e.target.value.toLowerCase())}
+              placeholder="company.com"
+              className="w-full rounded-lg border border-[var(--border)] bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+              required
+            />
+            {fieldErrors.sso_domain && (
+              <p className="mt-1 text-xs text-red-500">{fieldErrors.sso_domain[0]}</p>
+            )}
+            <p className="mt-1 text-xs text-muted-foreground">
+              Users with this email domain will be able to sign in via SSO. For example, if you enter &quot;company.com&quot;, users with @company.com emails can use SSO.
             </p>
           </div>
 

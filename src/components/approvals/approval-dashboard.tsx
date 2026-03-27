@@ -52,7 +52,7 @@ export function ApprovalDashboard({
   const { status, priority, search, source, showArchived, setStatus, setPriority, setSearch, setSource, setShowArchived } =
     useApprovalFiltersStore();
 
-  // Collect all user IDs referenced in approvals and fetch their profiles
+  // Collect all user IDs referenced in approvals (+ connection owners) and fetch their profiles
   const referencedUserIds = useMemo(() => {
     const ids = new Set<string>();
     for (const a of approvals) {
@@ -61,9 +61,14 @@ export function ApprovalDashboard({
         for (const id of a.assigned_approvers) ids.add(id);
       }
       if (a.created_by?.user_id) ids.add(a.created_by.user_id);
+      // Also include connection owner for API key requests without user_id
+      if (a.created_by?.connection_id && !a.created_by.user_id) {
+        const conn = connections.find((c) => c.id === a.created_by?.connection_id);
+        if (conn?.created_by) ids.add(conn.created_by);
+      }
     }
     return ids;
-  }, [approvals]);
+  }, [approvals, connections]);
 
   useEffect(() => {
     const idsToFetch = [...referencedUserIds].filter((id) => !userProfiles.has(id));
@@ -110,11 +115,42 @@ export function ApprovalDashboard({
           supabase
             .from("connections")
             .select("*")
-            .eq("is_active", true)
             .order("name"),
         ]);
-        setApprovals(approvalsData ?? []);
-        setConnections(connectionsData ?? []);
+        const loadedApprovals = approvalsData ?? [];
+        const loadedConnections = connectionsData ?? [];
+        setApprovals(loadedApprovals);
+        setConnections(loadedConnections);
+
+        // Eagerly fetch creator profiles (connection owners) so names show immediately
+        const creatorIds = new Set<string>();
+        for (const a of loadedApprovals) {
+          if (a.created_by?.user_id) {
+            creatorIds.add(a.created_by.user_id);
+          } else if (a.created_by?.connection_id) {
+            const conn = loadedConnections.find((c) => c.id === a.created_by?.connection_id);
+            if (conn?.created_by) creatorIds.add(conn.created_by);
+          }
+          if (a.decided_by) creatorIds.add(a.decided_by);
+          if (a.assigned_approvers) {
+            for (const id of a.assigned_approvers) creatorIds.add(id);
+          }
+        }
+        if (creatorIds.size > 0) {
+          const { data: profileData } = await supabase
+            .from("user_profiles")
+            .select("id, email, full_name, avatar_url")
+            .in("id", [...creatorIds]);
+          if (profileData && profileData.length > 0) {
+            setUserProfiles((prev) => {
+              const next = new Map(prev);
+              for (const p of profileData) {
+                next.set(p.id, p as UserProfile);
+              }
+              return next;
+            });
+          }
+        }
       } catch {
         toast.error("Failed to load approvals");
       } finally {
@@ -541,18 +577,32 @@ export function ApprovalDashboard({
   );
 
   // Merge server-provided creator names with client-resolved ones (for realtime inserts)
+  // Also resolve connection owners for API key requests missing user_id
   const allCreatorNames = useMemo(() => {
     const merged: Record<string, string> = { ...approvalCreators };
     for (const a of approvals) {
-      if (!merged[a.id] && a.created_by?.user_id) {
+      if (merged[a.id]) continue;
+      // Try direct user_id on created_by
+      if (a.created_by?.user_id) {
         const profile = userProfiles.get(a.created_by.user_id);
         if (profile) {
           merged[a.id] = profile.full_name || profile.email;
+          continue;
+        }
+      }
+      // Fallback: look up who created the connection
+      if (a.created_by?.connection_id) {
+        const conn = connections.find((c) => c.id === a.created_by?.connection_id);
+        if (conn?.created_by) {
+          const profile = userProfiles.get(conn.created_by);
+          if (profile) {
+            merged[a.id] = profile.full_name || profile.email;
+          }
         }
       }
     }
     return merged;
-  }, [approvalCreators, approvals, userProfiles]);
+  }, [approvalCreators, approvals, userProfiles, connections]);
 
   const sharedListProps = {
     approvals: paginatedApprovals,
@@ -620,69 +670,25 @@ export function ApprovalDashboard({
 
   return (
     <div className={`space-y-6 ${selectedIds.size > 0 ? "pb-20" : ""}`}>
-      {/* Stat badges + live indicator + refresh */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => handleStatClick(status === "pending" ? undefined : "pending")}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer sm:px-3",
-              status === "pending"
-                ? "bg-amber-100 text-amber-800 ring-2 ring-amber-400/50"
-                : "bg-muted/60 text-muted-foreground hover:bg-muted",
-            )}
-          >
-            <Clock className="size-3" />
-            <span className="font-bold">{pendingCount}</span>
-            <span className="hidden sm:inline">Pending</span>
-          </button>
-          <button
-            onClick={() => handleStatClick(status === "approved" ? undefined : "approved")}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer sm:px-3",
-              status === "approved"
-                ? "bg-emerald-100 text-emerald-800 ring-2 ring-emerald-400/50"
-                : "bg-muted/60 text-muted-foreground hover:bg-muted",
-            )}
-          >
-            <CheckCircle className="size-3" />
-            <span className="font-bold">{approvedCount}</span>
-            <span className="hidden sm:inline">Approved</span>
-          </button>
-          <button
-            onClick={() => handleStatClick(status === "rejected" ? undefined : "rejected")}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer sm:px-3",
-              status === "rejected"
-                ? "bg-red-100 text-red-800 ring-2 ring-red-400/50"
-                : "bg-muted/60 text-muted-foreground hover:bg-muted",
-            )}
-          >
-            <XCircle className="size-3" />
-            <span className="font-bold">{rejectedCount}</span>
-            <span className="hidden sm:inline">Rejected</span>
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
-            </span>
-            Live
+      {/* Live indicator + refresh */}
+      <div className="flex items-center justify-end gap-2">
+        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isFetching}
-            className="h-7 gap-1.5 text-xs text-muted-foreground"
-          >
-            <RefreshCw className={cn("size-3.5", isFetching && "animate-spin")} />
-            Refresh
-          </Button>
-        </div>
+          Live
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isFetching}
+          className="h-7 gap-1.5 text-xs text-muted-foreground"
+        >
+          <RefreshCw className={cn("size-3.5", isFetching && "animate-spin")} />
+          Refresh
+        </Button>
       </div>
 
       {/* Filters */}
@@ -745,6 +751,7 @@ export function ApprovalDashboard({
         isLoading={isLoading}
         canApprove={canApprove}
         userProfiles={userProfiles}
+        creatorName={selectedApproval ? allCreatorNames[selectedApproval.id] : undefined}
         onConfigureFlow={handleConfigureFlow}
       />
 

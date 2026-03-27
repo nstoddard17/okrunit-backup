@@ -1,0 +1,38 @@
+{
+  "label": "Get Approval Request",
+  "description": "Fetch a single approval request by its ID.",
+  "actionType": "get",
+  "connection": "oauth2",
+  "parameters": [
+    {
+      "name": "approval_id",
+      "type": "text",
+      "label": "Approval ID",
+      "required": true,
+      "help": "The UUID of the approval request."
+    }
+  ],
+  "url": "/api/v1/approvals/{{parameters.approval_id}}",
+  "method": "GET",
+  "response": {
+    "output": "{{body}}"
+  },
+  "samples": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "title": "Deploy v2.3.1 to production",
+    "description": "Release includes new payment flow",
+    "status": "approved",
+    "priority": "high",
+    "action_type": "deploy",
+    "source": "api",
+    "required_approvals": 1,
+    "current_approvals": 1,
+    "requested_by_name": "Jane Smith",
+    "decided_by": "770e8400-e29b-41d4-a716-446655440002",
+    "decided_by_name": "John Doe",
+    "decided_at": "2026-02-21T10:30:00.000Z",
+    "decision_comment": "Looks good, ship it!",
+    "created_at": "2026-02-21T10:00:00.000Z",
+    "updated_at": "2026-02-21T10:30:00.000Z"
+  }
+}

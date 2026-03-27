@@ -9,12 +9,13 @@ interface DashboardShellProps {
   children: React.ReactNode;
   sidebarProps: React.ComponentProps<typeof Sidebar>;
   emergencyStopActive: boolean;
+  isAdmin: boolean;
   user: { email: string; full_name: string | null };
   orgName: string;
   pendingCount: number;
 }
 
-export function DashboardShell({ children, sidebarProps, emergencyStopActive, user, orgName, pendingCount }: DashboardShellProps) {
+export function DashboardShell({ children, sidebarProps, emergencyStopActive, isAdmin, user, orgName, pendingCount }: DashboardShellProps) {
   const { mobileOpen, setMobileOpen, setActivePanel } = useSidebarStore();
 
   // Close mobile sidebar on Escape
@@ -40,7 +41,7 @@ export function DashboardShell({ children, sidebarProps, emergencyStopActive, us
   }, []);
 
   return (
-    <div className="gk-v2 force-light flex h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
+    <div className="gk-v2 flex h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
       {/* Mobile overlay backdrop */}
       {mobileOpen && (
         <div
@@ -67,11 +68,12 @@ export function DashboardShell({ children, sidebarProps, emergencyStopActive, us
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header
           emergencyStopActive={emergencyStopActive}
+          isAdmin={isAdmin}
           user={user}
           orgName={orgName}
           pendingCount={pendingCount}
         />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-[var(--background)]">
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             {children}
           </div>

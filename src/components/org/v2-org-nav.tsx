@@ -47,7 +47,7 @@ export function V2OrgNav({ isAdmin, pendingInviteCount, planName, mobile }: V2Or
       label: "Organization",
       icon: Building2,
       items: [
-        { id: "overview", label: "Dashboard", href: "/org/overview", icon: LayoutDashboard },
+        { id: "overview", label: "Overview", href: "/org/overview", icon: LayoutDashboard },
         { id: "teams", label: "Teams", href: "/org/teams", icon: UsersRound, adminOnly: true },
         { id: "members", label: "Members", href: "/org/members", icon: Users, adminOnly: true },
         {
@@ -125,37 +125,38 @@ export function V2OrgNav({ isAdmin, pendingInviteCount, planName, mobile }: V2Or
 
   // Desktop: vertical sidebar nav with sections
   return (
-    <nav className="flex-1 flex flex-col" aria-label="Org sections">
+    <nav className="flex-1 flex flex-col px-3" aria-label="Org sections">
       {sections.map((section, idx) => {
         const visibleItems = section.items.filter((item) => !item.adminOnly || isAdmin);
         if (visibleItems.length === 0) return null;
 
         const SectionIcon = section.icon;
         return (
-          <div key={section.label} className={cn(idx > 0 && "mt-2 pt-3 border-t border-border/40 mx-3")}>
-            <div className="flex items-center gap-2 px-3 mb-1.5">
-              <SectionIcon className="size-3.5 text-muted-foreground/60" />
-              <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+          <div key={section.label} className={cn(idx > 0 && "mt-4")}>
+            {/* Section heading */}
+            <div className="flex items-center gap-2 px-3 mb-2">
+              <SectionIcon className="size-4 text-foreground" />
+              <span className="text-sm font-semibold text-foreground">
                 {section.label}
               </span>
             </div>
-            <div className="px-3 space-y-0.5">
+
+            {/* Page links */}
+            <div className="space-y-0.5">
               {visibleItems.map((item) => {
-                const Icon = item.icon;
                 const active = isActive(item.href);
                 return (
                   <Link
                     key={item.id}
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                      "flex items-center justify-between rounded-lg px-3 py-1.5 text-[13px] transition-colors",
                       active
                         ? "bg-primary/10 font-medium text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        : "text-foreground hover:bg-muted",
                     )}
                   >
-                    <Icon className="size-4 shrink-0" />
-                    <span className="flex-1 truncate">{item.label}</span>
+                    <span>{item.label}</span>
                     {item.badge !== undefined && (
                       <span className={cn(
                         "rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none",
@@ -170,24 +171,30 @@ export function V2OrgNav({ isAdmin, pendingInviteCount, planName, mobile }: V2Or
                 );
               })}
             </div>
+
+            {/* Divider after section */}
+            <div className="mt-3 border-b border-border/40 mx-3" />
           </div>
         );
       })}
 
-      {/* Settings — pinned at bottom-ish, with separator */}
+      {/* Settings — pinned at bottom-ish */}
       {(!settingsItem.adminOnly || isAdmin) && (
-        <div className="mt-2 pt-3 border-t border-border/40 mx-3 px-3">
+        <div className="mt-4">
+          <div className="flex items-center gap-2 px-3 mb-2">
+            <Settings className="size-4 text-foreground" />
+            <span className="text-sm font-semibold text-foreground">Settings</span>
+          </div>
           <Link
             href={settingsItem.href}
             className={cn(
-              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+              "flex items-center rounded-lg px-3 py-1.5 text-[13px] transition-colors",
               isActive(settingsItem.href)
                 ? "bg-primary/10 font-medium text-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                : "text-foreground hover:bg-muted",
             )}
           >
-            <Settings className="size-4 shrink-0" />
-            <span className="flex-1 truncate">{settingsItem.label}</span>
+            {settingsItem.label}
           </Link>
         </div>
       )}

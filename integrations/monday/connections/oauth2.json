@@ -1,0 +1,37 @@
+{
+  "label": "OKRunit",
+  "type": "oauth2",
+  "parameters": [],
+  "common": [
+    {
+      "name": "baseUrl",
+      "type": "hidden",
+      "default": "https://www.okrunit.com"
+    }
+  ],
+  "oauth2": {
+    "authorizeUrl": "https://www.okrunit.com/oauth/authorize",
+    "tokenUrl": "https://www.okrunit.com/api/v1/oauth/token",
+    "scope": ["approvals:read", "approvals:write", "comments:write"],
+    "scopeSeparator": " ",
+    "authStyle": "body",
+    "pkce": true,
+    "autoRefresh": true
+  },
+  "test": {
+    "url": "https://www.okrunit.com/api/v1/approvals",
+    "method": "GET",
+    "headers": {
+      "Authorization": "Bearer {{connection.accessToken}}"
+    },
+    "qs": {
+      "page_size": "1"
+    },
+    "response": {
+      "valid": "{{ifempty(body.data, '[]')}}",
+      "error": {
+        "message": "{{body.error}}"
+      }
+    }
+  }
+}

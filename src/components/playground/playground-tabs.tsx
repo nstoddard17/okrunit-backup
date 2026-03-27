@@ -28,7 +28,7 @@ export function PlaygroundTabs({
   ];
 
   return (
-    <SectionNav items={items} defaultSection="builder">
+    <SectionNav items={items} defaultSection="builder" title="Playground" titleIcon={FlaskConical}>
       {(section) => (
         <>
           {section === "builder" && (

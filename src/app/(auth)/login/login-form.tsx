@@ -13,6 +13,17 @@ import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 const ERROR_MESSAGES: Record<string, string> = {
   no_org:
     "Your account is not associated with any organization. Please contact your administrator or sign up for a new account.",
+  sso_email_required: "Please enter your email address to sign in with SSO.",
+  sso_not_configured:
+    "SSO is not configured for your email domain. Please sign in with email and password.",
+  saml_response_missing: "Invalid SSO response. Please try again.",
+  saml_validation_failed:
+    "SSO authentication failed. The identity provider response could not be verified.",
+  saml_no_email:
+    "Your identity provider did not return an email address. Please contact your IT admin.",
+  saml_user_creation_failed: "Failed to create your account via SSO. Please try again.",
+  saml_session_failed: "Failed to establish a session after SSO login. Please try again.",
+  saml_error: "An unexpected error occurred during SSO login. Please try again.",
 };
 
 export function LoginForm() {
@@ -23,14 +34,19 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Show error from redirect (e.g. no org membership) and sign out stale session
+  const [showSso, setShowSso] = useState(false);
+  const [ssoEmail, setSsoEmail] = useState("");
+
+  // Show error from redirect (e.g. no org membership, SSO errors) and sign out stale session
   useEffect(() => {
     const errorCode = searchParams.get("error");
     if (errorCode && ERROR_MESSAGES[errorCode]) {
       setError(ERROR_MESSAGES[errorCode]);
       // Sign out the stale session so the user doesn't keep looping
-      const supabase = createClient();
-      supabase.auth.signOut();
+      if (errorCode === "no_org") {
+        const supabase = createClient();
+        supabase.auth.signOut();
+      }
     }
   }, [searchParams]);
 
@@ -116,6 +132,61 @@ export function LoginForm() {
           {isPending ? "Signing in..." : "Sign in"}
         </Button>
       </form>
+
+      {/* SSO Login */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">Or</span>
+        </div>
+      </div>
+
+      {showSso ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="sso-email">Work email</Label>
+            <Input
+              id="sso-email"
+              type="email"
+              placeholder="you@company.com"
+              value={ssoEmail}
+              onChange={(e) => setSsoEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowSso(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="flex-1"
+              disabled={!ssoEmail.includes("@")}
+              onClick={() => {
+                window.location.href = `/api/auth/saml/login?email=${encodeURIComponent(ssoEmail)}`;
+              }}
+            >
+              Continue with SSO
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => setShowSso(true)}
+        >
+          Sign in with SSO
+        </Button>
+      )}
 
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}

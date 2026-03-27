@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -48,12 +48,17 @@ function TelegramIcon({ className }: { className?: string }) {
   );
 }
 
+function EmailIcon({ className }: { className?: string }) {
+  return <Mail className={className} />;
+}
+
 const PLATFORM_ICONS: Record<
   MessagingPlatform,
   React.ComponentType<{ className?: string }>
 > = {
   slack: SlackIcon,
   discord: DiscordIcon,
+  email: EmailIcon,
   teams: TeamsIcon,
   telegram: TelegramIcon,
 };

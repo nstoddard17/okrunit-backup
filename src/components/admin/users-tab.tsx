@@ -2,16 +2,44 @@
 
 // ---------------------------------------------------------------------------
 // OKRunit -- Admin Users Tab
-// Table of all users with their org memberships and app admin status.
+// Table of all users with create, edit, and delete capabilities.
 // ---------------------------------------------------------------------------
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { Search, ShieldAlert } from "lucide-react";
+import {
+  Search,
+  ShieldAlert,
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -20,10 +48,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { UserWithMemberships } from "@/app/(dashboard)/admin/page";
+import type { UserWithMemberships, OrgWithCounts } from "@/app/(dashboard)/admin/page";
 
 interface UsersTabProps {
   users: UserWithMemberships[];
+  organizations?: OrgWithCounts[];
 }
 
 function getInitials(name: string | null, email: string): string {
@@ -38,14 +67,155 @@ function getInitials(name: string | null, email: string): string {
   return email.charAt(0).toUpperCase();
 }
 
-export function UsersTab({ users }: UsersTabProps) {
+export function UsersTab({ users, organizations = [] }: UsersTabProps) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
+
+  // Create dialog
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createEmail, setCreateEmail] = useState("");
+  const [createName, setCreateName] = useState("");
+  const [createIsAdmin, setCreateIsAdmin] = useState(false);
+  const [createOrgId, setCreateOrgId] = useState<string>("");
+  const [createRole, setCreateRole] = useState<string>("member");
+
+  // Edit dialog
+  const [editOpen, setEditOpen] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editUser, setEditUser] = useState<UserWithMemberships | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editIsAdmin, setEditIsAdmin] = useState(false);
+
+  // Delete dialog
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteUser, setDeleteUser] = useState<UserWithMemberships | null>(null);
 
   const filtered = users.filter(
     (user) =>
       user.email.toLowerCase().includes(search.toLowerCase()) ||
       (user.full_name ?? "").toLowerCase().includes(search.toLowerCase()),
   );
+
+  // ---- Create ----
+
+  function resetCreateForm() {
+    setCreateEmail("");
+    setCreateName("");
+    setCreateIsAdmin(false);
+    setCreateOrgId("");
+    setCreateRole("member");
+  }
+
+  async function handleCreate() {
+    if (!createEmail.trim()) {
+      toast.error("Email is required.");
+      return;
+    }
+    setCreateLoading(true);
+    try {
+      const body: Record<string, unknown> = {
+        email: createEmail.trim(),
+        is_app_admin: createIsAdmin,
+      };
+      if (createName.trim()) body.full_name = createName.trim();
+      if (createOrgId) {
+        body.org_id = createOrgId;
+        body.role = createRole;
+      }
+
+      const res = await fetch("/api/v1/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to create user");
+      }
+
+      toast.success(`User ${createEmail.trim()} created.`);
+      setCreateOpen(false);
+      resetCreateForm();
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create user");
+    } finally {
+      setCreateLoading(false);
+    }
+  }
+
+  // ---- Edit ----
+
+  function openEdit(user: UserWithMemberships) {
+    setEditUser(user);
+    setEditName(user.full_name ?? "");
+    setEditIsAdmin(user.is_app_admin);
+    setEditOpen(true);
+  }
+
+  async function handleEdit() {
+    if (!editUser) return;
+    setEditLoading(true);
+    try {
+      const res = await fetch("/api/v1/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: editUser.id,
+          full_name: editName.trim() || editUser.full_name,
+          is_app_admin: editIsAdmin,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to update user");
+      }
+
+      toast.success("User updated.");
+      setEditOpen(false);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update user");
+    } finally {
+      setEditLoading(false);
+    }
+  }
+
+  // ---- Delete ----
+
+  function openDelete(user: UserWithMemberships) {
+    setDeleteUser(user);
+    setDeleteOpen(true);
+  }
+
+  async function handleDelete() {
+    if (!deleteUser) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch("/api/v1/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: deleteUser.id }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to delete user");
+      }
+
+      toast.success(`User ${deleteUser.email} deleted.`);
+      setDeleteOpen(false);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete user");
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
 
   return (
     <div className="space-y-4 pt-4">
@@ -64,6 +234,14 @@ export function UsersTab({ users }: UsersTabProps) {
           <span className="text-muted-foreground text-sm">
             {filtered.length} of {users.length}
           </span>
+          <Button
+            size="sm"
+            onClick={() => { resetCreateForm(); setCreateOpen(true); }}
+            className="gap-1.5"
+          >
+            <Plus className="size-4" />
+            Create User
+          </Button>
         </div>
       </div>
 
@@ -82,6 +260,7 @@ export function UsersTab({ users }: UsersTabProps) {
                 <TableHead>Organizations</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Joined</TableHead>
+                <TableHead className="w-[80px]" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -158,12 +337,210 @@ export function UsersTab({ users }: UsersTabProps) {
                       addSuffix: true,
                     })}
                   </TableCell>
+
+                  {/* Actions */}
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => openEdit(user)}
+                        title="Edit user"
+                      >
+                        <Pencil className="size-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => openDelete(user)}
+                        title="Delete user"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       )}
+
+      {/* Create User Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create User</DialogTitle>
+            <DialogDescription>
+              Create a new user account. They will receive an email to set their
+              password.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="create-email">Email</Label>
+              <Input
+                id="create-email"
+                type="email"
+                placeholder="user@example.com"
+                value={createEmail}
+                onChange={(e) => setCreateEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-name">Full Name (optional)</Label>
+              <Input
+                id="create-name"
+                type="text"
+                placeholder="Jane Doe"
+                value={createName}
+                onChange={(e) => setCreateName(e.target.value)}
+              />
+            </div>
+            {organizations.length > 0 && (
+              <div className="space-y-2">
+                <Label>Add to Organization (optional)</Label>
+                <Select value={createOrgId} onValueChange={setCreateOrgId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select organization..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {organizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {createOrgId && (
+              <div className="space-y-2">
+                <Label>Role in Organization</Label>
+                <Select value={createRole} onValueChange={setCreateRole}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="owner">Owner</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="create-admin">App Admin</Label>
+                <p className="text-xs text-muted-foreground">
+                  Grants access to the admin dashboard
+                </p>
+              </div>
+              <Switch
+                id="create-admin"
+                checked={createIsAdmin}
+                onCheckedChange={setCreateIsAdmin}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setCreateOpen(false)}
+              disabled={createLoading}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleCreate} disabled={createLoading}>
+              {createLoading && <Loader2 className="size-4 animate-spin" />}
+              Create User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update {editUser?.email ?? "user"} details.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Full Name</Label>
+              <Input
+                id="edit-name"
+                type="text"
+                placeholder="Jane Doe"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="edit-admin">App Admin</Label>
+                <p className="text-xs text-muted-foreground">
+                  Grants access to the admin dashboard
+                </p>
+              </div>
+              <Switch
+                id="edit-admin"
+                checked={editIsAdmin}
+                onCheckedChange={setEditIsAdmin}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditOpen(false)}
+              disabled={editLoading}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleEdit} disabled={editLoading}>
+              {editLoading && <Loader2 className="size-4 animate-spin" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to permanently delete{" "}
+              <strong>{deleteUser?.email}</strong>? This will remove their
+              account, all organization memberships, and cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteOpen(false)}
+              disabled={deleteLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteLoading}
+            >
+              {deleteLoading && <Loader2 className="size-4 animate-spin" />}
+              Delete User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

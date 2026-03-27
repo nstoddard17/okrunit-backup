@@ -354,7 +354,20 @@
       "Bash(cat \"/Users/nathanielstoddard/okrunit/okrunit/src/app/\\(dashboard\\)/requests/page.tsx\")",
       "Bash(ls -la /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(auth\\\\\\)/callback/)",
       "Bash(cat /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(auth\\\\\\)/invite/page.tsx)",
-      "Bash(cat /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(auth\\\\\\)/login/login-form.tsx)"
+      "Bash(cat /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(auth\\\\\\)/login/login-form.tsx)",
+      "Bash(find /Users/nathanielstoddard/okrunit/okrunit -type f \\\\\\(-name *cron* -o -name *queue* -o -name *background* -o -name *digest* \\\\\\))",
+      "Bash(grep -r \"RESEND_API_KEY\\\\|EMAIL_FROM\\\\|CRON_SECRET\" /Users/nathanielstoddard/okrunit/okrunit/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -r \"notification_settings\\\\|NotificationSettings\" /Users/nathanielstoddard/okrunit/okrunit/src --include=*.ts --include=*.tsx)",
+      "Bash(curl -s \"https://srtqterqrmptljfwllfr.supabase.co/rest/v1/approval_requests?select=id,title,created_by&order=created_at.desc&limit=5\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNydHF0ZXJxcm1wdGxqZndsbGZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTUzNzkzNCwiZXhwIjoyMDg3MTEzOTM0fQ.hnyBUDcb8tYLkBn8A30dZDdIPizlpIouF_pYAu651GY\" -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNydHF0ZXJxcm1wdGxqZndsbGZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTUzNzkzNCwiZXhwIjoyMDg3MTEzOTM0fQ.hnyBUDcb8tYLkBn8A30dZDdIPizlpIouF_pYAu651GY\")",
+      "Bash(npx json:*)",
+      "Bash(curl -s \"https://srtqterqrmptljfwllfr.supabase.co/rest/v1/approval_requests?select=id,title,created_by&order=created_at.desc&limit=5\" -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNydHF0ZXJxcm1wdGxqZndsbGZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTUzNzkzNCwiZXhwIjoyMDg3MTEzOTM0fQ.hnyBUDcb8tYLkBn8A30dZDdIPizlpIouF_pYAu651GY' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNydHF0ZXJxcm1wdGxqZndsbGZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTUzNzkzNCwiZXhwIjoyMDg3MTEzOTM0fQ.hnyBUDcb8tYLkBn8A30dZDdIPizlpIouF_pYAu651GY')",
+      "Bash(find /Users/nathanielstoddard/okrunit/okrunit/src/app/api/v1/messaging -type f -name *.ts -o -name *.tsx)",
+      "Bash(curl -s \"https://srtqterqrmptljfwllfr.supabase.co/rest/v1/connections?select=id,name,created_by&id=eq.56cae667-79c1-470c-93b6-e95143ad680f\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNydHF0ZXJxcm1wdGxqZndsbGZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTUzNzkzNCwiZXhwIjoyMDg3MTEzOTM0fQ.hnyBUDcb8tYLkBn8A30dZDdIPizlpIouF_pYAu651GY\" -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNydHF0ZXJxcm1wdGxqZndsbGZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTUzNzkzNCwiZXhwIjoyMDg3MTEzOTM0fQ.hnyBUDcb8tYLkBn8A30dZDdIPizlpIouF_pYAu651GY\")",
+      "Bash(curl -s \"https://srtqterqrmptljfwllfr.supabase.co/rest/v1/user_profiles?select=id,email,full_name&limit=5\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNydHF0ZXJxcm1wdGxqZndsbGZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTUzNzkzNCwiZXhwIjoyMDg3MTEzOTM0fQ.hnyBUDcb8tYLkBn8A30dZDdIPizlpIouF_pYAu651GY\" -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNydHF0ZXJxcm1wdGxqZndsbGZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTUzNzkzNCwiZXhwIjoyMDg3MTEzOTM0fQ.hnyBUDcb8tYLkBn8A30dZDdIPizlpIouF_pYAu651GY\")",
+      "Bash(grep -r \"forcedTheme\\\\|setTheme\\\\|dark mode\\\\|theme toggle\" /Users/nathanielstoddard/okrunit/okrunit/src --include=*.tsx --include=*.ts)",
+      "Bash(ls /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(auth\\\\\\)/)",
+      "Bash(grep -r \"signInWithOAuth\\\\|oauth\\\\|OAUTH\" /Users/nathanielstoddard/okrunit/okrunit/.env*)",
+      "Bash(ls -la /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(auth\\\\\\)/oauth/)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",

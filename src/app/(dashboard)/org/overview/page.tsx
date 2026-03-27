@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getOrgContext } from "@/lib/org-context";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { SourceAvatar, SourceBadge } from "@/components/approvals/source-icons";
 import {
   Hourglass,
   ShieldCheck,
@@ -10,12 +11,12 @@ import {
   UsersRound,
   ArrowUpRight,
   Clock,
-  CheckCircle,
-  XCircle,
   ClipboardList,
   TrendingUp,
   Activity,
+  User2,
 } from "lucide-react";
+import type { ApprovalRequest } from "@/lib/types/database";
 
 export const metadata = {
   title: "Overview - OKRunit",
@@ -63,11 +64,47 @@ export default async function V2OrgOverviewPage() {
       .eq("org_id", membership.org_id),
     supabase
       .from("approval_requests")
-      .select("id, title, status, created_at, decided_at")
+      .select("id, title, status, priority, action_type, source, created_at, decided_at, connection_id, created_by")
       .eq("org_id", membership.org_id)
       .order("created_at", { ascending: false })
       .limit(8),
   ]);
+
+  // Build connection name lookup for source display
+  const connectionIds = [...new Set(
+    (recentActivity ?? [])
+      .map((a) => a.connection_id)
+      .filter(Boolean) as string[]
+  )];
+
+  let connectionNameMap: Record<string, string> = {};
+  if (connectionIds.length > 0) {
+    const { data: connections } = await supabase
+      .from("connections")
+      .select("id, name")
+      .in("id", connectionIds);
+    connectionNameMap = Object.fromEntries(
+      (connections ?? []).map((c) => [c.id, c.name])
+    );
+  }
+
+  // Build creator name lookup (person who owns the connection)
+  const creatorUserIds = [...new Set(
+    (recentActivity ?? [])
+      .map((a) => (a.created_by as ApprovalRequest["created_by"])?.user_id)
+      .filter(Boolean) as string[]
+  )];
+
+  let creatorNameMap: Record<string, string> = {};
+  if (creatorUserIds.length > 0) {
+    const { data: profiles } = await admin
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", creatorUserIds);
+    creatorNameMap = Object.fromEntries(
+      (profiles ?? []).map((p) => [p.id, p.full_name || p.email || p.id.slice(0, 8)])
+    );
+  }
 
   const isAdmin = membership.role === "owner" || membership.role === "admin";
   const totalRequests = (approvedCount ?? 0) + (rejectedCount ?? 0) + (pendingCount ?? 0);
@@ -108,14 +145,37 @@ export default async function V2OrgOverviewPage() {
     },
   ];
 
+  const statusBorderColor: Record<string, string> = {
+    pending: "border-l-amber-400",
+    approved: "border-l-emerald-400",
+    rejected: "border-l-red-400",
+    cancelled: "border-l-zinc-300",
+    expired: "border-l-zinc-300",
+  };
+
+  const statusBadgeStyle: Record<string, string> = {
+    pending: "bg-amber-100 text-amber-800",
+    approved: "bg-emerald-100 text-emerald-800",
+    rejected: "bg-red-100 text-red-800",
+    cancelled: "bg-zinc-100 text-zinc-600",
+    expired: "bg-zinc-100 text-zinc-600",
+  };
+
+  const priorityStyle: Record<string, string> = {
+    critical: "border border-red-300 text-red-600 bg-transparent",
+    high: "border border-orange-300 text-orange-600 bg-transparent",
+    medium: "border border-blue-300 text-blue-600 bg-transparent",
+    low: "border border-zinc-300 text-zinc-500 bg-transparent",
+  };
+
   return (
     <div className="space-y-8">
-      {/* Stats row */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {/* Stats + Metrics row */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {stats.map((stat) => {
           const Icon = stat.icon;
           const inner = (
-            <div className="group relative rounded-xl border border-border/50 bg-card p-4 transition-colors hover:border-border">
+            <div className="group relative rounded-xl border border-border/50 bg-white p-4 transition-colors hover:border-border">
               <div className="flex items-center justify-between mb-3">
                 <div className={`flex size-9 items-center justify-center rounded-lg ${stat.bg}`}>
                   <Icon className={`size-4.5 ${stat.color}`} strokeWidth={1.75} />
@@ -134,147 +194,136 @@ export default async function V2OrgOverviewPage() {
             <div key={stat.label}>{inner}</div>
           );
         })}
+
+        {/* Approval rate card — inline with stats */}
+        <div className="rounded-xl border border-border/50 bg-white p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10">
+              <TrendingUp className="size-4.5 text-emerald-500" strokeWidth={1.75} />
+            </div>
+          </div>
+          <p className="text-2xl font-bold tracking-tight">{approvalRate}%</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Approval Rate</p>
+          <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full bg-emerald-500 transition-all"
+              style={{ width: `${approvalRate}%` }}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Two-column section */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Recent activity */}
-        <div className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Activity className="size-4 text-muted-foreground" />
-              <h2 className="text-sm font-semibold">Recent Activity</h2>
-            </div>
-            <Link
-              href="/requests"
-              className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-            >
-              View all
-            </Link>
+      {/* Recent activity — request card style */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Activity className="size-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold">Recent Activity</h2>
           </div>
+          <Link
+            href="/requests"
+            className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+          >
+            View all
+          </Link>
+        </div>
 
-          {recentActivity && recentActivity.length > 0 ? (
-            <div className="rounded-xl border border-border/50 divide-y divide-border/40">
-              {recentActivity.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/30"
-                >
-                  <div className={`flex size-7 shrink-0 items-center justify-center rounded-full ${
-                    item.status === "pending"
-                      ? "bg-amber-500/10 text-amber-500"
-                      : item.status === "approved"
-                        ? "bg-emerald-500/10 text-emerald-500"
-                        : item.status === "rejected"
-                          ? "bg-red-500/10 text-red-500"
-                          : "bg-muted text-muted-foreground"
-                  }`}>
-                    {item.status === "pending" ? (
-                      <Clock className="size-3.5" />
-                    ) : item.status === "approved" ? (
-                      <CheckCircle className="size-3.5" />
-                    ) : (
-                      <XCircle className="size-3.5" />
+        {recentActivity && recentActivity.length > 0 ? (
+          <div className="grid gap-3">
+            {recentActivity.map((item) => (
+              <Link
+                key={item.id}
+                href="/requests"
+                className={`group flex items-center gap-3 rounded-xl border-0 border-l-4 bg-white px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] ${
+                  statusBorderColor[item.status] ?? "border-l-zinc-300"
+                }`}
+              >
+                {/* Source icon */}
+                <SourceAvatar
+                  approval={item as unknown as ApprovalRequest}
+                  connectionName={item.connection_id ? connectionNameMap[item.connection_id] : undefined}
+                  size="md"
+                />
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    {item.status === "pending" && (
+                      <span className="relative flex size-2 shrink-0">
+                        <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                        <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
+                      </span>
                     )}
-                  </div>
-                  <div className="flex-1 min-w-0">
                     <p className="truncate text-sm font-medium">{item.title}</p>
-                    <p className="text-[11px] text-muted-foreground/60">
+                  </div>
+                  <div className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                    {/* Source */}
+                    <SourceBadge
+                      approval={item as unknown as ApprovalRequest}
+                      connectionName={item.connection_id ? connectionNameMap[item.connection_id] : undefined}
+                    />
+                    {/* Creator */}
+                    {item.created_by && (
+                      <>
+                        <span className="text-muted-foreground/40">|</span>
+                        <span className="flex items-center gap-1 truncate">
+                          <User2 className="size-3 shrink-0" />
+                          {(() => {
+                            const cb = item.created_by as ApprovalRequest["created_by"];
+                            if (cb?.user_id && creatorNameMap[cb.user_id]) return creatorNameMap[cb.user_id];
+                            return cb?.connection_name ?? cb?.client_name ?? "API";
+                          })()}
+                        </span>
+                      </>
+                    )}
+                    {item.action_type && (
+                      <>
+                        <span className="text-muted-foreground/40">|</span>
+                        <span className="rounded bg-muted/60 px-1.5 py-0.5 font-mono text-[10px]">
+                          {item.action_type}
+                        </span>
+                      </>
+                    )}
+                    <span className="text-muted-foreground/40">|</span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="size-3" />
                       {new Date(item.created_at).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         hour: "numeric",
                         minute: "2-digit",
                       })}
-                    </p>
+                    </span>
                   </div>
-                  <span className={`shrink-0 rounded-md px-2 py-0.5 text-[11px] font-medium capitalize ${
-                    item.status === "pending"
-                      ? "bg-amber-500/10 text-amber-600"
-                      : item.status === "approved"
-                        ? "bg-emerald-500/10 text-emerald-600"
-                        : item.status === "rejected"
-                          ? "bg-red-500/10 text-red-600"
-                          : "bg-muted text-muted-foreground"
+                </div>
+
+                {/* Badges */}
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {item.priority && (
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${
+                      priorityStyle[item.priority] ?? "bg-zinc-100 text-zinc-600"
+                    }`}>
+                      {item.priority}
+                    </span>
+                  )}
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${
+                    statusBadgeStyle[item.status] ?? "bg-zinc-100 text-zinc-600"
                   }`}>
                     {item.status}
                   </span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/50 py-16 text-center">
-              <ClipboardList className="size-8 text-muted-foreground/30 mb-3" />
-              <p className="text-sm font-medium text-muted-foreground">No requests yet</p>
-              <p className="text-xs text-muted-foreground/60 mt-1">
-                Requests will appear here as they come in
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Sidebar - Metrics & Quick Links */}
-        <div className="space-y-6">
-          {/* Approval rate */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="size-4 text-muted-foreground" />
-              <h2 className="text-sm font-semibold">Metrics</h2>
-            </div>
-            <div className="rounded-xl border border-border/50 p-4 space-y-4">
-              <div>
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Approval rate</span>
-                  <span className="font-semibold">{approvalRate}%</span>
-                </div>
-                <div className="h-2 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-emerald-500 transition-all"
-                    style={{ width: `${approvalRate}%` }}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-lg font-bold">{totalRequests}</p>
-                  <p className="text-[11px] text-muted-foreground">Total requests</p>
-                </div>
-                <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-lg font-bold">{rejectedCount ?? 0}</p>
-                  <p className="text-[11px] text-muted-foreground">Rejected</p>
-                </div>
-              </div>
-            </div>
+              </Link>
+            ))}
           </div>
-
-          {/* Quick links */}
-          {isAdmin && (
-            <div>
-              <h2 className="text-sm font-semibold mb-3">Quick Links</h2>
-              <div className="space-y-1.5">
-                {[
-                  { label: "Pending requests", href: "/requests", count: pendingCount },
-                  { label: "Connections", href: "/requests/connections", count: connectionCount },
-                  { label: "Invite members", href: "/org/invites", count: null },
-                  { label: "API Playground", href: "/playground", count: null },
-                ].map((link) => (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-muted/50"
-                  >
-                    <span className="text-muted-foreground hover:text-foreground transition-colors">{link.label}</span>
-                    {link.count !== null && link.count !== undefined && (link.count ?? 0) > 0 && (
-                      <span className="text-xs font-medium text-muted-foreground bg-muted rounded-md px-1.5 py-0.5">
-                        {link.count}
-                      </span>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/50 py-16 text-center">
+            <ClipboardList className="size-8 text-muted-foreground/30 mb-3" />
+            <p className="text-sm font-medium text-muted-foreground">No requests yet</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">
+              Requests will appear here as they come in
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

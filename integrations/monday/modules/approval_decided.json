@@ -1,0 +1,65 @@
+{
+  "label": "Approval Decided",
+  "description": "Triggers when an approval request is approved or rejected.",
+  "actionType": "trigger",
+  "type": "polling",
+  "connection": "oauth2",
+  "parameters": [
+    {
+      "name": "decision",
+      "type": "select",
+      "label": "Decision Type",
+      "required": false,
+      "options": [
+        { "label": "Any (Approved or Rejected)", "value": "" },
+        { "label": "Approved Only", "value": "approved" },
+        { "label": "Rejected Only", "value": "rejected" }
+      ],
+      "help": "Filter to only trigger on specific decision types."
+    },
+    {
+      "name": "priority_filter",
+      "type": "select",
+      "label": "Priority Filter",
+      "required": false,
+      "options": [
+        { "label": "Any Priority", "value": "" },
+        { "label": "Low", "value": "low" },
+        { "label": "Medium", "value": "medium" },
+        { "label": "High", "value": "high" },
+        { "label": "Critical", "value": "critical" }
+      ],
+      "help": "Filter to only trigger on specific priority levels."
+    }
+  ],
+  "url": "/api/v1/approvals",
+  "method": "GET",
+  "qs": {
+    "status": "{{ifempty(parameters.decision, 'approved,rejected')}}",
+    "page_size": "50",
+    "priority": "{{ifempty(parameters.priority_filter, undefined)}}"
+  },
+  "response": {
+    "output": "{{body.data}}",
+    "iterate": "{{body.data}}",
+    "trigger": {
+      "id": "{{item.id}}",
+      "date": "{{item.decided_at}}",
+      "order": "desc"
+    }
+  },
+  "samples": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "title": "Deploy v2.3.1 to production",
+    "description": "Release includes new payment flow",
+    "status": "approved",
+    "priority": "high",
+    "source": "api",
+    "decided_by": "770e8400-e29b-41d4-a716-446655440002",
+    "decided_by_name": "Jane Smith",
+    "decided_at": "2026-02-21T10:30:00.000Z",
+    "decision_comment": "Looks good, approved!",
+    "created_at": "2026-02-21T10:00:00.000Z",
+    "updated_at": "2026-02-21T10:30:00.000Z"
+  }
+}

@@ -58,6 +58,7 @@ function actionBadgeVariant(
 
 interface AuditLogTableProps {
   initialEntries: AuditLogEntry[];
+  orgId?: string;
   pageSize?: number;
 }
 
@@ -67,6 +68,7 @@ interface AuditLogTableProps {
 
 export function AuditLogTable({
   initialEntries,
+  orgId,
   pageSize = 50,
 }: AuditLogTableProps) {
   const [entries, setEntries] = useState<AuditLogEntry[]>(initialEntries);
@@ -127,13 +129,18 @@ export function AuditLogTable({
       const lastEntry = entries[entries.length - 1];
       if (!lastEntry) return;
 
-      const { data } = await supabase
+      let query = supabase
         .from("audit_log")
         .select("*")
         .lt("created_at", lastEntry.created_at)
         .order("created_at", { ascending: false })
-        .limit(pageSize)
-        .returns<AuditLogEntry[]>();
+        .limit(pageSize);
+
+      if (orgId) {
+        query = query.eq("org_id", orgId);
+      }
+
+      const { data } = await query.returns<AuditLogEntry[]>();
 
       if (data) {
         setEntries((prev) => [...prev, ...data]);
@@ -144,7 +151,7 @@ export function AuditLogTable({
         setHasMore(false);
       }
     });
-  }, [entries, pageSize]);
+  }, [entries, orgId, pageSize]);
 
   // Reset filters.
   const clearFilters = useCallback(() => {

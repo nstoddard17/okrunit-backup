@@ -25,6 +25,7 @@ const DEPLOYMENTS = [
   { platform: 'Make.com', script: 'deploy-make.ts' },
   { platform: 'Pipedream', script: 'deploy-pipedream.ts' },
   { platform: 'Windmill', script: 'deploy-windmill.ts' },
+  { platform: 'monday.com', script: 'deploy-monday.ts' },
 ];
 
 async function main(): Promise<void> {

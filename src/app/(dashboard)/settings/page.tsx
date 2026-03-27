@@ -4,21 +4,25 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOrgPlan } from "@/lib/billing/enforce";
 import { hasFeature } from "@/lib/billing/plans";
-import { PageContainer } from "@/components/ui/page-container";
-import { PageHeader } from "@/components/layout/page-header";
 import { SettingsLayout } from "@/components/settings/settings-layout";
-import type { NotificationSettings, UserRole } from "@/lib/types/database";
+import type { NotificationSettings } from "@/lib/types/database";
 
 export const metadata = {
   title: "Settings - OKRunit",
-  description: "Manage your account, notifications, OAuth apps, and SSO.",
+  description: "Manage your account and notification settings.",
 };
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const ctx = await getOrgContext();
   if (!ctx) redirect("/login");
   const { profile, membership, org } = ctx;
   const isAdmin = membership.role === "owner" || membership.role === "admin";
+
+  const params = await searchParams;
 
   const supabase = await createClient();
 
@@ -29,45 +33,29 @@ export default async function SettingsPage() {
     .eq("user_id", profile.id)
     .single<NotificationSettings>();
 
-  // Admin-only data: OAuth clients and SSO plan check
-  let oauthClients: unknown[] = [];
+  // Admin-only: SSO plan check
   let hasSso = false;
 
   if (isAdmin) {
-    const admin = createAdminClient();
-
-    const [clientsResult, plan] = await Promise.all([
-      admin
-        .from("oauth_clients")
-        .select(
-          "id, org_id, name, logo_url, client_id, client_secret_prefix, redirect_uris, scopes, is_active, created_by, created_at, updated_at",
-        )
-        .eq("org_id", org.id)
-        .order("created_at", { ascending: false }),
-      getOrgPlan(org.id),
-    ]);
-
-    oauthClients = clientsResult.data ?? [];
+    const plan = await getOrgPlan(org.id);
     hasSso = hasFeature(plan, "sso_saml");
   }
 
   return (
-    <PageContainer>
-      <PageHeader
-        title="Settings"
-        description="Manage your account, notifications, and organization settings."
-      />
-      <SettingsLayout
-        userId={profile.id}
-        initialFullName={profile.full_name ?? ""}
-        initialEmail={profile.email}
-        notificationSettings={notificationSettings ?? null}
-        isAdmin={isAdmin}
-        role={membership.role as UserRole}
-        oauthClients={oauthClients}
-        hasSso={hasSso}
-        orgId={org.id}
-      />
-    </PageContainer>
+    <SettingsLayout
+      userId={profile.id}
+      initialFullName={profile.full_name ?? ""}
+      initialEmail={profile.email}
+      deletionScheduledAt={profile.deletion_scheduled_at}
+      notificationSettings={notificationSettings ?? null}
+      isAdmin={isAdmin}
+      hasSso={hasSso}
+      orgId={org.id}
+      emergencyStopActive={org.emergency_stop_active}
+      emergencyStopActivatedAt={org.emergency_stop_activated_at}
+      emergencyStopActivatedBy={org.emergency_stop_activated_by}
+      autoApprovalsPaused={membership.auto_approvals_paused}
+      initialSection={params.tab}
+    />
   );
 }

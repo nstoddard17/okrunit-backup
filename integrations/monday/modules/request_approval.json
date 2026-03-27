@@ -1,0 +1,62 @@
+{
+  "label": "Request Approval",
+  "description": "Create an approval request and pause this monday.com automation until a human approves or rejects. Use the callback URL from a monday.com webhook to resume your automation after the decision.",
+  "actionType": "create",
+  "connection": "oauth2",
+  "parameters": [
+    {
+      "name": "title",
+      "type": "text",
+      "label": "What needs approval?",
+      "required": false,
+      "help": "A short description of what you want approved (e.g. 'Send invoice #1234 to client'). If left blank, you can edit the title in your OKRunit dashboard at okrunit.com."
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "label": "Details",
+      "required": false,
+      "help": "Additional context for the reviewer (optional). Use dynamic data from previous modules."
+    },
+    {
+      "name": "callback_url",
+      "type": "url",
+      "label": "Callback URL",
+      "required": false,
+      "help": "To receive the approval decision: 1) Create a second automation with the OKRunit 'Approval Decision Received' trigger. 2) Copy the webhook URL it generates. 3) Paste it here. When someone approves or rejects, OKRunit will POST the decision to that URL and your second automation will continue automatically."
+    },
+    {
+      "name": "metadata",
+      "type": "text",
+      "label": "Metadata (JSON)",
+      "required": false,
+      "help": "Optional JSON data to attach (e.g. {\"board_id\": \"123\", \"item_id\": \"456\"}). Routing rules, priority, expiration, and approvers are all configured in your OKRunit dashboard at okrunit.com."
+    }
+  ],
+  "url": "/api/v1/approvals",
+  "method": "POST",
+  "body": {
+    "title": "{{ifempty(parameters.title, 'Approval request from monday.com')}}",
+    "description": "{{ifempty(parameters.description, undefined)}}",
+    "callback_url": "{{ifempty(parameters.callback_url, undefined)}}",
+    "metadata": "{{ifempty(parameters.metadata, undefined)}}",
+    "source": "monday",
+    "idempotency_key": "monday-{{ifempty(parameters.title, 'approval')}}-{{timestamp}}"
+  },
+  "response": {
+    "output": "{{body}}"
+  },
+  "samples": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "title": "Deploy v2.3.1 to production",
+    "description": "Release includes new payment flow",
+    "status": "pending",
+    "priority": "medium",
+    "source": "monday",
+    "decided_by": null,
+    "decided_by_name": null,
+    "decision_comment": null,
+    "created_at": "2026-02-21T10:00:00.000Z",
+    "decided_at": null
+  }
+}

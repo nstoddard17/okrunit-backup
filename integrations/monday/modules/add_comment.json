@@ -1,0 +1,37 @@
+{
+  "label": "Add Comment",
+  "description": "Add a comment to an existing approval request.",
+  "actionType": "create",
+  "connection": "oauth2",
+  "parameters": [
+    {
+      "name": "approval_id",
+      "type": "text",
+      "label": "Approval ID",
+      "required": true,
+      "help": "The UUID of the approval request to comment on."
+    },
+    {
+      "name": "body",
+      "type": "text",
+      "label": "Comment",
+      "required": true,
+      "help": "The comment text (max 5000 characters)."
+    }
+  ],
+  "url": "/api/v1/approvals/{{parameters.approval_id}}/comments",
+  "method": "POST",
+  "body": {
+    "body": "{{parameters.body}}"
+  },
+  "response": {
+    "output": "{{body}}"
+  },
+  "samples": {
+    "id": "660e8400-e29b-41d4-a716-446655440001",
+    "approval_id": "550e8400-e29b-41d4-a716-446655440000",
+    "body": "Looks good, proceeding with approval.",
+    "created_by": "770e8400-e29b-41d4-a716-446655440002",
+    "created_at": "2026-02-21T10:05:00.000Z"
+  }
+}

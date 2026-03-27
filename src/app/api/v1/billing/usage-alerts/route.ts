@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPlanLimits, isUnlimited } from "@/lib/billing/plans";
+import { buildUsageAlertEmailHtml } from "@/lib/email/usage-alert";
 import type { BillingPlan } from "@/lib/types/database";
+
+const FROM_EMAIL = process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
 
 /**
  * POST /api/v1/billing/usage-alerts
@@ -97,14 +101,65 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // TODO: Send alert emails via Resend to org owners
-  // For now, just log and return the alerts
-  if (alerts.length > 0) {
-    console.log(`[Usage Alerts] ${alerts.length} alerts for ${new Set(alerts.map(a => a.org_id)).size} orgs`);
+  // Group alerts by org
+  const alertsByOrg = new Map<string, typeof alerts>();
+  for (const alert of alerts) {
+    const existing = alertsByOrg.get(alert.org_id) ?? [];
+    existing.push(alert);
+    alertsByOrg.set(alert.org_id, existing);
+  }
+
+  let emailsSent = 0;
+
+  if (alertsByOrg.size > 0 && process.env.RESEND_API_KEY) {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    for (const [orgId, orgAlerts] of alertsByOrg) {
+      // Get org name and owner/admin emails
+      const [{ data: org }, { data: members }] = await Promise.all([
+        admin.from("organizations").select("name").eq("id", orgId).single(),
+        admin
+          .from("org_memberships")
+          .select("user_id, role")
+          .eq("org_id", orgId)
+          .in("role", ["owner", "admin"]),
+      ]);
+
+      if (!org || !members || members.length === 0) continue;
+
+      const userIds = members.map((m) => m.user_id);
+      const { data: profiles } = await admin
+        .from("user_profiles")
+        .select("email")
+        .in("id", userIds);
+
+      if (!profiles || profiles.length === 0) continue;
+
+      const html = buildUsageAlertEmailHtml({
+        orgName: org.name,
+        alerts: orgAlerts.map((a) => ({ type: a.type, current: a.current, limit: a.limit })),
+        plan: orgAlerts[0].plan,
+      });
+
+      for (const profile of profiles) {
+        try {
+          await resend.emails.send({
+            from: FROM_EMAIL,
+            to: profile.email,
+            subject: `Usage Alert: ${org.name} is approaching plan limits`,
+            html,
+          });
+          emailsSent++;
+        } catch (err) {
+          console.error(`[Usage Alerts] Failed to send to ${profile.email}:`, err);
+        }
+      }
+    }
   }
 
   return NextResponse.json({
-    alerts_sent: alerts.length,
-    alerts,
+    alerts_found: alerts.length,
+    orgs_affected: alertsByOrg.size,
+    emails_sent: emailsSent,
   });
 }

@@ -10,7 +10,11 @@ import {
   MessageSquare,
   BarChart3,
   ScrollText,
+  CheckSquare,
+  Wrench,
+  LineChart,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface NavItem {
   id: string;
@@ -23,6 +27,7 @@ interface NavItem {
 
 interface NavSection {
   label: string;
+  icon: LucideIcon;
   items: NavItem[];
 }
 
@@ -39,6 +44,7 @@ export function RequestsNav({ isAdmin, pendingCount, mobile }: RequestsNavProps)
   const sections: NavSection[] = [
     {
       label: "Approvals",
+      icon: CheckSquare,
       items: [
         {
           id: "inbox",
@@ -51,6 +57,7 @@ export function RequestsNav({ isAdmin, pendingCount, mobile }: RequestsNavProps)
     },
     {
       label: "Configuration",
+      icon: Wrench,
       items: [
         { id: "connections", label: "Connections", href: "/requests/connections", icon: Key, adminOnly: true },
         { id: "routes", label: "Routes", href: "/requests/routes", icon: Route, adminOnly: true },
@@ -59,6 +66,7 @@ export function RequestsNav({ isAdmin, pendingCount, mobile }: RequestsNavProps)
     },
     {
       label: "Insights",
+      icon: LineChart,
       items: [
         { id: "analytics", label: "Analytics", href: "/requests/analytics", icon: BarChart3 },
         { id: "audit-log", label: "Audit Log", href: "/requests/audit-log", icon: ScrollText },
@@ -98,35 +106,35 @@ export function RequestsNav({ isAdmin, pendingCount, mobile }: RequestsNavProps)
   }
 
   return (
-    <nav className="flex-1 flex flex-col" aria-label="Request sections">
+    <nav className="flex-1 flex flex-col px-3" aria-label="Request sections">
       {sections.map((section, idx) => {
         const visibleItems = section.items.filter((item) => !item.adminOnly || isAdmin);
         if (visibleItems.length === 0) return null;
 
+        const SectionIcon = section.icon;
         return (
-          <div key={section.label} className={cn(idx > 0 && "mt-2 pt-3 border-t border-border/40 mx-3")}>
-            <div className="px-3 mb-1.5">
-              <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+          <div key={section.label} className={cn(idx > 0 && "mt-4")}>
+            <div className="flex items-center gap-2 px-3 mb-2">
+              <SectionIcon className="size-4 text-foreground" />
+              <span className="text-sm font-semibold text-foreground">
                 {section.label}
               </span>
             </div>
-            <div className="px-3 space-y-0.5">
+            <div className="space-y-0.5">
               {visibleItems.map((item) => {
-                const Icon = item.icon;
                 const active = isActive(item.href);
                 return (
                   <Link
                     key={item.id}
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                      "flex items-center justify-between rounded-lg px-3 py-1.5 text-[13px] transition-colors",
                       active
                         ? "bg-primary/10 font-medium text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        : "text-foreground hover:bg-muted",
                     )}
                   >
-                    <Icon className="size-4 shrink-0" />
-                    <span className="flex-1 truncate">{item.label}</span>
+                    <span>{item.label}</span>
                     {item.badge !== undefined && (
                       <span className={cn(
                         "rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none",
@@ -141,6 +149,9 @@ export function RequestsNav({ isAdmin, pendingCount, mobile }: RequestsNavProps)
                 );
               })}
             </div>
+
+            {/* Divider after section */}
+            <div className="mt-3 border-b border-border/40 mx-3" />
           </div>
         );
       })}

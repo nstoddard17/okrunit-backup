@@ -9,6 +9,7 @@ import { authenticateRequest } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
 import { createCommentSchema } from "@/lib/api/validation";
 import { logAuditEvent } from "@/lib/api/audit";
+import { dispatchNotifications } from "@/lib/notifications/orchestrator";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // ---- GET /api/v1/approvals/[id]/comments ----------------------------------
@@ -75,7 +76,7 @@ export async function POST(
     // 3. Verify the approval exists and belongs to the org
     const { data: approval, error: approvalError } = await admin
       .from("approval_requests")
-      .select("id")
+      .select("id, title, priority, connection_id, source, action_type")
       .eq("id", id)
       .eq("org_id", auth.orgId)
       .single();
@@ -112,6 +113,21 @@ export async function POST(
       details: {
         request_id: id,
       },
+    });
+
+    // 6. Dispatch comment notification (fire and forget)
+    dispatchNotifications({
+      type: "approval.comment",
+      orgId: auth.orgId,
+      requestId: id,
+      requestTitle: approval.title,
+      requestPriority: approval.priority,
+      connectionId: approval.connection_id ?? undefined,
+      source: approval.source ?? undefined,
+      actionType: approval.action_type ?? undefined,
+      decidedBy: auth.type === "session" ? auth.user.id : undefined,
+    }).catch((err) => {
+      console.error("[Comments] Failed to dispatch notification:", err);
     });
 
     return NextResponse.json(comment, { status: 201 });
