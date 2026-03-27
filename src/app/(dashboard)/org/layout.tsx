@@ -1,11 +1,7 @@
 import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { PageContainer } from "@/components/ui/page-container";
-import { OnboardingBanner } from "@/components/onboarding/onboarding-banner";
-import { OrgSectionNav } from "@/components/org/org-section-nav";
-import type { OrgInvite } from "@/lib/types/database";
-
+import { V2OrgNav } from "@/components/org/v2-org-nav";
 export default async function OrgLayout({
   children,
 }: {
@@ -17,31 +13,54 @@ export default async function OrgLayout({
 
   const isAdmin = membership.role === "owner" || membership.role === "admin";
 
-  // Fetch pending invite count for the badge
+  const admin = createAdminClient();
+
   let pendingInviteCount = 0;
+  let planName: string | undefined;
+
   if (isAdmin) {
-    const admin = createAdminClient();
-    const { count } = await admin
-      .from("org_invites")
-      .select("*", { count: "exact", head: true })
-      .eq("org_id", membership.org_id)
-      .is("accepted_at", null)
-      .gt("expires_at", new Date().toISOString());
-    pendingInviteCount = count ?? 0;
+    const [inviteResult, subResult] = await Promise.all([
+      admin
+        .from("org_invites")
+        .select("*", { count: "exact", head: true })
+        .eq("org_id", membership.org_id)
+        .is("accepted_at", null)
+        .gt("expires_at", new Date().toISOString()),
+      admin
+        .from("subscriptions")
+        .select("plan_id")
+        .eq("org_id", org.id)
+        .single(),
+    ]);
+    pendingInviteCount = inviteResult.count ?? 0;
+    const planId = subResult.data?.plan_id ?? "free";
+    planName = planId.charAt(0).toUpperCase() + planId.slice(1);
   }
 
   return (
-    <>
-      <OnboardingBanner />
-      <PageContainer>
-        <div className="mb-6">
-          <p className="text-sm font-medium text-primary">Organization</p>
-          <h1 className="text-2xl font-bold tracking-tight">{org.name}</h1>
+    <div className="flex w-full flex-col md:flex-row md:min-h-[calc(100vh-52px)]">
+      {/* Left sidebar — desktop, sticks to top while content scrolls */}
+      <aside className="hidden md:block w-52 shrink-0 border-r border-border/40 bg-card">
+        <div className="sticky top-0 pt-5">
+          <V2OrgNav isAdmin={isAdmin} pendingInviteCount={pendingInviteCount} planName={planName} />
         </div>
-        <OrgSectionNav isAdmin={isAdmin} pendingInviteCount={pendingInviteCount}>
+      </aside>
+
+      {/* Mobile nav — top dropdown */}
+      <div className="md:hidden border-b border-border/40 bg-background px-4 py-3">
+        <V2OrgNav isAdmin={isAdmin} pendingInviteCount={pendingInviteCount} mobile />
+      </div>
+
+      {/* Main content — fills remaining space */}
+      <main className="flex-1 min-w-0">
+        <div className="px-6 lg:px-8 py-6">
+          <div className="mb-6">
+            <p className="text-xs font-medium text-primary mb-0.5">Organization</p>
+            <h1 className="text-xl font-semibold tracking-tight">{org.name}</h1>
+          </div>
           {children}
-        </OrgSectionNav>
-      </PageContainer>
-    </>
+        </div>
+      </main>
+    </div>
   );
 }

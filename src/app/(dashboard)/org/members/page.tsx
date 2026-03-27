@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { MemberList } from "@/components/team/member-list";
+import { V2MemberList } from "@/components/org/v2-member-list";
 
 export const metadata = {
   title: "Members - OKRunit",
   description: "Manage your organization's team members.",
 };
 
-export default async function OrgMembersPage() {
+export default async function V2OrgMembersPage() {
   const ctx = await getOrgContext();
   if (!ctx) redirect("/login");
   const { membership } = ctx;
@@ -46,7 +46,6 @@ export default async function OrgMembersPage() {
     };
   });
 
-  // Activity stats (last 30 days)
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const { data: recentDecisions } = await admin
     .from("approval_requests")
@@ -72,7 +71,6 @@ export default async function OrgMembersPage() {
     }
   }
 
-  // Pending load per member
   const { data: pendingAssigned } = await admin
     .from("approval_requests")
     .select("assigned_approvers, status")
@@ -88,7 +86,7 @@ export default async function OrgMembersPage() {
   }
 
   return (
-    <MemberList
+    <V2MemberList
       members={members}
       currentUserId={ctx.profile.id}
       currentUserRole={membership.role}

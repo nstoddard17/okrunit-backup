@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { InviteForm } from "@/components/team/invite-form";
-import { PendingInvites } from "@/components/team/pending-invites";
+import { V2InviteSection } from "@/components/org/v2-invite-form";
 import type { OrgInvite } from "@/lib/types/database";
 
 export const metadata = {
@@ -10,7 +9,7 @@ export const metadata = {
   description: "Manage invitations to your organization.",
 };
 
-export default async function OrgInvitesPage() {
+export default async function V2OrgInvitesPage() {
   const ctx = await getOrgContext();
   if (!ctx) redirect("/login");
   const { membership } = ctx;
@@ -30,15 +29,5 @@ export default async function OrgInvitesPage() {
 
   const invites = (pendingInvites ?? []) as OrgInvite[];
 
-  return (
-    <div className="space-y-6">
-      <InviteForm />
-      {invites.length > 0 && (
-        <PendingInvites
-          invites={invites}
-          canManage={true}
-        />
-      )}
-    </div>
-  );
+  return <V2InviteSection invites={invites} />;
 }

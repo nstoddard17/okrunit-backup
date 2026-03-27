@@ -161,7 +161,7 @@ export function RoutesHub({
             </p>
           </div>
           <Button variant="outline" size="sm" asChild>
-            <Link href="/messaging">
+            <Link href="/requests/messaging">
               <Plus className="size-3.5" />
               Add Channel
             </Link>
@@ -173,7 +173,7 @@ export function RoutesHub({
             <MessageSquare className="mx-auto size-8 text-muted-foreground/50 mb-2" />
             <p className="text-sm text-muted-foreground">
               No messaging channels connected.{" "}
-              <Link href="/messaging" className="underline underline-offset-2 hover:text-foreground">
+              <Link href="/requests/messaging" className="underline underline-offset-2 hover:text-foreground">
                 Connect one
               </Link>{" "}
               to route notifications.

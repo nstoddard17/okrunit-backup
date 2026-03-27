@@ -1,7 +1,5 @@
 import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
-import { PageContainer } from "@/components/ui/page-container";
-import { PageHeader } from "@/components/layout/page-header";
 import { ApprovalDashboard } from "@/components/approvals/approval-dashboard";
 
 export const dynamic = "force-dynamic";
@@ -17,15 +15,9 @@ export default async function RequestsPage() {
   const { membership } = ctx;
 
   return (
-    <PageContainer>
-      <PageHeader
-        title="Requests"
-        description="View and manage approval requests across your organization."
-      />
-      <ApprovalDashboard
-        canApprove={membership.can_approve ?? true}
-        orgId={membership.org_id}
-      />
-    </PageContainer>
+    <ApprovalDashboard
+      canApprove={membership.can_approve ?? true}
+      orgId={membership.org_id}
+    />
   );
 }

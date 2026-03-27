@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { HeroNav } from "@/components/landing/hero-nav";
 import { PriorityBadge } from "@/components/approvals/priority-badge";
-import { SOURCE_CONFIG } from "@/components/approvals/source-icons";
 import { PLATFORM_ICONS } from "@/components/messaging/platform-card";
 import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -47,7 +46,51 @@ interface LandingPageProps {
   user: { email: string; full_name: string | null } | null;
 }
 
-type ProductSource = keyof typeof SOURCE_CONFIG;
+const sourceAssets = {
+  zapier: {
+    label: "Zapier",
+    src: "/logos/platforms/zapier.png",
+    chipBg: "bg-orange-50",
+  },
+  make: {
+    label: "Make",
+    src: "/logos/platforms/make.png",
+    chipBg: "bg-violet-50",
+  },
+  n8n: {
+    label: "n8n",
+    src: "/logos/platforms/n8n.png",
+    chipBg: "bg-rose-50",
+  },
+  github: {
+    label: "GitHub Actions",
+    src: "/logos/platforms/github.png",
+    chipBg: "bg-slate-50",
+  },
+  windmill: {
+    label: "Windmill",
+    src: "/logos/platforms/windmill.png",
+    chipBg: "bg-sky-50",
+  },
+} as const;
+
+const marqueeIntegrations = [
+  { label: "Zapier", src: "/logos/platforms/zapier.png" },
+  { label: "Make", src: "/logos/platforms/make.png" },
+  { label: "n8n", src: "/logos/platforms/n8n.png" },
+  { label: "GitHub Actions", src: "/logos/platforms/github.png" },
+  { label: "Windmill", src: "/logos/platforms/windmill.png" },
+  { label: "Temporal", src: "/logos/platforms/temporal.png" },
+  { label: "Dagster", src: "/logos/platforms/dagster.png" },
+  { label: "Pipedream", src: "/logos/platforms/pipedream.png" },
+  { label: "Prefect", src: "/logos/platforms/prefect.png" },
+  { label: "Slack", src: "/logos/platforms/slack.png" },
+  { label: "Discord", src: "/logos/platforms/discord.png" },
+  { label: "Microsoft Teams", src: "/logos/platforms/teams.png" },
+  { label: "Telegram", src: "/logos/platforms/telegram.png" },
+];
+
+type ProductSource = keyof typeof sourceAssets;
 type RequestStatus = "pending" | "approved" | "rejected";
 type MetricTone = "amber" | "emerald" | "blue";
 
@@ -86,7 +129,7 @@ interface AuditEntry {
   details?: string;
 }
 
-const sourceOrder: ProductSource[] = ["zapier", "make", "n8n", "api", "windmill"];
+const sourceOrder: ProductSource[] = ["zapier", "make", "n8n", "github", "windmill"];
 
 const heroMetrics: MetricItem[] = [
   {
@@ -106,7 +149,7 @@ const heroMetrics: MetricItem[] = [
   {
     title: "Active Connections",
     value: "8",
-    subtitle: "Zapier, Make, n8n, API",
+    subtitle: "Zapier, Make, n8n, GitHub",
     icon: KeyRound,
     tone: "blue",
   },
@@ -115,7 +158,7 @@ const heroMetrics: MetricItem[] = [
 const queueAttention: RequestItem[] = [
   {
     title: "Deploy v3.2 to production",
-    source: "api",
+    source: "github",
     priority: "critical",
     status: "pending",
     age: "2m ago",
@@ -145,7 +188,7 @@ const queueAttention: RequestItem[] = [
 const queueResolved: RequestItem[] = [
   {
     title: "Rotate webhook signing secret",
-    source: "api",
+    source: "windmill",
     priority: "medium",
     status: "approved",
     age: "14m ago",
@@ -217,7 +260,7 @@ const approvalStateItems: RequestItem[] = [
   },
   {
     title: "Grant finance role to contractor",
-    source: "api",
+    source: "github",
     priority: "critical",
     status: "pending",
     age: "1h ago",
@@ -265,7 +308,7 @@ const routePlatforms: Record<
 const routingOutcomes: RequestItem[] = [
   {
     title: "Deploy v3.2 to production",
-    source: "api",
+    source: "github",
     priority: "critical",
     status: "pending",
     age: "2m ago",
@@ -390,6 +433,39 @@ function FadeIn({
   );
 }
 
+function IntegrationMarquee() {
+  // Double the list for seamless loop
+  const items = [...marqueeIntegrations, ...marqueeIntegrations];
+
+  return (
+    <div className="relative overflow-hidden">
+      {/* Fade edges */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-[#f3f7f4] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-[#f3f7f4] to-transparent" />
+
+      <div className="flex w-max animate-[lp-marquee_40s_linear_infinite] items-center gap-6">
+        {items.map((item, i) => (
+          <div
+            key={`${item.label}-${i}`}
+            className="flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-white px-4 py-2 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+          >
+            <Image
+              src={item.src}
+              alt={item.label}
+              width={20}
+              height={20}
+              className="size-5 object-contain"
+            />
+            <span className="whitespace-nowrap text-sm font-medium text-slate-700">
+              {item.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SectionEyebrow({ children }: { children: ReactNode }) {
   return (
     <Badge
@@ -410,8 +486,8 @@ function SourcePill({
   showLabel?: boolean;
   size?: "sm" | "md";
 }) {
-  const config = SOURCE_CONFIG[source];
-  const Icon = config.icon;
+  const config = sourceAssets[source];
+  const iconSize = size === "sm" ? 14 : 16;
 
   return (
     <span
@@ -423,12 +499,18 @@ function SourcePill({
     >
       <span
         className={cn(
-          "flex items-center justify-center rounded-full",
+          "flex items-center justify-center rounded-full border border-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]",
           size === "sm" ? "size-6" : "size-7",
-          config.bgColor,
+          config.chipBg,
         )}
       >
-        <Icon className={cn(size === "sm" ? "size-3" : "size-3.5", config.color)} />
+        <Image
+          src={config.src}
+          alt={config.label}
+          width={iconSize}
+          height={iconSize}
+          className={cn(size === "sm" ? "size-3.5" : "size-4", "object-contain")}
+        />
       </span>
       {showLabel && (
         <span className="text-xs font-medium text-slate-700">{config.label}</span>
@@ -501,7 +583,7 @@ function MetricCard({
   return (
     <Card
       className={cn(
-        "w-full max-w-[240px] gap-0 rounded-[26px] border-white/80 bg-white/95 py-0 lp-shadow-float",
+        "w-full gap-0 rounded-[26px] border-white/80 bg-white/95 py-0 lp-shadow-float",
         className,
       )}
     >
@@ -545,44 +627,45 @@ function SidebarContext() {
   ];
 
   return (
-    <div className="w-[118px] rounded-[30px] border border-white/15 bg-[linear-gradient(180deg,var(--sidebar-gradient-from),var(--sidebar-gradient-to))] p-3 text-white shadow-[0_24px_60px_rgba(15,23,42,0.2)]">
-      <div className="mb-4 flex items-center justify-center rounded-[22px] bg-white/12 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]">
+    <div className="flex w-20 shrink-0 flex-col items-center bg-[linear-gradient(180deg,var(--sidebar-gradient-from),var(--sidebar-gradient-to))] px-2 py-3 text-white">
+      <div className="mb-3 flex items-center justify-center">
         <Image
           src="/logo-icon.png"
           alt="OKRunit"
-          width={44}
-          height={44}
-          className="size-11 object-contain"
+          width={24}
+          height={24}
+          className="size-6 object-contain drop-shadow-sm"
         />
       </div>
-      <div className="space-y-1.5">
+      <div className="flex flex-col items-center gap-0.5">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
             <div
               key={item.label}
               className={cn(
-                "group flex flex-col items-center gap-1 rounded-[18px] px-2 py-2.5 text-center transition-colors",
-                item.active ? "bg-white/16 text-white" : "text-white/76 hover:bg-white/10",
+                "group flex flex-col items-center gap-0.5 rounded-xl px-1.5 py-1.5 text-center transition-colors",
+                item.active ? "text-white" : "text-white/70 hover:bg-white/10",
               )}
             >
-              <div className="relative flex size-9 items-center justify-center rounded-2xl bg-white/10">
-                <Icon className="size-[18px]" />
+              <div className={cn(
+                "relative flex size-9 items-center justify-center rounded-xl",
+                item.active ? "bg-white/20" : "",
+              )}>
+                <Icon className="size-[22px]" />
                 {item.badge && (
-                  <span className="absolute -right-1 -top-1 flex size-[18px] items-center justify-center rounded-full bg-white text-[9px] font-bold text-[var(--sidebar-gradient-to)]">
+                  <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white">
                     {item.badge}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-medium leading-tight">{item.label}</span>
+              <span className={cn(
+                "text-[11px] leading-tight",
+                item.active ? "font-semibold" : "font-medium",
+              )}>{item.label}</span>
             </div>
           );
         })}
-      </div>
-      <div className="mt-3 border-t border-white/15 pt-3">
-        <div className="rounded-[18px] bg-white/10 px-3 py-2 text-center text-[10px] font-medium text-white/80">
-          More
-        </div>
       </div>
     </div>
   );
@@ -619,7 +702,7 @@ function RequestRow({
           <p className="truncate text-sm font-semibold text-slate-900">{item.title}</p>
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-          <span>{SOURCE_CONFIG[item.source].label}</span>
+          <span>{sourceAssets[item.source].label}</span>
           <span className="text-slate-300">·</span>
           <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] text-slate-600">
             {item.actionType}
@@ -656,7 +739,7 @@ function QueuePanel({
     <Card className="overflow-hidden rounded-[32px] border-white/70 bg-white/95 py-0 lp-shadow-hero">
       <CardHeader className="border-b border-slate-100 px-6 py-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="max-w-xl">
+          <div className="max-w-lg">
             <CardTitle className="text-lg text-slate-950">{title}</CardTitle>
             <p className="mt-1 text-sm leading-relaxed text-slate-500">{description}</p>
           </div>
@@ -740,9 +823,7 @@ function QuickActionsPanel({ className }: { className?: string }) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <CardTitle className="text-base text-slate-950">Quick Actions</CardTitle>
-            <p className="mt-1 text-sm text-slate-500">
-              The same shortcut panel from org overview, lifted into the hero.
-            </p>
+            <p className="mt-1 text-sm text-slate-500">Operational shortcuts from org overview.</p>
           </div>
           <Badge
             variant="outline"
@@ -787,8 +868,8 @@ function MetaField({
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-1.5 rounded-[20px] border border-slate-200/80 bg-slate-50/80 p-4">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+    <div className="space-y-1 rounded-xl border border-slate-200/80 bg-slate-50/80 p-3">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
         {label}
       </p>
       <div className="text-sm font-medium text-slate-900">{children}</div>
@@ -796,7 +877,64 @@ function MetaField({
   );
 }
 
-function ApprovalDecisionCard({ className }: { className?: string }) {
+/** Mimics the real request card from the approval dashboard — left color border, source avatar, metadata row, hover actions, priority/status badges. */
+function AppRequestCard({
+  item,
+  active = false,
+}: {
+  item: RequestItem;
+  active?: boolean;
+}) {
+  const borderColor = {
+    pending: "border-l-amber-400",
+    approved: "border-l-emerald-500",
+    rejected: "border-l-red-500",
+  }[item.status];
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-3 rounded-xl border border-slate-200/80 border-l-[3px] bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-colors",
+        borderColor,
+        active && "ring-2 ring-primary/20 bg-primary/[0.02]",
+      )}
+    >
+      <SourcePill source={item.source} showLabel={false} size="sm" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-slate-900">{item.title}</p>
+        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+          <span>{sourceAssets[item.source].label}</span>
+          <span className="text-slate-300">|</span>
+          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600">
+            {item.actionType}
+          </span>
+          <span className="text-slate-300">|</span>
+          <span>{item.age}</span>
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center gap-1.5">
+        {/* Hover approve/reject buttons — shown as always visible for the landing page */}
+        {item.status === "pending" && active && (
+          <>
+            <Button variant="success" size="sm" className="h-7 rounded-lg px-2 text-xs">
+              <CheckCircle2 className="size-3" />
+              Approve
+            </Button>
+            <Button variant="destructive" size="sm" className="h-7 rounded-lg px-2 text-xs">
+              <XCircle className="size-3" />
+              Reject
+            </Button>
+          </>
+        )}
+        <PriorityBadge priority={item.priority} />
+        <StatusPill status={item.status} />
+      </div>
+    </div>
+  );
+}
+
+/** Mimics the real request detail slide-out sheet */
+function DetailSheetPreview() {
   const approvers = [
     { name: "Sarah K.", state: "done" },
     { name: "Mike R.", state: "next" },
@@ -804,173 +942,106 @@ function ApprovalDecisionCard({ className }: { className?: string }) {
   ] as const;
 
   return (
-    <Card
-      className={cn(
-        "overflow-hidden rounded-[30px] border-white/80 bg-white/98 py-0 lp-shadow-float",
-        className,
-      )}
-    >
-      <div className="border-b border-slate-100 px-5 py-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusPill status="pending" />
-          <PriorityBadge priority="critical" />
-        </div>
-        <h3 className="mt-3 text-lg font-semibold text-slate-950">
-          Deploy v3.2 to production
-        </h3>
-        <p className="mt-1 text-sm text-slate-500">
-          API source · deploy.production · created 2m ago
-        </p>
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+      {/* Sheet header */}
+      <div className="border-b border-slate-100 px-4 py-3">
+        <p className="text-base font-semibold text-slate-950">Deploy v3.2 to production</p>
+        <p className="mt-0.5 text-xs text-slate-500">Critical deployment requiring admin approval</p>
       </div>
-      <CardContent className="space-y-4 p-5">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <MetaField label="Source">
-            <SourcePill source="api" size="sm" />
-          </MetaField>
-          <MetaField label="Required Role">
-            <Badge variant="secondary" className="rounded-full px-2.5 py-1 text-[11px]">
-              Admin+
-            </Badge>
-          </MetaField>
+
+      {/* Metadata grid — matches real detail panel */}
+      <div className="flex-1 space-y-3 overflow-hidden p-4">
+        <div className="grid grid-cols-2 gap-2">
+          <MetaField label="Status"><StatusPill status="pending" /></MetaField>
+          <MetaField label="Priority"><PriorityBadge priority="critical" /></MetaField>
+          <MetaField label="Source"><SourcePill source="github" size="sm" /></MetaField>
           <MetaField label="Action Type">
             <span className="font-mono text-xs text-slate-700">deploy.production</span>
           </MetaField>
-          <MetaField label="Created By">api-prod connection</MetaField>
+          <MetaField label="Created">2 minutes ago</MetaField>
+          <MetaField label="Created By">github-actions-prod</MetaField>
         </div>
 
-        <div className="rounded-[24px] border border-slate-200/80 bg-slate-50 p-4">
-          <div className="flex items-center gap-2">
-            <Users className="size-4 text-slate-500" />
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Approval Chain
-            </p>
+        {/* Approval progress — matches real approval chain UI */}
+        <div className="rounded-xl border border-slate-200/80 bg-slate-50 p-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium text-slate-900">2 of 3 approvals</span>
+            <span className="text-xs text-slate-500">67%</span>
           </div>
-          <div className="mt-3 flex items-center justify-between text-sm">
-            <span className="font-medium text-slate-900">2 of 3 approvals required</span>
-            <span className="text-slate-500">67%</span>
-          </div>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white">
             <div className="h-full w-2/3 rounded-full bg-emerald-500" />
           </div>
-          <div className="mt-4 space-y-2.5">
-            {approvers.map((approver) => (
-              <div key={approver.name} className="flex items-center gap-2.5 text-sm">
-                {approver.state === "done" ? (
-                  <CheckCircle2 className="size-4 text-emerald-500" />
-                ) : approver.state === "next" ? (
-                  <ArrowRight className="size-4 text-sky-600" />
+          <div className="mt-2.5 space-y-1.5">
+            {approvers.map((a) => (
+              <div key={a.name} className="flex items-center gap-2 text-sm">
+                {a.state === "done" ? (
+                  <CheckCircle2 className="size-3.5 text-emerald-500" />
+                ) : a.state === "next" ? (
+                  <ArrowRight className="size-3.5 text-sky-600" />
                 ) : (
-                  <Circle className="size-4 text-slate-300" />
+                  <Circle className="size-3.5 text-slate-300" />
                 )}
-                <span
-                  className={cn(
-                    approver.state === "next" ? "font-semibold text-slate-900" : "text-slate-600",
-                  )}
-                >
-                  {approver.name}
-                  {approver.state === "next" && " (next)"}
+                <span className={cn(a.state === "next" ? "font-semibold text-slate-900" : "text-slate-600", "text-xs")}>
+                  {a.name}{a.state === "next" && " (next)"}
                 </span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-slate-200/80 bg-slate-50 p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+        {/* Comment + decision — matches real UI */}
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
             Comment (optional)
           </p>
-          <div className="mt-2 min-h-[84px] rounded-[20px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-400">
+          <div className="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-400">
             Add a comment about your decision...
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Button variant="destructive" className="h-11 rounded-2xl">
-            <XCircle className="size-4" />
-            Reject
-          </Button>
-          <Button variant="success" className="h-11 rounded-2xl">
-            <CheckCircle2 className="size-4" />
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="success" className="h-8 rounded-lg text-xs">
+            <CheckCircle2 className="size-3" />
             Approve
           </Button>
+          <Button variant="destructive" className="h-8 rounded-lg text-xs">
+            <XCircle className="size-3" />
+            Reject
+          </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
-function ApprovalStatesPanel() {
-  return (
-    <Card className="overflow-hidden rounded-[30px] border-white/80 bg-white/95 py-0 lp-shadow-panel">
-      <CardHeader className="border-b border-slate-100 px-5 py-5">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <CardTitle className="text-base text-slate-950">Approval Card States</CardTitle>
-            <p className="mt-1 text-sm text-slate-500">
-              Pending, approved, and rejected requests shown with the same request metadata.
-            </p>
-          </div>
-          <Badge
-            variant="outline"
-            className="rounded-full border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600"
-          >
-            Live States
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3 p-5">
-        {approvalStateItems.map((item) => (
-          <div
-            key={`${item.title}-${item.age}`}
-            className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-900">{item.title}</p>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                  <span>{SOURCE_CONFIG[item.source].label}</span>
-                  <span className="text-slate-300">·</span>
-                  <span>{item.age}</span>
-                  <span className="text-slate-300">·</span>
-                  <span>{item.owner}</span>
-                </div>
-              </div>
-              <StatusPill status={item.status} />
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <PriorityBadge priority={item.priority} />
-              <Badge
-                variant="outline"
-                className="rounded-full border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-600"
-              >
-                {item.actionType}
-              </Badge>
-            </div>
-          </div>
-        ))}
+/** The approval feature section visual — mimics the real app layout: request list + slide-out detail sheet */
+function ApprovalFlowVisual() {
+  const allItems = [...queueAttention, ...queueResolved.slice(0, 1)];
 
-        <div className="rounded-[24px] border border-slate-200/80 bg-slate-50 p-4">
-          <div className="flex items-center gap-2">
-            <UserCheck className="size-4 text-slate-500" />
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Assigned Approvers
-            </p>
-          </div>
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <AvatarGroup>
-              {["SK", "MR", "PN"].map((initials) => (
-                <Avatar key={initials}>
-                  <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-            </AvatarGroup>
-            <span className="text-xs font-medium text-slate-500">Sequential, 2 approvals required</span>
-          </div>
+  return (
+    <div className="flex gap-3 overflow-hidden rounded-2xl border border-slate-200/60 bg-slate-50/80 p-3 lp-shadow-panel">
+      {/* Request list (left side) */}
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <div className="mb-2 flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-900">Needs Your Attention</span>
+          <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+            {queueAttention.length}
+          </span>
         </div>
-      </CardContent>
-    </Card>
+        {allItems.map((item, i) => (
+          <AppRequestCard
+            key={`${item.title}-${item.age}`}
+            item={item}
+            active={i === 0}
+          />
+        ))}
+      </div>
+
+      {/* Detail sheet (right side) */}
+      <div className="hidden w-[300px] shrink-0 lg:block">
+        <DetailSheetPreview />
+      </div>
+    </div>
   );
 }
 
@@ -983,11 +1054,11 @@ function RoutingSystemPanel() {
       <Card className="overflow-hidden rounded-[30px] border-white/80 bg-white/95 py-0 lp-shadow-panel">
         <CardContent className="p-5">
           <div className="flex items-start gap-3">
-            <SourcePill source="api" showLabel={false} />
+            <SourcePill source="github" showLabel={false} />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="truncate text-sm font-semibold text-slate-900">
-                  API / production-deploy
+                  GitHub Actions / production-deploy
                 </span>
                 <Badge className="rounded-full bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white">
                   Configured
@@ -1065,7 +1136,7 @@ function RoutingSystemPanel() {
               Notify From
             </p>
             <div className="flex flex-wrap gap-2">
-              {(["api", "zapier", "n8n"] as ProductSource[]).map((source) => (
+              {(["github", "zapier", "n8n"] as ProductSource[]).map((source) => (
                 <SourcePill key={source} source={source} size="sm" />
               ))}
             </div>
@@ -1108,7 +1179,7 @@ function AuditTrailPanel() {
           <div className="max-w-xl">
             <CardTitle className="text-lg text-slate-950">Audit Trail</CardTitle>
             <p className="mt-1 text-sm leading-relaxed text-slate-500">
-              Every decision, flow change, and route update lands in the same history view with actor,
+              Every decision, flow change, and route update lands in one history view with actor,
               timestamp, resource, and details.
             </p>
           </div>
@@ -1176,45 +1247,103 @@ function AuditTrailPanel() {
   );
 }
 
+function HeroTopBar() {
+  return (
+    <div className="flex h-[52px] items-center justify-between border-b border-slate-200 bg-white px-4">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-semibold text-slate-900">Acme Corp</span>
+        <ChevronRight className="size-3.5 text-slate-400" />
+        <span className="text-sm text-slate-500">Requests</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="relative">
+          <div className="flex size-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100">
+            <ClipboardList className="size-4" />
+          </div>
+          <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white">
+            3
+          </span>
+        </div>
+        <div className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
+          SK
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function HeroProductSystem() {
   return (
     <div className="relative">
-      <div className="absolute -left-12 top-24 hidden size-56 rounded-full bg-emerald-200/30 blur-3xl lg:block" />
-      <div className="absolute right-0 top-0 hidden size-72 rounded-full bg-sky-200/25 blur-3xl lg:block" />
-
+      {/* Mobile / Tablet layout */}
       <div className="space-y-4 lg:hidden">
-        <div className="grid gap-3 sm:grid-cols-2">
-          {heroMetrics.slice(0, 2).map((metric) => (
-            <MetricCard key={metric.title} metric={metric} />
+        <div className="grid gap-3 sm:grid-cols-3">
+          {heroMetrics.map((metric) => (
+            <MetricCard key={metric.title} metric={metric} className="max-w-none" />
           ))}
         </div>
-        <MetricCard metric={heroMetrics[2]} className="max-w-none" />
-        <QueuePanel attentionItems={queueAttention} resolvedItems={queueResolved} />
-        <ApprovalDecisionCard />
-        <QuickActionsPanel />
+        <div className="space-y-3">
+          {queueAttention.map((item) => (
+            <RequestRow key={`${item.title}-${item.age}`} item={item} compact />
+          ))}
+        </div>
       </div>
 
-      <div className="gk-v2 force-light relative hidden h-[760px] lg:block">
-        <div className="absolute inset-x-10 top-20 h-[560px] rounded-[42px] border border-white/55 bg-white/35 backdrop-blur-[2px]" />
-        <div className="absolute left-0 top-[150px] z-0 opacity-95">
-          <SidebarContext />
+      {/* Desktop layout — mimics real app shell */}
+      <div className="gk-v2 force-light hidden lg:block">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white lp-shadow-hero">
+          {/* Browser-style dots */}
+          <div className="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-4 py-2.5">
+            <span className="size-3 rounded-full bg-[#FF5F57]" />
+            <span className="size-3 rounded-full bg-[#FEBC2E]" />
+            <span className="size-3 rounded-full bg-[#28C840]" />
+            <span className="ml-4 flex-1 rounded-md bg-white/80 border border-slate-200 px-3 py-1 text-center text-[11px] text-slate-400">
+              okrunit.com/requests
+            </span>
+          </div>
+
+          {/* App shell: sidebar + top bar + content */}
+          <div className="flex">
+            <SidebarContext />
+
+            <div className="flex min-w-0 flex-1 flex-col">
+              <HeroTopBar />
+
+              {/* Dashboard content area */}
+              <div className="bg-slate-50/50 p-5">
+                {/* Stat cards row */}
+                <div className="mb-5 grid grid-cols-3 gap-3">
+                  {heroMetrics.map((metric) => (
+                    <MetricCard key={metric.title} metric={metric} className="max-w-none" />
+                  ))}
+                </div>
+
+                {/* Request queue */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-slate-900">Needs Your Attention</span>
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                        {queueAttention.length}
+                      </span>
+                    </div>
+                    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-slate-500" asChild>
+                      <Link href="/requests">
+                        View all
+                        <ArrowRight className="size-3" />
+                      </Link>
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {queueAttention.map((item) => (
+                      <AppRequestCard key={`${item.title}-${item.age}`} item={item} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <MetricCard metric={heroMetrics[0]} className="absolute left-24 top-0 z-20 lp-float" />
-        <MetricCard metric={heroMetrics[1]} className="absolute left-[300px] top-12 z-20 lp-float-slow" />
-        <MetricCard metric={heroMetrics[2]} className="absolute left-[520px] top-2 z-20 lp-float-offset" />
-
-        <div className="absolute left-[110px] top-[130px] z-10 w-[680px]">
-          <QueuePanel
-            attentionItems={queueAttention}
-            resolvedItems={queueResolved}
-            title="Activity Feed"
-            description="The live queue, transformed into a marketing-grade system without losing the underlying product structure."
-          />
-        </div>
-
-        <QuickActionsPanel className="absolute right-0 top-[220px] z-30 w-[320px] lp-float-slow" />
-        <ApprovalDecisionCard className="absolute left-[430px] top-[345px] z-40 w-[420px] lp-float" />
       </div>
     </div>
   );
@@ -1238,26 +1367,26 @@ function FeatureSection({
   reverse?: boolean;
 }) {
   return (
-    <section id={id} className="scroll-mt-28 py-20 sm:py-24">
+    <section id={id} className="scroll-mt-28 border-t border-slate-100 py-16 sm:py-20">
       <div
         className={cn(
-          "mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-8",
-          reverse && "lg:grid-cols-[1.05fr_0.95fr]",
+          "mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[2fr_3fr] lg:items-center lg:gap-12 lg:px-8",
+          reverse && "lg:grid-cols-[3fr_2fr]",
         )}
       >
         <FadeIn className={cn(reverse && "lg:order-2")}>
-          <div className="max-w-xl space-y-6">
+          <div className="max-w-lg space-y-5">
             <SectionEyebrow>{eyebrow}</SectionEyebrow>
-            <div className="space-y-4">
-              <h2 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+            <div className="space-y-3">
+              <h2 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
                 {title}
               </h2>
-              <p className="text-base leading-8 text-slate-600">{description}</p>
+              <p className="text-base leading-7 text-slate-600">{description}</p>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {bullets.map((bullet) => (
-                <div key={bullet} className="flex items-start gap-3 text-sm leading-7 text-slate-600">
-                  <span className="mt-2 size-2 rounded-full bg-emerald-500" />
+                <div key={bullet} className="flex items-start gap-2.5 text-sm leading-6 text-slate-600">
+                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-emerald-500" />
                   <span>{bullet}</span>
                 </div>
               ))}
@@ -1278,30 +1407,31 @@ export function LandingPage({ user }: LandingPageProps) {
     <div className="gk-v2 force-light min-h-screen overflow-x-hidden bg-[linear-gradient(180deg,#f3f7f4_0%,#f8fbf9_20%,#ffffff_52%,#f4f7f8_100%)] font-[var(--font-dm-sans)] text-[var(--foreground)]">
       <header className="sticky top-0 z-50 border-b border-white/60 bg-white/72 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo-icon.png" alt="OKRunit" width={40} height={40} className="size-10" />
-            <div>
-              <p className="text-sm font-semibold tracking-[0.18em] text-slate-500">OKRUNIT</p>
-              <p className="text-lg font-semibold text-slate-950">Approval Gateway</p>
-            </div>
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo-icon.png"
+              alt="OKRunit"
+              width={36}
+              height={36}
+              className="size-9 object-contain"
+              priority
+            />
+            <span className="text-lg font-bold tracking-tight text-slate-900">OKRunit</span>
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 lg:flex">
-            <a href="#hero" className="transition-colors hover:text-slate-950">
-              System
-            </a>
-            <a href="#approvals" className="transition-colors hover:text-slate-950">
-              Approval Flow
-            </a>
-            <a href="#queue" className="transition-colors hover:text-slate-950">
-              Queue
-            </a>
-            <a href="#routing" className="transition-colors hover:text-slate-950">
-              Routing
-            </a>
-            <a href="#audit" className="transition-colors hover:text-slate-950">
-              Audit Trail
-            </a>
+            <Link href="/docs" className="transition-colors hover:text-slate-950">
+              Docs
+            </Link>
+            <Link href="/docs/integrations" className="transition-colors hover:text-slate-950">
+              Integrations
+            </Link>
+            <Link href="/docs/api" className="transition-colors hover:text-slate-950">
+              API
+            </Link>
+            <Link href="/docs/changelog" className="transition-colors hover:text-slate-950">
+              Changelog
+            </Link>
           </nav>
 
           <HeroNav user={user} />
@@ -1310,19 +1440,19 @@ export function LandingPage({ user }: LandingPageProps) {
 
       <main>
         <section id="hero" className="relative">
-          <div className="mx-auto max-w-7xl px-4 pb-14 pt-16 sm:px-6 lg:px-8 lg:pb-24 lg:pt-20">
-            <div className="grid gap-14 xl:grid-cols-[0.92fr_1.08fr] xl:items-center">
+          <div className="mx-auto max-w-7xl px-4 pb-10 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
+            <div className="grid gap-10 lg:gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-start">
               <FadeIn>
-                <div className="max-w-xl space-y-8">
-                  <SectionEyebrow>Real Product UI, Reframed</SectionEyebrow>
+                <div className="max-w-xl space-y-6">
+                  <SectionEyebrow>Human-in-the-Loop Approvals</SectionEyebrow>
                   <div className="space-y-5">
-                    <h1 className="text-5xl font-semibold tracking-tight text-slate-950 sm:text-6xl">
-                      Human approval, shown as the real operating system behind every request.
+                    <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-[3.25rem] lg:leading-[1.15]">
+                      The approval gateway for your automations and AI&nbsp;agents.
                     </h1>
                     <p className="text-lg leading-8 text-slate-600">
-                      The landing page is built from the same request queue, decision state, metric cards,
-                      sidebar context, and quick actions your team sees in the product. No fake dashboard.
-                      No decorative SaaS panels. Just the real system, with more depth and clearer hierarchy.
+                      Route high-risk actions from Zapier, Make, n8n, GitHub Actions, and any API
+                      through a human approval queue before they execute. One dashboard for every
+                      workflow that needs a second pair of eyes.
                     </p>
                   </div>
 
@@ -1346,16 +1476,6 @@ export function LandingPage({ user }: LandingPageProps) {
                     </Button>
                   </div>
 
-                  <div className="space-y-3">
-                    <p className="text-sm font-medium text-slate-500">
-                      Sources already routed through the queue
-                    </p>
-                    <div className="flex flex-wrap gap-2.5">
-                      {sourceOrder.map((source) => (
-                        <SourcePill key={source} source={source} />
-                      ))}
-                    </div>
-                  </div>
                 </div>
               </FadeIn>
 
@@ -1363,20 +1483,16 @@ export function LandingPage({ user }: LandingPageProps) {
                 <HeroProductSystem />
               </FadeIn>
             </div>
-          </div>
-        </section>
 
-        <section className="pb-6">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="rounded-[34px] border border-white/75 bg-white/85 p-6 lp-shadow-panel">
-              <div className="grid gap-4 lg:grid-cols-3">
-                {heroMetrics.map((metric, index) => (
-                  <FadeIn key={metric.title} delay={index * 70}>
-                    <MetricCard metric={metric} className="max-w-none" />
-                  </FadeIn>
-                ))}
+            {/* Integration marquee — full width below hero grid */}
+            <FadeIn delay={200}>
+              <div className="mt-12 space-y-4">
+                <p className="text-center text-sm font-medium text-slate-500">
+                  Works with your existing tools
+                </p>
+                <IntegrationMarquee />
               </div>
-            </div>
+            </FadeIn>
           </div>
         </section>
 
@@ -1390,14 +1506,7 @@ export function LandingPage({ user }: LandingPageProps) {
             "Sequential and multi-approver flows stay visible, including who approved already and who is next.",
             "Approved, rejected, and still-pending cards keep the same structure so the queue reads instantly.",
           ]}
-          visual={
-            <div className="rounded-[36px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(246,250,248,0.98))] p-4 sm:p-6 lp-shadow-panel">
-              <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-                <ApprovalDecisionCard />
-                <ApprovalStatesPanel />
-              </div>
-            </div>
-          }
+          visual={<ApprovalFlowVisual />}
         />
 
         <FeatureSection
@@ -1412,18 +1521,13 @@ export function LandingPage({ user }: LandingPageProps) {
           ]}
           reverse
           visual={
-            <div className="relative pt-4">
-              <div className="absolute left-6 top-0 hidden xl:block">
-                <MetricCard metric={heroMetrics[0]} className="lp-float" />
-              </div>
-              <div className="xl:pl-24 xl:pt-10">
-                <QueuePanel
-                  attentionItems={queueDeepDiveAttention}
-                  resolvedItems={queueDeepDiveResolved}
-                  title="Approval Queue"
-                  description="The activity feed stays operational: grouped rows, visible status chips, and enough metadata to make the next decision without guessing."
-                />
-              </div>
+            <div>
+              <QueuePanel
+                attentionItems={queueDeepDiveAttention}
+                resolvedItems={queueDeepDiveResolved}
+                title="Approval Queue"
+                description="The activity feed stays operational: grouped rows, visible status chips, and enough metadata to make the next decision without guessing."
+              />
             </div>
           }
         />
@@ -1439,7 +1543,7 @@ export function LandingPage({ user }: LandingPageProps) {
             "Recent outcomes keep approved, rejected, and pending states visible so route behavior is easy to verify.",
           ]}
           visual={
-            <div className="rounded-[36px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(246,249,252,0.98))] p-4 sm:p-6 lp-shadow-panel">
+            <div className="rounded-2xl border border-slate-200/60 bg-white/80 p-4 lp-shadow-panel sm:p-5">
               <RoutingSystemPanel />
             </div>
           }
@@ -1459,64 +1563,48 @@ export function LandingPage({ user }: LandingPageProps) {
           visual={<AuditTrailPanel />}
         />
 
-        <section className="py-20 sm:py-24">
+        <section className="border-t border-slate-100 py-16 sm:py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="rounded-[40px] border border-white/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(239,248,243,0.98))] p-8 sm:p-10 lg:p-12 lp-shadow-panel">
-              <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-                <FadeIn>
-                  <div className="max-w-xl space-y-6">
-                    <SectionEyebrow>Same Product, Higher Signal</SectionEyebrow>
-                    <h2 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                      Start in the same interface your approvers will use on day one.
-                    </h2>
-                    <p className="text-base leading-8 text-slate-600">
-                      Everything on this page comes from real product patterns: the queue, the status system,
-                      the quick actions, the routing configuration, and the audit history. That is the point.
-                      The homepage should feel like proof, not an illustration.
-                    </p>
-                    <div className="flex flex-col gap-3 sm:flex-row">
-                      <Button size="lg" className="h-12 rounded-2xl px-6 text-sm" asChild>
-                        <Link href={user ? "/org/overview" : "/signup"}>
-                          {user ? "Open Dashboard" : "Create Workspace"}
-                          <ArrowRight className="size-4" />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="h-12 rounded-2xl border-slate-200 bg-white px-6 text-sm"
-                        asChild
-                      >
-                        <Link href="/requests">
-                          View Request Queue
-                          <ArrowRight className="size-4" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </FadeIn>
-
-                <FadeIn delay={100}>
-                  <div className="relative pt-6 sm:pt-10">
-                    <div className="absolute left-0 top-0 hidden sm:block">
-                      <MetricCard metric={heroMetrics[1]} className="lp-float-slow" />
-                    </div>
-                    <div className="sm:pl-24">
-                      <QuickActionsPanel />
-                    </div>
-                  </div>
-                </FadeIn>
+            <FadeIn>
+              <div className="mx-auto max-w-2xl text-center">
+                <SectionEyebrow>Get Started</SectionEyebrow>
+                <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+                  Start approving in minutes, not days.
+                </h2>
+                <p className="mt-3 text-base leading-7 text-slate-600">
+                  Create a workspace, connect your first source, and send a test
+                  approval request. Your team can be reviewing live actions today.
+                </p>
+                <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                  <Button size="lg" className="h-12 rounded-2xl px-6 text-sm" asChild>
+                    <Link href={user ? "/org/overview" : "/signup"}>
+                      {user ? "Open Dashboard" : "Create Free Workspace"}
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="h-12 rounded-2xl border-slate-200 bg-white px-6 text-sm"
+                    asChild
+                  >
+                    <Link href="/docs">
+                      Read the Docs
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                </div>
               </div>
-            </div>
+            </FadeIn>
           </div>
         </section>
       </main>
 
       <footer className="border-t border-white/70 bg-white/70">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 text-sm text-slate-500 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div className="flex items-center gap-3">
-            <Image src="/logo-icon.png" alt="OKRunit" width={28} height={28} className="size-7" />
-            <span>OKRunit</span>
+          <div className="flex items-center gap-2">
+            <Image src="/logo-icon.png" alt="OKRunit" width={24} height={24} className="size-6 object-contain" />
+            <span className="font-semibold text-slate-700">OKRunit</span>
             <span className="text-slate-300">·</span>
             <span>Human approval for automations and agents</span>
           </div>

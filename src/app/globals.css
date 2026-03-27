@@ -603,6 +603,12 @@
   animation: lp-pulse-dot 2s ease-in-out infinite;
 }
 
+/* Integration marquee */
+@keyframes lp-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 /* Hero connection line animation */
 @keyframes lp-dash-flow {
   0% { stroke-dashoffset: 20; }

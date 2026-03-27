@@ -51,14 +51,6 @@ interface NavItem {
 const navItems: NavItem[] = [
   { id: "home", href: "/org/overview", label: "Org", icon: Home },
   { id: "requests", href: "/requests", label: "Requests", icon: ClipboardList },
-  { id: "connections", href: "/connections", label: "Connections", icon: Key, adminOnly: true },
-  { id: "routes", href: "/routes", label: "Routes", icon: Route, adminOnly: true },
-  { id: "messaging", href: "/messaging", label: "Messaging", icon: MessageSquare, adminOnly: true },
-  {
-    id: "analytics", href: "/analytics", label: "Analytics", icon: BarChart3,
-    children: [{ href: "/analytics", label: "Overview" }, { href: "/audit-log", label: "Audit Log" }],
-  },
-  { id: "billing", href: "/billing", label: "Billing", icon: CreditCard, overflow: true, adminOnly: true },
   { id: "playground", href: "/playground", label: "Playground", icon: FlaskConical, overflow: true },
   { id: "settings", href: "/settings", label: "Settings", icon: Settings, overflow: true },
   { id: "emergency", href: "/emergency", label: "Emergency", icon: AlertTriangle, adminOnly: true, overflow: true },

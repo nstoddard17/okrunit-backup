@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { TeamList } from "@/components/teams/team-list";
+import { V2TeamList } from "@/components/org/v2-team-list";
 
 export const metadata = {
   title: "Teams - OKRunit",
   description: "Manage team groups in your organization.",
 };
 
-export default async function OrgTeamsPage() {
+export default async function V2OrgTeamsPage() {
   const ctx = await getOrgContext();
   if (!ctx) redirect("/login");
   const { membership } = ctx;
@@ -43,7 +43,6 @@ export default async function OrgTeamsPage() {
     memberCountMap[tm.team_id] = (memberCountMap[tm.team_id] ?? 0) + 1;
   }
 
-  // Resolve member profiles
   const userIds = (orgMemberships ?? []).map((m) => m.user_id);
   const { data: profiles } = await admin
     .from("user_profiles")
@@ -65,7 +64,7 @@ export default async function OrgTeamsPage() {
   });
 
   return (
-    <TeamList
+    <V2TeamList
       teams={(teams ?? []).map((t) => ({
         id: t.id,
         name: t.name,

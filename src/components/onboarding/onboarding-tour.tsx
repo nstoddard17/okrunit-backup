@@ -19,21 +19,21 @@ const TOUR_STEPS: TourStep[] = [
     position: "right",
   },
   {
-    targetSelector: '[href="/connections"]',
+    targetSelector: '[href="/requests/connections"]',
     title: "Connections",
     description:
       "Manage your API keys and OAuth connections here. Each automation tool gets its own connection.",
     position: "right",
   },
   {
-    targetSelector: '[href="/messaging"]',
+    targetSelector: '[href="/requests/messaging"]',
     title: "Messaging",
     description:
       "Connect Discord, Slack, Teams, or Telegram to receive approval notifications where your team works.",
     position: "right",
   },
   {
-    targetSelector: '[href="/routes"]',
+    targetSelector: '[href="/requests/routes"]',
     title: "Routes",
     description:
       "Configure who must approve requests from each source, set notification channels, and manage approval flows.",

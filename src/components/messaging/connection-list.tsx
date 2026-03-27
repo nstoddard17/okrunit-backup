@@ -180,7 +180,7 @@ export function ConnectionList({
                     title="Configure notification routes"
                     asChild
                   >
-                    <Link href="/routes">
+                    <Link href="/requests/routes">
                       <Route className="size-3.5" />
                     </Link>
                   </Button>

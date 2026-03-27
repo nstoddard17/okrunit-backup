@@ -337,7 +337,14 @@
       "Bash(__NEW_LINE_8721c6588095da36__ cat:*)",
       "Bash(/Users/nathanielstoddard/okrunit/okrunit/public/logos/teams.svg:*)",
       "Bash(/Users/nathanielstoddard/okrunit/okrunit/public/logos/dagster.svg:*)",
-      "Bash(/Users/nathanielstoddard/okrunit/okrunit/public/logos/pipedream.svg:*)"
+      "Bash(/Users/nathanielstoddard/okrunit/okrunit/public/logos/pipedream.svg:*)",
+      "Bash(grep -r \"lp-shadow\\\\|lp-float\\\\|lp-pulse\" src/ --include=*.css --include=*.scss -l)",
+      "Bash(grep -r \"lp-shadow\\\\|lp-float\\\\|lp-pulse\" src/ --include=*.css --include=*.scss)",
+      "Bash(lsof -ti:3099)",
+      "Bash(ls -la /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(dashboard\\\\\\)/org/)",
+      "Bash(find /Users/nathanielstoddard/okrunit/okrunit -path \"*/\\(dashboard\\)*\" -type d)",
+      "Bash(do sed:*)",
+      "Bash(ls \"src/app/\\(dashboard\\)/requests/\")"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",
@@ -347,7 +354,8 @@
       "/Users/nathanielstoddard/gatekeeper/integrations/make/modules",
       "/Users/nathanielstoddard/okrunit",
       "/Users/nathanielstoddard/okrunit/okrunit/src/app/api/v1/approvals/[id]",
-      "/Users/nathanielstoddard/okrunit/okrunit/src/app/api/v1/approvals/[id]/steps"
+      "/Users/nathanielstoddard/okrunit/okrunit/src/app/api/v1/approvals/[id]/steps",
+      "/dev"
     ]
   }
 }
