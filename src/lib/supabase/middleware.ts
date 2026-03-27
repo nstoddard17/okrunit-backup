@@ -45,6 +45,7 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/api") &&
     !request.nextUrl.pathname.startsWith("/approve") &&
     !request.nextUrl.pathname.startsWith("/reject") &&
+    !request.nextUrl.pathname.startsWith("/docs") &&
     request.nextUrl.pathname !== "/" &&
     request.nextUrl.pathname !== "/sitemap.xml" &&
     request.nextUrl.pathname !== "/robots.txt"

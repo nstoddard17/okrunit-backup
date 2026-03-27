@@ -344,7 +344,17 @@
       "Bash(ls -la /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(dashboard\\\\\\)/org/)",
       "Bash(find /Users/nathanielstoddard/okrunit/okrunit -path \"*/\\(dashboard\\)*\" -type d)",
       "Bash(do sed:*)",
-      "Bash(ls \"src/app/\\(dashboard\\)/requests/\")"
+      "Bash(ls \"src/app/\\(dashboard\\)/requests/\")",
+      "Bash(ls -la \"/Users/nathanielstoddard/okrunit/okrunit/src/app/\\(docs\\)/\")",
+      "Bash(ls -la \"/Users/nathanielstoddard/okrunit/okrunit/src/app/\\(docs\\)/docs/\")",
+      "Bash(ls -la \"/Users/nathanielstoddard/okrunit/okrunit/src/\\(docs\\)/docs/\")",
+      "Bash(find \"/Users/nathanielstoddard/okrunit/okrunit/src/app/\\(docs\\)/docs\" -name \"page.tsx\")",
+      "Bash(cat \"/Users/nathanielstoddard/okrunit/okrunit/src/app/\\(docs\\)/docs/page.tsx\")",
+      "Bash(cat \"/Users/nathanielstoddard/okrunit/okrunit/src/app/\\(docs\\)/docs/integrations/page.tsx\")",
+      "Bash(cat \"/Users/nathanielstoddard/okrunit/okrunit/src/app/\\(dashboard\\)/requests/page.tsx\")",
+      "Bash(ls -la /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(auth\\\\\\)/callback/)",
+      "Bash(cat /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(auth\\\\\\)/invite/page.tsx)",
+      "Bash(cat /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(auth\\\\\\)/login/login-form.tsx)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",
