@@ -1675,16 +1675,30 @@ export function LandingPage({ user }: LandingPageProps) {
             <HeroNav user={user} />
           </div>
 
-          {/* Mobile menu */}
-          <div className="flex items-center gap-2 lg:hidden">
+          {/* Mobile: auth buttons + hamburger */}
+          <div className="flex items-center gap-1.5 sm:gap-2 lg:hidden">
+            {user ? (
+              <Button size="sm" className="h-8 rounded-lg bg-[#2e7d32] px-3 text-xs text-white hover:bg-[#1b5e20]" asChild>
+                <Link href="/org/overview">Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" className="hidden h-8 px-2.5 text-xs text-slate-700 min-[360px]:flex" asChild>
+                  <Link href="/login">Log in</Link>
+                </Button>
+                <Button size="sm" className="h-8 rounded-lg bg-[#2e7d32] px-3 text-xs text-white hover:bg-[#1b5e20]" asChild>
+                  <Link href="/signup">Sign up</Link>
+                </Button>
+              </>
+            )}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-9">
+                <Button variant="ghost" size="icon" className="size-8 text-slate-700">
                   <Menu className="size-5" />
                   <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-72 bg-white p-0">
+              <SheetContent side="right" className="gk-v2 force-light w-72 bg-white p-0">
                 <div className="flex flex-col gap-1 px-4 pt-12 pb-6">
                   <Link href="/docs" className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
                     Docs
@@ -1702,15 +1716,15 @@ export function LandingPage({ user }: LandingPageProps) {
                 <div className="border-t border-slate-100 px-4 py-4">
                   <div className="flex flex-col gap-2">
                     {user ? (
-                      <Button className="w-full" asChild>
+                      <Button className="w-full bg-[#2e7d32] text-white hover:bg-[#1b5e20]" asChild>
                         <Link href="/org/overview">Go to Dashboard</Link>
                       </Button>
                     ) : (
                       <>
-                        <Button className="w-full" asChild>
+                        <Button className="w-full bg-[#2e7d32] text-white hover:bg-[#1b5e20]" asChild>
                           <Link href="/signup">Sign up</Link>
                         </Button>
-                        <Button variant="outline" className="w-full" asChild>
+                        <Button variant="outline" className="w-full border-slate-200 text-slate-700 hover:bg-slate-50" asChild>
                           <Link href="/login">Log in</Link>
                         </Button>
                       </>
@@ -1850,7 +1864,7 @@ export function LandingPage({ user }: LandingPageProps) {
                   approval request. Your team can be reviewing live actions today.
                 </p>
                 <div className="mt-6 flex flex-col justify-center gap-3 sm:mt-8 sm:flex-row">
-                  <Button size="lg" className="h-11 rounded-2xl bg-slate-900 px-5 text-sm text-white hover:bg-slate-800 sm:h-12 sm:px-6" asChild>
+                  <Button size="lg" className="h-11 rounded-2xl px-5 text-sm sm:h-12 sm:px-6" asChild>
                     <Link href={user ? "/org/overview" : "/signup"}>
                       {user ? "Open Dashboard" : "Create Free Workspace"}
                       <ArrowRight className="size-4" />

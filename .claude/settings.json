@@ -397,7 +397,8 @@
       "Bash(ls /Users/nathanielstoddard/okrunit/okrunit/supabase/migrations/20260327100000*)",
       "Bash(grep -l \"messaging_connections\\\\|CREATE TABLE.*connections\" /Users/nathanielstoddard/okrunit/okrunit/supabase/migrations/*.sql)",
       "Bash(ls -la /Users/nathanielstoddard/okrunit/okrunit/src/app/\\\\\\(marketing-pages\\\\\\)/)",
-      "Bash(PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"e2e-test-password-2026!\" npx playwright test e2e/docs-screenshots.spec.ts --reporter=line --workers=1 -g \"dashboard overview|billing page|settings page\")"
+      "Bash(PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"e2e-test-password-2026!\" npx playwright test e2e/docs-screenshots.spec.ts --reporter=line --workers=1 -g \"dashboard overview|billing page|settings page\")",
+      "Bash(PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 E2E_EMAIL=\"test@okrunit.com\" E2E_PASSWORD=\"e2e-test-password-2026!\" npx playwright test e2e/product-screenshots.spec.ts --reporter=line --workers=1)"
     ],
     "additionalDirectories": [
       "/Users/nathanielstoddard/gatekeeper/src/app/api/v1/oauth/grants",
