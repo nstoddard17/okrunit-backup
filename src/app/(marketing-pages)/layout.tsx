@@ -21,7 +21,7 @@ export default async function MarketingPagesLayout({
   } = await supabase.auth.getUser();
 
   return (
-    <div className="min-h-screen bg-[#f7faf7] text-slate-900">
+    <div className="min-h-screen bg-background text-foreground">
       <MarketingSiteHeader
         user={
           user
@@ -33,7 +33,7 @@ export default async function MarketingPagesLayout({
         }
       />
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-        <div className="mx-auto max-w-5xl">{children}</div>
+        <div className="mx-auto max-w-4xl">{children}</div>
       </main>
       <SiteFooter />
     </div>

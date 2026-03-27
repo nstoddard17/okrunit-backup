@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { SiteFooter } from "@/components/marketing/site-footer";
+import { DocsSidebar, DocsMobileNav } from "@/components/docs/docs-nav";
 
 export const metadata: Metadata = {
   title: {
@@ -10,16 +13,6 @@ export const metadata: Metadata = {
   description:
     "OKRunit documentation — API reference, integration guides, webhooks, and getting started instructions.",
 };
-
-const NAV_ITEMS = [
-  { href: "/docs", label: "Getting Started" },
-  { href: "/docs/api", label: "API Reference" },
-  { href: "/docs/integrations", label: "Integrations" },
-  { href: "/docs/webhooks", label: "Webhooks & Callbacks" },
-  { href: "/docs/sso", label: "SSO / SAML" },
-  { href: "/docs/billing", label: "Plans & Billing" },
-  { href: "/docs/changelog", label: "Changelog" },
-];
 
 export default async function DocsLayout({
   children,
@@ -39,22 +32,13 @@ export default async function DocsLayout({
             href="/"
             className="flex items-center gap-2 font-semibold text-zinc-900 hover:text-zinc-700 transition-colors"
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              className="text-emerald-600"
-            >
-              <rect width="24" height="24" rx="6" fill="currentColor" />
-              <path
-                d="M7 12.5l3 3 7-7"
-                stroke="white"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <Image
+              src="/logo-icon.png"
+              alt="OKRunit"
+              width={24}
+              height={24}
+              className="size-6 object-contain"
+            />
             OKRunit
           </Link>
           <span className="text-zinc-300">/</span>
@@ -90,35 +74,17 @@ export default async function DocsLayout({
       <div className="mx-auto max-w-7xl px-6 py-8 lg:grid lg:grid-cols-[220px_1fr] lg:gap-10">
         {/* Sidebar */}
         <aside className="hidden lg:block">
-          <nav className="sticky top-24 space-y-1">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="block rounded-md px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <DocsSidebar />
         </aside>
 
         {/* Mobile nav */}
-        <div className="mb-8 flex gap-2 overflow-x-auto border-b border-zinc-200 pb-4 lg:hidden">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
+        <DocsMobileNav />
 
         {/* Content */}
         <main className="min-w-0 max-w-3xl">{children}</main>
       </div>
+
+      <SiteFooter />
     </div>
   );
 }

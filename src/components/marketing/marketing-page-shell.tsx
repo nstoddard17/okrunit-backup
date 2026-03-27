@@ -13,20 +13,20 @@ export function MarketingPageShell({
   children: ReactNode;
 }) {
   return (
-    <article className="space-y-12">
-      <header className="rounded-[2rem] border border-emerald-100 bg-[linear-gradient(135deg,#f4fbf5_0%,#ffffff_58%,#edf8ee_100%)] p-8 shadow-[0_12px_36px_rgba(15,23,42,0.05)] sm:p-10">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700">
+    <article className="space-y-10">
+      <header className="rounded-xl border border-border/50 bg-[var(--card)] p-8 shadow-[var(--shadow-card)] sm:p-10">
+        <p className="text-xs font-medium text-primary mb-1">
           {eyebrow}
         </p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {title}
         </h1>
-        <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
+        <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground">
           {intro}
         </p>
       </header>
 
-      <div className="space-y-12">{children}</div>
+      <div className="space-y-10">{children}</div>
     </article>
   );
 }
@@ -43,13 +43,13 @@ export function MarketingPageSection({
   className?: string;
 }) {
   return (
-    <section className={cn("space-y-5", className)}>
-      <div className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+    <section className={cn("space-y-4", className)}>
+      <div className="space-y-1.5">
+        <h2 className="text-xl font-semibold tracking-tight text-foreground">
           {title}
         </h2>
         {intro && (
-          <p className="max-w-3xl text-base leading-7 text-slate-600">{intro}</p>
+          <p className="max-w-3xl text-sm leading-6 text-muted-foreground">{intro}</p>
         )}
       </div>
       {children}

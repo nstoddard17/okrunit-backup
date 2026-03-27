@@ -59,7 +59,7 @@ async function shot(page: Page, name: string, opts?: { fullPage?: boolean }) {
     while ((node = walker.nextNode())) {
       if (node.textContent) {
         node.textContent = node.textContent
-          .replace(/Nathaniel Stoddard's Organization/g, "Acme Corp")
+          .replace(/Nathaniel Stoddard's Organization/g, "OKRunit")
           .replace(/Nathaniel Stoddard/g, "Alex Johnson")
           .replace(/Test Admin/g, "Jamie Lee")
           .replace(/test@okrunit\.com/g, "jamie@acme.com")

@@ -14,6 +14,7 @@ import {
   Filter,
   Home,
   KeyRound,
+  Menu,
   MessageSquare,
   Plus,
   Route,
@@ -40,6 +41,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import type { ApprovalPriority, MessagingPlatform } from "@/lib/types/database";
 import type { LucideIcon } from "lucide-react";
@@ -443,20 +449,20 @@ function IntegrationMarquee() {
 
   return (
     <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-      <div className="flex w-max animate-[lp-marquee_40s_linear_infinite] items-center gap-6">
+      <div className="flex w-max animate-[lp-marquee_40s_linear_infinite] items-center gap-3 sm:gap-6">
         {items.map((item, i) => (
           <div
             key={`${item.label}-${i}`}
-            className="flex items-center gap-2.5 rounded-full border border-white/70 bg-white/92 px-4 py-2 shadow-[0_12px_32px_rgba(15,23,42,0.10)] backdrop-blur-sm"
+            className="flex items-center gap-2 rounded-full border border-white/70 bg-white/92 px-3 py-1.5 shadow-[0_12px_32px_rgba(15,23,42,0.10)] backdrop-blur-sm sm:gap-2.5 sm:px-4 sm:py-2"
           >
             <Image
               src={item.src}
               alt={item.label}
               width={20}
               height={20}
-              className="size-5 object-contain"
+              className="size-4 object-contain sm:size-5"
             />
-            <span className="whitespace-nowrap text-sm font-medium text-slate-700">
+            <span className="whitespace-nowrap text-xs font-medium text-slate-700 sm:text-sm">
               {item.label}
             </span>
           </div>
@@ -709,8 +715,8 @@ function RequestRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-[22px] border border-slate-200/80 bg-white px-4 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]",
-        compact && "px-3.5 py-3",
+        "flex items-center gap-2 rounded-[22px] border border-slate-200/80 bg-white px-3 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:gap-3 sm:px-4 sm:py-4",
+        compact && "px-3 py-2.5 sm:px-3.5 sm:py-3",
         subdued && "opacity-80",
       )}
     >
@@ -723,21 +729,21 @@ function RequestRow({
               <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
             </span>
           )}
-          <p className="truncate text-sm font-semibold text-slate-900">{item.title}</p>
+          <p className="truncate text-[13px] font-semibold text-slate-900 sm:text-sm">{item.title}</p>
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 sm:gap-2 sm:text-xs">
           <span>{sourceAssets[item.source].label}</span>
-          <span className="text-slate-300">·</span>
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] text-slate-600">
+          <span className="hidden text-slate-300 sm:inline">·</span>
+          <span className="hidden rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] text-slate-600 sm:inline">
             {item.actionType}
           </span>
           <span className="text-slate-300">·</span>
           <span>{item.age}</span>
-          <span className="text-slate-300">·</span>
-          <span>{item.owner}</span>
+          <span className="hidden text-slate-300 sm:inline">·</span>
+          <span className="hidden sm:inline">{item.owner}</span>
         </div>
       </div>
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
         <div className="hidden sm:block">
           <PriorityBadge priority={item.priority} />
         </div>
@@ -760,12 +766,12 @@ function QueuePanel({
   description?: string;
 }) {
   return (
-    <Card className="overflow-hidden rounded-[32px] border-white/70 bg-white/95 py-0 lp-shadow-hero">
-      <CardHeader className="border-b border-slate-100 px-6 py-5">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <Card className="overflow-hidden rounded-2xl border-white/70 bg-white/95 py-0 lp-shadow-hero sm:rounded-[32px]">
+      <CardHeader className="border-b border-slate-100 px-4 py-4 sm:px-6 sm:py-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div className="max-w-lg">
-            <CardTitle className="text-lg text-slate-950">{title}</CardTitle>
-            <p className="mt-1 text-sm leading-relaxed text-slate-500">{description}</p>
+            <CardTitle className="text-base text-slate-950 sm:text-lg">{title}</CardTitle>
+            <p className="mt-1 text-xs leading-relaxed text-slate-500 sm:text-sm">{description}</p>
           </div>
           <Button
             variant="ghost"
@@ -779,7 +785,7 @@ function QueuePanel({
             </Link>
           </Button>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2 sm:mt-4">
           <Badge className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
             Needs Your Attention
           </Badge>
@@ -797,28 +803,28 @@ function QueuePanel({
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 p-6">
-        <section className="space-y-3">
+      <CardContent className="space-y-4 p-4 sm:space-y-6 sm:p-6">
+        <section className="space-y-2 sm:space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-slate-900">Needs Your Attention</span>
+            <span className="text-[13px] font-semibold text-slate-900 sm:text-sm">Needs Your Attention</span>
             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
               {attentionItems.length}
             </span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {attentionItems.map((item) => (
               <RequestRow key={`${item.title}-${item.age}`} item={item} compact />
             ))}
           </div>
         </section>
-        <section className="space-y-3">
+        <section className="space-y-2 sm:space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-slate-500">Previously Resolved</span>
+            <span className="text-[13px] font-semibold text-slate-500 sm:text-sm">Previously Resolved</span>
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">
               {resolvedItems.length}
             </span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {resolvedItems.map((item) => (
               <RequestRow
                 key={`${item.title}-${item.age}`}
@@ -943,7 +949,7 @@ function AppRequestCard({
   return (
     <div
       className={cn(
-        "group/card flex items-center gap-3 border-0 border-l-4 bg-white px-4 py-3 shadow-[var(--shadow-card)] transition-all card-interactive",
+        "group/card flex items-center gap-2 border-0 border-l-4 bg-white px-3 py-2.5 shadow-[var(--shadow-card)] transition-all card-interactive sm:gap-3 sm:px-4 sm:py-3",
         borderColor,
         active && "ring-2 ring-primary/20",
       )}
@@ -957,32 +963,34 @@ function AppRequestCard({
               <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
             </span>
           )}
-          <p className="line-clamp-1 text-sm font-medium text-slate-900">{item.title}</p>
+          <p className="line-clamp-1 text-[13px] font-medium text-slate-900 sm:text-sm">{item.title}</p>
         </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] text-muted-foreground sm:gap-x-2 sm:text-[11px]">
           <span>{SOURCE_LANDING_CONFIG[item.source].label}</span>
-          <span className="text-slate-300">|</span>
-          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600">
+          <span className="hidden text-slate-300 sm:inline">|</span>
+          <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600 sm:inline">
             {item.actionType}
           </span>
           <span className="text-slate-300">|</span>
           <span>{item.age}</span>
         </div>
       </div>
-      <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-1 sm:gap-1.5">
         {item.status === "pending" && active && (
           <>
-            <Button variant="success" size="sm" className="h-7 gap-1 px-2.5 text-xs">
+            <Button variant="success" size="sm" className="h-6 gap-0.5 px-1.5 text-[10px] sm:h-7 sm:gap-1 sm:px-2.5 sm:text-xs">
               <CheckCircle2 className="size-3" />
-              Approve
+              <span className="hidden sm:inline">Approve</span>
             </Button>
-            <Button variant="destructive" size="sm" className="h-7 gap-1 px-2.5 text-xs">
+            <Button variant="destructive" size="sm" className="h-6 gap-0.5 px-1.5 text-[10px] sm:h-7 sm:gap-1 sm:px-2.5 sm:text-xs">
               <XCircle className="size-3" />
-              Reject
+              <span className="hidden sm:inline">Reject</span>
             </Button>
           </>
         )}
-        <PriorityBadge priority={item.priority} />
+        <div className="hidden sm:block">
+          <PriorityBadge priority={item.priority} />
+        </div>
         <StatusPill status={item.status} />
       </div>
     </div>
@@ -1080,31 +1088,55 @@ function ApprovalFlowVisual() {
   const allItems = [...queueAttention, ...queueResolved.slice(0, 1)];
 
   return (
-    <ScaledMockup internalWidth={1000}>
-      <div className="gk-v2 force-light flex gap-3 overflow-hidden rounded-xl border border-slate-200/60 bg-slate-50/80 p-3 shadow-2xl shadow-black/20">
-        {/* Request list (left side) */}
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-900">Needs Your Attention</span>
-            <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
-              {queueAttention.length}
-            </span>
+    <>
+      {/* Desktop: side-by-side layout */}
+      <div className="hidden sm:block">
+        <ScaledMockup internalWidth={1000}>
+          <div className="gk-v2 force-light flex gap-3 overflow-hidden rounded-xl border border-slate-200/60 bg-slate-50/80 p-3 shadow-2xl shadow-black/20">
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-900">Needs Your Attention</span>
+                <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                  {queueAttention.length}
+                </span>
+              </div>
+              {allItems.map((item, i) => (
+                <AppRequestCard
+                  key={`${item.title}-${item.age}`}
+                  item={item}
+                  active={i === 0}
+                />
+              ))}
+            </div>
+            <div className="w-[340px] shrink-0">
+              <DetailSheetPreview />
+            </div>
           </div>
-          {allItems.map((item, i) => (
-            <AppRequestCard
-              key={`${item.title}-${item.age}`}
-              item={item}
-              active={i === 0}
-            />
-          ))}
-        </div>
+        </ScaledMockup>
+      </div>
 
-        {/* Detail sheet (right side) */}
-        <div className="w-[340px] shrink-0">
+      {/* Mobile: stacked layout — list then detail */}
+      <div className="sm:hidden">
+        <div className="gk-v2 force-light space-y-3 overflow-hidden rounded-xl border border-slate-200/60 bg-slate-50/80 p-3 shadow-2xl shadow-black/20">
+          <div className="space-y-1.5">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-900">Needs Your Attention</span>
+              <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                {queueAttention.length}
+              </span>
+            </div>
+            {allItems.slice(0, 2).map((item, i) => (
+              <AppRequestCard
+                key={`${item.title}-${item.age}`}
+                item={item}
+                active={i === 0}
+              />
+            ))}
+          </div>
           <DetailSheetPreview />
         </div>
       </div>
-    </ScaledMockup>
+    </>
   );
 }
 
@@ -1113,9 +1145,9 @@ function RoutingSystemPanel() {
   const slackMeta = routePlatforms.slack;
 
   return (
-    <div className="space-y-4">
-      <Card className="overflow-hidden rounded-[30px] border-white/80 bg-white/95 py-0 lp-shadow-panel">
-        <CardContent className="p-5">
+    <div className="space-y-3 sm:space-y-4">
+      <Card className="overflow-hidden rounded-2xl border-white/80 bg-white/95 py-0 lp-shadow-panel sm:rounded-[30px]">
+        <CardContent className="p-3 sm:p-5">
           <div className="flex items-start gap-3">
             <SourcePill source="github" showLabel={false} />
             <div className="min-w-0 flex-1">
@@ -1160,9 +1192,9 @@ function RoutingSystemPanel() {
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden rounded-[30px] border-white/80 bg-white/95 py-0 lp-shadow-panel">
-        <CardContent className="space-y-4 p-5">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <Card className="overflow-hidden rounded-2xl border-white/80 bg-white/95 py-0 lp-shadow-panel sm:rounded-[30px]">
+        <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <div
                 className="flex size-10 items-center justify-center rounded-2xl shadow-sm"
@@ -1310,6 +1342,68 @@ function AuditTrailPanel() {
   );
 }
 
+function AuditCardMobile({ entry }: { entry: AuditEntry }) {
+  return (
+    <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
+      <div className="flex items-center justify-between gap-2">
+        <Badge variant={actionVariant(entry.action)} className="text-[10px]">{entry.action}</Badge>
+        <span className="text-[11px] text-slate-500">{entry.time}</span>
+      </div>
+      <div className="space-y-1 text-xs">
+        <div className="flex items-center justify-between">
+          <span className="text-slate-500">Resource</span>
+          <span className="text-slate-700">{entry.resourceType}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-slate-500">Actor</span>
+          <span className="text-slate-700">{entry.actor}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-slate-500">ID</span>
+          <span className="max-w-[180px] truncate font-mono text-[10px] text-slate-500">{entry.resourceId}</span>
+        </div>
+      </div>
+      {entry.details && (
+        <pre className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-2 text-[10px] text-slate-700">
+          {entry.details}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+function MobileAuditVisual() {
+  return (
+    <>
+      {/* Desktop: full table */}
+      <div className="hidden sm:block">
+        <ScaledMockup internalWidth={900}>
+          <div className="gk-v2 force-light relative overflow-hidden rounded-xl bg-white p-1 shadow-2xl shadow-black/20">
+            <AuditTrailPanel />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 rounded-b-xl bg-gradient-to-t from-white to-transparent" />
+          </div>
+        </ScaledMockup>
+      </div>
+
+      {/* Mobile: card layout */}
+      <div className="sm:hidden">
+        <div className="gk-v2 force-light relative overflow-hidden rounded-xl bg-white p-3 shadow-2xl shadow-black/20">
+          <div className="mb-3">
+            <p className="text-sm font-semibold text-slate-950">Audit Trail</p>
+            <p className="mt-0.5 text-xs text-slate-500">Every decision and change in one view.</p>
+          </div>
+          <div className="space-y-2">
+            {auditEntries.slice(0, 3).map((entry) => (
+              <AuditCardMobile key={entry.resourceId} entry={entry} />
+            ))}
+          </div>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 rounded-b-xl bg-gradient-to-t from-white to-transparent" />
+        </div>
+      </div>
+    </>
+  );
+}
+
 function HeroTopBar() {
   return (
     <div className="flex h-[52px] items-center justify-between border-b border-slate-200 bg-white px-4">
@@ -1415,9 +1509,9 @@ function HeroMockupContent() {
       {/* App shell — no sidebar to keep it compact */}
       <div className="flex min-w-0 flex-1 flex-col">
         <HeroTopBar />
-        <div className="bg-slate-50/50 p-4">
+        <div className="bg-slate-50/50 p-3 sm:p-4">
           {/* Stat cards */}
-          <div className="mb-4 grid grid-cols-3 gap-2">
+          <div className="mb-3 grid grid-cols-3 gap-1.5 sm:mb-4 sm:gap-2">
             {heroMetrics.map((metric) => (
               <MetricCard key={metric.title} metric={metric} className="max-w-none" />
             ))}
@@ -1492,26 +1586,26 @@ function ScrollFeatures({ steps }: { steps: FeatureStep[] }) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="lg:grid lg:grid-cols-[340px_1fr] lg:gap-12 xl:grid-cols-[400px_1fr]">
           {/* Left: scrolling text steps */}
-          <div className="relative py-16 lg:py-20">
+          <div className="relative py-10 sm:py-16 lg:py-20">
             {steps.map((step, i) => (
               <div
                 key={step.id}
                 id={step.id}
                 ref={(el) => { stepRefs.current[i] = el; }}
-                className="scroll-mt-28 lg:min-h-[70vh] lg:flex lg:items-center"
+                className="scroll-mt-28 [&+div]:mt-12 sm:[&+div]:mt-0 lg:min-h-[70vh] lg:flex lg:items-center"
               >
                 <div>
                   <div
                     className={cn(
-                      "space-y-4 transition-opacity duration-500",
+                      "space-y-3 transition-opacity duration-500 sm:space-y-4",
                       activeIndex === i ? "opacity-100" : "lg:opacity-50",
                     )}
                   >
                     <SectionEyebrow>{step.eyebrow}</SectionEyebrow>
-                    <h2 className="text-2xl font-semibold tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.18)] sm:text-3xl">
+                    <h2 className="text-xl font-semibold tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.18)] sm:text-2xl md:text-3xl">
                       {step.title}
                     </h2>
-                    <p className="text-base leading-8 text-emerald-50/92 drop-shadow-[0_1px_8px_rgba(0,0,0,0.12)]">
+                    <p className="text-sm leading-7 text-emerald-50/92 drop-shadow-[0_1px_8px_rgba(0,0,0,0.12)] sm:text-base sm:leading-8">
                       {step.description}
                     </p>
                   </div>
@@ -1549,14 +1643,14 @@ export function LandingPage({ user }: LandingPageProps) {
   return (
     <div className="gk-v2 force-light min-h-screen overflow-x-clip font-[var(--font-dm-sans)] text-[var(--foreground)]">
       <header className="sticky top-0 z-50 border-b border-white/20 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:gap-6 sm:py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <Image
               src="/logo-icon.png"
               alt="OKRunit"
               width={36}
               height={36}
-              className="size-9 object-contain"
+              className="size-8 object-contain sm:size-9"
               priority
             />
             <span className="text-lg font-bold tracking-tight text-slate-900">OKRunit</span>
@@ -1577,22 +1671,70 @@ export function LandingPage({ user }: LandingPageProps) {
             </Link>
           </nav>
 
-          <HeroNav user={user} />
+          <div className="hidden lg:block">
+            <HeroNav user={user} />
+          </div>
+
+          {/* Mobile menu */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="size-9">
+                  <Menu className="size-5" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-72 bg-white p-0">
+                <div className="flex flex-col gap-1 px-4 pt-12 pb-6">
+                  <Link href="/docs" className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                    Docs
+                  </Link>
+                  <Link href="/docs/integrations" className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                    Integrations
+                  </Link>
+                  <Link href="/docs/api" className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                    API
+                  </Link>
+                  <Link href="/docs/changelog" className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                    Changelog
+                  </Link>
+                </div>
+                <div className="border-t border-slate-100 px-4 py-4">
+                  <div className="flex flex-col gap-2">
+                    {user ? (
+                      <Button className="w-full" asChild>
+                        <Link href="/org/overview">Go to Dashboard</Link>
+                      </Button>
+                    ) : (
+                      <>
+                        <Button className="w-full" asChild>
+                          <Link href="/signup">Sign up</Link>
+                        </Button>
+                        <Button variant="outline" className="w-full" asChild>
+                          <Link href="/login">Log in</Link>
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </header>
 
       <main>
         <section id="hero" className="relative bg-[linear-gradient(180deg,#e8f5e9_0%,#c8e6c9_25%,#81c784_55%,#2e7d32_85%,#1b5e20_100%)]">
-          <div className="mx-auto flex max-w-7xl flex-col px-4 pb-6 pt-8 sm:px-6 sm:pb-8 sm:pt-10 lg:min-h-[calc(100svh-69px)] lg:px-8 lg:pb-6 lg:pt-6 xl:pb-12 xl:pt-12">
-            <div className="grid gap-8 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-center lg:gap-6 xl:gap-10">
+          <div className="mx-auto flex max-w-7xl flex-col px-4 pb-6 pt-6 sm:px-6 sm:pb-8 sm:pt-10 lg:min-h-[calc(100svh-69px)] lg:px-8 lg:pb-6 lg:pt-6 xl:pb-12 xl:pt-12">
+            <div className="grid gap-6 sm:gap-8 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-center lg:gap-6 xl:gap-10">
               <FadeIn className="min-w-0">
-                <div className="min-w-0 max-w-xl space-y-6 lg:max-w-[31rem] xl:max-w-xl">
+                <div className="min-w-0 max-w-xl space-y-5 sm:space-y-6 lg:max-w-[31rem] xl:max-w-xl">
                   <SectionEyebrow>Human-in-the-Loop Approvals</SectionEyebrow>
-                  <div className="space-y-5">
-                    <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-[3rem] lg:leading-[1.12] xl:text-[3.25rem] xl:leading-[1.15]">
+                  <div className="space-y-4 sm:space-y-5">
+                    <h1 className="text-[1.75rem] font-semibold leading-[1.2] tracking-tight text-slate-900 sm:text-4xl md:text-5xl lg:text-[3rem] lg:leading-[1.12] xl:text-[3.25rem] xl:leading-[1.15]">
                       The approval gateway for your automations and AI&nbsp;agents.
                     </h1>
-                    <p className="text-lg leading-8 text-slate-700 lg:text-[1.0625rem] lg:leading-7 xl:text-lg xl:leading-8">
+                    <p className="text-base leading-7 text-slate-700 sm:text-lg sm:leading-8 lg:text-[1.0625rem] lg:leading-7 xl:text-lg xl:leading-8">
                       Route high-risk actions from Zapier, Make, n8n, GitHub Actions, and any API
                       through a human approval queue before they execute. One dashboard for every
                       workflow that needs a second pair of eyes.
@@ -1600,7 +1742,7 @@ export function LandingPage({ user }: LandingPageProps) {
                   </div>
 
                   <div className="flex flex-col gap-3 sm:flex-row">
-                    <Button size="lg" className="h-12 rounded-2xl px-6 text-sm" asChild>
+                    <Button size="lg" className="h-11 rounded-2xl px-5 text-sm sm:h-12 sm:px-6" asChild>
                       <Link href={user ? "/org/overview" : "/signup"}>
                         {user ? "Go to Dashboard" : "Start Free"}
                         <ArrowRight className="size-4" />
@@ -1609,7 +1751,7 @@ export function LandingPage({ user }: LandingPageProps) {
                     <Button
                       variant="outline"
                       size="lg"
-                      className="h-12 rounded-2xl border-slate-200 bg-white px-6 text-sm"
+                      className="h-11 rounded-2xl border-slate-200 bg-white px-5 text-sm sm:h-12 sm:px-6"
                       asChild
                     >
                       <Link href="/docs">
@@ -1658,17 +1800,15 @@ export function LandingPage({ user }: LandingPageProps) {
                 title: "Pending requests surface first. Resolved history stays accessible below.",
                 description: "The queue separates what needs attention right now from what’s already been decided. Source markers, action types, timestamps, and status badges let operators scan without opening every row.",
                 visual: (
-                  <ScaledMockup internalWidth={800}>
-                    <div className="gk-v2 force-light relative overflow-hidden rounded-xl bg-white p-1 shadow-2xl shadow-black/20">
-                      <QueuePanel
-                        attentionItems={queueAttention}
-                        resolvedItems={queueResolved}
-                        title="Approval Queue"
-                        description="Grouped rows, visible status chips, and enough metadata to make the next decision without guessing."
-                      />
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-xl bg-gradient-to-t from-white to-transparent" />
-                    </div>
-                  </ScaledMockup>
+                  <div className="gk-v2 force-light relative overflow-hidden rounded-xl bg-white p-1 shadow-2xl shadow-black/20">
+                    <QueuePanel
+                      attentionItems={queueAttention}
+                      resolvedItems={queueResolved}
+                      title="Approval Queue"
+                      description="Grouped rows, visible status chips, and enough metadata to make the next decision without guessing."
+                    />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-xl bg-gradient-to-t from-white to-transparent" />
+                  </div>
                 ),
               },
               {
@@ -1677,11 +1817,9 @@ export function LandingPage({ user }: LandingPageProps) {
                 title: "Define who approves and which channels get notified — per source.",
                 description: "Approval flows carry source ownership, request counts, and last activity. Messaging channels show exactly which sources notify them so route behavior is always visible.",
                 visual: (
-                  <ScaledMockup internalWidth={800}>
-                    <div className="gk-v2 force-light overflow-hidden rounded-xl bg-white p-4 shadow-2xl shadow-black/20">
-                      <RoutingSystemPanel />
-                    </div>
-                  </ScaledMockup>
+                  <div className="gk-v2 force-light overflow-hidden rounded-xl bg-white p-3 shadow-2xl shadow-black/20 sm:p-4">
+                    <RoutingSystemPanel />
+                  </div>
                 ),
               },
               {
@@ -1689,14 +1827,7 @@ export function LandingPage({ user }: LandingPageProps) {
                 eyebrow: "Audit Trail",
                 title: "Every decision, rule change, and route update in one searchable history.",
                 description: "Approval decisions, flow edits, and route changes appear together with actor, timestamp, resource, and expanded detail payloads. Built for compliance and debugging.",
-                visual: (
-                  <ScaledMockup internalWidth={900}>
-                    <div className="gk-v2 force-light relative overflow-hidden rounded-xl bg-white p-1 shadow-2xl shadow-black/20">
-                      <AuditTrailPanel />
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 rounded-b-xl bg-gradient-to-t from-white to-transparent" />
-                    </div>
-                  </ScaledMockup>
-                ),
+                visual: <MobileAuditVisual />,
               },
             ]}
           />
@@ -1706,20 +1837,20 @@ export function LandingPage({ user }: LandingPageProps) {
           />
         </div>
 
-        <section className="bg-[linear-gradient(180deg,#1b5e20_0%,#2e7d32_12%,#81c784_42%,#c8e6c9_74%,#e8f5e9_100%)] py-16 sm:py-20 lg:py-[4.5rem]">
+        <section className="bg-[linear-gradient(180deg,#1b5e20_0%,#2e7d32_12%,#81c784_42%,#c8e6c9_74%,#e8f5e9_100%)] py-12 sm:py-20 lg:py-[4.5rem]">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <FadeIn>
               <div className="mx-auto max-w-2xl text-center">
                 <SectionEyebrow>Get Started</SectionEyebrow>
-                <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+                <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl md:text-3xl">
                   Start approving in minutes, not days.
                 </h2>
-                <p className="mt-3 text-base leading-7 text-slate-700">
+                <p className="mt-3 text-sm leading-6 text-slate-700 sm:text-base sm:leading-7">
                   Create a workspace, connect your first source, and send a test
                   approval request. Your team can be reviewing live actions today.
                 </p>
-                <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                  <Button size="lg" className="h-12 rounded-2xl bg-slate-900 px-6 text-sm text-white hover:bg-slate-800" asChild>
+                <div className="mt-6 flex flex-col justify-center gap-3 sm:mt-8 sm:flex-row">
+                  <Button size="lg" className="h-11 rounded-2xl bg-slate-900 px-5 text-sm text-white hover:bg-slate-800 sm:h-12 sm:px-6" asChild>
                     <Link href={user ? "/org/overview" : "/signup"}>
                       {user ? "Open Dashboard" : "Create Free Workspace"}
                       <ArrowRight className="size-4" />
@@ -1728,7 +1859,7 @@ export function LandingPage({ user }: LandingPageProps) {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="h-12 rounded-2xl border-slate-300 bg-white px-6 text-sm text-slate-900 hover:bg-slate-50"
+                    className="h-11 rounded-2xl border-slate-300 bg-white px-5 text-sm text-slate-900 hover:bg-slate-50 sm:h-12 sm:px-6"
                     asChild
                   >
                     <Link href="/docs">

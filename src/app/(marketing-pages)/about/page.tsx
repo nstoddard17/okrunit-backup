@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  ArrowRight,
+  ClipboardList,
+  Route,
+  ScrollText,
+  Cpu,
+  Settings2,
+} from "lucide-react";
+import {
   MarketingPageSection,
   MarketingPageShell,
 } from "@/components/marketing/marketing-page-shell";
@@ -22,34 +30,42 @@ export default function AboutPage() {
         title="What OKRunit does"
         intro="The product is designed for workflows that should not execute without clear human sign-off."
       >
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-base font-semibold text-slate-900">
-              Central approval queue
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Requests from APIs, no-code tools, and agents land in one place with
-              source, priority, context, and decision history.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-base font-semibold text-slate-900">
-              Routing and notifications
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Teams can route approvals to the right people and deliver them
-              through dashboard, messaging channels, and webhook callbacks.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-base font-semibold text-slate-900">
-              Audit visibility
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Every request, comment, decision, and configuration change is
-              recorded so operators can understand what happened and why.
-            </p>
-          </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          {[
+            {
+              icon: ClipboardList,
+              title: "Central approval queue",
+              body: "Requests from APIs, no-code tools, and agents land in one place with source, priority, context, and decision history.",
+            },
+            {
+              icon: Route,
+              title: "Routing and notifications",
+              body: "Teams can route approvals to the right people and deliver them through dashboard, messaging channels, and webhook callbacks.",
+            },
+            {
+              icon: ScrollText,
+              title: "Audit visibility",
+              body: "Every request, comment, decision, and configuration change is recorded so operators can understand what happened and why.",
+            },
+          ].map((card) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={card.title}
+                className="rounded-xl border border-border/50 bg-[var(--card)] p-5 shadow-[var(--shadow-card)]"
+              >
+                <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 mb-3">
+                  <Icon className="size-4.5 text-primary" />
+                </div>
+                <h3 className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </h3>
+                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                  {card.body}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </MarketingPageSection>
 
@@ -57,73 +73,83 @@ export default function AboutPage() {
         title="How it fits into a workflow"
         intro="OKRunit is intentionally simple: it becomes the approval layer between a trigger and a sensitive action."
       >
-        <ol className="space-y-4 text-slate-700">
-          <li className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700">
-              1
-            </span>
-            <div>
-              <p className="font-semibold text-slate-900">A workflow creates a request.</p>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
-                This can come from a direct API call or from tools like Zapier,
-                Make, n8n, GitHub Actions, or custom internal services.
-              </p>
+        <div className="grid gap-3">
+          {[
+            {
+              step: "1",
+              title: "A workflow creates a request.",
+              body: "This can come from a direct API call or from tools like Zapier, Make, n8n, GitHub Actions, or custom internal services.",
+            },
+            {
+              step: "2",
+              title: "Reviewers get context before deciding.",
+              body: "The request includes the title, description, metadata, source, priority, and any configured routing rules or approval steps.",
+            },
+            {
+              step: "3",
+              title: "The decision flows back into the system.",
+              body: "Once approved or rejected, OKRunit updates the request state and notifies the calling workflow so it can continue or stop.",
+            },
+          ].map((item) => (
+            <div
+              key={item.step}
+              className="flex items-start gap-4 rounded-xl border border-border/50 bg-[var(--card)] p-5 shadow-[var(--shadow-card)]"
+            >
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">
+                {item.step}
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  {item.body}
+                </p>
+              </div>
             </div>
-          </li>
-          <li className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700">
-              2
-            </span>
-            <div>
-              <p className="font-semibold text-slate-900">Reviewers get context before deciding.</p>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
-                The request includes the title, description, metadata, source,
-                priority, and any configured routing rules or approval steps.
-              </p>
-            </div>
-          </li>
-          <li className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700">
-              3
-            </span>
-            <div>
-              <p className="font-semibold text-slate-900">The decision flows back into the system.</p>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
-                Once approved or rejected, OKRunit updates the request state and
-                notifies the calling workflow so it can continue or stop.
-              </p>
-            </div>
-          </li>
-        </ol>
+          ))}
+        </div>
       </MarketingPageSection>
 
       <MarketingPageSection
         title="Who uses it"
         intro="OKRunit is built for teams that need reliable control over operational changes, customer-impacting actions, and destructive workflows."
       >
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-base font-semibold text-slate-900">Engineering and platform teams</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Use OKRunit to gate production deploys, credential rotation,
-              infrastructure changes, and bulk operations.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-base font-semibold text-slate-900">Operations and business systems teams</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Use it to review CRM edits, account changes, notifications,
-              billing updates, and customer-data workflows before they run.
-            </p>
-          </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {[
+            {
+              icon: Cpu,
+              title: "Engineering and platform teams",
+              body: "Use OKRunit to gate production deploys, credential rotation, infrastructure changes, and bulk operations.",
+            },
+            {
+              icon: Settings2,
+              title: "Operations and business systems teams",
+              body: "Use it to review CRM edits, account changes, notifications, billing updates, and customer-data workflows before they run.",
+            },
+          ].map((card) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={card.title}
+                className="rounded-xl border border-border/50 bg-[var(--card)] p-5 shadow-[var(--shadow-card)]"
+              >
+                <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 mb-3">
+                  <Icon className="size-4.5 text-primary" />
+                </div>
+                <h3 className="text-sm font-semibold text-foreground">{card.title}</h3>
+                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                  {card.body}
+                </p>
+              </div>
+            );
+          })}
         </div>
-        <p className="text-sm leading-6 text-slate-600">
+        <p className="text-sm leading-6 text-muted-foreground">
           For implementation details, start with the{" "}
-          <Link href="/docs" className="font-medium text-emerald-700 hover:text-emerald-800">
+          <Link href="/docs" className="font-medium text-primary hover:text-primary/80">
             getting started guide
           </Link>{" "}
           or the{" "}
-          <Link href="/docs/api" className="font-medium text-emerald-700 hover:text-emerald-800">
+          <Link href="/docs/api" className="font-medium text-primary hover:text-primary/80">
             API reference
           </Link>
           .
