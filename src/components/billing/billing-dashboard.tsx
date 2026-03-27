@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, ExternalLink, CreditCard, Gift } from "lucide-react";
+import { Check, ExternalLink, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PLAN_LIMITS, isUnlimited, PLAN_ORDER } from "@/lib/billing/plans";
 import type { Plan, Subscription, Invoice, BillingPlan } from "@/lib/types/database";
@@ -100,11 +100,7 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
                 {isUnlimited(limits.maxRequests) ? "Unlimited" : `${limits.maxRequests}`} requests/month
               </span>
             </div>
-            {isAdmin && (
-              <Button variant="outline" size="sm" className="text-xs gap-1.5" asChild>
-                <a href="#plans"><Gift className="size-3.5" /> Compare plans</a>
-              </Button>
-            )}
+{/* Compare plans button removed — plan cards are visible below */}
           </div>
 
           {/* Row: Billing */}

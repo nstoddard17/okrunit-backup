@@ -1363,7 +1363,7 @@ function HeroMockupContent() {
   return (
     <div className="gk-v2 force-light overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-2xl shadow-black/10">
       {/* Browser chrome */}
-      <div className="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-4 py-2">
+      <div className="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-3 py-1.5">
         <span className="size-2.5 rounded-full bg-[#FF5F57]" />
         <span className="size-2.5 rounded-full bg-[#FEBC2E]" />
         <span className="size-2.5 rounded-full bg-[#28C840]" />
@@ -1372,50 +1372,32 @@ function HeroMockupContent() {
         </span>
       </div>
 
-      {/* App shell */}
-      <div className="flex">
-        <SidebarContext />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <HeroTopBar />
-          <div className="bg-slate-50/50 p-4">
-            {/* Stat cards */}
-            <div className="mb-4 grid grid-cols-3 gap-3">
-              {heroMetrics.map((metric) => (
-                <MetricCard key={metric.title} metric={metric} className="max-w-none" />
-              ))}
-            </div>
+      {/* App shell — no sidebar to keep it compact */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <HeroTopBar />
+        <div className="bg-slate-50/50 p-4">
+          {/* Stat cards */}
+          <div className="mb-4 grid grid-cols-3 gap-2">
+            {heroMetrics.map((metric) => (
+              <MetricCard key={metric.title} metric={metric} className="max-w-none" />
+            ))}
+          </div>
 
-            {/* Needs attention */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-slate-900">Needs Your Attention</span>
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                    {queueAttention.length}
-                  </span>
-                </div>
-                <span className="text-xs text-slate-500">View all →</span>
-              </div>
-              <div className="space-y-1.5">
-                {queueAttention.map((item) => (
-                  <AppRequestCard key={`${item.title}-${item.age}`} item={item} />
-                ))}
-              </div>
-            </div>
-
-            {/* Previously resolved */}
-            <div className="mt-3 space-y-1.5">
+          {/* Needs attention */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-slate-500">Previously Resolved</span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">
-                  {queueResolved.length}
+                <span className="text-sm font-semibold text-slate-900">Needs Your Attention</span>
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                  {queueAttention.length}
                 </span>
               </div>
-              <div className="space-y-1.5 opacity-75">
-                {queueResolved.slice(0, 2).map((item) => (
-                  <AppRequestCard key={`${item.title}-${item.age}`} item={item} />
-                ))}
-              </div>
+              <span className="text-xs text-slate-500">View all →</span>
+            </div>
+            <div className="space-y-1.5">
+              {queueAttention.slice(0, 3).map((item) => (
+                <AppRequestCard key={`${item.title}-${item.age}`} item={item} />
+              ))}
             </div>
           </div>
         </div>
@@ -1426,21 +1408,9 @@ function HeroMockupContent() {
 
 function HeroProductSystem() {
   return (
-    <div className="relative">
-      {/* Mobile / Tablet — scaled mockup */}
-      <div className="lg:hidden">
-        <ScaledMockup internalWidth={700}>
-          <HeroMockupContent />
-        </ScaledMockup>
-      </div>
-
-      {/* Desktop — scaled mockup */}
-      <div className="hidden lg:block">
-        <ScaledMockup internalWidth={900}>
-          <HeroMockupContent />
-        </ScaledMockup>
-      </div>
-    </div>
+    <ScaledMockup internalWidth={680} className="max-h-[calc(100vh-12rem)] overflow-hidden">
+      <HeroMockupContent />
+    </ScaledMockup>
   );
 }
 
@@ -1566,8 +1536,8 @@ export function LandingPage({ user }: LandingPageProps) {
 
       <main>
         <section id="hero" className="relative bg-[linear-gradient(180deg,#e8f5e9_0%,#c8e6c9_25%,#81c784_55%,#2e7d32_85%,#1b5e20_100%)]">
-          <div className="mx-auto max-w-7xl px-4 pb-10 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
-            <div className="grid gap-10 lg:gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-start">
+          <div className="mx-auto max-w-7xl px-4 pb-8 pt-10 sm:px-6 lg:px-8 lg:pb-12 lg:pt-12">
+            <div className="grid gap-8 lg:gap-10 lg:grid-cols-[1fr_1.3fr] lg:items-center">
               <FadeIn>
                 <div className="max-w-xl space-y-6">
                   <SectionEyebrow>Human-in-the-Loop Approvals</SectionEyebrow>
