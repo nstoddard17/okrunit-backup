@@ -36,6 +36,7 @@ export default async function AccountSettingsPage() {
         userId={profile.id}
         initialFullName={profile.full_name ?? ""}
         initialEmail={profile.email}
+        notificationSettings={notificationSettings ?? null}
       />
 
       <div className="mt-8">
