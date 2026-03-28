@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Integration packages have their own tooling:
+    "integrations/**",
+    "packages/**",
+    "tools/**",
   ]),
 ]);
 
