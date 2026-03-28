@@ -17,7 +17,7 @@ jobs:
 
       - name: Create or update PR
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.BACKUP_REPO_TOKEN }}
         run: |
           BRANCH="${GITHUB_REF_NAME}"
           COMMIT_MSG=$(git log -1 --pretty=%s)
@@ -36,7 +36,9 @@ jobs:
             echo "Created PR #$PR_NUMBER"
           else
             PR_NUMBER=$EXISTING_PR
-            echo "PR #$PR_NUMBER already exists"
+            # Update PR title to latest commit
+            gh pr edit "$PR_NUMBER" --title "$COMMIT_MSG" || true
+            echo "PR #$PR_NUMBER already exists, updated title"
           fi
 
           # Enable auto-merge
