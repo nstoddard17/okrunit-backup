@@ -1,0 +1,43 @@
+name: Auto PR & Merge
+
+on:
+  push:
+    branches-ignore: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-pr:
+    name: Create PR and enable auto-merge
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create or update PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          COMMIT_MSG=$(git log -1 --pretty=%s)
+
+          # Check if PR already exists for this branch
+          EXISTING_PR=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null)
+
+          if [ -z "$EXISTING_PR" ]; then
+            # Create new PR
+            PR_URL=$(gh pr create \
+              --title "$COMMIT_MSG" \
+              --body "Auto-created PR for branch \`$BRANCH\`. Will auto-merge when CI passes." \
+              --base main \
+              --head "$BRANCH")
+            PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+            echo "Created PR #$PR_NUMBER"
+          else
+            PR_NUMBER=$EXISTING_PR
+            echo "PR #$PR_NUMBER already exists"
+          fi
+
+          # Enable auto-merge
+          gh pr merge "$PR_NUMBER" --auto --squash || true
