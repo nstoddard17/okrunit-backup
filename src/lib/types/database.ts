@@ -104,6 +104,7 @@ export interface Organization {
   require_reauth_for_critical: boolean;
   session_timeout_minutes: number;
   four_eyes_config: FourEyesConfig;
+  auto_approvals_paused: boolean;
   sso_domain: string | null;
   created_at: string;
   updated_at: string;
