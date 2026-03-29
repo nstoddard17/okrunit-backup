@@ -44,4 +44,4 @@ jobs:
           fi
 
           # Enable auto-merge
-          gh pr merge "$PR_NUMBER" --auto --squash || true
+          gh pr merge "$PR_NUMBER" --auto --merge || true
