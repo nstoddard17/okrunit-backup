@@ -146,7 +146,11 @@ export default async function InviteAcceptPage({
   // 4. Auto-add to teams if specified on the invite.
   const teamIds: string[] = invite.team_ids ?? [];
   if (teamIds.length > 0) {
-    const rows = teamIds.map((tid) => ({ team_id: tid, user_id: user.id }));
+    const rows = teamIds.map((tid) => ({
+      team_id: tid,
+      user_id: user.id,
+      position_id: invite.position_id ?? null,
+    }));
     await admin
       .from("team_memberships")
       .upsert(rows, { onConflict: "team_id,user_id", ignoreDuplicates: true });

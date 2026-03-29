@@ -8,7 +8,7 @@ import { safeRedirectUrl } from "@/lib/redirect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
+import { SocialLoginButtons, LAST_PROVIDER_KEY } from "@/components/auth/social-login-buttons";
 
 const ERROR_MESSAGES: Record<string, string> = {
   no_org:
@@ -36,6 +36,13 @@ export function LoginForm() {
 
   const [showSso, setShowSso] = useState(false);
   const [ssoEmail, setSsoEmail] = useState("");
+  const [lastProvider, setLastProvider] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      setLastProvider(localStorage.getItem(LAST_PROVIDER_KEY));
+    } catch {}
+  }, []);
 
   // Show error from redirect (e.g. no org membership, SSO errors) and sign out stale session
   useEffect(() => {
@@ -56,6 +63,10 @@ export function LoginForm() {
 
     startTransition(async () => {
       const supabase = createClient();
+
+      try {
+        localStorage.setItem(LAST_PROVIDER_KEY, "email");
+      } catch {}
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -85,7 +96,13 @@ export function LoginForm() {
 
       <SocialLoginButtons mode="login" disabled={isPending} />
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="relative flex flex-col gap-4">
+        {lastProvider === "email" && (
+          <span className="absolute -top-2 -right-2 z-10 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold leading-none text-primary-foreground">
+            Last Used
+          </span>
+        )}
+
         {error && (
           <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
@@ -170,6 +187,9 @@ export function LoginForm() {
               className="flex-1"
               disabled={!ssoEmail.includes("@")}
               onClick={() => {
+                try {
+                  localStorage.setItem(LAST_PROVIDER_KEY, "sso");
+                } catch {}
                 window.location.href = `/api/auth/saml/login?email=${encodeURIComponent(ssoEmail)}`;
               }}
             >
@@ -178,14 +198,21 @@ export function LoginForm() {
           </div>
         </div>
       ) : (
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={() => setShowSso(true)}
-        >
-          Sign in with SSO
-        </Button>
+        <div className="relative">
+          {lastProvider === "sso" && (
+            <span className="absolute -top-2 -right-2 z-10 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold leading-none text-primary-foreground">
+              Last Used
+            </span>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => setShowSso(true)}
+          >
+            Sign in with SSO
+          </Button>
+        </div>
       )}
 
       <p className="text-center text-sm text-muted-foreground">

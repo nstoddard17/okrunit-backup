@@ -64,12 +64,29 @@ export default async function RoutesPage() {
     };
   });
 
+  // Fetch position names for flows that use position-based approval
+  const positionIds = (flows ?? [])
+    .map((f) => f.assigned_position_id)
+    .filter((id): id is string => id != null);
+
+  let positionsMap: Record<string, string> = {};
+  if (positionIds.length > 0) {
+    const { data: positionRows } = await admin
+      .from("team_positions")
+      .select("id, name")
+      .in("id", positionIds);
+    if (positionRows) {
+      positionsMap = Object.fromEntries(positionRows.map((p) => [p.id, p.name]));
+    }
+  }
+
   return (
     <RoutesHub
       flows={flows ?? []}
       teams={teams ?? []}
       members={members}
       orgId={membership.org_id}
+      positionsMap={positionsMap}
     />
   );
 }

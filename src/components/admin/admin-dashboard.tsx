@@ -7,6 +7,7 @@
 import {
   BarChart3,
   Building2,
+  CreditCard,
   Users,
   Webhook,
   KeyRound,
@@ -20,12 +21,13 @@ import { UsersTab } from "@/components/admin/users-tab";
 import { WebhookTesterTab } from "@/components/admin/webhook-tester-tab";
 import { OAuthClientList } from "@/components/settings/oauth-client-list";
 import { EmailPreviewClient } from "@/components/admin/email-preview-client";
+import { PlanOverrideTab } from "@/components/admin/plan-override-tab";
 import type { SectionNavItem } from "@/components/ui/section-nav";
 import type {
   SystemStats,
   OrgWithCounts,
   UserWithMemberships,
-} from "@/app/(dashboard)/admin/page";
+} from "@/lib/admin-types";
 import type {
   WebhookTestEndpoint,
   WebhookTestRequest,
@@ -60,6 +62,7 @@ export function AdminDashboard({
     { id: "webhook-tester", label: "Webhook Tester", icon: Webhook },
     { id: "oauth", label: "OAuth Apps", icon: KeyRound },
     { id: "email-previews", label: "Email Previews", icon: Mail },
+    { id: "plan-overrides", label: "Plan Overrides", icon: CreditCard },
   ];
 
   return (
@@ -93,6 +96,10 @@ export function AdminDashboard({
 
           {section === "email-previews" && (
             <EmailPreviewClient />
+          )}
+
+          {section === "plan-overrides" && (
+            <PlanOverrideTab organizations={organizations} />
           )}
         </>
       )}

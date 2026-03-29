@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 import type { Provider } from "@supabase/supabase-js";
+
+export const LAST_PROVIDER_KEY = "okrunit_last_sign_in_provider";
 
 // ---------------------------------------------------------------------------
 // Provider SVG Icons
@@ -101,8 +103,18 @@ export function SocialLoginButtons({
 }: SocialLoginButtonsProps) {
   const [error, setError] = useState<string | null>(null);
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
+  const [lastProvider, setLastProvider] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      setLastProvider(localStorage.getItem(LAST_PROVIDER_KEY));
+    } catch {}
+  }, []);
 
   async function handleSocialLogin(providerId: Provider) {
+    try {
+      localStorage.setItem(LAST_PROVIDER_KEY, providerId);
+    } catch {}
     setError(null);
     setLoadingProvider(providerId);
 
@@ -140,23 +152,30 @@ export function SocialLoginButtons({
         {providers.map((provider) => {
           const Icon = provider.icon;
           const isLoading = loadingProvider === provider.id;
+          const isLastUsed = lastProvider === provider.id;
 
           return (
-            <Button
-              key={provider.id}
-              type="button"
-              variant="outline"
-              className="w-full"
-              disabled={disabled || loadingProvider !== null}
-              onClick={() => handleSocialLogin(provider.id)}
-            >
-              {isLoading ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Icon className="size-4" />
+            <div key={provider.id} className="relative">
+              {isLastUsed && (
+                <span className="absolute -top-2 -right-2 z-10 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold leading-none text-primary-foreground">
+                  Last Used
+                </span>
               )}
-              {action} with {provider.label}
-            </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={disabled || loadingProvider !== null}
+                onClick={() => handleSocialLogin(provider.id)}
+              >
+                {isLoading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Icon className="size-4" />
+                )}
+                {action} with {provider.label}
+              </Button>
+            </div>
           );
         })}
       </div>

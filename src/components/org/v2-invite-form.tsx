@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Users, Send, Clock, X, Shield, ShieldCheck, User, ChevronDown, Check } from "lucide-react";
+import { Mail, Users, Send, Clock, X, Shield, ShieldCheck, User, ChevronDown, Check, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -79,6 +79,88 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Position state — prefetch all team positions on mount so selection is instant
+  interface PositionOption { id: string; name: string }
+  const [positionsByTeam, setPositionsByTeam] = useState<Record<string, PositionOption[]>>({});
+  const [selectedPositionId, setSelectedPositionId] = useState<string | null>(null);
+  const [bulkPositionId, setBulkPositionId] = useState<string | null>(null);
+  const [newPositionName, setNewPositionName] = useState("");
+  const [creatingPosition, setCreatingPosition] = useState(false);
+
+  // Prefetch positions for all teams in the background on mount
+  useEffect(() => {
+    if (teams.length === 0) return;
+    let cancelled = false;
+    Promise.allSettled(
+      teams.map((team) =>
+        fetch(`/api/v1/teams/${team.id}/positions`)
+          .then((res) => res.json())
+          .then((json) => ({ teamId: team.id, positions: (json.data ?? []) as PositionOption[] })),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
+      const map: Record<string, PositionOption[]> = {};
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          map[result.value.teamId] = result.value.positions;
+        }
+      }
+      setPositionsByTeam(map);
+    });
+    return () => { cancelled = true; };
+  }, [teams]);
+
+  const singleActiveTeamId = selectedTeamIds.length === 1 ? selectedTeamIds[0] : null;
+  const bulkActiveTeamId = bulkTeamIds.length === 1 ? bulkTeamIds[0] : null;
+
+  const positions = singleActiveTeamId
+    ? positionsByTeam[singleActiveTeamId] ?? []
+    : bulkActiveTeamId
+      ? positionsByTeam[bulkActiveTeamId] ?? []
+      : [];
+
+  // Reset position when team selection changes
+  useEffect(() => {
+    setSelectedPositionId(null);
+  }, [singleActiveTeamId]);
+
+  useEffect(() => {
+    setBulkPositionId(null);
+  }, [bulkActiveTeamId]);
+
+  async function handleCreatePosition(teamId: string) {
+    const name = newPositionName.trim();
+    if (!name) return;
+    setCreatingPosition(true);
+    try {
+      const res = await fetch(`/api/v1/teams/${teamId}/positions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to create position");
+      }
+      const { data } = await res.json();
+      setPositionsByTeam((prev) => ({
+        ...prev,
+        [teamId]: [...(prev[teamId] ?? []), { id: data.id, name: data.name }].sort((a, b) => a.name.localeCompare(b.name)),
+      }));
+      if (bulkMode) {
+        setBulkPositionId(data.id);
+      } else {
+        setSelectedPositionId(data.id);
+      }
+      setNewPositionName("");
+      toast.success(`Position "${name}" created`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create position");
+    } finally {
+      setCreatingPosition(false);
+    }
+  }
+
   // Parse emails from textarea
   const parsedCount = useMemo(() => parseEmails(bulkInput).length, [bulkInput]);
 
@@ -110,11 +192,12 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
     targetEmail: string,
     targetRole: "admin" | "approver" | "member",
     teamIds: string[] = [],
+    positionId: string | null = null,
   ): Promise<{ ok: boolean; error?: string }> {
     const res = await fetch("/api/v1/team/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: targetEmail, role: targetRole, team_ids: teamIds }),
+      body: JSON.stringify({ email: targetEmail, role: targetRole, team_ids: teamIds, position_id: positionId }),
     });
     if (!res.ok) {
       const data = await res.json();
@@ -134,12 +217,13 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
 
     setLoading(true);
     try {
-      const result = await sendInvite(trimmedEmail, role, selectedTeamIds);
+      const result = await sendInvite(trimmedEmail, role, selectedTeamIds, selectedPositionId);
       if (!result.ok) throw new Error(result.error);
       toast.success(`Invitation sent to ${trimmedEmail}`);
       setEmail("");
       setRole("member");
       setSelectedTeamIds([]);
+      setSelectedPositionId(null);
       router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to send invite");
@@ -157,7 +241,7 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
     const errors: string[] = [];
 
     for (const entry of bulkEntries) {
-      const result = await sendInvite(entry.email, entry.role, bulkTeamIds);
+      const result = await sendInvite(entry.email, entry.role, bulkTeamIds, bulkPositionId);
       if (result.ok) sent++;
       else {
         failed++;
@@ -177,6 +261,7 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
     setBulkInput("");
     setBulkEntries([]);
     setBulkTeamIds([]);
+    setBulkPositionId(null);
     setShowBulkList(false);
     setLoading(false);
     router.refresh();
@@ -418,6 +503,56 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
                     </div>
                   )}
 
+                  {bulkActiveTeamId && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Position (optional)</Label>
+                      <Select
+                        value={bulkPositionId ?? "none"}
+                        onValueChange={(v) => setBulkPositionId(v === "none" ? null : v)}
+                        disabled={loading}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="No position" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No position</SelectItem>
+                          {positions.map((pos) => (
+                            <SelectItem key={pos.id} value={pos.id}>
+                              {pos.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          placeholder="New position name..."
+                          value={newPositionName}
+                          onChange={(e) => setNewPositionName(e.target.value)}
+                          maxLength={100}
+                          disabled={creatingPosition}
+                          className="h-8 text-xs flex-1"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleCreatePosition(bulkActiveTeamId);
+                            }
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 gap-1 text-xs shrink-0"
+                          disabled={creatingPosition || !newPositionName.trim()}
+                          onClick={() => handleCreatePosition(bulkActiveTeamId)}
+                        >
+                          {creatingPosition ? <Loader2 className="size-3 animate-spin" /> : <Plus className="size-3" />}
+                          Add
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2">
                     <Button
                       type="button"
@@ -428,6 +563,7 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
                         setShowBulkList(false);
                         setBulkEntries([]);
                         setBulkTeamIds([]);
+                        setBulkPositionId(null);
                       }}
                       disabled={loading}
                     >
@@ -552,6 +688,55 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+              {singleActiveTeamId && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Position (optional)</Label>
+                  <Select
+                    value={selectedPositionId ?? "none"}
+                    onValueChange={(v) => setSelectedPositionId(v === "none" ? null : v)}
+                    disabled={loading}
+                  >
+                    <SelectTrigger className="w-full h-9">
+                      <SelectValue placeholder="No position" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No position</SelectItem>
+                      {positions.map((pos) => (
+                        <SelectItem key={pos.id} value={pos.id}>
+                          {pos.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      placeholder="New position name..."
+                      value={newPositionName}
+                      onChange={(e) => setNewPositionName(e.target.value)}
+                      maxLength={100}
+                      disabled={creatingPosition}
+                      className="h-8 text-xs flex-1"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleCreatePosition(singleActiveTeamId);
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-1 text-xs shrink-0"
+                      disabled={creatingPosition || !newPositionName.trim()}
+                      onClick={() => handleCreatePosition(singleActiveTeamId)}
+                    >
+                      {creatingPosition ? <Loader2 className="size-3 animate-spin" /> : <Plus className="size-3" />}
+                      Add
+                    </Button>
+                  </div>
                 </div>
               )}
               <Button

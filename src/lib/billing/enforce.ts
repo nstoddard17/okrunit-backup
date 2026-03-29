@@ -11,9 +11,21 @@ interface EnforcementResult {
   upgradeRequired?: boolean;
 }
 
-/** Get the org's current plan */
+/** Get the org's current plan (plan_override takes precedence if set) */
 export async function getOrgPlan(orgId: string): Promise<BillingPlan> {
   const admin = createAdminClient();
+
+  // Check for admin plan override first
+  const { data: org } = await admin
+    .from("organizations")
+    .select("plan_override")
+    .eq("id", orgId)
+    .single();
+
+  if (org?.plan_override) {
+    return org.plan_override as BillingPlan;
+  }
+
   const { data } = await admin
     .from("subscriptions")
     .select("plan_id, status")

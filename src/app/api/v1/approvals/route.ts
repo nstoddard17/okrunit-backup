@@ -186,6 +186,7 @@ export async function POST(request: Request) {
     let flowRequiredApprovals: number | undefined;
     let flowActionType: string | undefined;
     let flowAssignedTeamId: string | undefined;
+    let flowAssignedPositionId: string | undefined;
     let flowAssignedApprovers: string[] | undefined;
     let flowApproverMode: string | undefined;
     let flowRequiredRole: string | undefined;
@@ -213,6 +214,7 @@ export async function POST(request: Request) {
           flowPriority = existingFlow.default_priority ?? undefined;
           flowActionType = existingFlow.default_action_type ?? undefined;
           flowAssignedTeamId = existingFlow.assigned_team_id ?? undefined;
+          flowAssignedPositionId = existingFlow.assigned_position_id ?? undefined;
           flowAssignedApprovers = existingFlow.assigned_approvers ?? undefined;
           flowRequiredApprovals = existingFlow.default_required_approvals ?? undefined;
           flowApproverMode = existingFlow.approver_mode ?? undefined;
@@ -390,14 +392,26 @@ export async function POST(request: Request) {
     }
 
     // Handle team assignment: resolve team members with can_approve = true
+    // When a position is specified, only members holding that position qualify.
     if (assignedTeamId && !assignedApprovers) {
       const { data: teamMemberships } = await admin
         .from("team_memberships")
-        .select("user_id")
+        .select("user_id, position_id")
         .eq("team_id", assignedTeamId);
 
       if (teamMemberships && teamMemberships.length > 0) {
-        const teamUserIds = teamMemberships.map(m => m.user_id);
+        // Filter by position if specified; fall back to all members if none match
+        let filteredMembers = teamMemberships;
+        if (flowAssignedPositionId) {
+          const positionFiltered = teamMemberships.filter(
+            (m) => m.position_id === flowAssignedPositionId,
+          );
+          if (positionFiltered.length > 0) {
+            filteredMembers = positionFiltered;
+          }
+        }
+
+        const teamUserIds = filteredMembers.map(m => m.user_id);
 
         const { data: approverMemberships } = await admin
           .from("org_memberships")

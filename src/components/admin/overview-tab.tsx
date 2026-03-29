@@ -24,16 +24,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
-import type { SystemStats, OrgWithCounts } from "@/app/(dashboard)/admin/page";
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import type { SystemStats, OrgWithCounts } from "@/lib/admin-types";
 
 interface OverviewTabProps {
   stats: SystemStats;
@@ -325,53 +320,36 @@ export function OverviewTab({ stats, organizations }: OverviewTabProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={topOrgs.map((org) => ({
-                    name: org.name.length > 20 ? org.name.slice(0, 18) + "..." : org.name,
-                    approvals: org.approval_count,
-                  }))}
-                  margin={{ top: 5, right: 10, left: 10, bottom: 0 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    className="stroke-border"
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fontSize: 12 }}
-                    className="fill-muted-foreground text-xs"
-                  />
-                  <YAxis
-                    tick={{ fontSize: 12 }}
-                    className="fill-muted-foreground text-xs"
-                    allowDecimals={false}
-                  />
-                  <Tooltip
-                    content={({ active, payload, label }) => {
-                      if (!active || !payload?.length) return null;
-                      return (
-                        <div className="rounded-lg border bg-background px-3 py-2 shadow-md">
-                          <p className="text-sm font-medium">{label}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {payload[0].value} approval{payload[0].value !== 1 ? "s" : ""}
-                          </p>
+            <div className="space-y-3">
+              {topOrgs.map((org, idx) => {
+                const maxCount = topOrgs[0].approval_count || 1;
+                const pct = (org.approval_count / maxCount) * 100;
+                const name = org.name.length > 30 ? org.name.slice(0, 28) + "..." : org.name;
+                return (
+                  <Tooltip key={org.id}>
+                    <TooltipTrigger asChild>
+                      <div className="group cursor-default">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm truncate max-w-[70%]">{name}</span>
+                          <span className="text-sm font-medium tabular-nums">{org.approval_count}</span>
                         </div>
-                      );
-                    }}
-                  />
-                  <Bar dataKey="approvals" radius={[4, 4, 0, 0]}>
-                    {topOrgs.map((_, idx) => (
-                      <Cell
-                        key={idx}
-                        fill={barColors[idx % barColors.length]}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+                        <div className="h-2.5 w-full rounded-full bg-muted/50">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${Math.max(pct, 2)}%`,
+                              backgroundColor: barColors[idx % barColors.length],
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {org.name}: {org.approval_count} approval{org.approval_count !== 1 ? "s" : ""}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

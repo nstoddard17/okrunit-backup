@@ -27,6 +27,7 @@ interface RoutesHubProps {
   teams: TeamOption[];
   members: MemberOption[];
   orgId: string;
+  positionsMap?: Record<string, string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -38,6 +39,7 @@ export function RoutesHub({
   teams,
   members,
   orgId,
+  positionsMap,
 }: RoutesHubProps) {
   if (flows.length === 0) {
     return (
@@ -69,6 +71,7 @@ export function RoutesHub({
               teams={teams}
               members={members}
               orgId={orgId}
+              positionsMap={positionsMap}
             />
           ))}
         </div>

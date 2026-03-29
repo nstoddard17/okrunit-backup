@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { OrgWithCounts } from "@/app/(dashboard)/admin/page";
+import type { OrgWithCounts } from "@/lib/admin-types";
 
 interface OrganizationsTabProps {
   organizations: OrgWithCounts[];
