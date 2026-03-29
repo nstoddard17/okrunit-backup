@@ -1,6 +1,9 @@
--- Add optional team_ids to org_invites so invitees can be auto-added to teams
+-- Add optional team_ids and position_id to org_invites so invitees can be auto-added to teams
 ALTER TABLE org_invites
   ADD COLUMN team_ids JSONB DEFAULT '[]'::jsonb;
+
+ALTER TABLE org_invites
+  ADD COLUMN position_id UUID REFERENCES team_positions(id) ON DELETE SET NULL;
 
 -- Update handle_new_user() to also add user to teams when accepting an invite
 CREATE OR REPLACE FUNCTION handle_new_user()
@@ -36,8 +39,8 @@ BEGIN
     IF invite_record.team_ids IS NOT NULL AND jsonb_array_length(invite_record.team_ids) > 0 THEN
       FOR tid IN SELECT jsonb_array_elements_text(invite_record.team_ids)
       LOOP
-        INSERT INTO public.team_memberships (team_id, user_id)
-        VALUES (tid::uuid, NEW.id)
+        INSERT INTO public.team_memberships (team_id, user_id, position_id)
+        VALUES (tid::uuid, NEW.id, invite_record.position_id)
         ON CONFLICT (team_id, user_id) DO NOTHING;
       END LOOP;
     END IF;

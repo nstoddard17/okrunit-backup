@@ -24,6 +24,7 @@ const inviteBodySchema = z.object({
   email: z.string().email("Invalid email address"),
   role: z.enum(["admin", "approver", "member"]),
   team_ids: z.array(z.string().uuid()).optional().default([]),
+  position_id: z.string().uuid().nullable().optional().default(null),
 });
 
 const revokeBodySchema = z.object({
@@ -150,8 +151,9 @@ export async function POST(request: Request) {
         invited_by: auth.user.id,
         expires_at: expiresAt.toISOString(),
         team_ids: body.team_ids,
+        position_id: body.position_id,
       })
-      .select("id, org_id, email, role, invited_by, expires_at, team_ids, created_at")
+      .select("id, org_id, email, role, invited_by, expires_at, team_ids, position_id, created_at")
       .single<Omit<OrgInvite, "token" | "accepted_at">>();
 
     if (insertError || !invite) {
@@ -213,7 +215,7 @@ export async function POST(request: Request) {
       action: "invite.created",
       resourceType: "org_invite",
       resourceId: invite.id,
-      details: { email: normalizedEmail, role: body.role, team_ids: body.team_ids },
+      details: { email: normalizedEmail, role: body.role, team_ids: body.team_ids, position_id: body.position_id },
       ipAddress,
     });
 

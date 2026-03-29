@@ -48,7 +48,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { UserWithMemberships, OrgWithCounts } from "@/app/(dashboard)/admin/page";
+import type { UserWithMemberships, OrgWithCounts } from "@/lib/admin-types";
 
 interface UsersTabProps {
   users: UserWithMemberships[];

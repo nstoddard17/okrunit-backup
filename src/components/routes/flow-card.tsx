@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import {
   ChevronDown,
@@ -69,16 +70,16 @@ interface FlowCardProps {
   teams: TeamOption[];
   members: MemberOption[];
   orgId: string;
+  positionsMap?: Record<string, string>;
 }
 
-export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
+export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCardProps) {
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Flow name and URL (editable)
+  // Flow name (editable)
   const [flowName, setFlowName] = useState(flow.name || "");
-  const [flowSourceUrl, setFlowSourceUrl] = useState(flow.source_url || "");
 
   // Form state — initialized from flow
   // Detect "by_position" mode: designated with a team but no individual approvers
@@ -111,6 +112,24 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
     return match ? "" : String(flow.apply_for_next);
   });
 
+  // Position state (for by_position mode)
+  const [selectedPositionId, setSelectedPositionId] = useState(flow.assigned_position_id ?? "none");
+  const [positions, setPositions] = useState<{ id: string; name: string }[]>([]);
+  const [loadingPositions, setLoadingPositions] = useState(false);
+
+  useEffect(() => {
+    if (approverMode !== "by_position" || selectedTeamId === "none") {
+      setPositions([]);
+      return;
+    }
+    setLoadingPositions(true);
+    fetch(`/api/v1/teams/${selectedTeamId}/positions`)
+      .then((res) => res.json())
+      .then((json) => setPositions(json.data ?? []))
+      .catch(() => setPositions([]))
+      .finally(() => setLoadingPositions(false));
+  }, [approverMode, selectedTeamId]);
+
   // ---- Source display -------------------------------------------------------
 
   const sourceConfig = SOURCE_CONFIG[flow.source];
@@ -129,6 +148,8 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
       (!flow.assigned_approvers || flow.assigned_approvers.length === 0)
     ) {
       const team = teams.find((t) => t.id === flow.assigned_team_id);
+      const positionName = flow.assigned_position_id && positionsMap?.[flow.assigned_position_id];
+      if (positionName && team) return `Position: ${positionName} (${team.name})`;
       return team ? `By position: ${team.name}` : "By position (team)";
     }
     if (flow.approver_mode === "designated" && flow.assigned_approvers?.length) {
@@ -176,22 +197,23 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
       is_sequential: isSequential,
       apply_for_next: applyForNext,
       name: flowName.trim() || undefined,
-      source_url: flowSourceUrl.trim() || null,
     };
 
     if (approverMode === "by_position") {
-      // By position: team-based, no individual approvers
+      // By position: team + optional position, no individual approvers
       if (selectedTeamId === "none") {
         toast.error("Select a team for position-based approval");
         return;
       }
       payload.assigned_team_id = selectedTeamId;
+      payload.assigned_position_id = selectedPositionId !== "none" ? selectedPositionId : null;
       payload.assigned_approvers = null;
       payload.required_role = null;
       payload.default_required_approvals = requiredApprovals || 1;
     } else if (approverMode === "designated") {
       payload.assigned_approvers = selectedApprovers.length > 0 ? selectedApprovers : null;
       payload.assigned_team_id = selectedTeamId !== "none" ? selectedTeamId : null;
+      payload.assigned_position_id = null;
       payload.required_role = null;
       if (selectedApprovers.length > 0) {
         payload.default_required_approvals = isSequential
@@ -203,12 +225,14 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
     } else if (approverMode === "any") {
       payload.assigned_approvers = null;
       payload.assigned_team_id = selectedTeamId !== "none" ? selectedTeamId : null;
+      payload.assigned_position_id = null;
       payload.required_role = null;
       payload.default_required_approvals = requiredApprovals || 1;
     } else if (approverMode === "role_based") {
       payload.required_role = requiredRole !== "none" ? requiredRole : null;
       payload.assigned_approvers = null;
       payload.assigned_team_id = selectedTeamId !== "none" ? selectedTeamId : null;
+      payload.assigned_position_id = null;
       payload.default_required_approvals = 1;
     }
 
@@ -233,7 +257,7 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
     } finally {
       setSaving(false);
     }
-  }, [flow.id, flowName, flowSourceUrl, approverMode, selectedApprovers, selectedTeamId, requiredRole, isSequential, requiredApprovals, durationPreset, customCount, router]);
+  }, [flow.id, flowName, approverMode, selectedApprovers, selectedTeamId, selectedPositionId, requiredRole, isSequential, requiredApprovals, durationPreset, customCount, router]);
 
   // ---- Approver toggle -----------------------------------------------------
 
@@ -302,17 +326,23 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
           {/* Source link + Expand chevron */}
           <div className="flex items-center gap-2 shrink-0">
             {flow.source_url && (
-              <a
-                href={flow.source_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                title={`Open in ${sourcePlatformLabel}`}
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 gap-1.5 text-xs"
+                asChild
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
               >
-                <ExternalLink className="size-3" />
-                <span className="hidden sm:inline">Open</span>
-              </a>
+                <a
+                  href={flow.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="size-3" />
+                  <span className="hidden sm:inline">Open in {sourcePlatformLabel}</span>
+                  <span className="sm:hidden">Open</span>
+                </a>
+              </Button>
             )}
             <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", expanded && "rotate-180")} />
           </div>
@@ -333,22 +363,6 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
               />
               <p className="text-[11px] text-muted-foreground">
                 A friendly name to identify this workflow. Auto-populated when the integration sends a name.
-              </p>
-            </div>
-
-            {/* Source URL */}
-            <div className="space-y-2">
-              <Label className="text-xs">Workflow URL</Label>
-              <Input
-                value={flowSourceUrl}
-                onChange={(e) => setFlowSourceUrl(e.target.value)}
-                placeholder="https://zapier.com/editor/12345 or https://make.com/scenario/67890"
-                disabled={saving}
-                className="h-9"
-                type="url"
-              />
-              <p className="text-[11px] text-muted-foreground">
-                Link to the Zap, scenario, or workflow in your automation platform. Shows an &quot;Open&quot; button on the card.
               </p>
             </div>
 
@@ -398,33 +412,36 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
               </div>
             )}
 
-            {/* By Position — team selection (required) */}
+            {/* By Position — team + position selection */}
             {approverMode === "by_position" && (
-              <div className="space-y-2">
-                <Label className="text-xs">Select Position (Team)</Label>
-                {teams.length === 0 ? (
-                  <div className="rounded-lg border border-dashed p-4 text-center">
-                    <Users className="mx-auto size-6 text-muted-foreground/40 mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      You need at least one team to use position-based approval.
-                    </p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="mt-3 gap-1.5"
-                      asChild
-                    >
-                      <a href="/org/teams">
-                        Go to Teams
-                        <ArrowRight className="size-3" />
-                      </a>
-                    </Button>
-                  </div>
-                ) : (
-                  <>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-xs">Select Team</Label>
+                  {teams.length === 0 ? (
+                    <div className="rounded-lg border border-dashed p-4 text-center">
+                      <Users className="mx-auto size-6 text-muted-foreground/40 mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        You need at least one team to use position-based approval.
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-3 gap-1.5"
+                        asChild
+                      >
+                        <Link href="/org/teams">
+                          Go to Teams
+                          <ArrowRight className="size-3" />
+                        </Link>
+                      </Button>
+                    </div>
+                  ) : (
                     <Select
                       value={selectedTeamId}
-                      onValueChange={setSelectedTeamId}
+                      onValueChange={(v) => {
+                        setSelectedTeamId(v);
+                        setSelectedPositionId("none");
+                      }}
                       disabled={saving}
                     >
                       <SelectTrigger className="w-full">
@@ -438,11 +455,37 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
                         ))}
                       </SelectContent>
                     </Select>
+                  )}
+                </div>
+
+                {selectedTeamId !== "none" && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">Select Position</Label>
+                    <Select
+                      value={selectedPositionId}
+                      onValueChange={setSelectedPositionId}
+                      disabled={saving || loadingPositions}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={loadingPositions ? "Loading positions..." : "Select a position..."} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Any position (all team members)</SelectItem>
+                        {positions.map((pos) => (
+                          <SelectItem key={pos.id} value={pos.id}>
+                            {pos.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <p className="text-[11px] text-muted-foreground">
-                      All members of the selected team can approve. Manage teams and positions on the{" "}
-                      <a href="/org/teams" className="underline underline-offset-2 hover:text-foreground">Teams page</a>.
+                      {selectedPositionId !== "none"
+                        ? "Only team members holding this position can approve."
+                        : "All members of the selected team can approve."}{" "}
+                      Manage teams and positions on the{" "}
+                      <Link href="/org/teams" className="underline underline-offset-2 hover:text-foreground">Teams page</Link>.
                     </p>
-                  </>
+                  </div>
                 )}
               </div>
             )}
@@ -470,7 +513,7 @@ export function FlowCard({ flow, teams, members, orgId }: FlowCardProps) {
                 </Select>
                 <p className="text-[11px] text-muted-foreground">
                   Only members of this team will be notified and asked to approve. Create teams like &quot;HR&quot;, &quot;Management&quot;, or &quot;Engineering&quot; on the{" "}
-                  <a href="/org/teams" className="underline underline-offset-2 hover:text-foreground">Teams page</a>.
+                  <Link href="/org/teams" className="underline underline-offset-2 hover:text-foreground">Teams page</Link>.
                 </p>
               </div>
             )}

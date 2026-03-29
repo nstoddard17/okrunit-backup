@@ -22,6 +22,7 @@ const updateFlowSchema = z.object({
   default_required_approvals: z.number().int().min(1).max(10).nullable().optional(),
   default_action_type: z.string().max(100).nullable().optional(),
   assigned_team_id: z.string().uuid().nullable().optional(),
+  assigned_position_id: z.string().uuid().nullable().optional(),
   assigned_approvers: z.array(z.string().uuid()).max(10).nullable().optional(),
   approver_mode: z.enum(["any", "designated", "role_based"]).optional(),
   required_role: z.enum(["owner", "admin", "member"]).nullable().optional(),

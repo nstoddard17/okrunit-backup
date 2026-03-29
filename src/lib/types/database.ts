@@ -106,6 +106,7 @@ export interface Organization {
   four_eyes_config: FourEyesConfig;
   auto_approvals_paused: boolean;
   sso_domain: string | null;
+  plan_override: BillingPlan | null;
   created_at: string;
   updated_at: string;
 }
@@ -239,6 +240,7 @@ export interface ApprovalFlow {
   default_required_approvals: number | null;
   default_action_type: string | null;
   assigned_team_id: string | null;
+  assigned_position_id: string | null;
   assigned_approvers: string[] | null;
   approver_mode: ApproverMode;
   required_role: UserRole | null;
@@ -260,6 +262,7 @@ export interface OrgInvite {
   expires_at: string;
   accepted_at: string | null;
   team_ids: string[];
+  position_id: string | null;
   created_at: string;
 }
 

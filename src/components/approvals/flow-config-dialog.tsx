@@ -28,6 +28,9 @@ import { createClient } from "@/lib/supabase/client";
 import { X } from "lucide-react";
 import type { ApprovalFlow, ApprovalRequest, UserRole, ApproverMode } from "@/lib/types/database";
 
+// UI-level approver mode — "by_position" maps to "designated" + assigned_team_id on save
+type UIApproverMode = ApproverMode | "by_position";
+
 // ---- Types ------------------------------------------------------------------
 
 interface TeamOption {
@@ -86,9 +89,12 @@ export function FlowConfigDialog({
   const [teams, setTeams] = useState<TeamOption[]>([]);
 
   // Form state
-  const [approverMode, setApproverMode] = useState<ApproverMode>("any");
+  const [approverMode, setApproverMode] = useState<UIApproverMode>("any");
   const [selectedApprovers, setSelectedApprovers] = useState<string[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("none");
+  const [selectedPositionId, setSelectedPositionId] = useState<string>("none");
+  const [positions, setPositions] = useState<{ id: string; name: string }[]>([]);
+  const [loadingPositions, setLoadingPositions] = useState(false);
   const [requiredRole, setRequiredRole] = useState<UserRole | "none">("none");
   const [isSequential, setIsSequential] = useState(false);
   const [requiredApprovals, setRequiredApprovals] = useState(1);
@@ -153,9 +159,17 @@ export function FlowConfigDialog({
         setFlow(flowData);
 
         // Populate form with existing flow config
-        setApproverMode(flowData.approver_mode || "any");
+        // Detect "by_position" mode: designated with a team but no individual approvers
+        const detectedMode: UIApproverMode =
+          flowData.approver_mode === "designated" &&
+          flowData.assigned_team_id &&
+          (!flowData.assigned_approvers || flowData.assigned_approvers.length === 0)
+            ? "by_position"
+            : flowData.approver_mode || "any";
+        setApproverMode(detectedMode);
         setSelectedApprovers(flowData.assigned_approvers ?? []);
         setSelectedTeamId(flowData.assigned_team_id ?? "none");
+        setSelectedPositionId(flowData.assigned_position_id ?? "none");
         setRequiredRole(flowData.required_role ?? "none");
         setIsSequential(flowData.is_sequential ?? false);
         setRequiredApprovals(flowData.default_required_approvals ?? 1);
@@ -190,6 +204,20 @@ export function FlowConfigDialog({
     }
   }, [open, approval?.flow_id, loadData]);
 
+  // Fetch positions when team changes in by_position mode
+  useEffect(() => {
+    if (approverMode !== "by_position" || selectedTeamId === "none") {
+      setPositions([]);
+      return;
+    }
+    setLoadingPositions(true);
+    fetch(`/api/v1/teams/${selectedTeamId}/positions`)
+      .then((res) => res.json())
+      .then((json) => setPositions(json.data ?? []))
+      .catch(() => setPositions([]))
+      .finally(() => setLoadingPositions(false));
+  }, [approverMode, selectedTeamId]);
+
   // ---- Reset on close -------------------------------------------------------
 
   function handleOpenChange(nextOpen: boolean) {
@@ -197,6 +225,8 @@ export function FlowConfigDialog({
       setFlow(null);
       setSelectedApprovers([]);
       setSelectedTeamId("none");
+      setSelectedPositionId("none");
+      setPositions([]);
       setRequiredRole("none");
       setApproverMode("any");
       setIsSequential(false);
@@ -227,15 +257,29 @@ export function FlowConfigDialog({
       applyForNext = parseInt(durationPreset, 10);
     }
 
+    // Map UI mode to API mode — "by_position" saves as "designated" with team
+    const apiMode: ApproverMode = approverMode === "by_position" ? "designated" : approverMode;
+
     const payload: Record<string, unknown> = {
-      approver_mode: approverMode,
+      approver_mode: apiMode,
       is_sequential: isSequential,
       apply_for_next: applyForNext,
     };
 
-    if (approverMode === "designated" || approverMode === "any") {
+    if (approverMode === "by_position") {
+      if (selectedTeamId === "none") {
+        toast.error("Select a team for position-based approval");
+        return;
+      }
+      payload.assigned_team_id = selectedTeamId;
+      payload.assigned_position_id = selectedPositionId !== "none" ? selectedPositionId : null;
+      payload.assigned_approvers = null;
+      payload.required_role = null;
+      payload.default_required_approvals = requiredApprovals || 1;
+    } else if (approverMode === "designated" || approverMode === "any") {
       payload.assigned_approvers = selectedApprovers.length > 0 ? selectedApprovers : null;
       payload.assigned_team_id = selectedTeamId !== "none" ? selectedTeamId : null;
+      payload.assigned_position_id = null;
       payload.required_role = null;
       if (selectedApprovers.length > 0) {
         payload.default_required_approvals = isSequential
@@ -248,6 +292,7 @@ export function FlowConfigDialog({
       payload.required_role = requiredRole !== "none" ? requiredRole : null;
       payload.assigned_approvers = null;
       payload.assigned_team_id = selectedTeamId !== "none" ? selectedTeamId : null;
+      payload.assigned_position_id = null;
       payload.default_required_approvals = 1;
     }
 
@@ -314,7 +359,7 @@ export function FlowConfigDialog({
               <Label>Approval Mode</Label>
               <Select
                 value={approverMode}
-                onValueChange={(v) => setApproverMode(v as ApproverMode)}
+                onValueChange={(v) => setApproverMode(v as UIApproverMode)}
                 disabled={saving}
               >
                 <SelectTrigger className="w-full">
@@ -323,15 +368,79 @@ export function FlowConfigDialog({
                 <SelectContent>
                   <SelectItem value="any">Any approver</SelectItem>
                   <SelectItem value="designated">Specific people</SelectItem>
+                  <SelectItem value="by_position">By position (team)</SelectItem>
                   <SelectItem value="role_based">By role</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
                 {approverMode === "any" && "Any member with approval permission can approve."}
                 {approverMode === "designated" && "Only the selected people can approve these requests."}
+                {approverMode === "by_position" && "Only members of a specific team and position can approve."}
                 {approverMode === "role_based" && "Only members with the selected role (or higher) can approve."}
               </p>
             </div>
+
+            {/* By Position — team + position selection */}
+            {approverMode === "by_position" && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Select Team</Label>
+                  {teams.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No teams found. Create teams on the Teams page first.
+                    </p>
+                  ) : (
+                    <Select
+                      value={selectedTeamId}
+                      onValueChange={(v) => {
+                        setSelectedTeamId(v);
+                        setSelectedPositionId("none");
+                      }}
+                      disabled={saving}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a team..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teams.map((team) => (
+                          <SelectItem key={team.id} value={team.id}>
+                            {team.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                {selectedTeamId !== "none" && (
+                  <div className="space-y-2">
+                    <Label>Select Position</Label>
+                    <Select
+                      value={selectedPositionId}
+                      onValueChange={setSelectedPositionId}
+                      disabled={saving || loadingPositions}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={loadingPositions ? "Loading positions..." : "Select a position..."} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Any position (all team members)</SelectItem>
+                        {positions.map((pos) => (
+                          <SelectItem key={pos.id} value={pos.id}>
+                            {pos.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedPositionId !== "none"
+                        ? "Only team members holding this position can approve."
+                        : "All members of the selected team can approve."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Role selection (role_based mode) */}
             {approverMode === "role_based" && (
