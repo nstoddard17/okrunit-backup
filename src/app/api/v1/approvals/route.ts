@@ -356,6 +356,7 @@ export async function POST(request: Request) {
           actionType: effectiveActionType ?? undefined,
           priority: effectivePriority,
           title: validated.title,
+          source: validated.source ?? autoDetectedSource ?? undefined,
           metadata: validated.metadata as Record<string, unknown> | undefined,
         });
 
@@ -380,7 +381,7 @@ export async function POST(request: Request) {
 
     // 12b. Routing rules fallback
     if (!assignedApprovers && !assignedTeamId && ruleResult.matched && ruleResult.action === "route" && ruleResult.actionConfig) {
-      const routeConfig = ruleResult.actionConfig as { team_id?: string; user_ids?: string[]; required_role?: string; is_sequential?: boolean };
+      const routeConfig = ruleResult.actionConfig as { team_id?: string; user_ids?: string[]; required_role?: string; is_sequential?: boolean; required_approvals?: number };
       if (routeConfig.team_id) {
         assignedTeamId = routeConfig.team_id;
       } else if (routeConfig.user_ids && routeConfig.user_ids.length > 0) {
@@ -392,6 +393,10 @@ export async function POST(request: Request) {
       }
       if (routeConfig.is_sequential !== undefined) {
         flowIsSequential = routeConfig.is_sequential;
+      }
+      // Rule can override required_approvals (e.g. "if critical, require 3 approvers")
+      if (routeConfig.required_approvals && routeConfig.required_approvals > requiredApprovals) {
+        requiredApprovals = routeConfig.required_approvals;
       }
     }
 

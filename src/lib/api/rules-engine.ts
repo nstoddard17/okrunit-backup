@@ -13,6 +13,8 @@ export interface RuleEvaluationInput {
   actionType?: string;
   priority: string;
   title: string;
+  source?: string;
+  riskLevel?: string;
   metadata?: Record<string, unknown>;
 }
 
@@ -69,10 +71,13 @@ export async function evaluateRules(
 
 /**
  * Check if an input matches a rule's conditions.
+ * All specified conditions must match (AND logic).
  *
  * Conditions are a JSON object with keys:
  * - priority_levels: string[] -- match if request priority is in this list
  * - action_types: string[] -- match if request action_type matches (glob: "deploy*")
+ * - sources: string[] -- match if request source is in this list
+ * - risk_levels: string[] -- match if risk level is in this list
  * - title_pattern: string -- regex pattern to match against title
  * - metadata_match: Record<string, unknown> -- shallow key-value match against metadata
  */
@@ -104,6 +109,18 @@ function matchesConditions(
       // Rule requires action_type but request doesn't have one.
       return false;
     }
+  }
+
+  // Check sources.
+  if (conditions.sources) {
+    const sources = conditions.sources as string[];
+    if (!input.source || !sources.includes(input.source)) return false;
+  }
+
+  // Check risk_levels.
+  if (conditions.risk_levels) {
+    const levels = conditions.risk_levels as string[];
+    if (!input.riskLevel || !levels.includes(input.riskLevel)) return false;
   }
 
   // Check title_pattern (regex).
