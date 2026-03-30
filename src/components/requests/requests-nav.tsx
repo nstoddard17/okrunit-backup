@@ -11,6 +11,7 @@ import {
   BarChart3,
   ScrollText,
   CheckSquare,
+  GitBranch,
   Wrench,
   LineChart,
 } from "lucide-react";
@@ -61,6 +62,7 @@ export function RequestsNav({ isAdmin, pendingCount, mobile }: RequestsNavProps)
       items: [
         { id: "connections", label: "Connections", href: "/requests/connections", icon: Key, adminOnly: true },
         { id: "routes", label: "Routes", href: "/requests/routes", icon: Route, adminOnly: true },
+        { id: "rules", label: "Rules", href: "/requests/rules", icon: GitBranch, adminOnly: true },
         { id: "messaging", label: "Messaging", href: "/requests/messaging", icon: MessageSquare, adminOnly: true },
       ],
     },
