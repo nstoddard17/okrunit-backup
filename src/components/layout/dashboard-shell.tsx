@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { NavigationProgress } from "@/components/layout/navigation-progress";
+import { CommandPalette } from "@/components/layout/command-palette";
 import { useSidebarStore } from "@/stores/sidebar-store";
 
 interface DashboardShellProps {
@@ -36,6 +37,7 @@ export function DashboardShell({ children, sidebarProps, emergencyStopActive, us
   return (
     <div className="gk-v2 flex h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
       <NavigationProgress />
+      <CommandPalette orgId={currentOrgId} />
 
       {/* Mobile overlay backdrop */}
       {mobileOpen && (
