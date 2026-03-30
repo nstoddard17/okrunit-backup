@@ -8,6 +8,7 @@ import { z } from "zod";
 import { authenticateRequest, type AuthResult } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canUseFeature } from "@/lib/billing/enforce";
 import type { SSOConfig } from "@/lib/types/database";
@@ -238,6 +239,7 @@ export async function POST(request: NextRequest) {
       action: existing ? "sso_config.updated" : "sso_config.created",
       resourceType: "sso_config",
       resourceId: result.id,
+      ipAddress: getClientIp(request),
       details: {
         entity_id: input.entity_id,
         sso_url: input.sso_url,

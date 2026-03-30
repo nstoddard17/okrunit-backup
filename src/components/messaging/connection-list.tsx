@@ -677,7 +677,7 @@ export function ConnectionList({
                     <Button
                       variant="outline"
                       size="icon-sm"
-                      className="text-destructive hover:bg-destructive/10"
+                      className="text-destructive hover:bg-destructive/10 cursor-pointer"
                       title="Disconnect"
                       onClick={() => setDisconnectTarget(connection)}
                     >
@@ -731,6 +731,7 @@ export function ConnectionList({
               variant="destructive"
               onClick={handleDisconnect}
               disabled={loading}
+              className="cursor-pointer"
             >
               {loading ? "Disconnecting..." : "Disconnect"}
             </Button>

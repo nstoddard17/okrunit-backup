@@ -65,6 +65,7 @@ export const createApprovalSchema = z.object({
     description: z.string().max(1000).optional(),
   })).max(20).optional(),
   notify_channel_ids: z.array(z.uuid()).min(1).max(50).optional(),
+  is_log: z.boolean().optional(),
 });
 
 export type CreateApprovalInput = z.infer<typeof createApprovalSchema>;

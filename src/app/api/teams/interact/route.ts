@@ -24,6 +24,7 @@ import { NextResponse } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { deliverCallback } from "@/lib/api/callbacks";
 import { isRejectionReasonRequired } from "@/lib/api/rejection-reason";
 
@@ -486,7 +487,7 @@ export async function POST(request: Request) {
 
   // 5. Handle message activities (Adaptive Card Action.Submit).
   if (activity.type === "message" || activity.type === "invoke") {
-    return handleActionSubmit(activity);
+    return handleActionSubmit(request, activity);
   }
 
   // Unknown activity type -- acknowledge without error.
@@ -570,6 +571,7 @@ async function handleConversationUpdate(
 // ---------------------------------------------------------------------------
 
 async function handleActionSubmit(
+  request: Request,
   activity: BotFrameworkActivity,
 ): Promise<NextResponse> {
   // Extract action data -- Bot Framework puts card submit data in activity.value
@@ -719,6 +721,7 @@ async function handleActionSubmit(
       teams_user_id: teamsUserId,
       teams_user_name: teamsUserName,
     },
+    ipAddress: getClientIp(request),
   });
 
   // 10. Deliver callback if configured (fire-and-forget).

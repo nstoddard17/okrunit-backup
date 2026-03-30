@@ -14,6 +14,7 @@ import { authenticateRequest } from "@/lib/api/auth";
 import { errorResponse, ApiError } from "@/lib/api/errors";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 
 const TELEGRAM_API_BASE = "https://api.telegram.org";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -194,6 +195,7 @@ export async function POST(request: Request) {
       action: "messaging_connection.created",
       resourceType: "messaging_connection",
       resourceId: chat_id,
+      ipAddress: getClientIp(request),
       details: {
         platform: "telegram",
         bot_username: botUsername,

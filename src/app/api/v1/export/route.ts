@@ -14,6 +14,7 @@ import { authenticateRequest } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
 import { exportQuerySchema } from "@/lib/api/validation";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import {
   fetchExportData,
   generateCSV,
@@ -63,6 +64,7 @@ export async function GET(request: Request) {
       userId: auth.user.id,
       action: "export.created",
       resourceType: "approval_request",
+      ipAddress: getClientIp(request),
       details: {
         format: params.format,
         filters: {

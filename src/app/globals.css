@@ -124,6 +124,26 @@
   body {
     @apply bg-background text-foreground;
   }
+  button,
+  [role="button"],
+  [role="checkbox"],
+  [role="switch"],
+  [role="option"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="combobox"],
+  select,
+  summary,
+  label[for],
+  a[href] {
+    cursor: pointer;
+  }
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  select:disabled,
+  input:disabled {
+    cursor: not-allowed;
+  }
 }
 
 /* Force light theme regardless of system/app dark mode. */

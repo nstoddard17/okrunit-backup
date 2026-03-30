@@ -10,8 +10,72 @@ import { authenticateRequest } from "@/lib/api/auth";
 import { errorResponse, ApiError } from "@/lib/api/errors";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { updateMessagingConnectionSchema } from "@/lib/api/validation";
 import { z } from "zod";
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id: connectionId } = await params;
+    const auth = await authenticateRequest(request);
+
+    if (auth.type !== "session") {
+      throw new ApiError(401, "Session authentication required");
+    }
+
+    if (!["owner", "admin"].includes(auth.membership.role)) {
+      throw new ApiError(403, "Admin or owner role required");
+    }
+
+    const orgId = auth.orgId;
+    const userId = auth.user.id;
+    const admin = createAdminClient();
+
+    // Verify the connection belongs to this org
+    const { data: existing, error: fetchError } = await admin
+      .from("messaging_connections")
+      .select("id, platform, workspace_name, channel_name")
+      .eq("id", connectionId)
+      .eq("org_id", orgId)
+      .single();
+
+    if (fetchError || !existing) {
+      throw new ApiError(404, "Messaging connection not found");
+    }
+
+    const { error: deleteError } = await admin
+      .from("messaging_connections")
+      .delete()
+      .eq("id", connectionId)
+      .eq("org_id", orgId);
+
+    if (deleteError) {
+      console.error("[Messaging Connections] Delete failed:", deleteError);
+      throw new ApiError(500, "Failed to delete connection");
+    }
+
+    logAuditEvent({
+      orgId,
+      userId,
+      action: "messaging_connection.deleted",
+      resourceType: "messaging_connection",
+      resourceId: connectionId,
+      ipAddress: getClientIp(request),
+      details: {
+        platform: existing.platform,
+        workspace_name: existing.workspace_name,
+        channel_name: existing.channel_name,
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
 
 export async function PATCH(
   request: Request,
@@ -100,6 +164,7 @@ export async function PATCH(
       action: "messaging_connection.updated",
       resourceType: "messaging_connection",
       resourceId: connectionId,
+      ipAddress: getClientIp(request),
       details: {
         platform: existing.platform,
         channel_name: existing.channel_name,

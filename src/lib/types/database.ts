@@ -203,6 +203,7 @@ export interface ApprovalRequest {
   sla_breached_at: string | null;
   sla_warning_sent: boolean;
   notify_channel_ids: string[] | null;
+  is_log: boolean;
   archived_at: string | null;
   created_at: string;
   updated_at: string;

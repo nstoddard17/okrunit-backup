@@ -12,6 +12,7 @@ import {
   paginationSchema,
 } from "@/lib/api/validation";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkRateLimit, addRateLimitHeaders, type RateLimitResult } from "@/lib/api/rate-limiter";
 import { enforceConnectionScoping } from "@/lib/api/connection-scoping";
@@ -513,7 +514,8 @@ export async function POST(request: Request) {
         description: validated.description ?? null,
         action_type: effectiveActionType,
         priority: effectivePriority,
-        status: isAutoApproved ? "approved" : "pending",
+        status: isAutoApproved || validated.is_log ? "approved" : "pending",
+        is_log: validated.is_log ?? false,
         callback_url: validated.callback_url ?? null,
         callback_headers: validated.callback_headers ?? null,
         metadata: validated.metadata ?? null,
@@ -529,9 +531,9 @@ export async function POST(request: Request) {
         risk_score: riskResult.score,
         risk_level: riskResult.level,
         risk_factors: riskResult.factors,
-        auto_approved: isAutoApproved,
-        decision_source: isAutoApproved ? "auto_rule" : null,
-        decided_at: isAutoApproved ? new Date().toISOString() : null,
+        auto_approved: isAutoApproved || validated.is_log === true,
+        decision_source: validated.is_log ? "auto_rule" : isAutoApproved ? "auto_rule" : null,
+        decided_at: isAutoApproved || validated.is_log ? new Date().toISOString() : null,
         auto_action: effectiveAutoAction,
         auto_action_after_minutes: effectiveAutoMinutes,
         auto_action_deadline: autoActionDeadline,
@@ -846,6 +848,7 @@ export async function GET(request: Request) {
         action: `approval.auto_${newStatus}`,
         resourceType: "approval_request",
         resourceId: autoId,
+        ipAddress: getClientIp(request),
         details: { reason: "auto_action_deadline_reached", auto_action: autoAct },
       });
 

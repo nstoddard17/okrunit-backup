@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID!;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET!;
@@ -49,13 +50,13 @@ export async function GET(request: Request) {
   // Handle user cancellation
   if (errorParam) {
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=${encodeURIComponent(errorParam)}`,
+      `${APP_URL}/requests/messaging?error=${encodeURIComponent(errorParam)}`,
     );
   }
 
   if (!code || !stateParam) {
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=missing_params`,
+      `${APP_URL}/requests/messaging?error=missing_params`,
     );
   }
 
@@ -68,7 +69,7 @@ export async function GET(request: Request) {
     }
   } catch {
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=invalid_state`,
+      `${APP_URL}/requests/messaging?error=invalid_state`,
     );
   }
 
@@ -92,7 +93,7 @@ export async function GET(request: Request) {
       const body = await tokenResponse.text();
       console.error("[Discord Callback] Token exchange failed:", body);
       return NextResponse.redirect(
-        `${APP_URL}/settings/messaging?error=token_exchange_failed`,
+        `${APP_URL}/requests/messaging?error=token_exchange_failed`,
       );
     }
 
@@ -104,7 +105,7 @@ export async function GET(request: Request) {
 
     if (!guildId) {
       return NextResponse.redirect(
-        `${APP_URL}/settings/messaging?error=no_guild_selected`,
+        `${APP_URL}/requests/messaging?error=no_guild_selected`,
       );
     }
 
@@ -140,7 +141,7 @@ export async function GET(request: Request) {
 
     if (!defaultChannelId) {
       return NextResponse.redirect(
-        `${APP_URL}/settings/messaging?error=no_channels_found`,
+        `${APP_URL}/requests/messaging?error=no_channels_found`,
       );
     }
 
@@ -196,7 +197,7 @@ export async function GET(request: Request) {
     if (upsertError) {
       console.error("[Discord Callback] Upsert failed:", upsertError);
       return NextResponse.redirect(
-        `${APP_URL}/settings/messaging?error=save_failed`,
+        `${APP_URL}/requests/messaging?error=save_failed`,
       );
     }
 
@@ -207,6 +208,7 @@ export async function GET(request: Request) {
       action: "messaging_connection.created",
       resourceType: "messaging_connection",
       resourceId: guildId,
+      ipAddress: getClientIp(request),
       details: {
         platform: "discord",
         guild_name: guildName,
@@ -216,12 +218,12 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?success=discord`,
+      `${APP_URL}/requests/messaging?success=discord`,
     );
   } catch (error) {
     console.error("[Discord Callback] Unexpected error:", error);
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=unexpected`,
+      `${APP_URL}/requests/messaging?error=unexpected`,
     );
   }
 }

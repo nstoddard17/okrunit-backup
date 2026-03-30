@@ -14,6 +14,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 
 const MONDAY_SIGNING_SECRET = process.env.MONDAY_SIGNING_SECRET;
 
@@ -134,6 +135,7 @@ export async function POST(request: Request) {
       action: "approval_request.created",
       resourceType: "approval_request",
       resourceId: approval.id,
+      ipAddress: getClientIp(request),
       details: {
         source: "monday",
         title,

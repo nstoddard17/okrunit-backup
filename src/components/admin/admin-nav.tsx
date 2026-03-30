@@ -86,7 +86,7 @@ export function AdminNav({ orgCounts, userCount, mobile }: AdminNavProps) {
               className={cn(
                 "flex items-center justify-between rounded-lg px-3 py-1.5 text-[13px] transition-colors",
                 active
-                  ? "bg-primary/10 font-medium text-primary"
+                  ? "bg-emerald-50 dark:bg-emerald-950/50 font-medium text-emerald-700 dark:text-emerald-400"
                   : "text-foreground hover:bg-muted",
               )}
             >
@@ -95,7 +95,7 @@ export function AdminNav({ orgCounts, userCount, mobile }: AdminNavProps) {
                 <span className={cn(
                   "rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none",
                   active
-                    ? "bg-primary/20 text-primary"
+                    ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400"
                     : "bg-muted text-muted-foreground",
                 )}>
                   {item.badge}

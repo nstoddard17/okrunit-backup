@@ -14,6 +14,7 @@ import { authenticateRequest } from "@/lib/api/auth";
 import { errorResponse, ApiError } from "@/lib/api/errors";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 
 const connectSchema = z.object({
   email: z
@@ -93,6 +94,7 @@ export async function POST(request: Request) {
       action: "messaging_connection.created",
       resourceType: "messaging_connection",
       resourceId: email,
+      ipAddress: getClientIp(request),
       details: {
         platform: "email",
         email,

@@ -26,6 +26,13 @@
       "help": "To receive the approval decision: 1) Create a second automation with the OKRunit 'Approval Decision Received' trigger. 2) Copy the webhook URL it generates. 3) Paste it here. When someone approves or rejects, OKRunit will POST the decision to that URL and your second automation will continue automatically."
     },
     {
+      "name": "source_url",
+      "type": "url",
+      "label": "Board or Automation URL",
+      "required": false,
+      "help": "Paste the URL of the monday.com board or automation that triggers this request. This enables an 'Open in monday.com' button in OKRunit so reviewers can jump to the source."
+    },
+    {
       "name": "metadata",
       "type": "text",
       "label": "Metadata (JSON)",
@@ -40,6 +47,7 @@
     "description": "{{ifempty(parameters.description, undefined)}}",
     "callback_url": "{{ifempty(parameters.callback_url, undefined)}}",
     "metadata": "{{ifempty(parameters.metadata, undefined)}}",
+    "source_url": "{{ifempty(parameters.source_url, undefined)}}",
     "source": "monday",
     "idempotency_key": "monday-{{ifempty(parameters.title, 'approval')}}-{{timestamp}}"
   },

@@ -73,10 +73,10 @@ function getInitials(name: string | null, email: string): string {
 }
 
 const roleConfig = {
-  owner: { icon: Crown, label: "Owner", color: "text-black", bg: "bg-white" },
-  admin: { icon: Shield, label: "Admin", color: "text-black", bg: "bg-white" },
-  approver: { icon: ShieldCheck, label: "Approver", color: "text-teal-700", bg: "bg-teal-50" },
-  member: { icon: User, label: "Member", color: "text-black", bg: "bg-white" },
+  owner: { icon: Crown, label: "Owner", color: "text-black dark:text-foreground", bg: "bg-white dark:bg-card" },
+  admin: { icon: Shield, label: "Admin", color: "text-black dark:text-foreground", bg: "bg-white dark:bg-card" },
+  approver: { icon: ShieldCheck, label: "Approver", color: "text-teal-700 dark:text-teal-400", bg: "bg-teal-50 dark:bg-teal-950/50" },
+  member: { icon: User, label: "Member", color: "text-black dark:text-foreground", bg: "bg-white dark:bg-card" },
 } as const;
 
 interface V2MemberListProps {
@@ -229,10 +229,10 @@ export function V2MemberList({
               placeholder="Search members..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 !bg-white !shadow-none"
+              className="pl-9 h-9 !bg-white dark:!bg-card !shadow-none"
             />
           </div>
-          <div className="flex items-center gap-1 rounded-lg bg-white p-0.5">
+          <div className="flex items-center gap-1 rounded-lg bg-white dark:bg-card p-0.5">
             {[
               { value: "all", label: "All" },
               { value: "owner", label: "Owners" },
@@ -245,7 +245,7 @@ export function V2MemberList({
                 onClick={() => setRoleFilter(filter.value)}
                 className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
                   roleFilter === filter.value
-                    ? "bg-white text-foreground shadow-sm"
+                    ? "bg-white dark:bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -257,7 +257,7 @@ export function V2MemberList({
             ))}
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={exportCsv} className="gap-1.5 h-9 bg-white text-foreground hover:bg-white/80">
+        <Button variant="outline" size="sm" onClick={exportCsv} className="gap-1.5 h-9 bg-white dark:bg-card text-foreground hover:bg-white/80 dark:hover:bg-card/80">
           <Download className="size-3.5" />
           Export
         </Button>
@@ -289,7 +289,7 @@ export function V2MemberList({
             return (
               <div
                 key={member.id}
-                className="group flex items-center gap-4 rounded-xl border border-border/50 bg-white px-4 py-3 transition-colors hover:border-border hover:bg-white"
+                className="group flex items-center gap-4 rounded-xl border border-border/50 bg-white dark:bg-card px-4 py-3 transition-colors hover:border-border"
               >
                 {/* Avatar */}
                 <Avatar size="sm">
@@ -305,7 +305,7 @@ export function V2MemberList({
                       {member.full_name ?? member.email.split("@")[0]}
                     </p>
                     {isSelf && (
-                      <span className="shrink-0 text-[10px] font-medium text-black bg-white shadow-sm px-1.5 py-0.5 rounded">you</span>
+                      <span className="shrink-0 text-[10px] font-medium text-black dark:text-foreground bg-white dark:bg-card shadow-sm px-1.5 py-0.5 rounded">you</span>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground truncate">{member.email}</p>
@@ -315,20 +315,30 @@ export function V2MemberList({
                 <div className="hidden lg:flex items-center gap-3 shrink-0">
                   {stats && stats.decisions_30d > 0 ? (
                     <div className="flex items-center gap-2 text-xs">
-                      <span className="flex items-center gap-0.5 text-emerald-600">
-                        <ThumbsUp className="size-3" />
-                        {stats.approved}
-                      </span>
-                      <span className="flex items-center gap-0.5 text-red-500">
-                        <ThumbsDown className="size-3" />
-                        {stats.rejected}
-                      </span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="flex items-center gap-0.5 text-emerald-600 cursor-default">
+                            <ThumbsUp className="size-3" />
+                            {stats.approved}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">Approved (30d)</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="flex items-center gap-0.5 text-red-500 cursor-default">
+                            <ThumbsDown className="size-3" />
+                            {stats.rejected}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">Rejected (30d)</TooltipContent>
+                      </Tooltip>
                     </div>
                   ) : (
                     <span className="text-[11px] text-muted-foreground/40">No activity</span>
                   )}
                   {pendingLoad > 0 && (
-                    <span className="flex items-center gap-0.5 rounded-md bg-white px-1.5 py-0.5 text-[11px] font-medium text-black">
+                    <span className="flex items-center gap-0.5 rounded-md bg-white dark:bg-card px-1.5 py-0.5 text-[11px] font-medium text-black dark:text-foreground">
                       <Clock className="size-3" />
                       {pendingLoad}
                     </span>
@@ -375,7 +385,7 @@ export function V2MemberList({
                       onValueChange={(value) => handleRoleChange(member.id, value)}
                       disabled={loading === member.id}
                     >
-                      <SelectTrigger size="sm" className="w-[120px] h-8 text-xs !bg-white !text-black !border-transparent !shadow-none">
+                      <SelectTrigger size="sm" className="w-[120px] h-8 text-xs !bg-white dark:!bg-card !text-black dark:!text-foreground !border-transparent !shadow-none">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

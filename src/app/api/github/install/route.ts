@@ -12,6 +12,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { authenticateRequest } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { getInstallationToken } from "@/lib/api/github";
 
 // ---------------------------------------------------------------------------
@@ -61,6 +62,7 @@ export async function GET(request: Request) {
         action: "github_installation.removed",
         resourceType: "github_installation",
         details: { installation_id: installationId },
+        ipAddress: getClientIp(request),
       });
 
       return NextResponse.redirect(
@@ -155,6 +157,7 @@ export async function GET(request: Request) {
         account_type: accountType,
         repository_count: repositories.length,
       },
+      ipAddress: getClientIp(request),
     });
 
     // 7. Redirect back to the integrations settings page

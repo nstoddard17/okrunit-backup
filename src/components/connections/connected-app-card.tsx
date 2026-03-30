@@ -56,15 +56,15 @@ interface PlatformLogo {
 }
 
 const PLATFORM_LOGOS: Record<string, PlatformLogo> = {
-  zapier: { icon: ZapierLogo, color: "text-orange-600", bgColor: "bg-orange-100" },
-  make: { icon: MakeLogo, color: "text-violet-600", bgColor: "bg-violet-100" },
-  n8n: { icon: N8nLogo, color: "text-rose-600", bgColor: "bg-rose-100" },
-  windmill: { icon: Workflow, color: "text-sky-600", bgColor: "bg-sky-100" },
-  pipedream: { icon: Code2, color: "text-emerald-600", bgColor: "bg-emerald-100" },
-  github: { icon: Code2, color: "text-gray-800", bgColor: "bg-gray-100" },
-  temporal: { icon: Workflow, color: "text-indigo-600", bgColor: "bg-indigo-100" },
-  prefect: { icon: Workflow, color: "text-blue-600", bgColor: "bg-blue-100" },
-  dagster: { icon: Workflow, color: "text-purple-600", bgColor: "bg-purple-100" },
+  zapier: { icon: ZapierLogo, color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-100 dark:bg-orange-950/50" },
+  make: { icon: MakeLogo, color: "text-violet-600 dark:text-violet-400", bgColor: "bg-violet-100 dark:bg-violet-950/50" },
+  n8n: { icon: N8nLogo, color: "text-rose-600 dark:text-rose-400", bgColor: "bg-rose-100 dark:bg-rose-950/50" },
+  windmill: { icon: Workflow, color: "text-sky-600 dark:text-sky-400", bgColor: "bg-sky-100 dark:bg-sky-950/50" },
+  pipedream: { icon: Code2, color: "text-emerald-600 dark:text-emerald-400", bgColor: "bg-emerald-100 dark:bg-emerald-950/50" },
+  github: { icon: Code2, color: "text-gray-800 dark:text-gray-300", bgColor: "bg-gray-100 dark:bg-gray-800/50" },
+  temporal: { icon: Workflow, color: "text-indigo-600 dark:text-indigo-400", bgColor: "bg-indigo-100 dark:bg-indigo-950/50" },
+  prefect: { icon: Workflow, color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-100 dark:bg-blue-950/50" },
+  dagster: { icon: Workflow, color: "text-purple-600 dark:text-purple-400", bgColor: "bg-purple-100 dark:bg-purple-950/50" },
 };
 
 function getPlatformLogo(clientName: string): PlatformLogo {
@@ -104,16 +104,8 @@ export function ConnectedAppCard({ grant, onRevoke }: ConnectedAppCardProps) {
       <Card>
         <CardHeader className="flex flex-col gap-3 space-y-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            {/* Logo: use client_logo_url if available, otherwise fallback */}
-            {grant.client_logo_url ? (
-              <img
-                src={grant.client_logo_url}
-                alt=""
-                className="size-8 shrink-0 rounded-lg"
-              />
-            ) : (
-              <PlatformIcon className={cn("size-8 shrink-0", platform.color)} />
-            )}
+            {/* Logo */}
+            <PlatformIcon className={cn("size-8 shrink-0", platform.color)} />
             <div className="min-w-0">
               <CardTitle className="flex items-center gap-2 text-base">
                 {grant.client_name}

@@ -88,7 +88,7 @@ export function OrganizationsTab({ organizations }: OrganizationsTabProps) {
               placeholder="Search organizations..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-8 w-[200px] pl-8 text-sm"
+              className="h-8 w-[200px] pl-8 text-sm bg-white"
             />
           </div>
           <span className="text-muted-foreground text-sm">
@@ -104,7 +104,7 @@ export function OrganizationsTab({ organizations }: OrganizationsTabProps) {
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border">
+        <div className="rounded-xl border bg-white">
           <Table>
             <TableHeader>
               <TableRow>

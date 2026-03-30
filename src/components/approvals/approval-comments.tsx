@@ -6,16 +6,15 @@
 
 import { useState, useCallback } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { MessageSquare, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { toast } from "sonner";
 
-import type { ApprovalComment } from "@/lib/types/database";
+import type { ApprovalComment, UserProfile } from "@/lib/types/database";
 import { useRealtime } from "@/hooks/use-realtime";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 
 // ---- Types ----------------------------------------------------------------
 
@@ -23,26 +22,45 @@ interface ApprovalCommentsProps {
   requestId: string;
   comments: ApprovalComment[];
   onCommentAdded: (comment: ApprovalComment) => void;
+  userProfiles?: Map<string, UserProfile>;
+  connectionNames?: Map<string, string>;
 }
 
 // ---- Helpers --------------------------------------------------------------
 
-function truncateId(id: string): string {
-  return id.slice(0, 8);
-}
-
-function getAuthorLabel(comment: ApprovalComment): string {
+function getAuthorName(
+  comment: ApprovalComment,
+  userProfiles?: Map<string, UserProfile>,
+  connectionNames?: Map<string, string>,
+): string {
   if (comment.user_id) {
-    return truncateId(comment.user_id);
+    const profile = userProfiles?.get(comment.user_id);
+    if (profile?.full_name) return profile.full_name;
+    if (profile?.email) return profile.email;
+    return comment.user_id.slice(0, 8) + "…";
   }
   if (comment.connection_id) {
-    return truncateId(comment.connection_id);
+    const name = connectionNames?.get(comment.connection_id);
+    if (name) return name;
+    return "API (" + comment.connection_id.slice(0, 8) + ")";
   }
   return "Unknown";
 }
 
-function getAvatarInitials(comment: ApprovalComment): string {
-  if (comment.user_id) return "U";
+function getAvatarInitials(
+  comment: ApprovalComment,
+  userProfiles?: Map<string, UserProfile>,
+): string {
+  if (comment.user_id) {
+    const profile = userProfiles?.get(comment.user_id);
+    if (profile?.full_name) {
+      const parts = profile.full_name.split(" ");
+      return parts.length > 1
+        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+        : parts[0][0].toUpperCase();
+    }
+    return "U";
+  }
   if (comment.connection_id) return "A";
   return "?";
 }
@@ -53,6 +71,8 @@ export function ApprovalComments({
   requestId,
   comments,
   onCommentAdded,
+  userProfiles,
+  connectionNames,
 }: ApprovalCommentsProps) {
   const [body, setBody] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,50 +130,39 @@ export function ApprovalComments({
   // ---- Render -------------------------------------------------------------
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <MessageSquare className="text-muted-foreground size-4" />
-        <h3 className="text-sm font-medium">
-          Comments{" "}
-          {comments.length > 0 && (
-            <span className="text-muted-foreground">({comments.length})</span>
-          )}
-        </h3>
-      </div>
-
+    <div className="space-y-3">
       {/* Comment list */}
       {comments.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No comments yet.</p>
+        <p className="text-muted-foreground text-xs">No comments yet.</p>
       ) : (
         <div className="space-y-3">
           {comments.map((comment) => (
-            <div key={comment.id} className="flex gap-3">
-              <Avatar className="size-8 shrink-0">
-                <AvatarFallback className="text-xs">
-                  {getAvatarInitials(comment)}
+            <div key={comment.id} className="flex gap-2.5">
+              <Avatar className="size-7 shrink-0">
+                <AvatarFallback className="text-[10px]">
+                  {getAvatarInitials(comment, userProfiles)}
                 </AvatarFallback>
               </Avatar>
 
-              <div className="min-w-0 flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">
-                    {getAuthorLabel(comment)}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-semibold truncate">
+                    {getAuthorName(comment, userProfiles, connectionNames)}
                   </span>
                   <Badge
                     variant={comment.user_id ? "secondary" : "outline"}
-                    className="text-[10px] px-1.5 py-0"
+                    className="text-[9px] px-1 py-0 shrink-0"
                   >
                     {comment.user_id ? "User" : "API"}
                   </Badge>
-                  <span className="text-muted-foreground text-xs">
+                  <span className="text-muted-foreground text-[10px] shrink-0">
                     {formatDistanceToNow(new Date(comment.created_at), {
                       addSuffix: true,
                     })}
                   </span>
                 </div>
 
-                <p className="text-sm whitespace-pre-wrap break-words">
+                <p className="text-sm whitespace-pre-wrap break-words mt-0.5 leading-relaxed">
                   {comment.body}
                 </p>
               </div>
@@ -162,28 +171,30 @@ export function ApprovalComments({
         </div>
       )}
 
-      <Separator />
-
       {/* Reply form */}
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit} className="flex gap-2">
         <Textarea
           placeholder="Write a comment..."
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          rows={3}
+          rows={1}
           disabled={isSubmitting}
-          className="resize-none"
+          className="resize-none text-sm min-h-[36px]"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              if (body.trim()) handleSubmit(e);
+            }
+          }}
         />
-        <div className="flex justify-end">
-          <Button
-            type="submit"
-            size="sm"
-            disabled={isSubmitting || !body.trim()}
-          >
-            <Send className="size-4" />
-            {isSubmitting ? "Posting..." : "Post Comment"}
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          size="sm"
+          className="shrink-0 h-9"
+          disabled={isSubmitting || !body.trim()}
+        >
+          <Send className="size-3.5" />
+        </Button>
       </form>
     </div>
   );

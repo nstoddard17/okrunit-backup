@@ -209,8 +209,14 @@ export function ApprovalCard({
 
           {/* Right side: badges + hover actions */}
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
-            {/* Inline approve/reject — visible on hover */}
-            {isPending && canApprove && onInlineAction && (
+            {/* Activity log badge */}
+            {approval.is_log && (
+              <Badge variant="outline" className="text-[11px] gap-1 border-blue-200 text-blue-600 bg-blue-50">
+                Activity Log
+              </Badge>
+            )}
+            {/* Inline approve/reject — visible on hover (hidden for logs) */}
+            {isPending && canApprove && onInlineAction && !approval.is_log && (
               <div className="hidden items-center gap-1.5 sm:flex sm:opacity-0 sm:transition-opacity sm:group-hover/card:opacity-100">
                 <Button
                   size="sm"

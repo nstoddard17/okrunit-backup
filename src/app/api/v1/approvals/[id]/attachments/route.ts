@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // ---- Constants ------------------------------------------------------------
@@ -189,6 +190,7 @@ export async function POST(
       action: "attachment.uploaded",
       resourceType: "approval_attachment",
       resourceId: attachment.id,
+      ipAddress: getClientIp(request),
       details: {
         request_id: id,
         file_name: file.name,

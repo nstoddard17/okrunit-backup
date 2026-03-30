@@ -21,6 +21,7 @@ import { NextResponse } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { deliverCallback } from "@/lib/api/callbacks";
 import { isRejectionReasonRequired } from "@/lib/api/rejection-reason";
 import {
@@ -114,7 +115,7 @@ function telegramDisplayName(user: TelegramUser): string {
 // Apply decision to the approval
 // ---------------------------------------------------------------------------
 
-async function applyDecision(params: {
+async function applyDecision(request: Request, params: {
   decision: "approve" | "reject";
   requestId: string;
   telegramUser: TelegramUser;
@@ -219,6 +220,7 @@ async function applyDecision(params: {
       telegram_user_id: telegramUser.id,
       telegram_display_name: displayName,
     },
+    ipAddress: getClientIp(request),
   });
 
   if (approval.callback_url) {
@@ -299,7 +301,7 @@ export async function POST(request: Request) {
 
     pendingReasons.delete(key);
 
-    await applyDecision({
+    await applyDecision(request, {
       decision: pending.action,
       requestId: pending.requestId,
       telegramUser: fromUser,
@@ -331,7 +333,7 @@ export async function POST(request: Request) {
   // -------------------------------------------------------------------------
   if (parts[1] === "approve" && parts.length === 3) {
     await answerCallbackQuery(cb.id, "Approved!");
-    await applyDecision({
+    await applyDecision(request, {
       decision: "approve",
       requestId: parts[2],
       telegramUser: cb.from,
@@ -385,7 +387,7 @@ export async function POST(request: Request) {
 
     // No reason required — apply immediately
     await answerCallbackQuery(cb.id, "Rejected!");
-    await applyDecision({
+    await applyDecision(request, {
       decision: "reject",
       requestId,
       telegramUser: cb.from,

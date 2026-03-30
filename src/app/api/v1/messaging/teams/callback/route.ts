@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 
 const TEAMS_CLIENT_ID = process.env.TEAMS_CLIENT_ID!;
 const TEAMS_CLIENT_SECRET = process.env.TEAMS_CLIENT_SECRET!;
@@ -46,13 +47,13 @@ export async function GET(request: Request) {
   if (errorParam) {
     const errorDesc = url.searchParams.get("error_description") ?? errorParam;
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=${encodeURIComponent(errorDesc)}`,
+      `${APP_URL}/requests/messaging?error=${encodeURIComponent(errorDesc)}`,
     );
   }
 
   if (!code || !stateParam) {
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=missing_params`,
+      `${APP_URL}/requests/messaging?error=missing_params`,
     );
   }
 
@@ -64,7 +65,7 @@ export async function GET(request: Request) {
     }
   } catch {
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=invalid_state`,
+      `${APP_URL}/requests/messaging?error=invalid_state`,
     );
   }
 
@@ -90,7 +91,7 @@ export async function GET(request: Request) {
       const body = await tokenResponse.text();
       console.error("[Teams Callback] Token exchange failed:", body);
       return NextResponse.redirect(
-        `${APP_URL}/settings/messaging?error=token_exchange_failed`,
+        `${APP_URL}/requests/messaging?error=token_exchange_failed`,
       );
     }
 
@@ -177,7 +178,7 @@ export async function GET(request: Request) {
     if (upsertError) {
       console.error("[Teams Callback] Upsert failed:", upsertError);
       return NextResponse.redirect(
-        `${APP_URL}/settings/messaging?error=save_failed`,
+        `${APP_URL}/requests/messaging?error=save_failed`,
       );
     }
 
@@ -188,6 +189,7 @@ export async function GET(request: Request) {
       action: "messaging_connection.created",
       resourceType: "messaging_connection",
       resourceId: teamId || channelId,
+      ipAddress: getClientIp(request),
       details: {
         platform: "teams",
         team_name: teamName,
@@ -197,12 +199,12 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?success=teams`,
+      `${APP_URL}/requests/messaging?success=teams`,
     );
   } catch (error) {
     console.error("[Teams Callback] Unexpected error:", error);
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=unexpected`,
+      `${APP_URL}/requests/messaging?error=unexpected`,
     );
   }
 }

@@ -75,6 +75,8 @@ export function AccountSettings({
 }: AccountSettingsProps) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // Profile
   const [fullName, setFullName] = useState(initialFullName);
@@ -401,6 +403,7 @@ export function AccountSettings({
               <Button
                 variant="outline"
                 size="sm"
+                className="bg-white dark:bg-card"
                 onClick={() => setShowEmailForm(!showEmailForm)}
               >
                 Change email
@@ -477,6 +480,7 @@ export function AccountSettings({
               <Button
                 variant="outline"
                 size="sm"
+                className="bg-white dark:bg-card"
                 onClick={handleSendPasswordReset}
                 disabled={isSendingReset}
               >
@@ -511,7 +515,7 @@ export function AccountSettings({
                 type="button"
                 onClick={() => setTheme(value)}
                 className={`flex flex-1 flex-col items-center gap-2 rounded-lg border p-4 text-sm transition-colors ${
-                  theme === value
+                  mounted && theme === value
                     ? "border-primary bg-primary/5 text-primary"
                     : "border-border hover:border-primary/50 hover:bg-muted/50"
                 }`}

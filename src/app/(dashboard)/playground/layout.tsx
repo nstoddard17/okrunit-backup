@@ -16,7 +16,7 @@ export default async function PlaygroundLayout({
   return (
     <div className="flex w-full flex-col md:flex-row md:min-h-[calc(100vh-52px)]">
       {/* Left sidebar — desktop */}
-      <aside className="hidden md:block w-56 shrink-0 border-r border-border/40 bg-white pt-0">
+      <aside className="hidden md:block w-56 shrink-0 border-r border-border/40 bg-[var(--card)] pt-0">
         <PlaygroundNav isAdmin={isAdmin} />
       </aside>
 

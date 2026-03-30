@@ -3,6 +3,7 @@ import { getOrgContext } from "@/lib/org-context";
 import { recordStepVote } from "@/lib/approvals/steps-engine";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { z } from "zod";
 
 const VoteSchema = z.object({
@@ -61,6 +62,7 @@ export async function PATCH(
       action: `step_${parsed.data.decision}`,
       resourceType: "approval_step",
       resourceId: stepId,
+      ipAddress: getClientIp(req),
       details: {
         request_id: id,
         step_complete: result.stepComplete,

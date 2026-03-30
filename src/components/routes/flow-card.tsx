@@ -14,6 +14,9 @@ import {
   Shield,
   X,
   ArrowRight,
+  Plus,
+  Loader2,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,6 +37,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { SOURCE_CONFIG } from "@/components/approvals/source-icons";
 import { cn } from "@/lib/utils";
 import type { ApprovalFlow, ApproverMode, UserRole } from "@/lib/types/database";
@@ -62,6 +70,26 @@ const ROLE_OPTIONS: { label: string; value: UserRole }[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function FieldLabel({ children, tooltip }: { children: React.ReactNode; tooltip: string }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <Label className="text-xs">{children}</Label>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Info className="size-3 text-muted-foreground/50 hover:text-muted-foreground cursor-help" />
+        </TooltipTrigger>
+        <TooltipContent side="right" className="max-w-[260px] text-xs">
+          {tooltip}
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -73,49 +101,179 @@ interface FlowCardProps {
   positionsMap?: Record<string, string>;
 }
 
+// Draft state shape for sessionStorage persistence
+interface FlowDraft {
+  flowName: string;
+  sourceUrl: string;
+  approverMode: UIApproverMode;
+  selectedApprovers: string[];
+  selectedTeamId: string;
+  requiredRole: string;
+  isSequential: boolean;
+  requiredApprovals: number;
+  durationPreset: string;
+  customCount: string;
+  selectedPositionId: string;
+}
+
+function getDraftKey(flowId: string) {
+  return `okrunit:flow-draft:${flowId}`;
+}
+
+function loadDraft(flowId: string): FlowDraft | null {
+  try {
+    const raw = sessionStorage.getItem(getDraftKey(flowId));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(flowId: string, draft: FlowDraft) {
+  try {
+    sessionStorage.setItem(getDraftKey(flowId), JSON.stringify(draft));
+  } catch {
+    // sessionStorage full or unavailable — ignore
+  }
+}
+
+function clearDraft(flowId: string) {
+  try {
+    sessionStorage.removeItem(getDraftKey(flowId));
+  } catch {
+    // ignore
+  }
+}
+
 export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCardProps) {
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [restoredDraft, setRestoredDraft] = useState(false);
 
-  // Flow name (editable)
-  const [flowName, setFlowName] = useState(flow.name || "");
-
-  // Form state — initialized from flow
-  // Detect "by_position" mode: designated with a team but no individual approvers
+  // Compute initial values from flow (used for both fresh init and dirty detection)
   const initialUIMode: UIApproverMode =
     flow.approver_mode === "designated" &&
     flow.assigned_team_id &&
     (!flow.assigned_approvers || flow.assigned_approvers.length === 0)
       ? "by_position"
       : flow.approver_mode || "any";
-  const [approverMode, setApproverMode] = useState<UIApproverMode>(initialUIMode);
-  const [selectedApprovers, setSelectedApprovers] = useState<string[]>(flow.assigned_approvers ?? []);
-  const [selectedTeamId, setSelectedTeamId] = useState(flow.assigned_team_id ?? "none");
-  const [requiredRole, setRequiredRole] = useState<UserRole | "none">(flow.required_role ?? "none");
-  const [isSequential, setIsSequential] = useState(flow.is_sequential ?? false);
-  const [requiredApprovals, setRequiredApprovals] = useState(flow.default_required_approvals ?? 1);
-  const [durationPreset, setDurationPreset] = useState<string>(() => {
+
+  const initialDurationPreset = (() => {
     if (flow.apply_for_next === null) return "forever";
     const match = DURATION_PRESETS.find(
       (p) => p.value !== "forever" && p.value !== "custom" && Number(p.value) === flow.apply_for_next,
     );
-    if (match) return match.value;
-    // Non-standard value → custom
-    return "custom";
-  });
-  const [customCount, setCustomCount] = useState(() => {
+    return match ? match.value : "custom";
+  })();
+
+  const initialCustomCount = (() => {
     if (flow.apply_for_next === null) return "";
     const match = DURATION_PRESETS.find(
       (p) => p.value !== "forever" && p.value !== "custom" && Number(p.value) === flow.apply_for_next,
     );
     return match ? "" : String(flow.apply_for_next);
-  });
+  })();
+
+  // Check for saved draft on mount
+  const draft = loadDraft(flow.id);
+
+  // Flow name & source URL (editable)
+  const [flowName, setFlowName] = useState(draft?.flowName ?? flow.name ?? "");
+  const [sourceUrl, setSourceUrl] = useState(draft?.sourceUrl ?? flow.source_url ?? "");
+
+  // Form state
+  const [approverMode, setApproverMode] = useState<UIApproverMode>(draft?.approverMode ?? initialUIMode);
+  const [selectedApprovers, setSelectedApprovers] = useState<string[]>(draft?.selectedApprovers ?? flow.assigned_approvers ?? []);
+  const [selectedTeamId, setSelectedTeamId] = useState(draft?.selectedTeamId ?? flow.assigned_team_id ?? "none");
+  const [requiredRole, setRequiredRole] = useState<UserRole | "none">((draft?.requiredRole as UserRole | "none") ?? flow.required_role ?? "none");
+  const [isSequential, setIsSequential] = useState(draft?.isSequential ?? flow.is_sequential ?? false);
+  const [requiredApprovals, setRequiredApprovals] = useState(draft?.requiredApprovals ?? flow.default_required_approvals ?? 1);
+  const [durationPreset, setDurationPreset] = useState<string>(draft?.durationPreset ?? initialDurationPreset);
+  const [customCount, setCustomCount] = useState(draft?.customCount ?? initialCustomCount);
 
   // Position state (for by_position mode)
-  const [selectedPositionId, setSelectedPositionId] = useState(flow.assigned_position_id ?? "none");
+  const [selectedPositionId, setSelectedPositionId] = useState(draft?.selectedPositionId ?? flow.assigned_position_id ?? "none");
   const [positions, setPositions] = useState<{ id: string; name: string }[]>([]);
   const [loadingPositions, setLoadingPositions] = useState(false);
+  const [newPositionName, setNewPositionName] = useState("");
+  const [creatingPosition, setCreatingPosition] = useState(false);
+
+  // Show restored draft toast on mount (once)
+  useEffect(() => {
+    if (draft && !restoredDraft) {
+      setRestoredDraft(true);
+      setExpanded(true);
+      toast("Restored unsaved changes", {
+        description: "Your previous edits to this flow were recovered.",
+        action: {
+          label: "Discard",
+          onClick: () => {
+            clearDraft(flow.id);
+            // Reset all fields to flow values
+            setFlowName(flow.name ?? "");
+            setSourceUrl(flow.source_url ?? "");
+            setApproverMode(initialUIMode);
+            setSelectedApprovers(flow.assigned_approvers ?? []);
+            setSelectedTeamId(flow.assigned_team_id ?? "none");
+            setRequiredRole(flow.required_role ?? "none");
+            setIsSequential(flow.is_sequential ?? false);
+            setRequiredApprovals(flow.default_required_approvals ?? 1);
+            setDurationPreset(initialDurationPreset);
+            setCustomCount(initialCustomCount);
+            setSelectedPositionId(flow.assigned_position_id ?? "none");
+            toast.success("Draft discarded");
+          },
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Detect dirty state (any field differs from saved flow)
+  const isDirty =
+    flowName !== (flow.name ?? "") ||
+    sourceUrl !== (flow.source_url ?? "") ||
+    approverMode !== initialUIMode ||
+    JSON.stringify(selectedApprovers) !== JSON.stringify(flow.assigned_approvers ?? []) ||
+    selectedTeamId !== (flow.assigned_team_id ?? "none") ||
+    requiredRole !== (flow.required_role ?? "none") ||
+    isSequential !== (flow.is_sequential ?? false) ||
+    requiredApprovals !== (flow.default_required_approvals ?? 1) ||
+    durationPreset !== initialDurationPreset ||
+    customCount !== initialCustomCount ||
+    selectedPositionId !== (flow.assigned_position_id ?? "none");
+
+  // Save draft to sessionStorage on every change
+  useEffect(() => {
+    if (isDirty) {
+      saveDraft(flow.id, {
+        flowName,
+        sourceUrl,
+        approverMode,
+        selectedApprovers,
+        selectedTeamId,
+        requiredRole,
+        isSequential,
+        requiredApprovals,
+        durationPreset,
+        customCount,
+        selectedPositionId,
+      });
+    } else {
+      clearDraft(flow.id);
+    }
+  }, [flow.id, isDirty, flowName, sourceUrl, approverMode, selectedApprovers, selectedTeamId, requiredRole, isSequential, requiredApprovals, durationPreset, customCount, selectedPositionId]);
+
+  // Warn on tab close / hard navigation when dirty
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   useEffect(() => {
     if (approverMode !== "by_position" || selectedTeamId === "none") {
@@ -129,6 +287,32 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
       .catch(() => setPositions([]))
       .finally(() => setLoadingPositions(false));
   }, [approverMode, selectedTeamId]);
+
+  async function handleCreatePosition() {
+    const name = newPositionName.trim();
+    if (!name || selectedTeamId === "none") return;
+    setCreatingPosition(true);
+    try {
+      const res = await fetch(`/api/v1/teams/${selectedTeamId}/positions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to create position");
+      }
+      const { data } = await res.json();
+      setPositions((prev) => [...prev, { id: data.id, name: data.name }].sort((a, b) => a.name.localeCompare(b.name)));
+      setSelectedPositionId(data.id);
+      setNewPositionName("");
+      toast.success(`Position "${name}" created`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create position");
+    } finally {
+      setCreatingPosition(false);
+    }
+  }
 
   // ---- Source display -------------------------------------------------------
 
@@ -197,6 +381,7 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
       is_sequential: isSequential,
       apply_for_next: applyForNext,
       name: flowName.trim() || undefined,
+      source_url: sourceUrl.trim() || null,
     };
 
     if (approverMode === "by_position") {
@@ -249,6 +434,7 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
         throw new Error(body?.error ?? "Failed to save");
       }
 
+      clearDraft(flow.id);
       toast.success("Flow configuration saved");
       setExpanded(false);
       router.refresh();
@@ -257,7 +443,7 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
     } finally {
       setSaving(false);
     }
-  }, [flow.id, flowName, approverMode, selectedApprovers, selectedTeamId, selectedPositionId, requiredRole, isSequential, requiredApprovals, durationPreset, customCount, router]);
+  }, [flow.id, flowName, sourceUrl, approverMode, selectedApprovers, selectedTeamId, selectedPositionId, requiredRole, isSequential, requiredApprovals, durationPreset, customCount, router]);
 
   // ---- Approver toggle -----------------------------------------------------
 
@@ -353,7 +539,7 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
           <div className="mt-4 space-y-4 border-t pt-4">
             {/* Flow name */}
             <div className="space-y-2">
-              <Label className="text-xs">Flow name</Label>
+              <FieldLabel tooltip="A friendly name to identify this workflow. If left blank, the integration name is used.">Flow name</FieldLabel>
               <Input
                 value={flowName}
                 onChange={(e) => setFlowName(e.target.value)}
@@ -366,9 +552,41 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
               </p>
             </div>
 
+            {/* Source URL */}
+            <div className="space-y-2">
+              <FieldLabel tooltip="Link to the external workflow (Zap, Scenario, etc.) that sends requests. Enables the 'Open' button for quick access.">Source URL</FieldLabel>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={sourceUrl}
+                  onChange={(e) => setSourceUrl(e.target.value)}
+                  placeholder={`e.g. https://zapier.com/app/zaps/12345`}
+                  disabled={saving}
+                  className="h-9 flex-1"
+                  type="url"
+                />
+                {sourceUrl.trim() && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 gap-1.5 shrink-0"
+                    asChild
+                  >
+                    <a href={sourceUrl.trim()} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="size-3" />
+                      Open
+                    </a>
+                  </Button>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Link to the {sourcePlatformLabel} workflow that sends requests to this flow. Paste the URL to enable the &quot;Open&quot; button.
+              </p>
+            </div>
+
             {/* Approver Mode */}
             <div className="space-y-2">
-              <Label className="text-xs">Who must approve?</Label>
+              <FieldLabel tooltip="Choose how approvers are determined: anyone with permission, specific people, by team position, or by role level.">Who must approve?</FieldLabel>
               <Select
                 value={approverMode}
                 onValueChange={(v) => setApproverMode(v as UIApproverMode)}
@@ -386,142 +604,10 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
               </Select>
             </div>
 
-            {/* Role selection */}
-            {approverMode === "role_based" && (
-              <div className="space-y-2">
-                <Label className="text-xs">Minimum Role Required</Label>
-                <Select
-                  value={requiredRole}
-                  onValueChange={(v) => setRequiredRole(v as UserRole | "none")}
-                  disabled={saving}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ROLE_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-[11px] text-muted-foreground">
-                  Only members with this role or higher can approve. For example, &quot;Admin or higher&quot; means Admins and Owners can approve, but Members cannot.
-                </p>
-              </div>
-            )}
-
-            {/* By Position — team + position selection */}
-            {approverMode === "by_position" && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-xs">Select Team</Label>
-                  {teams.length === 0 ? (
-                    <div className="rounded-lg border border-dashed p-4 text-center">
-                      <Users className="mx-auto size-6 text-muted-foreground/40 mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        You need at least one team to use position-based approval.
-                      </p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="mt-3 gap-1.5"
-                        asChild
-                      >
-                        <Link href="/org/teams">
-                          Go to Teams
-                          <ArrowRight className="size-3" />
-                        </Link>
-                      </Button>
-                    </div>
-                  ) : (
-                    <Select
-                      value={selectedTeamId}
-                      onValueChange={(v) => {
-                        setSelectedTeamId(v);
-                        setSelectedPositionId("none");
-                      }}
-                      disabled={saving}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a team..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {teams.map((team) => (
-                          <SelectItem key={team.id} value={team.id}>
-                            {team.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-
-                {selectedTeamId !== "none" && (
-                  <div className="space-y-2">
-                    <Label className="text-xs">Select Position</Label>
-                    <Select
-                      value={selectedPositionId}
-                      onValueChange={setSelectedPositionId}
-                      disabled={saving || loadingPositions}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={loadingPositions ? "Loading positions..." : "Select a position..."} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Any position (all team members)</SelectItem>
-                        {positions.map((pos) => (
-                          <SelectItem key={pos.id} value={pos.id}>
-                            {pos.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-[11px] text-muted-foreground">
-                      {selectedPositionId !== "none"
-                        ? "Only team members holding this position can approve."
-                        : "All members of the selected team can approve."}{" "}
-                      Manage teams and positions on the{" "}
-                      <Link href="/org/teams" className="underline underline-offset-2 hover:text-foreground">Teams page</Link>.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Team selection — optional scope for any/designated/role_based */}
-            {approverMode !== "by_position" && teams.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-xs">Assign to Team</Label>
-                <Select
-                  value={selectedTeamId}
-                  onValueChange={setSelectedTeamId}
-                  disabled={saving}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="No team selected" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No team (org-wide)</SelectItem>
-                    {teams.map((team) => (
-                      <SelectItem key={team.id} value={team.id}>
-                        {team.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-[11px] text-muted-foreground">
-                  Only members of this team will be notified and asked to approve. Create teams like &quot;HR&quot;, &quot;Management&quot;, or &quot;Engineering&quot; on the{" "}
-                  <Link href="/org/teams" className="underline underline-offset-2 hover:text-foreground">Teams page</Link>.
-                </p>
-              </div>
-            )}
-
             {/* Individual approvers — only for "Specific people" mode */}
             {approverMode === "designated" && (
               <div className="space-y-2">
-                <Label className="text-xs">Select Approvers</Label>
+                <FieldLabel tooltip="Choose which team members can approve requests from this flow. Only members with approval permission are shown.">Select Approvers</FieldLabel>
                 {selectedApprovers.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {selectedApprovers.map((id) => {
@@ -570,11 +656,178 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
               </div>
             )}
 
+            {/* Role selection */}
+            {approverMode === "role_based" && (
+              <div className="space-y-2">
+                <FieldLabel tooltip="Only members at or above this role level can approve. For example, 'Admin or higher' allows Admins and Owners but not Members.">Minimum Role Required</FieldLabel>
+                <Select
+                  value={requiredRole}
+                  onValueChange={(v) => setRequiredRole(v as UserRole | "none")}
+                  disabled={saving}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ROLE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  Only members with this role or higher can approve. For example, &quot;Admin or higher&quot; means Admins and Owners can approve, but Members cannot.
+                </p>
+              </div>
+            )}
+
+            {/* By Position — team + position selection */}
+            {approverMode === "by_position" && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <FieldLabel tooltip="Choose which team's members can approve. Only members of this team will be eligible.">Select Team</FieldLabel>
+                  {teams.length === 0 ? (
+                    <div className="rounded-lg border border-dashed p-4 text-center">
+                      <Users className="mx-auto size-6 text-muted-foreground/40 mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        You need at least one team to use position-based approval.
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-3 gap-1.5"
+                        asChild
+                      >
+                        <Link href="/org/teams">
+                          Go to Teams
+                          <ArrowRight className="size-3" />
+                        </Link>
+                      </Button>
+                    </div>
+                  ) : (
+                    <Select
+                      value={selectedTeamId}
+                      onValueChange={(v) => {
+                        setSelectedTeamId(v);
+                        setSelectedPositionId("none");
+                      }}
+                      disabled={saving}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a team..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teams.map((team) => (
+                          <SelectItem key={team.id} value={team.id}>
+                            {team.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                {selectedTeamId !== "none" && (
+                  <div className="space-y-2">
+                    <FieldLabel tooltip="Narrow approvers to a specific position within the team (e.g. Lead, Reviewer). Choose 'Any position' to allow all team members.">Select Position</FieldLabel>
+                    <Select
+                      value={selectedPositionId}
+                      onValueChange={setSelectedPositionId}
+                      disabled={saving || loadingPositions}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={loadingPositions ? "Loading positions..." : "Select a position..."} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Any position (all team members)</SelectItem>
+                        {positions.map((pos) => (
+                          <SelectItem key={pos.id} value={pos.id}>
+                            {pos.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        placeholder="New position name..."
+                        value={newPositionName}
+                        onChange={(e) => setNewPositionName(e.target.value)}
+                        maxLength={100}
+                        disabled={creatingPosition || saving}
+                        className="h-8 text-xs flex-1"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleCreatePosition();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-1 text-xs shrink-0"
+                        disabled={creatingPosition || !newPositionName.trim() || saving}
+                        onClick={handleCreatePosition}
+                      >
+                        {creatingPosition ? <Loader2 className="size-3 animate-spin" /> : <Plus className="size-3" />}
+                        Add
+                      </Button>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      {selectedPositionId !== "none"
+                        ? "Only team members holding this position can approve."
+                        : "All members of the selected team can approve."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Team selection — optional scope for any/designated/role_based */}
+            {approverMode !== "by_position" && teams.length > 0 && (
+              <div className="space-y-2">
+                <FieldLabel tooltip="Optionally scope this flow to a team. Only that team's members will be notified and able to approve.">Assign to Team</FieldLabel>
+                <Select
+                  value={selectedTeamId}
+                  onValueChange={setSelectedTeamId}
+                  disabled={saving}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="No team selected" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No team (org-wide)</SelectItem>
+                    {teams.map((team) => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  Only members of this team will be notified and asked to approve. Create teams like &quot;HR&quot;, &quot;Management&quot;, or &quot;Engineering&quot; on the{" "}
+                  <Link href="/org/teams" className="underline underline-offset-2 hover:text-foreground">Teams page</Link>.
+                </p>
+              </div>
+            )}
+
             {/* Sequential approval */}
             {approverMode === "designated" && selectedApprovers.length > 1 && (
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="space-y-0.5">
-                  <Label htmlFor={`seq-${flow.id}`} className="text-sm">Sequential Approval</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor={`seq-${flow.id}`} className="text-sm">Sequential Approval</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="size-3 text-muted-foreground/50 hover:text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-[260px] text-xs">
+                        When enabled, approvers must approve one at a time in the order listed. The next approver is only notified after the previous one approves.
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Require approvers to approve in order, one after another.
                   </p>
@@ -591,7 +844,7 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
             {/* Required approvals count */}
             {approverMode === "designated" && selectedApprovers.length > 1 && !isSequential && (
               <div className="space-y-2">
-                <Label className="text-xs">Required Approvals</Label>
+                <FieldLabel tooltip="How many of the selected approvers must approve before the request is considered approved.">Required Approvals</FieldLabel>
                 <Input
                   type="number"
                   min={1}
@@ -609,7 +862,7 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
 
             {/* Duration */}
             <div className="space-y-2">
-              <Label className="text-xs">Apply for</Label>
+              <FieldLabel tooltip="How long these settings last. Choose 'Always' to apply permanently, or a specific number of requests before reverting to defaults.">Apply for</FieldLabel>
               <Select
                 value={durationPreset}
                 onValueChange={setDurationPreset}
@@ -660,7 +913,22 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setExpanded(false)}
+                onClick={() => {
+                  clearDraft(flow.id);
+                  // Reset to saved flow values
+                  setFlowName(flow.name ?? "");
+                  setSourceUrl(flow.source_url ?? "");
+                  setApproverMode(initialUIMode);
+                  setSelectedApprovers(flow.assigned_approvers ?? []);
+                  setSelectedTeamId(flow.assigned_team_id ?? "none");
+                  setRequiredRole(flow.required_role ?? "none");
+                  setIsSequential(flow.is_sequential ?? false);
+                  setRequiredApprovals(flow.default_required_approvals ?? 1);
+                  setDurationPreset(initialDurationPreset);
+                  setCustomCount(initialCustomCount);
+                  setSelectedPositionId(flow.assigned_position_id ?? "none");
+                  setExpanded(false);
+                }}
                 disabled={saving}
               >
                 Cancel
