@@ -255,7 +255,7 @@ export default function IntegrationsPage() {
       </div>
 
       <DocsImage
-        src="/screenshots/docs/connections-list.png"
+        src="/screenshots/docs/connections-list.webp"
         alt="OKrunit connections page showing active API connections"
         caption="Connections are created automatically when you link your account from a platform, or you can create them manually for API access."
       />
@@ -380,7 +380,7 @@ export default function IntegrationsPage() {
       </pre>
 
       <DocsImage
-        src="/screenshots/docs/routes-list.png"
+        src="/screenshots/docs/routes-list.webp"
         alt="Approval routes configuration in the OKrunit dashboard"
         caption="Configure routing rules to control who gets notified and how many approvals are required per source."
       />

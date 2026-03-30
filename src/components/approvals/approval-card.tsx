@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,7 +73,7 @@ const statusGlowColors: Record<string, string> = {
 };
 
 
-export function ApprovalCard({
+export const ApprovalCard = memo(function ApprovalCard({
   approval,
   connectionName,
   creatorName,
@@ -359,4 +359,4 @@ export function ApprovalCard({
       </AlertDialog>
     </>
   );
-}
+});

@@ -364,7 +364,7 @@ else:
       </pre>
 
       <DocsImage
-        src="/screenshots/docs/audit-log.png"
+        src="/screenshots/docs/audit-log.webp"
         alt="Audit log showing webhook delivery events and approval actions"
         caption="All webhook deliveries are logged and visible in the audit log."
       />

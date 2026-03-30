@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, memo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatDistanceToNow, differenceInDays } from "date-fns";
@@ -148,7 +148,7 @@ function clearDraft(flowId: string) {
   }
 }
 
-export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCardProps) {
+export const FlowCard = memo(function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCardProps) {
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -1053,4 +1053,4 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
       </CardContent>
     </Card>
   );
-}
+});

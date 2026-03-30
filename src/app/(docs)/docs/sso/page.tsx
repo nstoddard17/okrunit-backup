@@ -29,7 +29,7 @@ export default function SSODocsPage() {
       </div>
 
       <DocsImage
-        src="/screenshots/docs/sso-settings.png"
+        src="/screenshots/docs/sso-settings.webp"
         alt="SSO configuration settings in the OKrunit dashboard"
         caption="The SSO settings page where you configure your identity provider."
       />
@@ -419,7 +419,7 @@ export default function SSODocsPage() {
       </ol>
 
       <DocsImage
-        src="/screenshots/docs/login.png"
+        src="/screenshots/docs/login.webp"
         alt="OKrunit login page with SSO option"
         caption="Users click 'Sign in with SSO' and enter their work email to authenticate via your IdP."
       />

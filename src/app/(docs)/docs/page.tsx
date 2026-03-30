@@ -23,7 +23,7 @@ export default function GettingStartedPage() {
       </p>
 
       <DocsImage
-        src="/screenshots/docs/dashboard-overview.png"
+        src="/screenshots/docs/dashboard-overview.webp"
         alt="OKrunit dashboard overview showing pending requests, approval rate, and recent activity"
         caption="The OKrunit dashboard gives you a real-time view of all approval activity across your organization."
       />
@@ -73,7 +73,7 @@ export default function GettingStartedPage() {
       </ol>
 
       <DocsImage
-        src="/screenshots/docs/requests-list.png"
+        src="/screenshots/docs/requests-list.webp"
         alt="Approval requests list showing pending, approved, and rejected requests with filtering options"
         caption="All approval requests are visible in the Requests page with filtering by status, priority, and source."
       />
@@ -138,7 +138,7 @@ export default function GettingStartedPage() {
         with 50 approval requests per month.
       </p>
       <DocsImage
-        src="/screenshots/docs/signup.png"
+        src="/screenshots/docs/signup.webp"
         alt="OKrunit signup page"
         caption="Create your free account to get started."
       />
@@ -200,7 +200,7 @@ export default function GettingStartedPage() {
         to configure who gets notified for which types of requests.
       </p>
       <DocsImage
-        src="/screenshots/docs/messaging-channels.png"
+        src="/screenshots/docs/messaging-channels.webp"
         alt="Messaging channels configuration showing Slack, Discord, Teams, Email, and Telegram options"
         caption="Connect your notification channels so approvers are instantly notified."
       />
@@ -231,7 +231,7 @@ export default function GettingStartedPage() {
         and cannot be retrieved again.
       </p>
       <DocsImage
-        src="/screenshots/docs/connections-list.png"
+        src="/screenshots/docs/connections-list.webp"
         alt="Connections page showing API keys and connection management"
         caption="Create connections to generate API keys for your automations."
       />
@@ -362,7 +362,7 @@ export default function GettingStartedPage() {
       </div>
 
       <DocsImage
-        src="/screenshots/docs/analytics-dashboard.png"
+        src="/screenshots/docs/analytics-dashboard.webp"
         alt="Analytics dashboard showing approval volume, approval rate, and response time charts"
         caption="The analytics dashboard tracks trends across your approval workflows."
       />
