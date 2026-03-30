@@ -1,6 +1,14 @@
 // ---------------------------------------------------------------------------
-// OKrunit -- Service Worker for Web Push Notifications
+// OKrunit -- Service Worker for Web Push Notifications + PWA
 // ---------------------------------------------------------------------------
+
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
 
 self.addEventListener("push", (event) => {
   const data = event.data ? event.data.json() : {};
