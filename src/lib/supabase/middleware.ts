@@ -39,6 +39,23 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // Skip auth validation for paths that don't need it — saves a Supabase round-trip
+  const pathname = request.nextUrl.pathname;
+  const isPublicPath =
+    PUBLIC_PATHS.has(pathname) ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/callback") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/approve") ||
+    pathname.startsWith("/reject") ||
+    pathname.startsWith("/docs");
+
+  if (isPublicPath) {
+    supabaseResponse.headers.set("x-pathname", pathname);
+    return supabaseResponse;
+  }
+
   // Use getUser() instead of getSession() for server-side auth verification.
   // getSession() only reads from storage and doesn't validate with Supabase Auth.
   const {
@@ -48,15 +65,7 @@ export async function updateSession(request: NextRequest) {
   // Protect dashboard routes - redirect unauthenticated users to login
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/signup") &&
-    !request.nextUrl.pathname.startsWith("/callback") &&
-    !request.nextUrl.pathname.startsWith("/invite") &&
-    !request.nextUrl.pathname.startsWith("/api") &&
-    !request.nextUrl.pathname.startsWith("/approve") &&
-    !request.nextUrl.pathname.startsWith("/reject") &&
-    !request.nextUrl.pathname.startsWith("/docs") &&
-    !PUBLIC_PATHS.has(request.nextUrl.pathname)
+    !pathname.startsWith("/invite")
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
