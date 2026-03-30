@@ -56,6 +56,14 @@ function makeApproval(overrides: Record<string, unknown> = {}) {
     decided_by_name: null,
     decided_at: null,
     decision_comment: null,
+    decision_source: null,
+    risk_score: null,
+    risk_level: null,
+    auto_approved: false,
+    execution_status: "immediate",
+    conditions_met: true,
+    sla_breached: false,
+    expires_at: null,
     created_at: "2026-02-21T10:00:00.000Z",
     updated_at: "2026-02-21T10:00:00.000Z",
     ...overrides,
@@ -72,6 +80,7 @@ function makeDecidedApproval(
     decided_by_name: "Jane Reviewer",
     decided_at: "2026-02-21T10:30:00.000Z",
     decision_comment: status === "approved" ? "LGTM" : "Not ready",
+    decision_source: "dashboard",
     current_approvals: status === "approved" ? 1 : 0,
     updated_at: "2026-02-21T10:30:00.000Z",
     ...overrides,
@@ -84,8 +93,22 @@ function setupDefaultInputs(overrides: Record<string, string> = {}) {
     "api-url": "https://app.okrunit.com",
     title: "",
     description: "deploy the thing",
+    "action-type": "",
     priority: "medium",
     metadata: "",
+    "context-html": "",
+    "required-approvals": "1",
+    "assigned-approvers": "",
+    "assigned-team-id": "",
+    "is-sequential": "false",
+    "auto-action": "",
+    "auto-action-after-minutes": "",
+    "callback-url": "",
+    "callback-headers": "",
+    "expires-at": "",
+    "require-rejection-reason": "false",
+    "notify-channel-ids": "",
+    conditions: "",
     timeout: "5",
     "poll-interval": "0",
     ...overrides,
@@ -199,6 +222,22 @@ describe("source field", () => {
     const createCall = fetchMock.mock.calls[0];
     const body = JSON.parse(createCall[1].body);
     expect(body.source).toBe("github-actions");
+  });
+
+  it("sends source_url pointing to the GitHub Actions run", async () => {
+    setupDefaultInputs();
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const createCall = fetchMock.mock.calls[0];
+    const body = JSON.parse(createCall[1].body);
+    expect(body.source_url).toBe(
+      "https://github.com/my-org/my-repo/actions/runs/123456",
+    );
   });
 });
 
@@ -328,6 +367,7 @@ describe("outputs on approval", () => {
     "decided-by": "Jane Reviewer",
     "decided-at": "2026-02-21T10:30:00.000Z",
     "decision-comment": "LGTM",
+    "decision-source": "dashboard",
     description: "deploy the thing",
     priority: "medium",
     source: "github-actions",
@@ -335,6 +375,14 @@ describe("outputs on approval", () => {
     "required-approvals": 1,
     "current-approvals": 1,
     "updated-at": "2026-02-21T10:30:00.000Z",
+    "risk-score": "",
+    "risk-level": "",
+    "auto-approved": false,
+    "execution-status": "immediate",
+    "conditions-met": true,
+    "sla-breached": false,
+    "expires-at": "",
+    metadata: "{}",
   };
 
   it("sets all required outputs after an approved decision", async () => {
@@ -465,6 +513,7 @@ describe("action.yml output definitions", () => {
     "decided-by",
     "decided-at",
     "decision-comment",
+    "decision-source",
     "description",
     "priority",
     "source",
@@ -472,6 +521,14 @@ describe("action.yml output definitions", () => {
     "required-approvals",
     "current-approvals",
     "updated-at",
+    "risk-score",
+    "risk-level",
+    "auto-approved",
+    "execution-status",
+    "conditions-met",
+    "sla-breached",
+    "expires-at",
+    "metadata",
   ];
 
   const actionYmlContent: string = fs.readFileSync(actionYmlPath, "utf-8");
@@ -580,6 +637,340 @@ describe("API request structure", () => {
 
     expect(fetchMock.mock.calls[1][0]).toBe(
       `https://app.okrunit.com/api/v1/approvals/${APPROVAL_ID}`,
+    );
+  });
+});
+
+// ---- 13. Advanced inputs ----------------------------------------------------
+
+describe("advanced inputs", () => {
+  it("sends action_type when provided", async () => {
+    setupDefaultInputs({ "action-type": "deploy" });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.action_type).toBe("deploy");
+  });
+
+  it("sends context_html when provided", async () => {
+    setupDefaultInputs({ "context-html": "<h1>Deploy diff</h1>" });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.context_html).toBe("<h1>Deploy diff</h1>");
+  });
+
+  it("sends required_approvals when > 1", async () => {
+    setupDefaultInputs({ "required-approvals": "3" });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval({ required_approvals: 3 }) },
+      { ok: true, body: makeDecidedApproval("approved", { required_approvals: 3, current_approvals: 3 }) },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.required_approvals).toBe(3);
+  });
+
+  it("does not send required_approvals when default (1)", async () => {
+    setupDefaultInputs({ "required-approvals": "1" });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.required_approvals).toBeUndefined();
+  });
+
+  it("sends assigned_approvers as array from comma-separated input", async () => {
+    setupDefaultInputs({
+      "assigned-approvers": "uuid-1, uuid-2, uuid-3",
+    });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.assigned_approvers).toEqual(["uuid-1", "uuid-2", "uuid-3"]);
+  });
+
+  it("sends assigned_team_id when provided", async () => {
+    setupDefaultInputs({ "assigned-team-id": "team-uuid-1" });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.assigned_team_id).toBe("team-uuid-1");
+  });
+
+  it("sends auto_action and auto_action_after_minutes", async () => {
+    setupDefaultInputs({
+      "auto-action": "approve",
+      "auto-action-after-minutes": "30",
+    });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.auto_action).toBe("approve");
+    expect(body.auto_action_after_minutes).toBe(30);
+  });
+
+  it("rejects invalid auto-action value", async () => {
+    setupDefaultInputs({ "auto-action": "delay" });
+    setupFetchMock([]);
+
+    await runAction();
+
+    expect(coreMock.setFailed).toHaveBeenCalledWith(
+      expect.stringContaining('Invalid auto-action "delay"'),
+    );
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("sends callback_url and callback_headers", async () => {
+    setupDefaultInputs({
+      "callback-url": "https://hooks.example.com/deploy",
+      "callback-headers": '{"X-Secret": "abc123"}',
+    });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.callback_url).toBe("https://hooks.example.com/deploy");
+    expect(body.callback_headers).toEqual({ "X-Secret": "abc123" });
+  });
+
+  it("warns on invalid callback-headers JSON", async () => {
+    setupDefaultInputs({
+      "callback-url": "https://hooks.example.com/deploy",
+      "callback-headers": "not-json",
+    });
+    setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    expect(coreMock.warning).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to parse callback-headers"),
+    );
+  });
+
+  it("sends expires_at when provided", async () => {
+    setupDefaultInputs({ "expires-at": "2026-12-31T23:59:59Z" });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.expires_at).toBe("2026-12-31T23:59:59Z");
+  });
+
+  it("sends notify_channel_ids as array from comma-separated input", async () => {
+    setupDefaultInputs({
+      "notify-channel-ids": "chan-1, chan-2",
+    });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.notify_channel_ids).toEqual(["chan-1", "chan-2"]);
+  });
+
+  it("sends conditions when provided as JSON", async () => {
+    const conds = [{ name: "health-check", check_type: "webhook", webhook_url: "https://api.example.com/health" }];
+    setupDefaultInputs({ conditions: JSON.stringify(conds) });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.conditions).toEqual(conds);
+  });
+
+  it("warns on invalid conditions JSON", async () => {
+    setupDefaultInputs({ conditions: "bad-json" });
+    setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    expect(coreMock.warning).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to parse conditions"),
+    );
+  });
+
+  it("sends require_rejection_reason when true", async () => {
+    setupDefaultInputs({ "require-rejection-reason": "true" });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.require_rejection_reason).toBe(true);
+  });
+
+  it("sends is_sequential when true", async () => {
+    setupDefaultInputs({ "is-sequential": "true" });
+    const fetchMock = setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeDecidedApproval("approved") },
+    ]);
+
+    await runAction();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.is_sequential).toBe(true);
+  });
+});
+
+// ---- 14. Cancelled and expired statuses -------------------------------------
+
+describe("cancelled and expired handling", () => {
+  it("calls setFailed when the approval is cancelled", async () => {
+    setupDefaultInputs();
+    setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeApproval({ status: "cancelled" }) },
+    ]);
+
+    await runAction();
+
+    expect(coreMock.setFailed).toHaveBeenCalledWith(
+      expect.stringContaining("cancelled"),
+    );
+  });
+
+  it("calls setFailed when the approval is expired", async () => {
+    setupDefaultInputs();
+    setupFetchMock([
+      { ok: true, body: makeApproval() },
+      { ok: true, body: makeApproval({ status: "expired", expires_at: "2026-02-21T11:00:00.000Z" }) },
+    ]);
+
+    await runAction();
+
+    expect(coreMock.setFailed).toHaveBeenCalledWith(
+      expect.stringContaining("expired"),
+    );
+  });
+});
+
+// ---- 15. New outputs populated from response --------------------------------
+
+describe("new outputs from response", () => {
+  it("sets risk-score and risk-level when present", async () => {
+    setupDefaultInputs();
+    setupFetchMock([
+      { ok: true, body: makeApproval() },
+      {
+        ok: true,
+        body: makeDecidedApproval("approved", {
+          risk_score: 75,
+          risk_level: "high",
+        }),
+      },
+    ]);
+
+    await runAction();
+
+    expect(coreMock.setOutput).toHaveBeenCalledWith("risk-score", 75);
+    expect(coreMock.setOutput).toHaveBeenCalledWith("risk-level", "high");
+  });
+
+  it("sets auto-approved output", async () => {
+    setupDefaultInputs();
+    setupFetchMock([
+      { ok: true, body: makeApproval() },
+      {
+        ok: true,
+        body: makeDecidedApproval("approved", { auto_approved: true }),
+      },
+    ]);
+
+    await runAction();
+
+    expect(coreMock.setOutput).toHaveBeenCalledWith("auto-approved", true);
+  });
+
+  it("sets sla-breached output", async () => {
+    setupDefaultInputs();
+    setupFetchMock([
+      { ok: true, body: makeApproval() },
+      {
+        ok: true,
+        body: makeDecidedApproval("approved", { sla_breached: true }),
+      },
+    ]);
+
+    await runAction();
+
+    expect(coreMock.setOutput).toHaveBeenCalledWith("sla-breached", true);
+  });
+
+  it("sets metadata as JSON string", async () => {
+    setupDefaultInputs();
+    setupFetchMock([
+      { ok: true, body: makeApproval() },
+      {
+        ok: true,
+        body: makeDecidedApproval("approved", {
+          metadata: { env: "prod", version: "1.2.3" },
+        }),
+      },
+    ]);
+
+    await runAction();
+
+    expect(coreMock.setOutput).toHaveBeenCalledWith(
+      "metadata",
+      '{"env":"prod","version":"1.2.3"}',
     );
   });
 });
