@@ -107,6 +107,17 @@ export default function ApiReferencePage() {
         caption="Use the API Playground in the dashboard to test API calls interactively before writing code."
       />
 
+      {/* OpenAPI Spec */}
+      <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+        <h3 className="font-semibold text-blue-900">OpenAPI Specification</h3>
+        <p className="mt-1 text-sm text-blue-800">
+          Download the machine-readable API spec for code generation, Postman import, or integration tooling:{" "}
+          <a href="/openapi.json" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+            openapi.json &rarr;
+          </a>
+        </p>
+      </div>
+
       {/* Base URL */}
       <h2 className="mt-12 text-2xl font-semibold text-zinc-900">Base URL</h2>
       <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm">
