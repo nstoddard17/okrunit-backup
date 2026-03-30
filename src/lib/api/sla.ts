@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- SLA Tracking
+// OKrunit -- SLA Tracking
 // ---------------------------------------------------------------------------
 //
 // Utilities for calculating SLA deadlines, checking breaches, and gathering

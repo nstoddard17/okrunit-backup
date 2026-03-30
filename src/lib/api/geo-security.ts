@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Geo-fencing & IP Allowlist Security
+// OKrunit -- Geo-fencing & IP Allowlist Security
 // ---------------------------------------------------------------------------
 
 import type { Organization } from "@/lib/types/database";

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Microsoft Teams Notification Channel (Incoming Webhooks)
+// OKrunit -- Microsoft Teams Notification Channel (Incoming Webhooks)
 // ---------------------------------------------------------------------------
 //
 // Uses Incoming Webhooks with Adaptive Cards. Approve/reject actions use

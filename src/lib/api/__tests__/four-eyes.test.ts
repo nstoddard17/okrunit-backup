@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Tests for Four-Eyes Principle
+// OKrunit -- Tests for Four-Eyes Principle
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect } from "vitest";

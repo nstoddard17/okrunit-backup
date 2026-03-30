@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- GitHub App API Helpers
+// OKrunit -- GitHub App API Helpers
 // ---------------------------------------------------------------------------
 
 import { createHmac } from "crypto";
@@ -127,7 +127,7 @@ export async function getInstallationToken(
 /**
  * Create or update a GitHub Check Run on a commit.
  *
- * Used to report OKRunit approval status back to a pull request.
+ * Used to report OKrunit approval status back to a pull request.
  */
 export async function createCheckRun(
   params: CheckRunParams,
@@ -138,7 +138,7 @@ export async function createCheckRun(
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://okrunit.com";
 
   const body: Record<string, unknown> = {
-    name: "OKRunit Approval",
+    name: "OKrunit Approval",
     head_sha: params.sha,
     status: params.status,
     details_url: params.details?.details_url ?? `${appUrl}/dashboard`,
@@ -150,9 +150,9 @@ export async function createCheckRun(
 
   if (params.details) {
     body.output = {
-      title: params.details.title ?? "OKRunit Approval Check",
+      title: params.details.title ?? "OKrunit Approval Check",
       summary:
-        params.details.summary ?? "Waiting for human approval via OKRunit.",
+        params.details.summary ?? "Waiting for human approval via OKrunit.",
       text: params.details.text,
     };
   }

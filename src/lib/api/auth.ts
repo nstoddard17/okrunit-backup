@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- API Authentication (Triple: API Key + OAuth + Supabase Session)
+// OKrunit -- API Authentication (Triple: API Key + OAuth + Supabase Session)
 // ---------------------------------------------------------------------------
 
 import { createHash, randomBytes } from "crypto";

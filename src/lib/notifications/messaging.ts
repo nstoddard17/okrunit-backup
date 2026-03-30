@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Messaging Connections Loader
+// OKrunit -- Messaging Connections Loader
 // ---------------------------------------------------------------------------
 // Loads active messaging connections for an organization, used by the
 // notification orchestrator to fan out to Slack, Discord, Teams, and Telegram.

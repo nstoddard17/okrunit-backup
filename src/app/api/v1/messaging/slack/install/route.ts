@@ -1,10 +1,10 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Slack OAuth Install Route
+// OKrunit -- Slack OAuth Install Route
 // ---------------------------------------------------------------------------
 // GET /api/v1/messaging/slack/install
 //
 // Redirects the user to Slack's OAuth2 v2 authorize URL to install the
-// OKRunit app into their workspace.
+// OKrunit app into their workspace.
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

@@ -28,7 +28,6 @@ const newApproval = {
         type: "string",
         required: false,
         choices: {
-          "": "All",
           pending: "Pending",
           approved: "Approved",
           rejected: "Rejected",
@@ -43,7 +42,6 @@ const newApproval = {
         type: "string",
         required: false,
         choices: {
-          "": "All",
           low: "Low",
           medium: "Medium",
           high: "High",

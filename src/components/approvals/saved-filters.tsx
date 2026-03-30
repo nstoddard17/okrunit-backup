@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Saved Filters: Dropdown to save, apply, and delete filters
+// OKrunit -- Saved Filters: Dropdown to save, apply, and delete filters
 // ---------------------------------------------------------------------------
 
 import { useState, useEffect, useCallback } from "react";

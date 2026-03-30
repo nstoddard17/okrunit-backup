@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- App Admin Context Helper
+// OKrunit -- App Admin Context Helper
 // Server-side utility for verifying app-level admin access.
 // ---------------------------------------------------------------------------
 

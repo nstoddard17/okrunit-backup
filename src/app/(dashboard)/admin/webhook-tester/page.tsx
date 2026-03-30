@@ -7,7 +7,7 @@ import { WebhookTesterTab } from "@/components/admin/webhook-tester-tab";
 import type { WebhookTestEndpoint, WebhookTestRequest, AuditLogEntry } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Webhook Tester - Admin - OKRunit",
+  title: "Webhook Tester - Admin - OKrunit",
 };
 
 const PAGE_SIZE = 50;

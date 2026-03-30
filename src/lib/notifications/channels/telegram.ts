@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Telegram Notification Channel (Bot API)
+// OKrunit -- Telegram Notification Channel (Bot API)
 // ---------------------------------------------------------------------------
 
 const APP_URL =

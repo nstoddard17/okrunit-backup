@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Webhook Replay API: POST (replay a specific delivery)
+// OKrunit -- Webhook Replay API: POST (replay a specific delivery)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

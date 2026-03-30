@@ -155,27 +155,28 @@ export function SocialLoginButtons({
           const isLastUsed = lastProvider === provider.id;
 
           return (
-            <div key={provider.id} className="relative">
-              {isLastUsed && (
-                <span className="absolute -top-2 -right-2 z-10 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold leading-none text-primary-foreground">
-                  Last Used
-                </span>
-              )}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                disabled={disabled || loadingProvider !== null}
-                onClick={() => handleSocialLogin(provider.id)}
-              >
+            <Button
+              key={provider.id}
+              type="button"
+              variant="outline"
+              className="w-full justify-between"
+              disabled={disabled || loadingProvider !== null}
+              onClick={() => handleSocialLogin(provider.id)}
+            >
+              <span className="flex items-center gap-2">
                 {isLoading ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
                   <Icon className="size-4" />
                 )}
                 {action} with {provider.label}
-              </Button>
-            </div>
+              </span>
+              {isLastUsed && (
+                <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold leading-none text-primary-foreground">
+                  Last used
+                </span>
+              )}
+            </Button>
           );
         })}
       </div>

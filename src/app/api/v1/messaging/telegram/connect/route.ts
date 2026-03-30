@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Telegram Bot Connect Route
+// OKrunit -- Telegram Bot Connect Route
 // ---------------------------------------------------------------------------
 // POST /api/v1/messaging/telegram/connect
 //

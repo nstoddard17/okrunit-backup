@@ -184,7 +184,7 @@ const queueAttention: RequestItem[] = [
     owner: "Operations",
   },
   {
-    title: "Update billing address for OKRunit",
+    title: "Update billing address for OKrunit",
     source: "make",
     priority: "medium",
     status: "pending",
@@ -680,7 +680,7 @@ function SidebarContext() {
       <div className="flex items-center justify-center py-3">
         <Image
           src="/logo-icon.png"
-          alt="OKRunit"
+          alt="OKrunit"
           width={56}
           height={56}
           className="size-14 object-contain drop-shadow-md"
@@ -1408,7 +1408,7 @@ function HeroTopBar() {
   return (
     <div className="flex h-[52px] items-center justify-between border-b border-slate-200 bg-white px-4">
       <div className="flex items-center gap-2">
-        <span className="text-sm font-semibold text-slate-900">OKRunit</span>
+        <span className="text-sm font-semibold text-slate-900">OKrunit</span>
         <ChevronRight className="size-3.5 text-slate-400" />
         <span className="text-sm text-slate-500">Requests</span>
       </div>
@@ -1647,13 +1647,13 @@ export function LandingPage({ user }: LandingPageProps) {
           <Link href="/" className="flex items-center gap-2">
             <Image
               src="/logo-icon.png"
-              alt="OKRunit"
+              alt="OKrunit"
               width={36}
               height={36}
               className="size-8 object-contain sm:size-9"
               priority
             />
-            <span className="text-lg font-bold tracking-tight text-slate-900">OKRunit</span>
+            <span className="text-lg font-bold tracking-tight text-slate-900">OKrunit</span>
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 lg:flex">

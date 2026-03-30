@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { SafetySettings } from "@/components/settings/safety-settings";
 
 export const metadata = {
-  title: "Safety Settings - OKRunit",
+  title: "Safety Settings - OKrunit",
   description: "Manage auto-approval controls and emergency stop.",
 };
 

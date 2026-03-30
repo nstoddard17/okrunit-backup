@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Discord Notification Channel (Webhook Embeds + Buttons)
+// OKrunit -- Discord Notification Channel (Webhook Embeds + Buttons)
 // ---------------------------------------------------------------------------
 
 const APP_URL =
@@ -154,7 +154,7 @@ export async function sendDiscordNotification(
     description: params.description ?? undefined,
     color: priorityColor(params.priority),
     fields,
-    footer: { text: "OKRunit" },
+    footer: { text: "OKrunit" },
     timestamp: new Date().toISOString(),
   };
 
@@ -255,7 +255,7 @@ export async function sendDiscordDecisionNotification(
     description,
     color: decisionColor(params.decision),
     fields: [],
-    footer: { text: "OKRunit" },
+    footer: { text: "OKrunit" },
     timestamp: new Date().toISOString(),
   };
 

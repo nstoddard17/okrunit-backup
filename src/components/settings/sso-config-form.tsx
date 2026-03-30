@@ -390,7 +390,7 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
               <div>
                 <h4 className="mb-3 text-sm font-medium">Attribute Mapping</h4>
                 <p className="mb-3 text-xs text-muted-foreground">
-                  Map SAML attributes from your IdP to OKRunit fields. Defaults work for most providers.
+                  Map SAML attributes from your IdP to OKrunit fields. Defaults work for most providers.
                 </p>
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div>

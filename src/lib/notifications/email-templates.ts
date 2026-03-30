@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Polished HTML Email Templates
+// OKrunit -- Polished HTML Email Templates
 // ---------------------------------------------------------------------------
 // Beautiful, responsive email templates with inline CSS for maximum
 // email client compatibility. Uses the shared emailLayout wrapper.
@@ -354,7 +354,7 @@ export function approvalDecisionEmail(params: ApprovalDecisionEmailParams): stri
     body,
     preheader: `${params.requestTitle} has been ${params.decision}`,
     footerText:
-      "You received this email because you are a member of this OKRunit organization.",
+      "You received this email because you are a member of this OKrunit organization.",
   });
 }
 
@@ -491,6 +491,6 @@ export function usageLimitEmail(params: UsageLimitEmailParams): string {
       ? `${params.orgName}: ${resource.singular} limit reached`
       : `${params.orgName}: ${percentage}% of ${resource.singular} limit used`,
     footerText:
-      "You received this email because you are an admin of this OKRunit organization.",
+      "You received this email because you are an admin of this OKrunit organization.",
   });
 }

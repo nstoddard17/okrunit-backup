@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Tests for Geo-fencing & IP Allowlist Security
+// OKrunit -- Tests for Geo-fencing & IP Allowlist Security
 // ---------------------------------------------------------------------------
 // These tests validate pure functions and can run with any test runner (vitest, jest, etc.)
 

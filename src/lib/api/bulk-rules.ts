@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Bulk Approval Rules Engine
+// OKrunit -- Bulk Approval Rules Engine
 // ---------------------------------------------------------------------------
 
 import { createAdminClient } from "@/lib/supabase/admin";

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Callback / Webhook Delivery
+// OKrunit -- Callback / Webhook Delivery
 // ---------------------------------------------------------------------------
 
 import { createHmac } from "crypto";
@@ -91,8 +91,8 @@ export async function deliverCallback(params: CallbackParams): Promise<void> {
 
       if (hmacSecret) {
         const signature = computeHmac(bodyString, hmacSecret);
-        headers["X-OKRunit-Signature"] = `sha256=${signature}`;
-        headers["X-OKRunit-Timestamp"] = String(
+        headers["X-OKrunit-Signature"] = `sha256=${signature}`;
+        headers["X-OKrunit-Timestamp"] = String(
           Math.floor(Date.now() / 1000),
         );
       }

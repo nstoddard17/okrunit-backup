@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Bottleneck Detection API: GET
+// OKrunit -- Bottleneck Detection API: GET
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

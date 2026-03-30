@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Risk Scoring Engine
+// OKrunit -- Risk Scoring Engine
 // ---------------------------------------------------------------------------
 //
 // Automatically assesses risk for approval requests based on multiple signals.

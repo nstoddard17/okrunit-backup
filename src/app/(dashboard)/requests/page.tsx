@@ -5,7 +5,7 @@ import { ApprovalDashboard } from "@/components/approvals/approval-dashboard";
 import type { CreatedByInfo } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Requests - OKRunit",
+  title: "Requests - OKrunit",
   description: "View and manage approval requests.",
 };
 

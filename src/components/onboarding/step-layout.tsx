@@ -37,12 +37,12 @@ export function StepLayout({
   return (
     <div className="flex flex-col gap-6">
       {/* Step counter */}
-      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+      <p className="text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
         Step {stepNumber} of {totalSteps}
       </p>
 
       {/* Header */}
-      <div className="space-y-2">
+      <div className="space-y-2 text-center">
         <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Analytics Query Functions
+// OKrunit -- Analytics Query Functions
 // ---------------------------------------------------------------------------
 
 import { createAdminClient } from "@/lib/supabase/admin";

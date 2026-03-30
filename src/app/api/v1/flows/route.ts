@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Approval Flows API: GET (list)
+// OKrunit -- Approval Flows API: GET (list)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

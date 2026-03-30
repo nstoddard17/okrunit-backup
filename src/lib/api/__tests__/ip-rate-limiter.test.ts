@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Tests for In-Memory Rate Limiter
+// OKrunit -- Tests for In-Memory Rate Limiter
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect, beforeEach, vi } from "vitest";

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Bulk Approval Rules API: Execute (manually trigger a rule)
+// OKrunit -- Bulk Approval Rules API: Execute (manually trigger a rule)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

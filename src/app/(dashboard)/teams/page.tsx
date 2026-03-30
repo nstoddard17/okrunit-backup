@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Teams Management Dashboard Page
+// OKrunit -- Teams Management Dashboard Page
 // ---------------------------------------------------------------------------
 
 import { redirect } from "next/navigation";
@@ -10,7 +10,7 @@ import { TeamList } from "@/components/teams/team-list";
 import { PageContainer } from "@/components/ui/page-container";
 
 export const metadata = {
-  title: "Teams - OKRunit",
+  title: "Teams - OKrunit",
   description: "Manage teams within your organization.",
 };
 

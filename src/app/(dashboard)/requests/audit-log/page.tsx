@@ -3,7 +3,7 @@ import { getOrgContext } from "@/lib/org-context";
 import { AuditLogClient } from "@/components/audit/audit-log-client";
 
 export const metadata = {
-  title: "Audit Log - OKRunit",
+  title: "Audit Log - OKrunit",
   description: "View a chronological log of all actions in your organization.",
 };
 

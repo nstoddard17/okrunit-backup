@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Admin Impersonate API
+// OKrunit -- Admin Impersonate API
 // POST: Switch the app admin's default org to a target org.
 // ---------------------------------------------------------------------------
 

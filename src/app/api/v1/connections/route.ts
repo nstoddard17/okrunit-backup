@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Connections API: List + Create
+// OKrunit -- Connections API: List + Create
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

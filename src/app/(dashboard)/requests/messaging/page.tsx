@@ -6,7 +6,7 @@ import { MessagingConnectionsPage } from "@/components/messaging/messaging-conne
 import type { ApprovalFlow, MessagingConnection } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Messaging Channels - OKRunit",
+  title: "Messaging Channels - OKrunit",
   description:
     "Connect messaging platforms to receive approval notifications with interactive approve/reject buttons.",
 };

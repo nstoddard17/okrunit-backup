@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Shared Email Layout (v4)
+// OKrunit -- Shared Email Layout (v4)
 // ---------------------------------------------------------------------------
 // Warm, distinctive transactional email design inspired by best-in-class
 // onboarding emails. Full-width hero banners, centered illustrations,
-// friendly conversational tone, and the real OKRunit logo.
+// friendly conversational tone, and the real OKrunit logo.
 // ---------------------------------------------------------------------------
 
 /** Escape basic HTML entities to prevent XSS in user-supplied strings. */
@@ -34,7 +34,7 @@ export const emailTheme = {
   subtle: "#94a394",
   // Structure
   divider: "#e4e9e4",
-  // Brand — green matching the OKRunit logo
+  // Brand — green matching the OKrunit logo
   brand: "#4caf50",
   brandBright: "#66bb6a",
   brandDark: "#388e3c",
@@ -385,7 +385,7 @@ export function emailHeroBanner(options: {
   imageHeight?: number;
   alt?: string;
 }): string {
-  const { image, imageWidth = 200, imageHeight = 150, alt = "OKRunit" } = options;
+  const { image, imageWidth = 200, imageHeight = 150, alt = "OKrunit" } = options;
 
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${emailTheme.heroBg};border-bottom:1px solid ${emailTheme.heroBorder};">
@@ -498,7 +498,7 @@ export function emailLayout(options: {
 
   const footerContent =
     footerText ??
-    "You received this email because you have an OKRunit account.";
+    "You received this email because you have an OKrunit account.";
 
   return `<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -510,7 +510,7 @@ export function emailLayout(options: {
   <!--[if mso]>
   <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
   <![endif]-->
-  <title>OKRunit</title>
+  <title>OKrunit</title>
 </head>
 <body style="margin:0;padding:0;background-color:${emailTheme.pageBackground};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;">
   ${preheaderBlock}
@@ -525,7 +525,7 @@ export function emailLayout(options: {
               <a href="${PROD_URL}" style="text-decoration:none;">
                 <img
                   src="${LOGO_URL}"
-                  alt="OKRunit"
+                  alt="OKrunit"
                   width="140"
                   style="display:block;width:140px;height:auto;border:0;"
                 />
@@ -562,7 +562,7 @@ export function emailLayout(options: {
                 <a href="${PROD_URL}/settings" style="color:${emailTheme.brandDark};font-weight:600;text-decoration:none;">Settings</a>
               </p>
               <p style="margin:12px 0 0;color:${emailTheme.subtle};font-size:11px;line-height:18px;">
-                OKRunit &middot; Human approval for every automation
+                OKrunit &middot; Human approval for every automation
               </p>
             </td>
           </tr>

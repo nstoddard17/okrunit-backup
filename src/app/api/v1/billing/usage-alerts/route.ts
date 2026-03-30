@@ -5,7 +5,7 @@ import { getPlanLimits, isUnlimited } from "@/lib/billing/plans";
 import { buildUsageAlertEmailHtml } from "@/lib/email/usage-alert";
 import type { BillingPlan } from "@/lib/types/database";
 
-const FROM_EMAIL = process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
+const FROM_EMAIL = process.env.EMAIL_FROM || "OKrunit <noreply@okrunit.com>";
 
 /**
  * POST /api/v1/billing/usage-alerts

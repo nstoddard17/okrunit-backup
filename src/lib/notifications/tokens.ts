@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Email Action Token Management
+// OKrunit -- Email Action Token Management
 // ---------------------------------------------------------------------------
 
 import { randomBytes } from "crypto";

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Condition Check API: POST (trigger re-check of all conditions)
+// OKrunit -- Condition Check API: POST (trigger re-check of all conditions)
 // ---------------------------------------------------------------------------
 
 import { NextResponse, after } from "next/server";

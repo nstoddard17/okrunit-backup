@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Single Condition API: PATCH (update status) + DELETE (remove)
+// OKrunit -- Single Condition API: PATCH (update status) + DELETE (remove)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

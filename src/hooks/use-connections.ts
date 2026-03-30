@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Connection Data Hook
+// OKrunit -- Connection Data Hook
 // ---------------------------------------------------------------------------
 
 import { useState, useEffect } from "react";

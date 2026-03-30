@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Re-authentication Endpoint
+// OKrunit -- Re-authentication Endpoint
 // POST /api/v1/auth/reauth
 // Verifies user password and records a fresh re-authentication timestamp.
 // ---------------------------------------------------------------------------

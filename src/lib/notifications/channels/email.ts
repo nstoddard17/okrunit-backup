@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Email Notification Channel (Resend)
+// OKrunit -- Email Notification Channel (Resend)
 // ---------------------------------------------------------------------------
 
 import { Resend } from "resend";
@@ -19,7 +19,7 @@ import {
 } from "@/lib/email/layout";
 
 const FROM_EMAIL =
-  process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
+  process.env.EMAIL_FROM || "OKrunit <noreply@okrunit.com>";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -162,7 +162,7 @@ export function buildApprovalEmailHtml(params: EmailNotificationParams): string 
           },
           {
             label: "Full Context",
-            valueHtml: `<a href="${dashboardUrl}" style="color:${emailTheme.brandDark};font-weight:700;text-decoration:none;">Open the request in OKRunit &rarr;</a>`,
+            valueHtml: `<a href="${dashboardUrl}" style="color:${emailTheme.brandDark};font-weight:700;text-decoration:none;">Open the request in OKrunit &rarr;</a>`,
             borderless: true,
           },
         ])}
@@ -249,7 +249,7 @@ export function buildDecisionEmailHtml(params: DecisionEmailParams): string {
     heroBanner: emailHeroBanner({ image: heroImage, imageWidth: 200, imageHeight: 170, alt: heroAlt }),
     body,
     preheader: `${params.requestTitle} has been ${params.decision}`,
-    footerText: "You received this email because you are a member of this OKRunit organization.",
+    footerText: "You received this email because you are a member of this OKrunit organization.",
   });
 }
 

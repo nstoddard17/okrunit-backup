@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Teams API: Get + Update + Delete (single team)
+// OKrunit -- Teams API: Get + Update + Delete (single team)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

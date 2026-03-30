@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Notification Settings Form
+// OKrunit -- Notification Settings Form
 // ---------------------------------------------------------------------------
 // Per-user notification preferences: email, push, quiet hours, priority.
 // Messaging integrations (Slack, Discord, Teams, Telegram) are now managed

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Team Positions API: List + Create + Delete
+// OKrunit -- Team Positions API: List + Create + Delete
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

@@ -2,7 +2,7 @@ export function OrganizationJsonLd() {
   const data = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "OKRunit",
+    name: "OKrunit",
     url: "https://okrunit.com",
     logo: "https://okrunit.com/logo.png",
     description:
@@ -22,7 +22,7 @@ export function SoftwareAppJsonLd() {
   const data = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "OKRunit",
+    name: "OKrunit",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     url: "https://okrunit.com",
@@ -66,7 +66,7 @@ export function WebsiteJsonLd() {
   const data = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "OKRunit",
+    name: "OKrunit",
     url: "https://okrunit.com",
     potentialAction: {
       "@type": "SearchAction",
@@ -90,34 +90,34 @@ export function FAQJsonLd() {
     mainEntity: [
       {
         "@type": "Question",
-        name: "What is OKRunit?",
+        name: "What is OKrunit?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "OKRunit is a human-in-the-loop approval gateway for AI agents and automation platforms. It pauses automated workflows when they need to perform destructive or sensitive actions, notifies the right humans, and resumes execution after approval.",
+          text: "OKrunit is a human-in-the-loop approval gateway for AI agents and automation platforms. It pauses automated workflows when they need to perform destructive or sensitive actions, notifies the right humans, and resumes execution after approval.",
         },
       },
       {
         "@type": "Question",
-        name: "How does OKRunit work?",
+        name: "How does OKrunit work?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Your automation makes a single API call to OKRunit when it needs approval. OKRunit notifies the designated approvers via Slack, email, or push notifications. Once approved or rejected, OKRunit sends a webhook callback to your automation to continue or abort.",
+          text: "Your automation makes a single API call to OKrunit when it needs approval. OKrunit notifies the designated approvers via Slack, email, or push notifications. Once approved or rejected, OKrunit sends a webhook callback to your automation to continue or abort.",
         },
       },
       {
         "@type": "Question",
-        name: "What platforms does OKRunit integrate with?",
+        name: "What platforms does OKrunit integrate with?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "OKRunit integrates with Zapier, Make.com, n8n, Slack, GitHub Actions, Temporal, Prefect, Dagster, Windmill, Pipedream, and any platform that supports REST APIs or webhooks.",
+          text: "OKrunit integrates with Zapier, Make.com, n8n, Slack, GitHub Actions, Temporal, Prefect, Dagster, Windmill, Pipedream, and any platform that supports REST APIs or webhooks.",
         },
       },
       {
         "@type": "Question",
-        name: "Is OKRunit free?",
+        name: "Is OKrunit free?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes, OKRunit has a free tier with 3 connections and 100 approvals per month. The Pro plan at $49/month includes unlimited connections, Slack notifications, rules engine, and audit logging.",
+          text: "Yes, OKrunit has a free tier with 3 connections and 100 approvals per month. The Pro plan at $49/month includes unlimited connections, Slack notifications, rules engine, and audit logging.",
         },
       },
       {

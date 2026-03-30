@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Token Action Route (One-Click Approve/Reject from Teams/Email)
+// OKrunit -- Token Action Route (One-Click Approve/Reject from Teams/Email)
 // ---------------------------------------------------------------------------
 //
 // POST /api/v1/token-action

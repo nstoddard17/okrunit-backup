@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Push Unsubscribe API: POST (remove push subscription)
+// OKrunit -- Push Unsubscribe API: POST (remove push subscription)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildWelcomeEmailHtml } from "@/lib/email/welcome";
 
-const FROM_EMAIL = process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
+const FROM_EMAIL = process.env.EMAIL_FROM || "OKrunit <noreply@okrunit.com>";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
@@ -28,8 +28,9 @@ export async function GET(request: NextRequest) {
 
   // Send welcome email on first sign-in (when profile doesn't exist yet)
   const { data: { user } } = await supabase.auth.getUser();
+  const admin = createAdminClient();
+
   if (user && process.env.RESEND_API_KEY) {
-    const admin = createAdminClient();
     const { data: profile } = await admin
       .from("user_profiles")
       .select("id")
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
         await resend.emails.send({
           from: FROM_EMAIL,
           to: user.email!,
-          subject: "Welcome to OKRunit!",
+          subject: "Welcome to OKrunit!",
           html: buildWelcomeEmailHtml({ fullName }),
         });
       } catch (err) {
@@ -57,6 +58,20 @@ export async function GET(request: NextRequest) {
   // which handles email verification, profile creation, and org membership.
   if (inviteToken) {
     return NextResponse.redirect(new URL(`/invite/${inviteToken}`, origin));
+  }
+
+  // Check if this user has completed onboarding setup.
+  // New users (no profile yet, or setup_completed_at is null) go to /setup.
+  if (user) {
+    const { data: existingProfile } = await admin
+      .from("user_profiles")
+      .select("setup_completed_at")
+      .eq("id", user.id)
+      .single();
+
+    if (!existingProfile || !existingProfile.setup_completed_at) {
+      return NextResponse.redirect(new URL("/setup", origin));
+    }
   }
 
   return NextResponse.redirect(new URL("/org/overview", origin));

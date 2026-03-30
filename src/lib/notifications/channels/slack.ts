@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Slack Notification Channel (Block Kit via Incoming Webhooks)
+// OKrunit -- Slack Notification Channel (Block Kit via Incoming Webhooks)
 // ---------------------------------------------------------------------------
 
 const APP_URL =
@@ -159,7 +159,7 @@ export async function sendSlackNotification(
       elements: [
         {
           type: "mrkdwn",
-          text: `Sent by OKRunit${connectionField}`,
+          text: `Sent by OKrunit${connectionField}`,
         },
       ],
     },

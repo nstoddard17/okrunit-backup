@@ -10,7 +10,7 @@ import { ExternalLink } from "lucide-react";
 import type { Connection } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Connections - OKRunit",
+  title: "Connections - OKrunit",
   description: "Manage your API connections and keys.",
 };
 

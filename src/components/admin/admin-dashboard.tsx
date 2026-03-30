@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Admin Dashboard Client (SectionNav Wrapper)
+// OKrunit -- Admin Dashboard Client (SectionNav Wrapper)
 // ---------------------------------------------------------------------------
 
 import {

@@ -7,7 +7,7 @@ import { AccountSettings } from "@/components/settings/account-settings";
 import type { NotificationSettings } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Account Settings - OKRunit",
+  title: "Account Settings - OKrunit",
   description: "Manage your profile, notifications, and account settings.",
 };
 

@@ -2,7 +2,7 @@ import { getAdminData } from "@/lib/admin-data";
 import { UsersTab } from "@/components/admin/users-tab";
 
 export const metadata = {
-  title: "Users - Admin - OKRunit",
+  title: "Users - Admin - OKrunit",
 };
 
 export default async function AdminUsersPage() {

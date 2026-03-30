@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Discord Interaction Callback Route
+// OKrunit -- Discord Interaction Callback Route
 // ---------------------------------------------------------------------------
 //
 // Receives interaction payloads from Discord when a user clicks an
@@ -173,7 +173,7 @@ function buildDecisionResponse(
           title: `Request ${decisionEmoji(decision)}`,
           description: `**${title}** was **${decisionEmoji(decision)}** by ${discordUser}${commentText}`,
           color: decisionColor(decision),
-          footer: { text: "OKRunit" },
+          footer: { text: "OKrunit" },
           timestamp: new Date().toISOString(),
         },
       ],
@@ -190,7 +190,7 @@ function buildInfoResponse(message: string): object {
         {
           description: message,
           color: 0xfee75c,
-          footer: { text: "OKRunit" },
+          footer: { text: "OKrunit" },
         },
       ],
       components: [],

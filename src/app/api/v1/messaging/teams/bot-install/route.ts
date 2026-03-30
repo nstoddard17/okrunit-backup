@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Teams Bot Install: Store Conversation Reference
+// OKrunit -- Teams Bot Install: Store Conversation Reference
 // ---------------------------------------------------------------------------
 //
 // POST /api/v1/messaging/teams/bot-install

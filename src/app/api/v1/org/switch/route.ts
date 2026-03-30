@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Org Switch API: Switch Active Organization
+// OKrunit -- Org Switch API: Switch Active Organization
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Organization API: Create New Organization
+// OKrunit -- Organization API: Create New Organization
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

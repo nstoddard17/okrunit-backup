@@ -5,7 +5,7 @@ import { DocsImage } from "@/components/docs/docs-image";
 export const metadata: Metadata = {
   title: "Integrations",
   description:
-    "OKRunit integrations — connect with Zapier, Make, n8n, GitHub Actions, Terraform, LangChain, and more.",
+    "OKrunit integrations — connect with Zapier, Make, n8n, GitHub Actions, Terraform, LangChain, and more.",
 };
 
 /* ------------------------------------------------------------------ */
@@ -115,12 +115,12 @@ const CATEGORIES: Category[] = [
   {
     name: "Enterprise Platforms",
     description:
-      "Connect OKRunit to enterprise automation and internal tool platforms.",
+      "Connect OKrunit to enterprise automation and internal tool platforms.",
     integrations: [
       {
         name: "Power Automate",
         description:
-          "Custom connector for Microsoft Power Automate that adds approval steps to Power Automate flows using OKRunit as the backend.",
+          "Custom connector for Microsoft Power Automate that adds approval steps to Power Automate flows using OKrunit as the backend.",
         status: "coming_soon",
       },
       {
@@ -145,7 +145,7 @@ const CATEGORIES: Category[] = [
       {
         name: "Prefect",
         description:
-          "Prefect task and flow that pauses a Prefect flow run pending human approval via OKRunit. Integrates with Prefect Cloud notifications.",
+          "Prefect task and flow that pauses a Prefect flow run pending human approval via OKrunit. Integrates with Prefect Cloud notifications.",
         status: "available",
       },
       {
@@ -205,9 +205,9 @@ export default function IntegrationsPage() {
         Integrations
       </h1>
       <p className="mt-4 text-lg text-zinc-600 leading-relaxed">
-        OKRunit connects to 19 platforms across automation, AI agents,
+        OKrunit connects to 19 platforms across automation, AI agents,
         infrastructure, and workflow engines. The easiest way to connect is to
-        select the OKRunit node directly inside your automation platform — no
+        select the OKrunit node directly inside your automation platform — no
         code required.
       </p>
 
@@ -230,13 +230,13 @@ export default function IntegrationsPage() {
           <li className="flex gap-2">
             <span className="font-bold">2.</span>
             <span>
-              Add a new step and search for <strong>&quot;OKRunit&quot;</strong>
+              Add a new step and search for <strong>&quot;OKrunit&quot;</strong>
             </span>
           </li>
           <li className="flex gap-2">
             <span className="font-bold">3.</span>
             <span>
-              Select the OKRunit node/module and connect your account when
+              Select the OKrunit node/module and connect your account when
               prompted
             </span>
           </li>
@@ -249,14 +249,14 @@ export default function IntegrationsPage() {
           </li>
         </ol>
         <p className="mt-3 text-sm text-emerald-800">
-          Your workflow will pause at the OKRunit step until a human approves or
+          Your workflow will pause at the OKrunit step until a human approves or
           rejects. The decision is automatically passed to the next step.
         </p>
       </div>
 
       <DocsImage
         src="/screenshots/docs/connections-list.png"
-        alt="OKRunit connections page showing active API connections"
+        alt="OKrunit connections page showing active API connections"
         caption="Connections are created automatically when you link your account from a platform, or you can create them manually for API access."
       />
 
@@ -270,7 +270,7 @@ export default function IntegrationsPage() {
         Zapier
       </h3>
       <p className="mt-2 text-zinc-700">
-        OKRunit is available as a native Zapier app. Here&apos;s how to add it to
+        OKrunit is available as a native Zapier app. Here&apos;s how to add it to
         any Zap:
       </p>
       <ol className="mt-4 space-y-3 text-zinc-700">
@@ -280,7 +280,7 @@ export default function IntegrationsPage() {
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
-          <span>Search for <strong>&quot;OKRunit&quot;</strong> in the app search.</span>
+          <span>Search for <strong>&quot;OKrunit&quot;</strong> in the app search.</span>
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
@@ -288,7 +288,7 @@ export default function IntegrationsPage() {
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
-          <span>Click <strong>Sign in to OKRunit</strong> — this opens the OAuth flow. Sign in with your OKRunit credentials and authorize access.</span>
+          <span>Click <strong>Sign in to OKrunit</strong> — this opens the OAuth flow. Sign in with your OKrunit credentials and authorize access.</span>
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">5</span>
@@ -296,7 +296,7 @@ export default function IntegrationsPage() {
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">6</span>
-          <span>Test the step — you should see a new pending request appear in your OKRunit dashboard.</span>
+          <span>Test the step — you should see a new pending request appear in your OKrunit dashboard.</span>
         </li>
       </ol>
       <p className="mt-3 text-sm text-zinc-500">
@@ -310,7 +310,7 @@ export default function IntegrationsPage() {
         Make (Integromat)
       </h3>
       <p className="mt-2 text-zinc-700">
-        OKRunit has a custom Make app with modules for creating and managing
+        OKrunit has a custom Make app with modules for creating and managing
         approval requests:
       </p>
       <ol className="mt-4 space-y-3 text-zinc-700">
@@ -320,7 +320,7 @@ export default function IntegrationsPage() {
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
-          <span>Search for <strong>&quot;OKRunit&quot;</strong>.</span>
+          <span>Search for <strong>&quot;OKrunit&quot;</strong>.</span>
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
@@ -328,7 +328,7 @@ export default function IntegrationsPage() {
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
-          <span>Click <strong>Add</strong> next to the Connection field and authorize your OKRunit account.</span>
+          <span>Click <strong>Add</strong> next to the Connection field and authorize your OKrunit account.</span>
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">5</span>
@@ -339,20 +339,20 @@ export default function IntegrationsPage() {
       {/* n8n */}
       <h3 className="mt-8 text-xl font-semibold text-zinc-900">n8n</h3>
       <p className="mt-2 text-zinc-700">
-        OKRunit provides a community node for n8n:
+        OKrunit provides a community node for n8n:
       </p>
       <ol className="mt-4 space-y-3 text-zinc-700">
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
-          <span>In your n8n workflow, click <strong>+</strong> and search for <strong>&quot;OKRunit&quot;</strong>.</span>
+          <span>In your n8n workflow, click <strong>+</strong> and search for <strong>&quot;OKrunit&quot;</strong>.</span>
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
-          <span>Add the <strong>OKRunit</strong> node (trigger or action).</span>
+          <span>Add the <strong>OKrunit</strong> node (trigger or action).</span>
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
-          <span>Create credentials by entering your OKRunit API key (from the Connections page in the dashboard).</span>
+          <span>Create credentials by entering your OKrunit API key (from the Connections page in the dashboard).</span>
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
@@ -381,7 +381,7 @@ export default function IntegrationsPage() {
 
       <DocsImage
         src="/screenshots/docs/routes-list.png"
-        alt="Approval routes configuration in the OKRunit dashboard"
+        alt="Approval routes configuration in the OKrunit dashboard"
         caption="Configure routing rules to control who gets notified and how many approvals are required per source."
       />
 
@@ -426,7 +426,7 @@ export default function IntegrationsPage() {
         For developers: use the API directly
       </h2>
       <p className="mt-4 text-zinc-700">
-        Every integration above uses the OKRunit REST API under the hood. If
+        Every integration above uses the OKrunit REST API under the hood. If
         your platform is not listed, or you prefer to work in code, you can
         replicate everything with standard HTTP requests:
       </p>
@@ -471,7 +471,7 @@ export default function IntegrationsPage() {
         <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
           callback_url
         </code>
-        , OKRunit will POST the decision to your endpoint automatically. See the{" "}
+        , OKrunit will POST the decision to your endpoint automatically. See the{" "}
         <Link href="/docs/webhooks" className="text-emerald-600 hover:underline">
           Webhooks guide
         </Link>{" "}

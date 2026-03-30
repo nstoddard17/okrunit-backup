@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Admin Users Tab
+// OKrunit -- Admin Users Tab
 // Table of all users with create, edit, and delete capabilities.
 // ---------------------------------------------------------------------------
 

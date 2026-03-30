@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Delegations API: DELETE (cancel delegation)
+// OKrunit -- Delegations API: DELETE (cancel delegation)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

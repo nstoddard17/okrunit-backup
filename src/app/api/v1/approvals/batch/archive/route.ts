@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Batch Archive API: POST (archive/unarchive)
+// OKrunit -- Batch Archive API: POST (archive/unarchive)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

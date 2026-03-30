@@ -50,7 +50,7 @@ BEGIN
   ELSE
     -- Create new org for this user
     INSERT INTO public.organizations (name)
-    VALUES (split_part(NEW.email, '@', 1) || '''s Org')
+    VALUES ('My Organization')
     RETURNING id INTO new_org_id;
 
     -- Create user profile

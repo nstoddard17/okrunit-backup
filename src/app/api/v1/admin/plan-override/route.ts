@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Admin Plan Override API
+// OKrunit -- Admin Plan Override API
 // PATCH: Set or clear plan_override on an organization.
 // ---------------------------------------------------------------------------
 

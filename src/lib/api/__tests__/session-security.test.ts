@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Tests for Session Security
+// OKrunit -- Tests for Session Security
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect } from "vitest";

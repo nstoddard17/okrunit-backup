@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Zod Validation Schemas for API Endpoints
+// OKrunit -- Zod Validation Schemas for API Endpoints
 // ---------------------------------------------------------------------------
 
 import { z } from "zod";

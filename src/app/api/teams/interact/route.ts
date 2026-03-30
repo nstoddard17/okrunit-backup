@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Microsoft Teams Interactive Callback Route
+// OKrunit -- Microsoft Teams Interactive Callback Route
 // ---------------------------------------------------------------------------
 //
 // Receives Action.Submit payloads from Teams Adaptive Cards when a user
@@ -445,7 +445,7 @@ export async function POST(request: Request) {
   }
   // Fall back to legacy HMAC signature verification
   else if (signingSecret) {
-    const signature = request.headers.get("X-OKRunit-Signature") ?? "";
+    const signature = request.headers.get("X-OKrunit-Signature") ?? "";
     if (!verifyTeamsSignature(signingSecret, rawBody, signature)) {
       console.warn("[Teams Interact] Invalid HMAC signature");
       return NextResponse.json(

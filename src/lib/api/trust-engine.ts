@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Trust Engine: Auto-approve after N consecutive approvals
+// OKrunit -- Trust Engine: Auto-approve after N consecutive approvals
 // ---------------------------------------------------------------------------
 
 import { createAdminClient } from "@/lib/supabase/admin";

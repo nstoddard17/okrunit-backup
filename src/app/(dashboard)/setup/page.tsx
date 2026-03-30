@@ -6,8 +6,8 @@ import { SetupWizard } from "@/components/onboarding/setup-wizard";
 import type { MessagingConnection } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Setup - OKRunit",
-  description: "Set up your OKRunit organization.",
+  title: "Setup - OKrunit",
+  description: "Set up your OKrunit organization.",
 };
 
 export default async function SetupPage() {
@@ -30,10 +30,10 @@ export default async function SetupPage() {
   ];
 
   return (
-    <PageContainer className="max-w-2xl">
-      <div className="space-y-2 pb-6">
+    <PageContainer className="mx-auto max-w-2xl">
+      <div className="space-y-2 pb-6 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Welcome to OKRunit
+          Welcome to OKrunit
         </h1>
         <p className="text-sm text-muted-foreground">
           Let&apos;s get your organization set up in a few quick steps.

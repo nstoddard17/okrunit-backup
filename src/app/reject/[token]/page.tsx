@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- One-Click Reject Page
+// OKrunit -- One-Click Reject Page
 // ---------------------------------------------------------------------------
 //
 // Public page linked from Teams (and potentially other) notifications.
@@ -14,7 +14,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { TokenActionForm } from "@/components/token-action-form";
 
 export const metadata: Metadata = {
-  title: "Reject Request - OKRunit",
+  title: "Reject Request - OKrunit",
   description: "Confirm rejection for a pending request.",
 };
 
@@ -76,7 +76,7 @@ export default async function RejectPage({ params }: PageProps) {
         <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
           {/* Header */}
           <div className="bg-slate-800 px-6 py-4">
-            <h1 className="text-lg font-semibold text-white">OKRunit</h1>
+            <h1 className="text-lg font-semibold text-white">OKrunit</h1>
           </div>
 
           {/* Body */}
@@ -125,7 +125,7 @@ function TokenErrorPage({ message }: { message: string }) {
       <div className="w-full max-w-md">
         <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
           <div className="bg-slate-800 px-6 py-4">
-            <h1 className="text-lg font-semibold text-white">OKRunit</h1>
+            <h1 className="text-lg font-semibold text-white">OKrunit</h1>
           </div>
           <div className="px-6 py-8">
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
@@ -155,7 +155,7 @@ function TokenInfoPage({ title, message }: { title: string; message: string }) {
       <div className="w-full max-w-md">
         <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
           <div className="bg-slate-800 px-6 py-4">
-            <h1 className="text-lg font-semibold text-white">OKRunit</h1>
+            <h1 className="text-lg font-semibold text-white">OKrunit</h1>
           </div>
           <div className="px-6 py-8">
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">

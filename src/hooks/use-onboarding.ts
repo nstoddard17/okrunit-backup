@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Onboarding State Hook
+// OKrunit -- Onboarding State Hook
 // Manages onboarding wizard progress and tour state via localStorage.
 // ---------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@ export function useSetupWizard() {
     persist(DEFAULT_WIZARD);
   }, [persist]);
 
-  const isComplete = state.completedSteps.length >= 5 || state.currentStep >= 5;
+  const isComplete = state.completedSteps.length >= 3 || state.currentStep >= 3;
 
   return {
     state,

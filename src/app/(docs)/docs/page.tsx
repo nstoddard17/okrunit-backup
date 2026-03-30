@@ -5,7 +5,7 @@ import { DocsImage } from "@/components/docs/docs-image";
 export const metadata: Metadata = {
   title: "Getting Started",
   description:
-    "Get started with OKRunit — add human approval to any automation workflow in minutes.",
+    "Get started with OKrunit — add human approval to any automation workflow in minutes.",
 };
 
 export default function GettingStartedPage() {
@@ -15,17 +15,17 @@ export default function GettingStartedPage() {
         Getting Started
       </h1>
       <p className="mt-4 text-lg text-zinc-600 leading-relaxed">
-        OKRunit is a human-in-the-loop approval gateway for automated workflows.
+        OKrunit is a human-in-the-loop approval gateway for automated workflows.
         When your AI agent, Zapier zap, Make scenario, or CI/CD pipeline is about
-        to perform a destructive or sensitive action, OKRunit pauses execution,
+        to perform a destructive or sensitive action, OKrunit pauses execution,
         notifies the right humans, collects their decision, and delivers the
         result back to your automation.
       </p>
 
       <DocsImage
         src="/screenshots/docs/dashboard-overview.png"
-        alt="OKRunit dashboard overview showing pending requests, approval rate, and recent activity"
-        caption="The OKRunit dashboard gives you a real-time view of all approval activity across your organization."
+        alt="OKrunit dashboard overview showing pending requests, approval rate, and recent activity"
+        caption="The OKrunit dashboard gives you a real-time view of all approval activity across your organization."
       />
 
       {/* How it works */}
@@ -33,7 +33,7 @@ export default function GettingStartedPage() {
         How it works
       </h2>
       <p className="mt-2 text-zinc-600">
-        OKRunit sits between your automation and the action it wants to perform.
+        OKrunit sits between your automation and the action it wants to perform.
         Here&apos;s the flow:
       </p>
       <ol className="mt-4 space-y-4 text-zinc-700">
@@ -44,7 +44,7 @@ export default function GettingStartedPage() {
           <div>
             <strong className="text-zinc-900">Your automation sends a request.</strong>{" "}
             This can happen two ways: through a native integration (select the
-            OKRunit node inside Zapier, Make, n8n, etc.) or by calling our REST
+            OKrunit node inside Zapier, Make, n8n, etc.) or by calling our REST
             API directly with a single POST request.
           </div>
         </li>
@@ -54,7 +54,7 @@ export default function GettingStartedPage() {
           </span>
           <div>
             <strong className="text-zinc-900">The right people are notified.</strong>{" "}
-            OKRunit sends notifications via Slack, Discord, Microsoft Teams,
+            OKrunit sends notifications via Slack, Discord, Microsoft Teams,
             email, or Telegram based on your routing rules. Approvers can review
             and decide from any of these channels or the dashboard.
           </div>
@@ -65,7 +65,7 @@ export default function GettingStartedPage() {
           </span>
           <div>
             <strong className="text-zinc-900">The decision flows back automatically.</strong>{" "}
-            When an approver approves or rejects, OKRunit delivers the result
+            When an approver approves or rejects, OKrunit delivers the result
             back to your automation via an HMAC-signed webhook callback, so your
             workflow can continue or abort.
           </div>
@@ -91,7 +91,7 @@ export default function GettingStartedPage() {
           <p className="mt-2 text-sm text-emerald-800">
             The easiest way to get started. Inside Zapier, Make.com, n8n,
             monday.com, or any supported platform, search for the{" "}
-            <strong>OKRunit</strong> node/module. Select it, connect your OKRunit
+            <strong>OKrunit</strong> node/module. Select it, connect your OKrunit
             account, and you&apos;re done — no code needed.
           </p>
           <p className="mt-3 text-sm text-emerald-800">
@@ -128,7 +128,7 @@ export default function GettingStartedPage() {
       </p>
 
       <h3 className="mt-6 text-lg font-semibold text-zinc-900">
-        Step 1: Create your OKRunit account
+        Step 1: Create your OKrunit account
       </h3>
       <p className="mt-2 text-zinc-700">
         <Link href="/signup" className="text-emerald-600 hover:underline">
@@ -139,22 +139,22 @@ export default function GettingStartedPage() {
       </p>
       <DocsImage
         src="/screenshots/docs/signup.png"
-        alt="OKRunit signup page"
+        alt="OKrunit signup page"
         caption="Create your free account to get started."
       />
 
       <h3 className="mt-6 text-lg font-semibold text-zinc-900">
-        Step 2: Open your automation platform and add the OKRunit node
+        Step 2: Open your automation platform and add the OKrunit node
       </h3>
       <p className="mt-2 text-zinc-700">
         In your automation platform (Zapier, Make, n8n, etc.), add a new step to
-        your workflow and search for <strong>&quot;OKRunit&quot;</strong>. Select
-        the OKRunit action — typically called{" "}
+        your workflow and search for <strong>&quot;OKrunit&quot;</strong>. Select
+        the OKrunit action — typically called{" "}
         <strong>&quot;Create Approval Request&quot;</strong>.
       </p>
       <p className="mt-2 text-zinc-700">
-        When prompted, connect your OKRunit account. The platform will guide you
-        through the OAuth flow — just sign in to OKRunit and authorize access.
+        When prompted, connect your OKrunit account. The platform will guide you
+        through the OAuth flow — just sign in to OKrunit and authorize access.
         That&apos;s it.
       </p>
 
@@ -179,7 +179,7 @@ export default function GettingStartedPage() {
         </li>
       </ul>
       <p className="mt-3 text-zinc-700">
-        Your workflow will now pause at the OKRunit step until a human approves or
+        Your workflow will now pause at the OKrunit step until a human approves or
         rejects. The decision is automatically passed to the next step in your
         workflow.
       </p>
@@ -188,7 +188,7 @@ export default function GettingStartedPage() {
         Step 4: Set up notifications
       </h3>
       <p className="mt-2 text-zinc-700">
-        In the OKRunit dashboard, go to{" "}
+        In the OKrunit dashboard, go to{" "}
         <Link href="/messaging" className="text-emerald-600 hover:underline">
           Messaging
         </Link>{" "}
@@ -210,7 +210,7 @@ export default function GettingStartedPage() {
         Quick start (API)
       </h2>
       <p className="mt-2 text-zinc-600">
-        For developers who prefer to work in code, you can integrate OKRunit with
+        For developers who prefer to work in code, you can integrate OKrunit with
         a single HTTP request from any language.
       </p>
 
@@ -287,7 +287,7 @@ export default function GettingStartedPage() {
           <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
             callback_url
           </code>{" "}
-          when creating the request. OKRunit will POST the decision to your URL
+          when creating the request. OKrunit will POST the decision to your URL
           with an HMAC-SHA256 signature for verification. See the{" "}
           <Link
             href="/docs/webhooks"
@@ -378,7 +378,7 @@ export default function GettingStartedPage() {
         >
           <h3 className="font-semibold text-zinc-900">Integrations</h3>
           <p className="mt-1 text-sm text-zinc-600">
-            Connect OKRunit to Zapier, Make, n8n, GitHub Actions, and 15 more
+            Connect OKrunit to Zapier, Make, n8n, GitHub Actions, and 15 more
             platforms with zero code.
           </p>
         </Link>

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Weekly Digest Email Template (v2 — Vend-inspired)
+// OKrunit -- Weekly Digest Email Template (v2 — Vend-inspired)
 // ---------------------------------------------------------------------------
 
 import {
@@ -178,7 +178,7 @@ export function buildWeeklyDigestEmailHtml(
 
   // --- Sign-off ---
   const signoff = emailSignoff({
-    name: "The OKRunit Team",
+    name: "The OKrunit Team",
     title: "Weekly Insights",
   });
 

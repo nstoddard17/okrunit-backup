@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Generic Supabase Realtime Subscription Hook
+// OKrunit -- Generic Supabase Realtime Subscription Hook
 // ---------------------------------------------------------------------------
 
 import { useEffect, useRef } from "react";

@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- GitHub Callback Handler
+// OKrunit -- GitHub Callback Handler
 //
-// Receives OKRunit's own callback when an approval decision is made on a
+// Receives OKrunit's own callback when an approval decision is made on a
 // GitHub-sourced approval request. Updates the GitHub check run accordingly.
 // ---------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ interface CallbackPayload {
 
 export async function POST(request: Request) {
   try {
-    // 1. Verify the HMAC signature from OKRunit's callback delivery
+    // 1. Verify the HMAC signature from OKrunit's callback delivery
     const rawBody = await request.text();
     const hmacSecret = process.env.CALLBACK_HMAC_SECRET;
 

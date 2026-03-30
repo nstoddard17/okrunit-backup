@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Database Types
+// OKrunit -- Database Types
 // Generated TypeScript types for all Supabase/Postgres tables and enums.
 // ---------------------------------------------------------------------------
 
@@ -118,6 +118,7 @@ export interface UserProfile {
   avatar_url: string | null;
   is_app_admin: boolean;
   deletion_scheduled_at: string | null;
+  setup_completed_at: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -5,7 +5,7 @@ import { V2InviteSection } from "@/components/org/v2-invite-form";
 import type { OrgInvite } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Invites - OKRunit",
+  title: "Invites - OKrunit",
   description: "Manage invitations to your organization.",
 };
 

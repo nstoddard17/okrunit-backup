@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Approval Rules API: Update + Delete (single rule)
+// OKrunit -- Approval Rules API: Update + Delete (single rule)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

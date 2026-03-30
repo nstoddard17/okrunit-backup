@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Account Deletion Confirmation Email (v4 — Vend-inspired)
+// OKrunit -- Account Deletion Confirmation Email (v4 — Vend-inspired)
 // ---------------------------------------------------------------------------
 
 import {
@@ -37,7 +37,7 @@ export function buildAccountDeletionEmailHtml(
     emailHero({
       title: "Confirm account deletion",
       descriptionHtml:
-        "We received a request to permanently delete your OKRunit account. This action requires one final confirmation before it takes effect.",
+        "We received a request to permanently delete your OKrunit account. This action requires one final confirmation before it takes effect.",
     }),
 
     // -- Danger pill --
@@ -105,7 +105,7 @@ export function buildAccountDeletionEmailHtml(
 
     // -- Sign-off --
     emailSignoff({
-      name: "The OKRunit Team",
+      name: "The OKrunit Team",
       title: "Account Security",
     }),
   ].join("");
@@ -115,6 +115,6 @@ export function buildAccountDeletionEmailHtml(
     body,
     preheader: "Confirm your account deletion request",
     footerText:
-      "You received this email because a deletion request was initiated for your OKRunit account.",
+      "You received this email because a deletion request was initiated for your OKrunit account.",
   });
 }

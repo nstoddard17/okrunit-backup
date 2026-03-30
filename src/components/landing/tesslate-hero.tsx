@@ -229,7 +229,7 @@ function MockDashboard() {
         <div className="hidden w-48 shrink-0 border-r sm:flex sm:flex-col" style={{ borderColor: "#e5e7eb", backgroundColor: "#fafafa" }}>
           {/* Logo */}
           <div className="flex items-center justify-center border-b px-3 py-2.5" style={{ borderColor: "#e5e7eb" }}>
-            <Image src="/logo_text.png" alt="OKRunit" width={220} height={60} className="h-7 w-auto" />
+            <Image src="/logo_text.png" alt="OKrunit" width={220} height={60} className="h-7 w-auto" />
           </div>
           {/* Nav items */}
           <div className="flex-1 space-y-0.5 px-2 py-2">
@@ -322,26 +322,26 @@ const gridCards = [
 
 const bigCard = {
   title: "A universal API that works with every automation",
-  description: "OKRunit provides a single REST API that sits between your AI agents and destructive actions. One endpoint to create approvals, webhooks to deliver decisions.",
+  description: "OKrunit provides a single REST API that sits between your AI agents and destructive actions. One endpoint to create approvals, webhooks to deliver decisions.",
 };
 
 const steps = [
-  { badge: "Universal API", title: "Connect any automation in minutes", description: "Send a POST request from Zapier, Make, n8n, or your AI agent. OKRunit handles notifications, routing, and callbacks automatically.", features: ["REST API", "Zapier", "Make", "n8n", "Webhooks", "Slack"] },
+  { badge: "Universal API", title: "Connect any automation in minutes", description: "Send a POST request from Zapier, Make, n8n, or your AI agent. OKrunit handles notifications, routing, and callbacks automatically.", features: ["REST API", "Zapier", "Make", "n8n", "Webhooks", "Slack"] },
   { badge: "Smart Routing", title: "Approvals go to the right people", description: "Rules engine routes requests based on type, priority, and custom conditions. Set up escalation paths and auto-approve for low-risk actions." },
   { badge: "Real-time", title: "Instant decisions, delivered everywhere", description: "Webhook callbacks notify your automation the moment a decision is made. No polling required." },
 ];
 
 const testimonials1 = [
-  { quote: "OKRunit saved us from a catastrophic data deletion. Our AI agent tried to drop a production table and the approval gate caught it.", name: "Marcus Chen", role: "CTO @ DataFlow" },
-  { quote: "We integrated OKRunit in 20 minutes. Now every Zapier workflow that touches customer data goes through human review first.", name: "Emily Rodriguez", role: "Head of Ops @ ScaleUp" },
+  { quote: "OKrunit saved us from a catastrophic data deletion. Our AI agent tried to drop a production table and the approval gate caught it.", name: "Marcus Chen", role: "CTO @ DataFlow" },
+  { quote: "We integrated OKrunit in 20 minutes. Now every Zapier workflow that touches customer data goes through human review first.", name: "Emily Rodriguez", role: "Head of Ops @ ScaleUp" },
   { quote: "The webhook callbacks are incredibly reliable. Our n8n workflows pause cleanly and resume the moment someone approves.", name: "James Park", role: "Lead Engineer @ BuildFast" },
   { quote: "Finally, a tool that gives us confidence to let AI agents handle sensitive operations. The audit trail alone is worth it.", name: "Sarah Mitchell", role: "VP Engineering @ TrustLayer" },
 ];
 
 const testimonials2 = [
-  { quote: "We went from 3 hours of manual review to 4 minutes average response time. OKRunit routes the right requests to the right people.", name: "Alex Turner", role: "Founder @ AutoScale" },
+  { quote: "We went from 3 hours of manual review to 4 minutes average response time. OKrunit routes the right requests to the right people.", name: "Alex Turner", role: "Founder @ AutoScale" },
   { quote: "The Slack integration means our team can approve requests without context-switching. Massive productivity win.", name: "Priya Sharma", role: "Engineering Manager @ Nexus" },
-  { quote: "OKRunit is the missing piece for production AI agents. You can't ship autonomous systems without human oversight.", name: "David Kim", role: "AI Lead @ Cortex Labs" },
+  { quote: "OKrunit is the missing piece for production AI agents. You can't ship autonomous systems without human oversight.", name: "David Kim", role: "AI Lead @ Cortex Labs" },
   { quote: "Setting up approval rules took 5 minutes. Now our entire deployment pipeline has human checkpoints where it matters.", name: "Rachel Foster", role: "DevOps Lead @ CloudNine" },
 ];
 
@@ -353,7 +353,7 @@ const pricingTiers = [
 ];
 
 const footerLinks = {
-  Product: ["Why OKRunit", "Platform", "Pricing", "Changelog"],
+  Product: ["Why OKrunit", "Platform", "Pricing", "Changelog"],
   Solutions: ["For Founders", "For Startups", "For Enterprise", "For AI Teams"],
   Company: ["About", "Contact", "Privacy"],
   Resources: ["Blog", "Docs", "Community", "Changelog"],
@@ -395,7 +395,7 @@ export function TesslateHero({ user }: TesslateHeroProps) {
         <div className="flex items-center justify-between rounded-xl border px-3 py-2 shadow-lg backdrop-blur-md" style={{ backgroundColor: "rgba(255,255,255,0.92)", borderColor: "#e5e7eb" }}>
           {/* Logo — actual app logo */}
           <Link href="/tesslate" className="flex items-center">
-            <Image src="/logo_text.png" alt="OKRunit" width={440} height={120} className="h-9 w-auto" />
+            <Image src="/logo_text.png" alt="OKrunit" width={440} height={120} className="h-9 w-auto" />
           </Link>
 
           {/* Desktop nav */}
@@ -562,7 +562,7 @@ export function TesslateHero({ user }: TesslateHeroProps) {
       <section className="relative z-10 mx-auto max-w-4xl px-5 py-20 text-center">
         <FadeIn>
           <h2 className="text-2xl font-bold leading-snug md:text-4xl" style={{ letterSpacing: "-0.02em", color: "#1f2323" }}>
-            &ldquo;OKRunit stopped our AI agent from deleting a production database. That single approval saved us weeks of recovery time.&rdquo;
+            &ldquo;OKrunit stopped our AI agent from deleting a production database. That single approval saved us weeks of recovery time.&rdquo;
           </h2>
           <div className="mt-8 flex items-center justify-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white" style={{ backgroundColor: "#ff911d" }}>MC</div>
@@ -680,7 +680,7 @@ export function TesslateHero({ user }: TesslateHeroProps) {
       {/* ── Footer ─────────────────────────────────────────────── */}
       <footer className="relative z-10 border-t" style={{ borderColor: "#e7e6e4" }}>
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-10 sm:flex-row">
-          <p className="text-base font-semibold" style={{ color: "#1f2323" }}>Join the teams using OKRunit</p>
+          <p className="text-base font-semibold" style={{ color: "#1f2323" }}>Join the teams using OKrunit</p>
           <Link href={user ? "/org/overview" : "/signup"} className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90" style={{ backgroundColor: "#1f2323" }}>
             {user ? "Dashboard" : "Get started"} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -691,7 +691,7 @@ export function TesslateHero({ user }: TesslateHeroProps) {
             <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5">
               <div className="md:col-span-1">
                 <Link href="/tesslate" className="flex items-center">
-                  <Image src="/logo_text.png" alt="OKRunit" width={220} height={60} className="h-8 w-auto" />
+                  <Image src="/logo_text.png" alt="OKrunit" width={220} height={60} className="h-8 w-auto" />
                 </Link>
               </div>
               {Object.entries(footerLinks).map(([heading, links]) => (
@@ -706,7 +706,7 @@ export function TesslateHero({ user }: TesslateHeroProps) {
               ))}
             </div>
             <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t pt-8 sm:flex-row" style={{ borderColor: "#e7e6e4" }}>
-              <p className="text-xs" style={{ color: "#a3a3a3" }}>&copy; {new Date().getFullYear()} OKRunit. All rights reserved.</p>
+              <p className="text-xs" style={{ color: "#a3a3a3" }}>&copy; {new Date().getFullYear()} OKrunit. All rights reserved.</p>
               <div className="flex gap-4 text-xs" style={{ color: "#a3a3a3" }}>
                 <a href="#" className="transition hover:opacity-70">Terms of Service</a>
                 <a href="#" className="transition hover:opacity-70">Privacy Policy</a>

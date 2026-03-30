@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Webhooks API: GET (delivery log viewer)
+// OKrunit -- Webhooks API: GET (delivery log viewer)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

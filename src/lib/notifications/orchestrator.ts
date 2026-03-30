@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Notification Orchestrator
+// OKrunit -- Notification Orchestrator
 // ---------------------------------------------------------------------------
 //
 // Central fan-out for all notification channels (web push, email, Slack,
@@ -149,7 +149,7 @@ export async function dispatchNotifications(
           ).then((tokens: { approveToken: string; rejectToken: string }) =>
             sendApprovalEmail({
               to: email,
-              subject: `[OKRunit] ${event.requestTitle}`,
+              subject: `[OKrunit] ${event.requestTitle}`,
               requestId: event.requestId,
               title: event.requestTitle,
               description: event.requestDescription,
@@ -171,7 +171,7 @@ export async function dispatchNotifications(
           promises.push(
             sendDecisionEmail({
               to: email,
-              subject: `[OKRunit] ${event.requestTitle} - ${decision}`,
+              subject: `[OKrunit] ${event.requestTitle} - ${decision}`,
               requestTitle: event.requestTitle,
               decision,
               decidedBy: event.decidedBy,
@@ -487,7 +487,7 @@ const TITLE_MAP: Record<NotificationEventType, string> = {
 };
 
 function getNotificationTitle(event: NotificationEvent): string {
-  return TITLE_MAP[event.type] ?? "OKRunit Notification";
+  return TITLE_MAP[event.type] ?? "OKrunit Notification";
 }
 
 function getNotificationBody(event: NotificationEvent): string {

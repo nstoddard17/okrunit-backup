@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- GitHub App Installation Callback
+// OKrunit -- GitHub App Installation Callback
 //
-// After a user installs the OKRunit GitHub App on their org/account, GitHub
+// After a user installs the OKrunit GitHub App on their org/account, GitHub
 // redirects here with installation_id and setup_action query parameters.
 // We store the installation linked to the user's current org.
 // ---------------------------------------------------------------------------

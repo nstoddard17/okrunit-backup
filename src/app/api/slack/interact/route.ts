@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Slack Interactive Callback Route
+// OKrunit -- Slack Interactive Callback Route
 // ---------------------------------------------------------------------------
 //
 // Receives interactive message payloads from Slack when a user clicks an

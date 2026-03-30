@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- SSO Metadata Import API
+// OKrunit -- SSO Metadata Import API
 // ---------------------------------------------------------------------------
 // POST /api/v1/settings/sso/import-metadata
 //

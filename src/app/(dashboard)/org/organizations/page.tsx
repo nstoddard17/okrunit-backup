@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { OrgList } from "@/components/org/org-list";
 
 export const metadata = {
-  title: "Organizations - OKRunit",
+  title: "Organizations - OKrunit",
   description: "View and manage your organizations.",
 };
 

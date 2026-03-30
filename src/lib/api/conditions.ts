@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Approval Conditions Evaluation
+// OKrunit -- Approval Conditions Evaluation
 // ---------------------------------------------------------------------------
 
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -46,8 +46,8 @@ async function evaluateWebhookCondition(
       method: "GET",
       headers: {
         "Accept": "application/json",
-        "X-OKRunit-Condition-Id": condition.id,
-        "X-OKRunit-Request-Id": condition.request_id,
+        "X-OKrunit-Condition-Id": condition.id,
+        "X-OKrunit-Request-Id": condition.request_id,
       },
       signal: controller.signal,
     });

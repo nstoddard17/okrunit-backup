@@ -5,7 +5,7 @@ import { DocsImage } from "@/components/docs/docs-image";
 export const metadata: Metadata = {
   title: "Webhooks & Callbacks",
   description:
-    "Learn how OKRunit delivers approval decisions via webhooks — HMAC verification, payload format, retry logic, and testing.",
+    "Learn how OKrunit delivers approval decisions via webhooks — HMAC verification, payload format, retry logic, and testing.",
 };
 
 export default function WebhooksPage() {
@@ -15,7 +15,7 @@ export default function WebhooksPage() {
         Webhooks & Callbacks
       </h1>
       <p className="mt-4 text-lg text-zinc-600 leading-relaxed">
-        When an approver makes a decision, OKRunit delivers the result to your
+        When an approver makes a decision, OKrunit delivers the result to your
         callback URL via an HTTP POST request. This lets your automation continue
         or abort without polling.
       </p>
@@ -25,7 +25,7 @@ export default function WebhooksPage() {
           Using a no-code platform?
         </h3>
         <p className="mt-1 text-sm text-emerald-800">
-          If you connected OKRunit via Zapier, Make, n8n, or another platform
+          If you connected OKrunit via Zapier, Make, n8n, or another platform
           integration, webhooks are handled automatically — the platform receives
           the decision and passes it to the next step. You don&apos;t need to set
           up webhooks manually.{" "}
@@ -61,7 +61,7 @@ export default function WebhooksPage() {
             2
           </span>
           <span>
-            When a decision is made (approved, rejected, or cancelled), OKRunit
+            When a decision is made (approved, rejected, or cancelled), OKrunit
             POSTs the decision payload to your URL.
           </span>
         </li>
@@ -79,7 +79,7 @@ export default function WebhooksPage() {
             4
           </span>
           <span>
-            If delivery fails, OKRunit retries up to 3 times with exponential
+            If delivery fails, OKrunit retries up to 3 times with exponential
             backoff.
           </span>
         </li>
@@ -128,7 +128,7 @@ export default function WebhooksPage() {
       <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
         <code className="text-zinc-100">{`POST https://your-app.com/webhooks/okrunit
 Content-Type: application/json
-X-OKRunit-Signature: sha256=a1b2c3d4e5f6...
+X-OKrunit-Signature: sha256=a1b2c3d4e5f6...
 
 {
   "event": "approval.decided",
@@ -170,10 +170,10 @@ X-OKRunit-Signature: sha256=a1b2c3d4e5f6...
       <p className="mt-4 text-zinc-700">
         Every callback includes an{" "}
         <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
-          X-OKRunit-Signature
+          X-OKrunit-Signature
         </code>{" "}
         header. <strong>Always verify this signature</strong> to ensure the
-        request came from OKRunit and was not tampered with.
+        request came from OKrunit and was not tampered with.
       </p>
 
       <h3 className="mt-6 text-lg font-semibold text-zinc-900">
@@ -181,13 +181,13 @@ X-OKRunit-Signature: sha256=a1b2c3d4e5f6...
       </h3>
       <ol className="mt-3 space-y-2 text-sm text-zinc-700">
         <li>
-          <strong>1.</strong> OKRunit computes an HMAC-SHA256 of the raw request
+          <strong>1.</strong> OKrunit computes an HMAC-SHA256 of the raw request
           body using your connection&apos;s webhook secret as the key.
         </li>
         <li>
           <strong>2.</strong> The hex-encoded digest is sent in the{" "}
           <code className="rounded bg-zinc-100 px-1 py-0.5 text-zinc-800">
-            X-OKRunit-Signature
+            X-OKrunit-Signature
           </code>{" "}
           header with a{" "}
           <code className="rounded bg-zinc-100 px-1 py-0.5 text-zinc-800">
@@ -222,7 +222,7 @@ function verifySignature(body: string, signature: string, secret: string): boole
 
 // In your webhook handler:
 const rawBody = await request.text();
-const signature = request.headers.get("X-OKRunit-Signature") ?? "";
+const signature = request.headers.get("X-OKrunit-Signature") ?? "";
 const secret = process.env.OKRUNIT_WEBHOOK_SECRET!;
 
 if (!verifySignature(rawBody, signature, secret)) {
@@ -258,7 +258,7 @@ def verify_signature(body: bytes, signature: str, secret: str) -> bool:
 
 # In your webhook handler:
 raw_body = request.body
-signature = request.headers.get("X-OKRunit-Signature", "")
+signature = request.headers.get("X-OKrunit-Signature", "")
 secret = os.environ["OKRUNIT_WEBHOOK_SECRET"]
 
 if not verify_signature(raw_body, signature, secret):
@@ -279,7 +279,7 @@ else:
       </h2>
       <p className="mt-4 text-zinc-700">
         If your endpoint does not respond with a 2xx status code within the
-        timeout window, OKRunit retries the delivery with exponential backoff:
+        timeout window, OKrunit retries the delivery with exponential backoff:
       </p>
 
       <div className="mt-4 overflow-x-auto">
@@ -381,7 +381,7 @@ else:
         Option 1: Use the test endpoint
       </h3>
       <p className="mt-2 text-zinc-700">
-        The OKRunit API includes a test webhook endpoint that sends a sample
+        The OKrunit API includes a test webhook endpoint that sends a sample
         payload to any URL:
       </p>
       <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
@@ -462,7 +462,7 @@ ngrok http 3000
         </li>
         <li>
           <strong className="text-zinc-900">Log everything.</strong> Store the
-          raw payload and signature for debugging. OKRunit also keeps delivery
+          raw payload and signature for debugging. OKrunit also keeps delivery
           logs on its side.
         </li>
       </ul>

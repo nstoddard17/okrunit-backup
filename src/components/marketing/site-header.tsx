@@ -20,14 +20,14 @@ export function MarketingSiteHeader({ user }: MarketingSiteHeaderProps) {
         <Link href="/" className="flex items-center gap-3">
           <Image
             src="/logo-icon.png"
-            alt="OKRunit"
+            alt="OKrunit"
             width={36}
             height={36}
             className="size-9 object-contain"
             priority
           />
           <span className="text-lg font-bold tracking-tight text-slate-900">
-            OKRunit
+            OKrunit
           </span>
         </Link>
 

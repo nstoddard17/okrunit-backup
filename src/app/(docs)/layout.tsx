@@ -8,10 +8,10 @@ import { DocsSidebar, DocsMobileNav } from "@/components/docs/docs-nav";
 export const metadata: Metadata = {
   title: {
     default: "Documentation",
-    template: "%s | OKRunit Docs",
+    template: "%s | OKrunit Docs",
   },
   description:
-    "OKRunit documentation — API reference, integration guides, webhooks, and getting started instructions.",
+    "OKrunit documentation — API reference, integration guides, webhooks, and getting started instructions.",
 };
 
 export default async function DocsLayout({
@@ -34,12 +34,12 @@ export default async function DocsLayout({
           >
             <Image
               src="/logo-icon.png"
-              alt="OKRunit"
+              alt="OKrunit"
               width={24}
               height={24}
               className="size-6 object-contain"
             />
-            OKRunit
+            OKrunit
           </Link>
           <span className="text-zinc-300">/</span>
           <span className="text-sm font-medium text-zinc-600">Docs</span>

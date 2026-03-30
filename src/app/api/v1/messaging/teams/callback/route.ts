@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Microsoft Teams OAuth Callback Route
+// OKrunit -- Microsoft Teams OAuth Callback Route
 // ---------------------------------------------------------------------------
 // GET /api/v1/messaging/teams/callback
 //

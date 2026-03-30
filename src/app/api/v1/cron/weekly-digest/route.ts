@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildWeeklyDigestEmailHtml } from "@/lib/email/weekly-digest";
 
-const FROM_EMAIL = process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
+const FROM_EMAIL = process.env.EMAIL_FROM || "OKrunit <noreply@okrunit.com>";
 
 /**
  * POST /api/v1/cron/weekly-digest

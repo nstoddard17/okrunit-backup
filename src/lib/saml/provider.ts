@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- SAML Service Provider & Identity Provider Factory
+// OKrunit -- SAML Service Provider & Identity Provider Factory
 // ---------------------------------------------------------------------------
 // Builds samlify SP/IdP instances from stored SSO config.
 // ---------------------------------------------------------------------------
@@ -17,7 +17,7 @@ samlify.setSchemaValidator({
 });
 
 /**
- * Creates a samlify ServiceProvider for OKRunit.
+ * Creates a samlify ServiceProvider for OKrunit.
  */
 export function createServiceProvider() {
   return samlify.ServiceProvider({

@@ -8,7 +8,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const admin = createAdminClient();
   const { data: team } = await admin.from("teams").select("name").eq("id", id).single();
   return {
-    title: team ? `${team.name} - Teams - OKRunit` : "Team - OKRunit",
+    title: team ? `${team.name} - Teams - OKrunit` : "Team - OKrunit",
   };
 }
 

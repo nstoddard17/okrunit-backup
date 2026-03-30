@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- SSRF Protection
+// OKrunit -- SSRF Protection
 // ---------------------------------------------------------------------------
 // Pure function to validate callback URLs against private/internal networks.
 // Extracted from callbacks.ts for testability and reusability.
