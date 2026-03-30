@@ -14,7 +14,7 @@ import {
   useTransition,
 } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronDown, ChevronRight, Loader2, Webhook } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader2, RefreshCw, Webhook } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
@@ -168,6 +168,31 @@ export function DeliveryLogTable({
   // Expanded rows (track by entry id)
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
+  // Retry state
+  const [retrying, setRetrying] = useState<Set<string>>(new Set());
+
+  async function handleRetry(entryId: string) {
+    setRetrying((prev) => new Set(prev).add(entryId));
+    try {
+      const res = await fetch(`/api/v1/webhooks/${entryId}/replay`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Retry failed");
+      }
+      toast.success("Webhook replayed successfully");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Retry failed");
+    } finally {
+      setRetrying((prev) => {
+        const next = new Set(prev);
+        next.delete(entryId);
+        return next;
+      });
+    }
+  }
+
   // Connection lookup map.
   const connectionMap = useMemo(
     () => buildConnectionMap(connections),
@@ -295,12 +320,13 @@ export function DeliveryLogTable({
                 <TableHead>Duration</TableHead>
                 <TableHead>Attempt</TableHead>
                 <TableHead>Connection</TableHead>
+                <TableHead className="w-16" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredEntries.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-16 text-center">
+                  <TableCell colSpan={10} className="py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <Webhook className="size-8 text-muted-foreground/40" />
                       <p className="text-sm font-medium text-muted-foreground">No webhook deliveries found</p>
@@ -411,12 +437,31 @@ export function DeliveryLogTable({
                       >
                         {connName}
                       </TableCell>
+
+                      {/* Retry */}
+                      <TableCell className="text-right">
+                        {!entry.success && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs gap-1 bg-white dark:bg-card"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRetry(entry.id);
+                            }}
+                            disabled={retrying.has(entry.id)}
+                          >
+                            <RefreshCw className={`size-3 ${retrying.has(entry.id) ? "animate-spin" : ""}`} />
+                            {retrying.has(entry.id) ? "Retrying..." : "Retry"}
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
 
                     {/* Expanded details row */}
                     {isExpanded && (
                       <TableRow key={`details-${entry.id}`}>
-                        <TableCell colSpan={9} className="bg-muted/30 p-0">
+                        <TableCell colSpan={10} className="bg-muted/30 p-0">
                           <div className="space-y-4 px-6 py-4">
                             {/* Error message (if any) */}
                             {entry.error_message && (
