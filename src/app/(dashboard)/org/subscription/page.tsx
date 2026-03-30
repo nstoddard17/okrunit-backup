@@ -25,6 +25,7 @@ export default async function OrgBillingPage() {
     { count: requestsThisMonth },
     { count: apiKeyConnectionsCount },
     { count: membersCount },
+    { count: teamsCount },
     { data: invoices },
     oauthGrants,
   ] = await Promise.all([
@@ -33,6 +34,7 @@ export default async function OrgBillingPage() {
     admin.from("approval_requests").select("*", { count: "exact", head: true }).eq("org_id", org.id).gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
     admin.from("connections").select("*", { count: "exact", head: true }).eq("org_id", org.id).eq("is_active", true),
     admin.from("org_memberships").select("*", { count: "exact", head: true }).eq("org_id", org.id),
+    admin.from("teams").select("*", { count: "exact", head: true }).eq("org_id", org.id),
     admin.from("invoices").select("*").eq("org_id", org.id).order("created_at", { ascending: false }).limit(10),
     getActiveOAuthGrants(org.id),
   ]);
@@ -46,6 +48,7 @@ export default async function OrgBillingPage() {
       usage={{
         requests: requestsThisMonth ?? 0,
         connections: connectionsCount,
+        teams: teamsCount ?? 0,
         teamMembers: membersCount ?? 0,
       }}
       invoices={invoices ?? []}

@@ -37,6 +37,7 @@ export default async function WebhookDeliveriesPage() {
     <DeliveryLogTable
       initialEntries={deliveryLogs ?? []}
       connections={(allConnections ?? []).map((c) => ({ id: c.id, name: c.name })) as Connection[]}
+      orgId={membership.org_id}
     />
   );
 }

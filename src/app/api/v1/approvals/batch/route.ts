@@ -10,6 +10,7 @@ import { ApiError, errorResponse } from "@/lib/api/errors";
 import { batchApprovalSchema } from "@/lib/api/validation";
 import { logAuditEvent } from "@/lib/api/audit";
 import { deliverCallback } from "@/lib/api/callbacks";
+import { checkIpRateLimit, getClientIp, WRITE_RATE_LIMIT, rateLimitResponse } from "@/lib/api/ip-rate-limiter";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // ---- Helpers --------------------------------------------------------------
@@ -25,6 +26,11 @@ function getIpAddress(request: Request): string {
 // ---- POST /api/v1/approvals/batch ----------------------------------------
 
 export async function POST(request: Request) {
+  // Rate limit check
+  const ip = getClientIp(request);
+  const rl = checkIpRateLimit(`batch:${ip}`, WRITE_RATE_LIMIT);
+  if (!rl.allowed) return rateLimitResponse(rl);
+
   try {
     // 1. Authenticate -- session only
     const auth = await authenticateRequest(request);

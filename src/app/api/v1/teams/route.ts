@@ -141,6 +141,11 @@ export async function POST(request: Request) {
       throw new ApiError(500, "Failed to create team");
     }
 
+    // Auto-add the creator as a team member.
+    await admin
+      .from("team_memberships")
+      .upsert({ team_id: team.id, user_id: auth.user.id }, { onConflict: "team_id,user_id", ignoreDuplicates: true });
+
     // Audit the creation.
     const ipAddress =
       request.headers.get("x-forwarded-for") ??

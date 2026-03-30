@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { BillingPlan } from "@/lib/types/database";
+import { PLAN_LIMITS, isUnlimited } from "@/lib/billing/plans";
 
 interface TeamData {
   id: string;
@@ -62,6 +63,8 @@ export function V2TeamList({
   const [description, setDescription] = useState("");
 
   const canManage = currentUserRole === "owner" || currentUserRole === "admin";
+  const planLimits = PLAN_LIMITS[currentPlan];
+  const atTeamLimit = !isUnlimited(planLimits.maxTeams) && initialTeams.length >= planLimits.maxTeams;
 
   function openCreateDialog() {
     setName("");
@@ -157,7 +160,7 @@ export function V2TeamList({
           </p>
         </div>
         {canManage && (
-          currentPlan === "free" ? (
+          atTeamLimit ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <span tabIndex={0}>
@@ -186,7 +189,7 @@ export function V2TeamList({
           <UsersRound className="text-muted-foreground/30 mb-3 size-10" />
           <p className="text-sm text-muted-foreground">No teams yet</p>
           <p className="text-xs text-muted-foreground/60 mt-1">Create a team to group members for approval routing</p>
-          {canManage && currentPlan !== "free" && (
+          {canManage && !atTeamLimit && (
             <Button size="sm" className="mt-4 gap-1.5" onClick={openCreateDialog}>
               <Plus className="size-3.5" />
               Create Team

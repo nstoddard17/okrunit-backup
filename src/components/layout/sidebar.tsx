@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/stores/sidebar-store";
+import { useRealtime } from "@/hooks/use-realtime";
+import type { ApprovalRequest } from "@/lib/types/database";
 
 interface SidebarProps {
   user: {
@@ -48,7 +50,7 @@ const navItems: NavItem[] = [
   { id: "admin", href: "/admin", label: "Admin", icon: ShieldAlert, appAdminOnly: true, overflow: true },
 ];
 
-export function Sidebar({ pendingCount, userRole, isAppAdmin }: SidebarProps) {
+export function Sidebar({ pendingCount: initialPendingCount, userRole, isAppAdmin, currentOrgId }: SidebarProps) {
   const pathname = usePathname();
   const { activePanel, setActivePanel, setMobileOpen } = useSidebarStore();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -56,6 +58,42 @@ export function Sidebar({ pendingCount, userRole, isAppAdmin }: SidebarProps) {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const isAdmin = userRole === "owner" || userRole === "admin";
+
+  // Live pending count — starts from server value, updated via realtime
+  const [livePendingCount, setLivePendingCount] = useState(initialPendingCount);
+
+  // Sync with server value when it changes (e.g. after navigation)
+  useEffect(() => {
+    setLivePendingCount(initialPendingCount);
+  }, [initialPendingCount]);
+
+  // Realtime: adjust pending count when approval requests are created/updated
+  useRealtime<ApprovalRequest>({
+    table: "approval_requests",
+    filter: `org_id=eq.${currentOrgId}`,
+    enabled: !!currentOrgId,
+    onInsert: useCallback((record: ApprovalRequest) => {
+      if (record.status === "pending") {
+        setLivePendingCount((prev) => prev + 1);
+      }
+    }, []),
+    onUpdate: useCallback((record: ApprovalRequest, oldRecord: ApprovalRequest) => {
+      const wasPending = oldRecord.status === "pending";
+      const isPending = record.status === "pending";
+      if (wasPending && !isPending) {
+        setLivePendingCount((prev) => Math.max(0, prev - 1));
+      } else if (!wasPending && isPending) {
+        setLivePendingCount((prev) => prev + 1);
+      }
+    }, []),
+    onDelete: useCallback((oldRecord: ApprovalRequest) => {
+      if (oldRecord.status === "pending") {
+        setLivePendingCount((prev) => Math.max(0, prev - 1));
+      }
+    }, []),
+  });
+
+  const pendingCount = livePendingCount;
 
   // Measure available space and calculate how many items fit
   const calculateMaxItems = useCallback(() => {

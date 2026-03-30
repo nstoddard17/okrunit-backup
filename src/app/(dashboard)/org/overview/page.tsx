@@ -32,28 +32,17 @@ export default async function V2OrgOverviewPage() {
   const supabase = await createClient();
 
   const [
-    { count: pendingCount },
-    { count: approvedCount },
-    { count: rejectedCount },
+    { data: statusRows },
     { count: connectionCount },
     { count: memberCount },
     { data: recentActivity },
   ] = await Promise.all([
+    // Single query for all status counts instead of 3 separate COUNT queries
     admin
       .from("approval_requests")
-      .select("*", { count: "exact", head: true })
+      .select("status")
       .eq("org_id", org.id)
-      .eq("status", "pending"),
-    admin
-      .from("approval_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("org_id", org.id)
-      .eq("status", "approved"),
-    admin
-      .from("approval_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("org_id", org.id)
-      .eq("status", "rejected"),
+      .in("status", ["pending", "approved", "rejected"]),
     admin
       .from("connections")
       .select("*", { count: "exact", head: true })
@@ -70,41 +59,52 @@ export default async function V2OrgOverviewPage() {
       .limit(8),
   ]);
 
-  // Build connection name lookup for source display
+  // Count statuses from single query result
+  const statusCounts = { pending: 0, approved: 0, rejected: 0 };
+  for (const row of statusRows ?? []) {
+    if (row.status in statusCounts) statusCounts[row.status as keyof typeof statusCounts]++;
+  }
+  const pendingCount = statusCounts.pending;
+  const approvedCount = statusCounts.approved;
+  const rejectedCount = statusCounts.rejected;
+
+  // Build connection + creator lookups in parallel (previously sequential)
   const connectionIds = [...new Set(
     (recentActivity ?? [])
       .map((a) => a.connection_id)
       .filter(Boolean) as string[]
   )];
 
-  let connectionNameMap: Record<string, string> = {};
-  if (connectionIds.length > 0) {
-    const { data: connections } = await supabase
-      .from("connections")
-      .select("id, name")
-      .in("id", connectionIds);
-    connectionNameMap = Object.fromEntries(
-      (connections ?? []).map((c) => [c.id, c.name])
-    );
-  }
-
-  // Build creator name lookup (person who owns the connection)
   const creatorUserIds = [...new Set(
     (recentActivity ?? [])
       .map((a) => (a.created_by as ApprovalRequest["created_by"])?.user_id)
       .filter(Boolean) as string[]
   )];
 
-  let creatorNameMap: Record<string, string> = {};
-  if (creatorUserIds.length > 0) {
-    const { data: profiles } = await admin
-      .from("user_profiles")
-      .select("id, full_name, email")
-      .in("id", creatorUserIds);
-    creatorNameMap = Object.fromEntries(
-      (profiles ?? []).map((p) => [p.id, p.full_name || p.email || p.id.slice(0, 8)])
-    );
-  }
+  const [connectionNameMap, creatorNameMap] = await Promise.all([
+    // Connection names
+    connectionIds.length > 0
+      ? supabase
+          .from("connections")
+          .select("id, name")
+          .in("id", connectionIds)
+          .then(({ data }) =>
+            Object.fromEntries((data ?? []).map((c) => [c.id, c.name]))
+          )
+      : Promise.resolve({} as Record<string, string>),
+    // Creator profiles
+    creatorUserIds.length > 0
+      ? admin
+          .from("user_profiles")
+          .select("id, full_name, email")
+          .in("id", creatorUserIds)
+          .then(({ data }) =>
+            Object.fromEntries(
+              (data ?? []).map((p) => [p.id, p.full_name || p.email || p.id.slice(0, 8)])
+            )
+          )
+      : Promise.resolve({} as Record<string, string>),
+  ]);
 
   const isAdmin = membership.role === "owner" || membership.role === "admin";
   const totalRequests = (approvedCount ?? 0) + (rejectedCount ?? 0) + (pendingCount ?? 0);

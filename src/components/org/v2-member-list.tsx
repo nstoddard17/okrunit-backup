@@ -259,7 +259,7 @@ export function V2MemberList({
         </div>
         <Button variant="outline" size="sm" onClick={exportCsv} className="gap-1.5 h-9 bg-white dark:bg-card text-foreground hover:bg-white/80 dark:hover:bg-card/80">
           <Download className="size-3.5" />
-          Export
+          Export CSV
         </Button>
       </div>
 

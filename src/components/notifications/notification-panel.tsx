@@ -23,10 +23,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useRealtime } from "@/hooks/use-realtime";
 import type { InAppNotification, NotificationCategory } from "@/lib/types/database";
 
 interface NotificationPanelProps {
   pendingCount: number;
+  userId?: string;
 }
 
 const CATEGORY_CONFIG: Record<
@@ -71,12 +73,28 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
-export function NotificationPanel({ pendingCount }: NotificationPanelProps) {
+export function NotificationPanel({ pendingCount, userId }: NotificationPanelProps) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
+
+  // Realtime: listen for new notifications to update badge instantly
+  useRealtime<InAppNotification>({
+    table: "in_app_notifications",
+    filter: userId ? `user_id=eq.${userId}` : undefined,
+    enabled: !!userId,
+    onInsert: useCallback((record: InAppNotification) => {
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === record.id)) return prev;
+        return [record, ...prev].slice(0, 20);
+      });
+      if (!record.is_read) {
+        setUnreadCount((prev) => prev + 1);
+      }
+    }, []),
+  });
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);

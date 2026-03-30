@@ -71,6 +71,7 @@ export default async function DashboardLayout({
       pendingCount={pendingCount ?? 0}
       currentOrgId={org.id}
       userOrgs={userOrgs}
+      userId={profile.id}
     >
       {children}
     </DashboardShell>

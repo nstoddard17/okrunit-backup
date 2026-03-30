@@ -37,6 +37,7 @@ interface BillingDashboardProps {
   usage: {
     requests: number;
     connections: number;
+    teams: number;
     teamMembers: number;
   };
   invoices: Invoice[];
@@ -154,10 +155,20 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
             </div>
           </div>
 
-          {/* Row: Team */}
+          {/* Row: Teams */}
           <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <span className="text-sm font-medium text-muted-foreground w-20 sm:w-24">Team</span>
+              <span className="text-sm font-medium text-muted-foreground w-20 sm:w-24">Teams</span>
+              <span className="text-sm">
+                {usage.teams} / {isUnlimited(limits.maxTeams) ? "Unlimited" : limits.maxTeams} teams
+              </span>
+            </div>
+          </div>
+
+          {/* Row: Team Members */}
+          <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="text-sm font-medium text-muted-foreground w-20 sm:w-24">Members</span>
               <span className="text-sm">
                 {usage.teamMembers} / {isUnlimited(limits.maxTeamMembers) ? "Unlimited" : limits.maxTeamMembers} members
               </span>
@@ -290,6 +301,10 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
                       </li>
                       <li className="flex items-start gap-2">
                         <Check className={cn("size-4 shrink-0 mt-0.5", isEnterprise ? "text-white/80" : "text-primary")} />
+                        {isUnlimited(plan.maxTeams) ? "Unlimited" : plan.maxTeams} team{plan.maxTeams !== 1 ? "s" : ""}
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className={cn("size-4 shrink-0 mt-0.5", isEnterprise ? "text-white/80" : "text-primary")} />
                         {isUnlimited(plan.maxTeamMembers) ? "Unlimited" : plan.maxTeamMembers} team members
                       </li>
                       <li className="flex items-start gap-2">
@@ -338,6 +353,7 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
               {[
                 { label: "Requests per month", key: "maxRequests" },
                 { label: "Connections", key: "maxConnections" },
+                { label: "Teams", key: "maxTeams" },
                 { label: "Team members", key: "maxTeamMembers" },
                 { label: "History retention", key: "historyDays" },
                 { label: "Email notifications", feature: "email_notifications" },
@@ -365,6 +381,8 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
                       value = isUnlimited(plan.maxRequests) ? "Unlimited" : String(plan.maxRequests);
                     } else if (row.key === "maxConnections") {
                       value = isUnlimited(plan.maxConnections) ? "Unlimited" : String(plan.maxConnections);
+                    } else if (row.key === "maxTeams") {
+                      value = isUnlimited(plan.maxTeams) ? "Unlimited" : String(plan.maxTeams);
                     } else if (row.key === "maxTeamMembers") {
                       value = isUnlimited(plan.maxTeamMembers) ? "Unlimited" : String(plan.maxTeamMembers);
                     } else if (row.key === "historyDays") {
