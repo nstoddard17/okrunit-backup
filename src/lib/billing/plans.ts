@@ -38,6 +38,7 @@ export const PLAN_LIMITS: Record<BillingPlan, {
     historyDays: 90,
     features: [
       "email_notifications",
+      "community_support",
       "custom_email_branding",
       "slack_notifications",
       "webhook_notifications",
@@ -58,6 +59,7 @@ export const PLAN_LIMITS: Record<BillingPlan, {
     historyDays: 365,
     features: [
       "email_notifications",
+      "community_support",
       "custom_email_branding",
       "slack_notifications",
       "webhook_notifications",
@@ -86,6 +88,7 @@ export const PLAN_LIMITS: Record<BillingPlan, {
     historyDays: -1,
     features: [
       "email_notifications",
+      "community_support",
       "custom_email_branding",
       "slack_notifications",
       "webhook_notifications",
