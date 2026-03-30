@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DocsImage } from "@/components/docs/docs-image";
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld";
 
 export const metadata: Metadata = {
   title: "Getting Started",
@@ -11,6 +12,10 @@ export const metadata: Metadata = {
 export default function GettingStartedPage() {
   return (
     <article>
+      <BreadcrumbJsonLd items={[
+        { name: "Docs", href: "/docs" },
+        { name: "Getting Started", href: "/docs" },
+      ]} />
       <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
         Getting Started
       </h1>
