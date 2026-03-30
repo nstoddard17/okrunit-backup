@@ -71,6 +71,7 @@ export function RequestsNav({ isAdmin, pendingCount, mobile }: RequestsNavProps)
       icon: LineChart,
       items: [
         { id: "analytics", label: "Analytics", href: "/requests/analytics", icon: BarChart3 },
+        { id: "sla", label: "SLA Compliance", href: "/requests/sla", icon: LineChart, adminOnly: true },
         { id: "audit-log", label: "Audit Log", href: "/requests/audit-log", icon: ScrollText },
       ],
     },
