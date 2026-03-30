@@ -149,6 +149,20 @@ export interface OrgMembership {
   can_approve: boolean;
   is_default: boolean;
   auto_approvals_paused: boolean;
+  custom_role_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomRole {
+  id: string;
+  org_id: string;
+  name: string;
+  description: string | null;
+  base_role: "member" | "approver" | "admin";
+  color: string;
+  can_approve: boolean;
+  created_by: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -12,6 +12,7 @@ import {
   CreditCard,
   Receipt,
   Building2,
+  Shield,
   Wallet,
 } from "lucide-react";
 
@@ -50,6 +51,7 @@ export function V2OrgNav({ isAdmin, pendingInviteCount, planName, mobile }: V2Or
         { id: "organizations", label: "Organizations", href: "/org/organizations", icon: Building2 },
         { id: "teams", label: "Teams", href: "/org/teams", icon: UsersRound, adminOnly: true },
         { id: "members", label: "Members", href: "/org/members", icon: Users, adminOnly: true },
+        { id: "roles", label: "Roles", href: "/org/roles", icon: Shield, adminOnly: true },
         {
           id: "invites",
           label: "Invites",
