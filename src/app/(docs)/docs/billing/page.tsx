@@ -21,145 +21,48 @@ interface PlanFeature {
 }
 
 const FEATURES: PlanFeature[] = [
-  {
-    name: "Approval requests / month",
-    free: "50",
-    pro: "1,000",
-    business: "10,000",
-    enterprise: "Unlimited",
-  },
-  {
-    name: "Connections",
-    free: "2",
-    pro: "10",
-    business: "50",
-    enterprise: "Unlimited",
-  },
-  {
-    name: "Team members",
-    free: "3",
-    pro: "10",
-    business: "50",
-    enterprise: "Unlimited",
-  },
-  {
-    name: "Webhook callbacks",
-    free: "Yes",
-    pro: "Yes",
-    business: "Yes",
-    enterprise: "Yes",
-  },
-  {
-    name: "Email notifications",
-    free: "Yes",
-    pro: "Yes",
-    business: "Yes",
-    enterprise: "Yes",
-  },
-  {
-    name: "Slack notifications",
-    free: "--",
-    pro: "Yes",
-    business: "Yes",
-    enterprise: "Yes",
-  },
-  {
-    name: "Multi-step approvals",
-    free: "--",
-    pro: "Yes",
-    business: "Yes",
-    enterprise: "Yes",
-  },
-  {
-    name: "Approval rules & auto-routing",
-    free: "--",
-    pro: "Basic",
-    business: "Advanced",
-    enterprise: "Advanced",
-  },
-  {
-    name: "Trust-based auto-approval",
-    free: "--",
-    pro: "--",
-    business: "Yes",
-    enterprise: "Yes",
-  },
-  {
-    name: "Audit log retention",
-    free: "7 days",
-    pro: "90 days",
-    business: "1 year",
-    enterprise: "Custom",
-  },
-  {
-    name: "Analytics & reporting",
-    free: "Basic",
-    pro: "Full",
-    business: "Full",
-    enterprise: "Full + custom",
-  },
-  {
-    name: "Export (CSV / JSON)",
-    free: "--",
-    pro: "Yes",
-    business: "Yes",
-    enterprise: "Yes",
-  },
-  {
-    name: "IP allowlist",
-    free: "--",
-    pro: "--",
-    business: "Yes",
-    enterprise: "Yes",
-  },
-  {
-    name: "Geo restrictions",
-    free: "--",
-    pro: "--",
-    business: "Yes",
-    enterprise: "Yes",
-  },
-  {
-    name: "Four-eyes principle",
-    free: "--",
-    pro: "--",
-    business: "Yes",
-    enterprise: "Yes",
-  },
-  {
-    name: "SSO / SAML",
-    free: "--",
-    pro: "--",
-    business: "--",
-    enterprise: "Yes",
-  },
-  {
-    name: "SLA guarantees",
-    free: "--",
-    pro: "--",
-    business: "--",
-    enterprise: "Yes",
-  },
-  {
-    name: "Dedicated support",
-    free: "Community",
-    pro: "Email",
-    business: "Priority email",
-    enterprise: "Dedicated CSM",
-  },
-  {
-    name: "Rate limit (per connection)",
-    free: "60/hr",
-    pro: "500/hr",
-    business: "5,000/hr",
-    enterprise: "10,000/hr",
-  },
+  // Limits
+  { name: "Approval requests / month", free: "100", pro: "Unlimited", business: "Unlimited", enterprise: "Unlimited" },
+  { name: "Connections", free: "2", pro: "15", business: "Unlimited", enterprise: "Unlimited" },
+  { name: "Teams", free: "1", pro: "5", business: "Unlimited", enterprise: "Unlimited" },
+  { name: "Team members", free: "3", pro: "15", business: "Unlimited", enterprise: "Unlimited" },
+  { name: "History retention", free: "7 days", pro: "90 days", business: "1 year", enterprise: "Custom" },
+  // Notifications
+  { name: "Email notifications", free: "Yes", pro: "Yes", business: "Yes", enterprise: "Yes" },
+  { name: "Custom email branding", free: "--", pro: "Yes", business: "Yes", enterprise: "Yes" },
+  { name: "Slack notifications", free: "--", pro: "Yes", business: "Yes", enterprise: "Yes" },
+  { name: "Webhook notifications", free: "--", pro: "Yes", business: "Yes", enterprise: "Yes" },
+  // Workflow
+  { name: "Rules engine", free: "--", pro: "Yes", business: "Yes", enterprise: "Yes" },
+  { name: "Analytics", free: "--", pro: "Yes", business: "Yes", enterprise: "Yes" },
+  { name: "API access", free: "--", pro: "Yes", business: "Yes", enterprise: "Yes" },
+  { name: "Scheduled approvals", free: "--", pro: "Yes", business: "Yes", enterprise: "Yes" },
+  { name: "Analytics export", free: "--", pro: "--", business: "Yes", enterprise: "Yes" },
+  { name: "Audit log export", free: "--", pro: "--", business: "Yes", enterprise: "Yes" },
+  { name: "Multi-step approvals", free: "--", pro: "--", business: "Yes", enterprise: "Yes" },
+  { name: "Custom routing", free: "--", pro: "--", business: "Yes", enterprise: "Yes" },
+  // Security
+  { name: "SSO / SAML", free: "--", pro: "--", business: "Yes", enterprise: "Yes" },
+  { name: "IP allowlist", free: "--", pro: "--", business: "Yes", enterprise: "Yes" },
+  { name: "Geo restrictions", free: "--", pro: "--", business: "Yes", enterprise: "Yes" },
+  { name: "Webhook retry config", free: "--", pro: "--", business: "Yes", enterprise: "Yes" },
+  // Enterprise
+  { name: "Dedicated support", free: "Community", pro: "Email", business: "Priority", enterprise: "Dedicated CSM" },
+  { name: "Custom SLA", free: "--", pro: "--", business: "--", enterprise: "Yes" },
+  { name: "Priority processing", free: "--", pro: "--", business: "--", enterprise: "Yes" },
+  { name: "SCIM provisioning", free: "--", pro: "--", business: "--", enterprise: "Yes" },
+  { name: "Custom data retention", free: "--", pro: "--", business: "--", enterprise: "Yes" },
+  { name: "Dedicated instance", free: "--", pro: "--", business: "--", enterprise: "Yes" },
+  { name: "Custom integrations", free: "--", pro: "--", business: "--", enterprise: "Yes" },
+  { name: "Uptime SLA (99.9%)", free: "--", pro: "--", business: "--", enterprise: "Yes" },
+  { name: "Compliance (SOC2, HIPAA)", free: "--", pro: "--", business: "--", enterprise: "Yes" },
+  { name: "Onboarding & training", free: "--", pro: "--", business: "--", enterprise: "Yes" },
 ];
 
 const PLAN_PRICES = [
   { name: "Free", price: "$0", period: "forever", highlight: false },
-  { name: "Pro", price: "$29", period: "/month", highlight: true },
-  { name: "Business", price: "$99", period: "/month", highlight: false },
+  { name: "Pro", price: "$20", period: "/month", highlight: true },
+  { name: "Business", price: "$60", period: "/month", highlight: false },
   { name: "Enterprise", price: "Custom", period: "", highlight: false },
 ];
 
@@ -213,8 +116,9 @@ export default function BillingPage() {
         <div className="rounded-lg border border-zinc-200 p-4">
           <h3 className="font-semibold text-zinc-900">Free</h3>
           <p className="mt-1 text-sm text-zinc-600">
-            Perfect for trying out OKrunit. 50 approval requests per month, 2
-            connections, and 3 team members. Email notifications included.
+            Perfect for trying out OKrunit. 100 approval requests per month, 2
+            connections, 3 team members, 1 team, and 7-day history. Email
+            notifications and community support included.
           </p>
         </div>
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
@@ -222,24 +126,31 @@ export default function BillingPage() {
             Pro — most popular
           </h3>
           <p className="mt-1 text-sm text-emerald-800">
-            For growing teams that need Slack notifications, multi-step
-            approvals, basic routing rules, and full analytics. 1,000 requests
-            per month.
+            For growing teams that need unlimited requests, Slack and webhook
+            notifications, rules engine, full analytics, API access, scheduled
+            approvals, and custom email branding. 15 connections, 15 members, 5
+            teams, 90-day history. $20/month or $16/month billed annually.
           </p>
         </div>
         <div className="rounded-lg border border-zinc-200 p-4">
           <h3 className="font-semibold text-zinc-900">Business</h3>
           <p className="mt-1 text-sm text-zinc-600">
-            For organizations that need advanced routing, trust-based
-            auto-approval, IP allowlists, geo restrictions, and the four-eyes
-            principle. 10,000 requests per month.
+            For organizations that need everything in Pro plus SSO/SAML, IP
+            allowlists, geo restrictions, multi-step approvals, custom routing,
+            analytics and audit log exports, and webhook retry configuration.
+            Unlimited connections, members, and teams with 365-day history.
+            $60/month or $48/month billed annually.
           </p>
         </div>
         <div className="rounded-lg border border-zinc-200 p-4">
           <h3 className="font-semibold text-zinc-900">Enterprise</h3>
           <p className="mt-1 text-sm text-zinc-600">
-            Unlimited everything, SSO/SAML, SLA guarantees, and a dedicated
-            customer success manager. Contact us for custom pricing.
+            Everything in Business plus dedicated support with a customer success
+            manager, custom SLA, priority processing, SCIM user provisioning,
+            custom data retention policies, a dedicated instance, custom
+            integrations built by our team, a contractual 99.9% uptime SLA,
+            compliance certifications (SOC2, HIPAA), and white-glove onboarding
+            and training. Unlimited history. Contact us for custom pricing.
           </p>
         </div>
       </div>
@@ -442,7 +353,7 @@ export default function BillingPage() {
             Can I pay annually?
           </h3>
           <p className="mt-1 text-sm text-zinc-600">
-            Yes. Annual billing is available for Pro and Business plans with a 20%
+            Yes. Annual billing is available for Pro and Business plans with a 15%+
             discount. Toggle monthly/yearly on the billing page.
           </p>
         </div>

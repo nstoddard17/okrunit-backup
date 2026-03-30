@@ -111,13 +111,26 @@ export default async function InviteAcceptPage({
     .maybeSingle();
 
   if (existingMembership) {
-    // Already in this org, just mark invite as accepted.
+    // Already in this org (likely handled by handle_new_user trigger).
+    // Mark invite as accepted if not already.
     await admin
       .from("org_invites")
       .update({ accepted_at: new Date().toISOString() })
       .eq("id", invite.id);
 
-    redirect("/org/overview");
+    // Switch to the invited org so it's active.
+    await admin
+      .from("org_memberships")
+      .update({ is_default: false })
+      .eq("user_id", user.id)
+      .eq("is_default", true);
+    await admin
+      .from("org_memberships")
+      .update({ is_default: true })
+      .eq("user_id", user.id)
+      .eq("org_id", invite.org_id);
+
+    redirect("/org/overview?joined=true");
   }
 
   // 2. Ensure user profile exists.
@@ -136,12 +149,18 @@ export default async function InviteAcceptPage({
     });
   }
 
-  // 3. Create membership in the invited org (not default -- keep current active org).
+  // 3. Create membership in the invited org and make it the active org.
+  await admin
+    .from("org_memberships")
+    .update({ is_default: false })
+    .eq("user_id", user.id)
+    .eq("is_default", true);
+
   await admin.from("org_memberships").insert({
     user_id: user.id,
     org_id: invite.org_id,
     role: invite.role,
-    is_default: false,
+    is_default: true,
   });
 
   // 4. Auto-add to teams if specified on the invite.
@@ -189,5 +208,5 @@ export default async function InviteAcceptPage({
     });
   }
 
-  redirect("/org/overview");
+  redirect("/org/overview?joined=true");
 }

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   BarChart3,
+  Bug,
   Building2,
   CreditCard,
   Users,
@@ -30,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "oauth", label: "OAuth Apps", href: "/admin/oauth", icon: KeyRound },
   { id: "email-previews", label: "Email Previews", href: "/admin/email-previews", icon: Mail },
   { id: "plan-overrides", label: "Plan Overrides", href: "/admin/plan-overrides", icon: CreditCard },
+  { id: "errors", label: "Error Monitor", href: "/admin/errors", icon: Bug },
 ];
 
 interface AdminNavProps {

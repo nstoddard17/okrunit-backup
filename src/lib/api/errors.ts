@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";
+import { captureError } from "@/lib/monitoring/capture";
 
 /**
  * Structured API error with an HTTP status code and optional machine-readable
@@ -40,6 +41,9 @@ export function errorResponse(error: unknown): NextResponse {
 
   // Log unexpected errors for observability; never leak internals to clients.
   console.error("[API] Unhandled error:", error);
+
+  // Capture in error monitoring system (fire-and-forget)
+  captureError({ error, severity: "error", service: "API" }).catch(() => {});
 
   return NextResponse.json(
     { error: "Internal server error" },

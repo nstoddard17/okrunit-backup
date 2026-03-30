@@ -42,32 +42,39 @@ export function useRealtime<T extends { [key: string]: any }>(
   useEffect(() => {
     if (options.enabled === false) return;
 
+    let cancelled = false;
     const supabase = createClient();
-    const channel = supabase
-      .channel(`realtime-${options.table}-${Date.now()}`)
-      .on(
-        "postgres_changes",
-        {
-          event: options.event || "*",
-          schema: options.schema || "public",
-          table: options.table,
-          filter: options.filter,
-        },
-        (payload: RealtimePostgresChangesPayload<T>) => {
-          if (payload.eventType === "INSERT" && options.onInsert) {
-            options.onInsert(payload.new as T);
-          } else if (payload.eventType === "UPDATE" && options.onUpdate) {
-            options.onUpdate(payload.new as T, payload.old as T);
-          } else if (payload.eventType === "DELETE" && options.onDelete) {
-            options.onDelete(payload.old as T);
-          }
-        },
-      )
-      .subscribe();
+    const channelName = `realtime-${options.table}-${Math.random().toString(36).slice(2)}`;
 
+    // Build channel with listener, then subscribe asynchronously
+    // to avoid the "cannot add callbacks after subscribe()" race in strict mode.
+    const channel = supabase.channel(channelName);
+
+    channel.on(
+      "postgres_changes",
+      {
+        event: options.event || "*",
+        schema: options.schema || "public",
+        table: options.table,
+        filter: options.filter,
+      },
+      (payload: RealtimePostgresChangesPayload<T>) => {
+        if (cancelled) return;
+        if (payload.eventType === "INSERT" && options.onInsert) {
+          options.onInsert(payload.new as T);
+        } else if (payload.eventType === "UPDATE" && options.onUpdate) {
+          options.onUpdate(payload.new as T, payload.old as T);
+        } else if (payload.eventType === "DELETE" && options.onDelete) {
+          options.onDelete(payload.old as T);
+        }
+      },
+    );
+
+    channel.subscribe();
     channelRef.current = channel;
 
     return () => {
+      cancelled = true;
       supabase.removeChannel(channel);
     };
     // Re-subscribe when table, filter, or enabled flag changes.
