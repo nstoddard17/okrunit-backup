@@ -9,7 +9,7 @@ import { useApprovalFiltersStore } from "@/stores/approval-filters-store";
 import { useRealtime } from "@/hooks/use-realtime";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Clock, CheckCircle, XCircle, RefreshCw, Archive } from "lucide-react";
+import { Clock, CheckCircle, XCircle, RefreshCw, Archive, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -690,12 +690,48 @@ export function ApprovalDashboard({
         </Button>
       </div>
 
-      {/* Filters */}
-      <ApprovalFilters
-        onFilterChange={handleFilterChange}
-        connections={connections}
-        currentFilters={{ status, priority, search, source, showArchived }}
-      />
+      {/* Filters + Export */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <ApprovalFilters
+            onFilterChange={handleFilterChange}
+            connections={connections}
+            currentFilters={{ status, priority, search, source, showArchived }}
+          />
+        </div>
+        {approvals.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 text-xs shrink-0 bg-white dark:bg-card"
+            onClick={() => {
+              const headers = ["ID", "Title", "Status", "Priority", "Action Type", "Source", "Created", "Decided"];
+              const rows = approvals.map((a) => [
+                a.id,
+                `"${(a.title ?? "").replace(/"/g, '""')}"`,
+                a.status,
+                a.priority,
+                a.action_type ?? "",
+                a.source ?? "",
+                a.created_at,
+                a.decided_at ?? "",
+              ]);
+              const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `okrunit-approvals-${new Date().toISOString().slice(0, 10)}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+              toast.success("Exported to CSV");
+            }}
+          >
+            <Download className="size-3.5" />
+            Export
+          </Button>
+        )}
+      </div>
 
       {/* Select all bar */}
       {approvals.length > 0 && (

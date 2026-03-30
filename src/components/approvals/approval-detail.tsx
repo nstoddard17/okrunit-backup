@@ -100,6 +100,28 @@ export function ApprovalDetail({
     setComments([]);
   }
 
+  // Keyboard shortcuts: a = approve, r = reject (only when detail is open and request is pending)
+  useEffect(() => {
+    if (!open || !approval || approval.status !== "pending" || !canApprove) return;
+
+    function handleKey(e: KeyboardEvent) {
+      // Don't fire if user is typing in an input/textarea
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      if (e.key === "a" && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        onRespond(approval!.id, "approved", "");
+      } else if (e.key === "r" && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        onRespond(approval!.id, "rejected", "");
+      }
+    }
+
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open, approval, canApprove, onRespond]);
+
   // Fetch comments when sidebar opens
   useEffect(() => {
     if (!currentId) return;
