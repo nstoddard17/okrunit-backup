@@ -43,6 +43,10 @@ function extractErrorParts(error: unknown): {
     return { type: "StringError", message: error, frames: [] };
   }
 
+  if (error == null) {
+    return { type: "UnknownError", message: String(error), frames: [] };
+  }
+
   try {
     return { type: "UnknownError", message: JSON.stringify(error), frames: [] };
   } catch {
