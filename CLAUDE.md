@@ -15,3 +15,13 @@ Always use this workflow:
 6. If CI passes, the PR auto-merges to `main` via squash merge
 
 **NEVER force push to any branch. NEVER disable branch protection.**
+
+## Database Migrations — IMPORTANT
+
+When you create a Supabase migration file in `supabase/migrations/`, you **MUST** push it immediately:
+
+```bash
+supabase db push --include-all
+```
+
+Always push migrations right after creating them. Do NOT leave unpushed migrations — they will cause runtime errors when code depends on schema changes that haven't been applied to the remote database.

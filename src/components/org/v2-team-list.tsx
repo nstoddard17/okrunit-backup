@@ -15,6 +15,11 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -25,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import type { BillingPlan } from "@/lib/types/database";
 
 interface TeamData {
   id: string;
@@ -38,12 +44,14 @@ interface V2TeamListProps {
   teams: TeamData[];
   memberCounts: Record<string, number>;
   currentUserRole: string;
+  currentPlan: BillingPlan;
 }
 
 export function V2TeamList({
   teams: initialTeams,
   memberCounts: initialMemberCounts,
   currentUserRole,
+  currentPlan,
 }: V2TeamListProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -149,10 +157,26 @@ export function V2TeamList({
           </p>
         </div>
         {canManage && (
-          <Button size="sm" onClick={openCreateDialog} className="gap-1.5 h-8">
-            <Plus className="size-3.5" />
-            New Team
-          </Button>
+          currentPlan === "free" ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span tabIndex={0}>
+                  <Button size="sm" disabled className="gap-1.5 h-8">
+                    <Plus className="size-3.5" />
+                    New Team
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                You have reached the limit for the number of teams in your organization. Upgrade to create more.
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button size="sm" onClick={openCreateDialog} className="gap-1.5 h-8">
+              <Plus className="size-3.5" />
+              New Team
+            </Button>
+          )
         )}
       </div>
 
@@ -162,7 +186,7 @@ export function V2TeamList({
           <UsersRound className="text-muted-foreground/30 mb-3 size-10" />
           <p className="text-sm text-muted-foreground">No teams yet</p>
           <p className="text-xs text-muted-foreground/60 mt-1">Create a team to group members for approval routing</p>
-          {canManage && (
+          {canManage && currentPlan !== "free" && (
             <Button size="sm" className="mt-4 gap-1.5" onClick={openCreateDialog}>
               <Plus className="size-3.5" />
               Create Team

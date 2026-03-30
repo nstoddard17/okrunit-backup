@@ -11,6 +11,7 @@ import { ApiError, errorResponse } from "@/lib/api/errors";
 import { logAuditEvent } from "@/lib/api/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { emailLayout, emailCard, emailButton, escapeHtml } from "@/lib/email/layout";
+import { createInAppNotification } from "@/lib/notifications/in-app";
 
 // ---- Validation -----------------------------------------------------------
 
@@ -267,6 +268,19 @@ export async function POST(
         if (profile?.email) {
           await sendTeamAddedEmail(profile.email, team.name, id, addedByName);
         }
+
+        // In-app notification
+        await createInAppNotification({
+          userId: uid,
+          orgId: auth.orgId,
+          category: "team_added",
+          title: `You were added to ${team.name}`,
+          body: `${addedByName} added you to this team.`,
+          actorId: auth.user.id,
+          actorName: addedByName,
+          resourceType: "team",
+          resourceId: id,
+        });
       }),
     );
 

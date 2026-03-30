@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getActiveOAuthGrants } from "@/lib/api/oauth-grants";
 import { getPlanLimits, isUnlimited } from "@/lib/billing/plans";
 import type { BillingPlan } from "@/lib/types/database";
 
@@ -81,13 +82,16 @@ export async function canCreateConnection(orgId: string): Promise<EnforcementRes
   }
 
   const admin = createAdminClient();
-  const { count } = await admin
-    .from("connections")
-    .select("*", { count: "exact", head: true })
-    .eq("org_id", orgId)
-    .eq("is_active", true);
+  const [{ count: apiKeyCount }, oauthGrants] = await Promise.all([
+    admin
+      .from("connections")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .eq("is_active", true),
+    getActiveOAuthGrants(orgId),
+  ]);
 
-  const current = count ?? 0;
+  const current = (apiKeyCount ?? 0) + oauthGrants.length;
 
   if (current >= limits.maxConnections) {
     return {
@@ -159,8 +163,9 @@ export async function getUsageSummary(orgId: string) {
 
   const [
     { count: requestsThisMonth },
-    { count: connectionsCount },
+    { count: apiKeyConnectionsCount },
     { count: membersCount },
+    oauthGrants,
   ] = await Promise.all([
     admin
       .from("approval_requests")
@@ -176,6 +181,7 @@ export async function getUsageSummary(orgId: string) {
       .from("org_memberships")
       .select("*", { count: "exact", head: true })
       .eq("org_id", orgId),
+    getActiveOAuthGrants(orgId),
   ]);
 
   const plan = await getOrgPlan(orgId);
@@ -186,7 +192,7 @@ export async function getUsageSummary(orgId: string) {
     limits,
     usage: {
       requests: requestsThisMonth ?? 0,
-      connections: connectionsCount ?? 0,
+      connections: (apiKeyConnectionsCount ?? 0) + oauthGrants.length,
       teamMembers: membersCount ?? 0,
     },
   };

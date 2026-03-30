@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, differenceInDays } from "date-fns";
 import {
   ChevronDown,
   Check,
@@ -17,6 +17,9 @@ import {
   Plus,
   Loader2,
   Info,
+  Archive,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -150,6 +153,16 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [restoredDraft, setRestoredDraft] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Stale detection: no activity in 30+ days
+  const daysSinceLastRequest = flow.last_request_at
+    ? differenceInDays(new Date(), new Date(flow.last_request_at))
+    : flow.created_at
+      ? differenceInDays(new Date(), new Date(flow.created_at))
+      : 0;
+  const isStale = daysSinceLastRequest >= 30;
 
   // Compute initial values from flow (used for both fresh init and dirty detection)
   const initialUIMode: UIApproverMode =
@@ -311,6 +324,27 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
       toast.error(err instanceof Error ? err.message : "Failed to create position");
     } finally {
       setCreatingPosition(false);
+    }
+  }
+
+  // ---- Delete flow ----------------------------------------------------------
+
+  async function handleDeleteFlow() {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/v1/flows/${flow.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? "Failed to delete flow");
+      }
+      clearDraft(flow.id);
+      toast.success("Flow deleted");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete flow");
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
     }
   }
 
@@ -488,6 +522,12 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
                   Needs setup
                 </Badge>
               )}
+              {isStale && (
+                <Badge variant="outline" className="text-[10px] shrink-0 text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-700 gap-0.5">
+                  <AlertTriangle className="size-2.5" />
+                  Inactive {daysSinceLastRequest}d
+                </Badge>
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground mt-0.5">
               <span className="flex items-center gap-1">
@@ -529,6 +569,36 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
                   <span className="sm:hidden">Open</span>
                 </a>
               </Button>
+            )}
+            {!expanded && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirmDelete) {
+                        handleDeleteFlow();
+                      } else {
+                        setConfirmDelete(true);
+                        setTimeout(() => setConfirmDelete(false), 3000);
+                      }
+                    }}
+                    className={cn(
+                      "flex size-7 items-center justify-center rounded-md transition-colors",
+                      confirmDelete
+                        ? "bg-destructive/10 text-destructive"
+                        : "text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10",
+                    )}
+                  >
+                    {deleting ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  {confirmDelete ? "Click again to confirm" : "Delete flow"}
+                </TooltipContent>
+              </Tooltip>
             )}
             <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", expanded && "rotate-180")} />
           </div>
@@ -905,34 +975,78 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
               </p>
             </div>
 
-            {/* Save / Cancel */}
-            <div className="flex items-center gap-2 pt-1">
-              <Button size="sm" onClick={handleSave} disabled={saving}>
-                {saving ? "Saving..." : "Save"}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  clearDraft(flow.id);
-                  // Reset to saved flow values
-                  setFlowName(flow.name ?? "");
-                  setSourceUrl(flow.source_url ?? "");
-                  setApproverMode(initialUIMode);
-                  setSelectedApprovers(flow.assigned_approvers ?? []);
-                  setSelectedTeamId(flow.assigned_team_id ?? "none");
-                  setRequiredRole(flow.required_role ?? "none");
-                  setIsSequential(flow.is_sequential ?? false);
-                  setRequiredApprovals(flow.default_required_approvals ?? 1);
-                  setDurationPreset(initialDurationPreset);
-                  setCustomCount(initialCustomCount);
-                  setSelectedPositionId(flow.assigned_position_id ?? "none");
-                  setExpanded(false);
-                }}
-                disabled={saving}
-              >
-                Cancel
-              </Button>
+            {/* Save / Cancel / Delete */}
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-2">
+                <Button size="sm" onClick={handleSave} disabled={saving}>
+                  {saving ? "Saving..." : "Save"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    clearDraft(flow.id);
+                    setFlowName(flow.name ?? "");
+                    setSourceUrl(flow.source_url ?? "");
+                    setApproverMode(initialUIMode);
+                    setSelectedApprovers(flow.assigned_approvers ?? []);
+                    setSelectedTeamId(flow.assigned_team_id ?? "none");
+                    setRequiredRole(flow.required_role ?? "none");
+                    setIsSequential(flow.is_sequential ?? false);
+                    setRequiredApprovals(flow.default_required_approvals ?? 1);
+                    setDurationPreset(initialDurationPreset);
+                    setCustomCount(initialCustomCount);
+                    setSelectedPositionId(flow.assigned_position_id ?? "none");
+                    setExpanded(false);
+                  }}
+                  disabled={saving}
+                >
+                  Cancel
+                </Button>
+              </div>
+              {!confirmDelete ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmDelete(true);
+                  }}
+                  disabled={saving || deleting}
+                >
+                  <Trash2 className="size-3.5" />
+                  Delete
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-destructive">Delete this flow?</span>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="gap-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteFlow();
+                    }}
+                    disabled={deleting}
+                  >
+                    {deleting ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3" />}
+                    Confirm
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmDelete(false);
+                    }}
+                    disabled={deleting}
+                  >
+                    No
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}

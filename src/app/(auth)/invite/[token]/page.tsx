@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { logAuditEvent } from "@/lib/api/audit";
+import { createInAppNotification } from "@/lib/notifications/in-app";
 import type { OrgInvite, Organization } from "@/lib/types/database";
 
 export const metadata = {
@@ -171,6 +172,22 @@ export default async function InviteAcceptPage({
     resourceId: invite.id,
     details: { email: invite.email, role: invite.role, team_ids: teamIds },
   });
+
+  // Notify the inviter that their invite was accepted.
+  if (invite.invited_by) {
+    const memberName = user.user_metadata?.full_name || invite.email;
+    await createInAppNotification({
+      userId: invite.invited_by,
+      orgId: invite.org_id,
+      category: "team_invite",
+      title: `${memberName} joined ${orgName}`,
+      body: `Your invitation was accepted. They joined as ${invite.role}.`,
+      actorId: user.id,
+      actorName: memberName,
+      resourceType: "org_invite",
+      resourceId: invite.id,
+    });
+  }
 
   redirect("/org/overview");
 }

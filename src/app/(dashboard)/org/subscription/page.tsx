@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getActiveOAuthGrants } from "@/lib/api/oauth-grants";
 import { BillingDashboard } from "@/components/billing/billing-dashboard";
 import type { Plan, Subscription } from "@/lib/types/database";
 
@@ -22,9 +23,10 @@ export default async function OrgBillingPage() {
     { data: plans },
     { data: subscription },
     { count: requestsThisMonth },
-    { count: connectionsCount },
+    { count: apiKeyConnectionsCount },
     { count: membersCount },
     { data: invoices },
+    oauthGrants,
   ] = await Promise.all([
     admin.from("plans").select("*").eq("is_active", true).order("sort_order").returns<Plan[]>(),
     admin.from("subscriptions").select("*").eq("org_id", org.id).single(),
@@ -32,7 +34,10 @@ export default async function OrgBillingPage() {
     admin.from("connections").select("*", { count: "exact", head: true }).eq("org_id", org.id).eq("is_active", true),
     admin.from("org_memberships").select("*", { count: "exact", head: true }).eq("org_id", org.id),
     admin.from("invoices").select("*").eq("org_id", org.id).order("created_at", { ascending: false }).limit(10),
+    getActiveOAuthGrants(org.id),
   ]);
+
+  const connectionsCount = (apiKeyConnectionsCount ?? 0) + oauthGrants.length;
 
   return (
     <BillingDashboard
@@ -40,7 +45,7 @@ export default async function OrgBillingPage() {
       subscription={subscription as Subscription | null}
       usage={{
         requests: requestsThisMonth ?? 0,
-        connections: connectionsCount ?? 0,
+        connections: connectionsCount,
         teamMembers: membersCount ?? 0,
       }}
       invoices={invoices ?? []}
