@@ -61,6 +61,13 @@ export function DashboardShell({ children, sidebarProps, emergencyStopActive, us
 
       {/* Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Skip to main content — accessibility */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:text-white"
+        >
+          Skip to main content
+        </a>
         <Header
           emergencyStopActive={emergencyStopActive}
           user={user}
@@ -70,7 +77,7 @@ export function DashboardShell({ children, sidebarProps, emergencyStopActive, us
           userOrgs={userOrgs}
           userId={userId}
         />
-        <main className="flex-1 overflow-y-auto">
+        <main id="main-content" className="flex-1 overflow-y-auto">
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             {children}
           </div>

@@ -245,6 +245,8 @@ export function Sidebar({ pendingCount: initialPendingCount, userRole, isAppAdmi
           <div className="relative w-full pb-3">
             <button
               onClick={() => setMoreOpen(!moreOpen)}
+              aria-label="More navigation options"
+              aria-expanded={moreOpen}
               className="group flex w-full cursor-pointer flex-col items-center gap-1.5 py-3 text-white/80 transition-colors"
             >
               <div className={cn(
@@ -263,7 +265,7 @@ export function Sidebar({ pendingCount: initialPendingCount, userRole, isAppAdmi
               <div className="absolute bottom-0 left-full z-50 ml-2 w-48 rounded-lg border border-border bg-card py-2 shadow-lg">
                 <div className="flex items-center justify-between px-3 pb-2">
                   <span className="text-xs font-semibold text-muted-foreground">More</span>
-                  <button onClick={() => setMoreOpen(false)} className="cursor-pointer text-muted-foreground hover:text-foreground">
+                  <button onClick={() => setMoreOpen(false)} aria-label="Close menu" className="cursor-pointer text-muted-foreground hover:text-foreground">
                     <X className="size-3.5" />
                   </button>
                 </div>
