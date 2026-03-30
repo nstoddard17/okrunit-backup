@@ -478,7 +478,7 @@ export function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCard
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="truncate text-sm font-medium">{flowLabel}</span>
-              <Badge variant="secondary" className="text-[10px] shrink-0">
+              <Badge variant="secondary" className={cn("text-[10px] shrink-0 border-0", sourceConfig?.bgColor, sourceConfig?.color)}>
                 {sourcePlatformLabel}
               </Badge>
               {flow.is_configured ? (

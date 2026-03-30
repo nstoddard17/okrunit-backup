@@ -261,7 +261,7 @@ export async function POST(request: Request) {
             org_id: auth.orgId,
             source: validated.source,
             source_id: validated.source_id,
-            name: validated.source_name || `${validated.source} flow ${validated.source_id}`,
+            name: validated.source_name || `${validated.source.charAt(0).toUpperCase() + validated.source.slice(1)} — ${validated.title.slice(0, 80)}`,
             source_url: validated.source_url ?? null,
             is_configured: false,
             request_count: 1,

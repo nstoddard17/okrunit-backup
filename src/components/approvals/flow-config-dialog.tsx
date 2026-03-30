@@ -25,7 +25,12 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createClient } from "@/lib/supabase/client";
-import { X } from "lucide-react";
+import { X, Plus, Loader2, Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import type { ApprovalFlow, ApprovalRequest, UserRole, ApproverMode } from "@/lib/types/database";
 
 // UI-level approver mode — "by_position" maps to "designated" + assigned_team_id on save
@@ -95,6 +100,8 @@ export function FlowConfigDialog({
   const [selectedPositionId, setSelectedPositionId] = useState<string>("none");
   const [positions, setPositions] = useState<{ id: string; name: string }[]>([]);
   const [loadingPositions, setLoadingPositions] = useState(false);
+  const [newPositionName, setNewPositionName] = useState("");
+  const [creatingPosition, setCreatingPosition] = useState(false);
   const [requiredRole, setRequiredRole] = useState<UserRole | "none">("none");
   const [isSequential, setIsSequential] = useState(false);
   const [requiredApprovals, setRequiredApprovals] = useState(1);
@@ -104,6 +111,34 @@ export function FlowConfigDialog({
   const [customCount, setCustomCount] = useState("");
 
   const [saving, setSaving] = useState(false);
+
+  // ---- Create position inline ------------------------------------------------
+
+  async function handleCreatePosition() {
+    const name = newPositionName.trim();
+    if (!name || selectedTeamId === "none") return;
+    setCreatingPosition(true);
+    try {
+      const res = await fetch(`/api/v1/teams/${selectedTeamId}/positions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to create position");
+      }
+      const { data } = await res.json();
+      setPositions((prev) => [...prev, { id: data.id, name: data.name }].sort((a, b) => a.name.localeCompare(b.name)));
+      setSelectedPositionId(data.id);
+      setNewPositionName("");
+      toast.success(`Position "${name}" created`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create position");
+    } finally {
+      setCreatingPosition(false);
+    }
+  }
 
   // ---- Load flow + org data -------------------------------------------------
 
@@ -227,6 +262,8 @@ export function FlowConfigDialog({
       setSelectedTeamId("none");
       setSelectedPositionId("none");
       setPositions([]);
+      setNewPositionName("");
+      setCreatingPosition(false);
       setRequiredRole("none");
       setApproverMode("any");
       setIsSequential(false);
@@ -432,6 +469,33 @@ export function FlowConfigDialog({
                         ))}
                       </SelectContent>
                     </Select>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        placeholder="New position name..."
+                        value={newPositionName}
+                        onChange={(e) => setNewPositionName(e.target.value)}
+                        maxLength={100}
+                        disabled={creatingPosition || saving}
+                        className="h-8 text-xs flex-1"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleCreatePosition();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-1 text-xs shrink-0"
+                        disabled={creatingPosition || !newPositionName.trim() || saving}
+                        onClick={handleCreatePosition}
+                      >
+                        {creatingPosition ? <Loader2 className="size-3 animate-spin" /> : <Plus className="size-3" />}
+                        Add
+                      </Button>
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       {selectedPositionId !== "none"
                         ? "Only team members holding this position can approve."
@@ -649,6 +713,7 @@ export function FlowConfigDialog({
           <Button
             onClick={handleSave}
             disabled={saving || loadingFlow}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             {saving ? "Saving..." : "Save Configuration"}
           </Button>

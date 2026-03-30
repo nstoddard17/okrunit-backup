@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, ArrowLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ApprovalResponseFormProps {
   onRespond: (decision: "approved" | "rejected", comment: string) => void;
@@ -16,41 +16,78 @@ export function ApprovalResponseForm({
   isLoading,
 }: ApprovalResponseFormProps) {
   const [comment, setComment] = useState("");
+  const [pendingDecision, setPendingDecision] = useState<"approved" | "rejected" | null>(null);
 
-  return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="decision-comment">Comment (optional)</Label>
+  if (pendingDecision) {
+    const isApprove = pendingDecision === "approved";
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPendingDecision(null)}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            disabled={isLoading}
+          >
+            <ArrowLeft className="size-4" />
+          </button>
+          <p className="text-sm font-medium">
+            {isApprove ? "Approve" : "Reject"} this request?
+          </p>
+        </div>
         <Textarea
-          id="decision-comment"
-          placeholder="Add a comment about your decision..."
+          placeholder="Add a comment (optional)..."
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          rows={3}
+          rows={2}
           disabled={isLoading}
+          className="text-sm"
+          autoFocus
         />
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPendingDecision(null)}
+            disabled={isLoading}
+            className="flex-1"
+          >
+            Back
+          </Button>
+          <Button
+            variant={isApprove ? "success" : "destructive"}
+            size="sm"
+            onClick={() => onRespond(pendingDecision, comment)}
+            disabled={isLoading}
+            className="flex-1"
+          >
+            {isLoading ? "Submitting..." : isApprove ? "Confirm Approve" : "Confirm Reject"}
+          </Button>
+        </div>
       </div>
+    );
+  }
 
-      <div className="flex gap-3">
-        <Button
-          variant="success"
-          onClick={() => onRespond("approved", comment)}
-          disabled={isLoading}
-          className="flex-1"
-        >
-          <CheckCircle className="size-4" />
-          Approve
-        </Button>
-        <Button
-          variant="destructive"
-          onClick={() => onRespond("rejected", comment)}
-          disabled={isLoading}
-          className="flex-1"
-        >
-          <XCircle className="size-4" />
-          Reject
-        </Button>
-      </div>
+  return (
+    <div className="flex gap-3">
+      <Button
+        variant="success"
+        onClick={() => setPendingDecision("approved")}
+        disabled={isLoading}
+        className="flex-1"
+      >
+        <CheckCircle className="size-4" />
+        Approve
+      </Button>
+      <Button
+        variant="destructive"
+        onClick={() => setPendingDecision("rejected")}
+        disabled={isLoading}
+        className="flex-1"
+      >
+        <XCircle className="size-4" />
+        Reject
+      </Button>
     </div>
   );
 }

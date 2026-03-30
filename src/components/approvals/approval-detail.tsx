@@ -140,7 +140,7 @@ export function ApprovalDetail({
 
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col bg-muted/50">
+      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col bg-card">
         {/* Header */}
         <div className="px-5 pt-5 pb-4 bg-card border-b border-border/50">
           <SheetTitle className="text-base font-semibold leading-snug">{approval.title}</SheetTitle>
@@ -154,7 +154,7 @@ export function ApprovalDetail({
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
           {/* Card: Details */}
-          <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+          <div className="rounded-xl border border-border/50 overflow-hidden">
             <div className="grid grid-cols-2 divide-x divide-y divide-border/40">
               <div className="p-3.5">
                 <LabelWithTip label="Status" tip="The current state of this request. Pending means it's waiting for someone to approve or reject it." />
@@ -218,7 +218,7 @@ export function ApprovalDetail({
           </div>
 
           {/* Card: Approvals */}
-          <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+          <div className="rounded-xl border border-border/50 p-4">
             {hasMultiApproval ? (
               <LabelWithTip
                 label={approval.is_sequential ? "Approval Chain" : "Approvals Required"}
@@ -321,7 +321,7 @@ export function ApprovalDetail({
 
           {/* Card: Context */}
           {approval.context_html && (
-            <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+            <div className="rounded-xl border border-border/50 p-4">
               <LabelWithTip label="Context" tip="Extra details provided by the workflow to help you understand what you're approving." />
               <div
                 className="prose prose-sm max-w-none mt-1"
@@ -332,22 +332,22 @@ export function ApprovalDetail({
 
           {/* Card: Metadata */}
           {approval.metadata && Object.keys(approval.metadata).length > 0 && (
-            <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
-              <div className="px-4 pt-4 pb-2">
-                <LabelWithTip label="Metadata" tip="Custom data sent along with the request. This can include IDs, environment info, or anything the workflow wanted to pass along." />
+            <div className="rounded-xl border border-border/50 p-4">
+              <LabelWithTip label="Metadata" tip="Custom data sent along with the request. This can include IDs, environment info, or anything the workflow wanted to pass along." />
+              <div className="mt-2 rounded-lg border border-border/50 overflow-hidden">
+                <table className="w-full text-left">
+                  <tbody className="divide-y divide-border/50">
+                    {Object.entries(approval.metadata).map(([key, value]) => (
+                      <tr key={key}>
+                        <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground w-2/5 align-top bg-muted/30">{key}</td>
+                        <td className="px-4 py-2.5 text-sm break-all font-medium">
+                          {typeof value === "object" && value !== null ? JSON.stringify(value) : String(value ?? "")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <table className="w-full text-left">
-                <tbody>
-                  {Object.entries(approval.metadata).map(([key, value], index) => (
-                    <tr key={key} className={cn(index % 2 === 0 ? "bg-muted/20" : "")}>
-                      <td className="px-4 py-2 font-mono text-xs text-muted-foreground w-1/3 align-top">{key}</td>
-                      <td className="px-4 py-2 text-xs break-all">
-                        {typeof value === "object" && value !== null ? JSON.stringify(value) : String(value ?? "")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           )}
 
@@ -363,7 +363,7 @@ export function ApprovalDetail({
 
           {/* Card: Decision */}
           {approval.status === "pending" && canApprove && !approval.is_log && (
-            <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+            <div className="rounded-xl border border-border/50 p-4">
               <LabelWithTip label="Your Decision" tip="Approve or reject this request. Your decision gets sent back to the workflow that created it." />
               <div className="mt-1">
                 <ApprovalResponseForm
@@ -375,7 +375,7 @@ export function ApprovalDetail({
           )}
 
           {approval.status === "pending" && !canApprove && !approval.is_log && (
-            <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+            <div className="rounded-xl border border-border/50 p-4">
               <p className="text-muted-foreground text-sm text-center">
                 You do not have approval permissions. Contact your admin.
               </p>
@@ -383,9 +383,9 @@ export function ApprovalDetail({
           )}
 
           {/* Card: Activity */}
-          <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+          <div className="rounded-xl border border-border/50 p-4">
             <LabelWithTip label="Activity" tip="A timeline of everything that happened with this request — when it was created, decided, and any comments." />
-            <div className="mt-1 space-y-0">
+            <div className="mt-3 space-y-0">
               <div className="flex gap-3">
                 <div className="flex flex-col items-center">
                   <div className="size-2 rounded-full bg-muted-foreground/40 mt-1.5 shrink-0" />
@@ -435,7 +435,7 @@ export function ApprovalDetail({
           </div>
 
           {/* Card: Comments */}
-          <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+          <div className="rounded-xl border border-border/50 p-4">
             <LabelWithTip
               label={`Comments${comments.length > 0 ? ` (${comments.length})` : ""}`}
               tip="Discussion thread for this request. Comments can be posted by team members or external apps like Zapier and Make."
