@@ -20,12 +20,57 @@ inputs:
   description:
     description: "Additional context for the reviewer"
     required: false
+  action-type:
+    description: "Type of action being approved (e.g. deploy, release, data-delete)"
+    required: false
   priority:
     description: "Priority level (low, medium, high, critical)"
     required: false
     default: "medium"
   metadata:
     description: "JSON metadata to attach to the approval"
+    required: false
+  context-html:
+    description: "Rich HTML context for reviewers (diffs, logs, etc). Max 50KB."
+    required: false
+  required-approvals:
+    description: "Number of approvals needed (1-10, default: 1)"
+    required: false
+    default: "1"
+  assigned-approvers:
+    description: "Comma-separated list of OKRunit user IDs to assign as approvers"
+    required: false
+  assigned-team-id:
+    description: "OKRunit team ID to route the approval to"
+    required: false
+  is-sequential:
+    description: "Whether multi-step approvals must happen in order (true/false)"
+    required: false
+    default: "false"
+  auto-action:
+    description: "Auto-action on timeout: approve or reject"
+    required: false
+  auto-action-after-minutes:
+    description: "Minutes before auto-action triggers (1-43200)"
+    required: false
+  callback-url:
+    description: "URL to POST the decision to after approval/rejection"
+    required: false
+  callback-headers:
+    description: "JSON object of custom headers for the callback request"
+    required: false
+  expires-at:
+    description: "ISO datetime when the approval request expires"
+    required: false
+  require-rejection-reason:
+    description: "Require approvers to provide a reason when rejecting (true/false)"
+    required: false
+    default: "false"
+  notify-channel-ids:
+    description: "Comma-separated list of OKRunit messaging channel IDs to notify"
+    required: false
+  conditions:
+    description: "JSON array of conditions that must be met (webhook/manual checks)"
     required: false
   timeout:
     description: "Max wait time in seconds (default: 3600 = 1 hour)"
@@ -40,7 +85,7 @@ outputs:
   approval-id:
     description: "The approval request ID"
   status:
-    description: "Decision status (approved or rejected)"
+    description: "Decision status (approved, rejected, or timeout)"
   description:
     description: "Description of the approval request"
   priority:
@@ -61,6 +106,24 @@ outputs:
     description: "ISO timestamp of the decision"
   decision-comment:
     description: "Comment from the decider"
+  decision-source:
+    description: "How the decision was made (dashboard, email, slack, teams, telegram, discord, push, api, auto_rule, batch)"
+  risk-score:
+    description: "Calculated risk score (0-100)"
+  risk-level:
+    description: "Risk level (low, medium, high, critical)"
+  auto-approved:
+    description: "Whether the request was auto-approved (true/false)"
+  execution-status:
+    description: "Execution status (immediate, scheduled, executed, cancelled)"
+  conditions-met:
+    description: "Whether all conditions have been satisfied (true/false)"
+  sla-breached:
+    description: "Whether the SLA deadline was breached (true/false)"
+  expires-at:
+    description: "ISO datetime when the request expires"
+  metadata:
+    description: "JSON metadata attached to the approval"
 
 runs:
   using: "node20"
