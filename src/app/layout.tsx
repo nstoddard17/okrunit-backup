@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, DM_Sans } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
+import { ClientErrorReporter } from "@/components/client-error-reporter";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -82,6 +83,7 @@ export default function RootLayout({
         >
           {children}
           <Toaster />
+          <ClientErrorReporter />
         </ThemeProvider>
       </body>
     </html>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronsUpDown, Check, Building2 } from "lucide-react";
+import { ChevronsUpDown, Check, Building2, Crown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,7 +72,10 @@ export function OrgSwitcher({ currentOrgId, orgs, collapsed }: OrgSwitcherProps)
                 org.org_id === currentOrgId && "font-medium",
               )}
             >
-              <span className="flex-1 truncate">{org.org_name}</span>
+              <span className="flex items-center gap-1.5 flex-1 truncate">
+                {org.org_name}
+                {org.role === "owner" && <Crown className="size-3 text-amber-500 shrink-0" />}
+              </span>
               {org.org_id === currentOrgId && <Check className="size-4 shrink-0" />}
             </DropdownMenuItem>
           ))}

@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { TransferOwnershipDialog } from "@/components/org/transfer-ownership-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -257,10 +258,22 @@ export function V2MemberList({
             ))}
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={exportCsv} className="gap-1.5 h-9 bg-white dark:bg-card text-foreground hover:bg-white/80 dark:hover:bg-card/80">
-          <Download className="size-3.5" />
-          Export CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          {isOwner && (
+            <TransferOwnershipDialog
+              members={members.map((m) => ({
+                id: m.id,
+                name: m.full_name ?? m.email.split("@")[0],
+                email: m.email,
+              }))}
+              currentUserId={currentUserId}
+            />
+          )}
+          <Button variant="outline" size="sm" onClick={exportCsv} className="gap-1.5 h-9 bg-white dark:bg-card text-foreground hover:bg-white/80 dark:hover:bg-card/80">
+            <Download className="size-3.5" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Member count */}

@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import { getOrgContext } from "@/lib/org-context";
+import { JoinedToast } from "@/components/org/joined-toast";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SourceAvatar, SourceBadge } from "@/components/approvals/source-icons";
@@ -178,6 +180,7 @@ export default async function V2OrgOverviewPage() {
 
   return (
     <div className="space-y-8">
+      <Suspense><JoinedToast /></Suspense>
       {/* Org header — only on overview */}
       <div>
         <p className="text-xs font-medium text-primary mb-0.5">Organization</p>

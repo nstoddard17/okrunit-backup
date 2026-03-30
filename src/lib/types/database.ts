@@ -858,6 +858,7 @@ export interface Plan {
   stripe_price_id_yearly: string | null;
   max_requests_per_month: number; // -1 = unlimited
   max_connections: number;        // -1 = unlimited
+  max_teams: number;              // -1 = unlimited
   max_team_members: number;       // -1 = unlimited
   history_retention_days: number; // -1 = unlimited
   features: string[];
