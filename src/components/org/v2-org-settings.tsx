@@ -7,10 +7,13 @@ import {
   Globe,
   Loader2,
   Lock,
+  Plus,
   Shield,
   ShieldCheck,
   Timer,
   User,
+  X,
+  ClipboardPaste,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -353,7 +356,7 @@ function CountryMultiSelect({
           type="button"
           onClick={() => !disabled && setOpen(!open)}
           disabled={disabled}
-          className="flex h-9 w-full items-center justify-between rounded-lg border border-input bg-white px-3 text-xs text-slate-900 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-9 w-full items-center justify-between rounded-lg border border-input bg-white dark:bg-card px-3 text-xs text-slate-900 dark:text-foreground hover:bg-slate-50 dark:hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
           {selected.length === 0 ? "Select countries..." : `${selected.length} selected`}
           <svg className="size-3.5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -362,7 +365,7 @@ function CountryMultiSelect({
         </button>
 
         {open && (
-          <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-white shadow-lg">
+          <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-white dark:bg-card shadow-lg">
             <div className="border-b border-border p-2">
               <Input
                 value={search}
@@ -431,16 +434,17 @@ export function V2OrgSettings({ org, role }: V2OrgSettingsProps) {
   const [sla, setSla] = useState<SlaConfig>(org.sla_config);
   const [sessionTimeout, setSessionTimeout] = useState(org.session_timeout_minutes);
   const [ipAllowlist, setIpAllowlist] = useState(org.ip_allowlist.join("\n"));
+  const [ipTags, setIpTags] = useState<string[]>(org.ip_allowlist);
+  const [ipInput, setIpInput] = useState("");
+  const [ipBulkMode, setIpBulkMode] = useState(false);
+  const [ipBulkInput, setIpBulkInput] = useState("");
   const [geoRestrictions, setGeoRestrictions] = useState<GeoRestrictions>(org.geo_restrictions);
   const [geoCountriesInput, setGeoCountriesInput] = useState(
     org.geo_restrictions.allowed_countries.join(", "),
   );
 
   // ---- Dirty check ----
-  const parsedIps = useMemo(
-    () => ipAllowlist.split("\n").map((s) => s.trim()).filter(Boolean),
-    [ipAllowlist],
-  );
+  const parsedIps = ipTags;
   const parsedCountries = useMemo(
     () => geoCountriesInput.split(",").map((s) => s.trim().toUpperCase()).filter((s) => s.length === 2),
     [geoCountriesInput],
@@ -536,6 +540,10 @@ export function V2OrgSettings({ org, role }: V2OrgSettingsProps) {
     setSla(org.sla_config);
     setSessionTimeout(org.session_timeout_minutes);
     setIpAllowlist(org.ip_allowlist.join("\n"));
+    setIpTags([...org.ip_allowlist]);
+    setIpInput("");
+    setIpBulkMode(false);
+    setIpBulkInput("");
     setGeoRestrictions(org.geo_restrictions);
     setGeoCountriesInput(org.geo_restrictions.allowed_countries.join(", "));
   }
@@ -673,16 +681,148 @@ export function V2OrgSettings({ org, role }: V2OrgSettingsProps) {
 
         <SettingsRow
           label="IP allowlist"
-          description="Restrict dashboard access to specific IP addresses. One per line. Leave empty to allow all."
+          description="Restrict dashboard access to specific IP addresses. Leave empty to allow all."
         >
-          <textarea
-            value={ipAllowlist}
-            onChange={(e) => setIpAllowlist(e.target.value)}
-            placeholder={"192.168.1.0/24\n10.0.0.1"}
-            disabled={!canEdit}
-            rows={3}
-            className="w-full rounded-lg border border-input bg-white px-3 py-2 text-xs font-mono text-slate-900 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 sm:w-[280px]"
-          />
+          <div className="w-full sm:w-[320px] space-y-2">
+            {/* Tags */}
+            {ipTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {ipTags.map((ip) => (
+                  <span
+                    key={ip}
+                    className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-mono"
+                  >
+                    {ip}
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => setIpTags((prev) => prev.filter((t) => t !== ip))}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    )}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Single add input */}
+            {!ipBulkMode && (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={ipInput}
+                  onChange={(e) => setIpInput(e.target.value)}
+                  placeholder="192.168.1.0/24"
+                  disabled={!canEdit}
+                  className="h-8 text-xs font-mono flex-1"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const val = ipInput.trim();
+                      if (!val) return;
+                      if (!/^[\d.:a-fA-F/]+$/.test(val)) {
+                        toast.error("Invalid IP address format");
+                        return;
+                      }
+                      if (ipTags.includes(val)) {
+                        toast.error("IP already in list");
+                        return;
+                      }
+                      setIpTags((prev) => [...prev, val]);
+                      setIpInput("");
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1 text-xs shrink-0"
+                  disabled={!canEdit || !ipInput.trim()}
+                  onClick={() => {
+                    const val = ipInput.trim();
+                    if (!val) return;
+                    if (!/^[\d.:a-fA-F/]+$/.test(val)) {
+                      toast.error("Invalid IP address format");
+                      return;
+                    }
+                    if (ipTags.includes(val)) {
+                      toast.error("IP already in list");
+                      return;
+                    }
+                    setIpTags((prev) => [...prev, val]);
+                    setIpInput("");
+                  }}
+                >
+                  <Plus className="size-3" />
+                  Add
+                </Button>
+              </div>
+            )}
+
+            {/* Bulk paste */}
+            {ipBulkMode && (
+              <div className="space-y-2">
+                <textarea
+                  value={ipBulkInput}
+                  onChange={(e) => setIpBulkInput(e.target.value)}
+                  placeholder={"Paste IPs separated by commas, spaces, or new lines\n192.168.1.0/24, 10.0.0.1\n172.16.0.0/12"}
+                  disabled={!canEdit}
+                  rows={5}
+                  className="w-full rounded-lg border border-input bg-white dark:bg-card px-3 py-2 text-xs font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 gap-1 text-xs"
+                    disabled={!canEdit || !ipBulkInput.trim()}
+                    onClick={() => {
+                      const ips = ipBulkInput
+                        .split(/[,\s\n;]+/)
+                        .map((s) => s.trim())
+                        .filter((s) => s.length > 0 && /^[\d.:a-fA-F/]+$/.test(s));
+                      if (ips.length === 0) {
+                        toast.error("No valid IP addresses found");
+                        return;
+                      }
+                      const unique = [...new Set([...ipTags, ...ips])];
+                      const added = unique.length - ipTags.length;
+                      setIpTags(unique);
+                      setIpBulkInput("");
+                      setIpBulkMode(false);
+                      toast.success(`${added} IP${added !== 1 ? "s" : ""} added`);
+                    }}
+                  >
+                    <Plus className="size-3" />
+                    Add all
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => { setIpBulkMode(false); setIpBulkInput(""); }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Toggle bulk mode */}
+            {!ipBulkMode && canEdit && (
+              <button
+                type="button"
+                onClick={() => setIpBulkMode(true)}
+                className="flex items-center gap-1 text-[11px] font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                <ClipboardPaste className="size-3" />
+                Paste a list
+              </button>
+            )}
+          </div>
         </SettingsRow>
       </SettingsSection>
 

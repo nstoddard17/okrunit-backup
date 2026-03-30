@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import {
   Sheet,
   SheetContent,
@@ -10,6 +11,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import { sanitizeHtml } from "@/lib/sanitize";
 import { PriorityBadge } from "@/components/approvals/priority-badge";
 import { ApprovalResponseForm } from "@/components/approvals/approval-response-form";
+import { ApprovalComments } from "@/components/approvals/approval-comments";
 import { formatDistanceToNow, format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { SourceAvatar } from "@/components/approvals/source-icons";
@@ -24,7 +26,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { ApprovalRequest, UserProfile, CreatedByInfo } from "@/lib/types/database";
+import type { ApprovalRequest, ApprovalComment, UserProfile, CreatedByInfo } from "@/lib/types/database";
 
 interface ApprovalDetailProps {
   approval: ApprovalRequest | null;
@@ -43,11 +45,11 @@ interface ApprovalDetailProps {
 }
 
 const statusStyles: Record<string, { label: string; dot: string; badge: string }> = {
-  pending: { label: "Pending", dot: "bg-amber-500", badge: "bg-amber-50 text-amber-700 border-amber-200" },
-  approved: { label: "Approved", dot: "bg-emerald-500", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  rejected: { label: "Rejected", dot: "bg-red-500", badge: "bg-red-50 text-red-700 border-red-200" },
-  cancelled: { label: "Cancelled", dot: "bg-zinc-400", badge: "bg-zinc-100 text-zinc-600 border-zinc-200" },
-  expired: { label: "Expired", dot: "bg-zinc-400", badge: "bg-zinc-100 text-zinc-600 border-zinc-200" },
+  pending: { label: "Pending", dot: "bg-amber-500", badge: "bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800" },
+  approved: { label: "Approved", dot: "bg-emerald-500", badge: "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800" },
+  rejected: { label: "Rejected", dot: "bg-red-500", badge: "bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800" },
+  cancelled: { label: "Cancelled", dot: "bg-zinc-400", badge: "bg-zinc-100 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700" },
+  expired: { label: "Expired", dot: "bg-zinc-400", badge: "bg-zinc-100 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700" },
 };
 
 function getUserDisplayName(userId: string, profiles?: Map<string, UserProfile>): string {
@@ -88,6 +90,44 @@ export function ApprovalDetail({
   creatorName,
   onConfigureFlow,
 }: ApprovalDetailProps) {
+  const [comments, setComments] = useState<ApprovalComment[]>([]);
+  const [prevApprovalId, setPrevApprovalId] = useState<string | null>(null);
+
+  // Reset comments when approval changes or sidebar closes
+  const currentId = open && approval ? approval.id : null;
+  if (currentId !== prevApprovalId) {
+    setPrevApprovalId(currentId);
+    setComments([]);
+  }
+
+  // Fetch comments when sidebar opens
+  useEffect(() => {
+    if (!currentId) return;
+
+    let cancelled = false;
+
+    async function fetchComments() {
+      try {
+        const res = await fetch(`/api/v1/approvals/${currentId}/comments`);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!cancelled) setComments(json.data ?? []);
+      } catch {
+        // ignore
+      }
+    }
+
+    fetchComments();
+    return () => { cancelled = true; };
+  }, [currentId]);
+
+  const handleCommentAdded = useCallback((comment: ApprovalComment) => {
+    setComments((prev) => {
+      if (prev.some((c) => c.id === comment.id)) return prev;
+      return [...prev, comment];
+    });
+  }, []);
+
   if (!approval) return null;
 
   const status = statusStyles[approval.status] ?? statusStyles.pending;
@@ -100,9 +140,9 @@ export function ApprovalDetail({
 
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col bg-[hsl(220,20%,97%)]">
+      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col bg-muted/50">
         {/* Header */}
-        <div className="px-5 pt-5 pb-4 bg-white border-b border-border/50">
+        <div className="px-5 pt-5 pb-4 bg-card border-b border-border/50">
           <SheetTitle className="text-base font-semibold leading-snug">{approval.title}</SheetTitle>
           {approval.description && (
             <SheetDescription className="text-[13px] text-muted-foreground mt-1 leading-relaxed">
@@ -114,7 +154,7 @@ export function ApprovalDetail({
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
           {/* Card: Details */}
-          <div className="rounded-xl bg-white border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+          <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
             <div className="grid grid-cols-2 divide-x divide-y divide-border/40">
               <div className="p-3.5">
                 <LabelWithTip label="Status" tip="The current state of this request. Pending means it's waiting for someone to approve or reject it." />
@@ -178,7 +218,7 @@ export function ApprovalDetail({
           </div>
 
           {/* Card: Approvals */}
-          <div className="rounded-xl bg-white border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+          <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
             {hasMultiApproval ? (
               <LabelWithTip
                 label={approval.is_sequential ? "Approval Chain" : "Approvals Required"}
@@ -233,7 +273,7 @@ export function ApprovalDetail({
                           <span className={cn("text-sm flex-1", isNext ? "font-semibold" : isCompleted ? "" : "text-muted-foreground")}>
                             {getUserDisplayName(userId, userProfiles)}
                           </span>
-                          {isCompleted && <span className="text-[11px] text-emerald-600 font-medium">Approved</span>}
+                          {isCompleted && <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Approved</span>}
                           {approval.is_sequential && isNext && <span className="text-[11px] text-primary font-medium">Next</span>}
                           {!isCompleted && !isNext && <span className="text-[11px] text-muted-foreground/40">Waiting</span>}
                         </div>
@@ -281,7 +321,7 @@ export function ApprovalDetail({
 
           {/* Card: Context */}
           {approval.context_html && (
-            <div className="rounded-xl bg-white border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+            <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
               <LabelWithTip label="Context" tip="Extra details provided by the workflow to help you understand what you're approving." />
               <div
                 className="prose prose-sm max-w-none mt-1"
@@ -292,7 +332,7 @@ export function ApprovalDetail({
 
           {/* Card: Metadata */}
           {approval.metadata && Object.keys(approval.metadata).length > 0 && (
-            <div className="rounded-xl bg-white border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+            <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
               <div className="px-4 pt-4 pb-2">
                 <LabelWithTip label="Metadata" tip="Custom data sent along with the request. This can include IDs, environment info, or anything the workflow wanted to pass along." />
               </div>
@@ -311,9 +351,19 @@ export function ApprovalDetail({
             </div>
           )}
 
+          {/* Activity log notice */}
+          {approval.is_log && (
+            <div className="rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 p-4">
+              <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">Activity Log</p>
+              <p className="text-xs text-blue-600 dark:text-blue-400/80 mt-0.5">
+                This is an activity log entry, not an approval request. No decision is needed.
+              </p>
+            </div>
+          )}
+
           {/* Card: Decision */}
-          {approval.status === "pending" && canApprove && (
-            <div className="rounded-xl bg-white border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+          {approval.status === "pending" && canApprove && !approval.is_log && (
+            <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
               <LabelWithTip label="Your Decision" tip="Approve or reject this request. Your decision gets sent back to the workflow that created it." />
               <div className="mt-1">
                 <ApprovalResponseForm
@@ -324,8 +374,8 @@ export function ApprovalDetail({
             </div>
           )}
 
-          {approval.status === "pending" && !canApprove && (
-            <div className="rounded-xl bg-white border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+          {approval.status === "pending" && !canApprove && !approval.is_log && (
+            <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
               <p className="text-muted-foreground text-sm text-center">
                 You do not have approval permissions. Contact your admin.
               </p>
@@ -333,7 +383,7 @@ export function ApprovalDetail({
           )}
 
           {/* Card: Activity */}
-          <div className="rounded-xl bg-white border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+          <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
             <LabelWithTip label="Activity" tip="A timeline of everything that happened with this request — when it was created, decided, and any comments." />
             <div className="mt-1 space-y-0">
               <div className="flex gap-3">
@@ -381,6 +431,22 @@ export function ApprovalDetail({
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Card: Comments */}
+          <div className="rounded-xl bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+            <LabelWithTip
+              label={`Comments${comments.length > 0 ? ` (${comments.length})` : ""}`}
+              tip="Discussion thread for this request. Comments can be posted by team members or external apps like Zapier and Make."
+            />
+            <div className="mt-1">
+              <ApprovalComments
+                requestId={approval.id}
+                comments={comments}
+                onCommentAdded={handleCommentAdded}
+                userProfiles={userProfiles}
+              />
             </div>
           </div>
         </div>

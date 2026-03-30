@@ -16,7 +16,7 @@ export default async function RequestsLayout({
   return (
     <div className="flex w-full flex-col md:flex-row md:min-h-[calc(100vh-52px)]">
       {/* Left sidebar — desktop */}
-      <aside className="hidden md:block w-56 shrink-0 border-r border-border/40 bg-white pt-5">
+      <aside className="hidden md:block w-56 shrink-0 border-r border-border/40 bg-[var(--card)] pt-5">
         <RequestsNav isAdmin={isAdmin} pendingCount={0} />
       </aside>
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Mail, Hash, Headphones, Send } from "lucide-react";
 import { toast } from "sonner";
 
 import { PlatformCard } from "@/components/messaging/platform-card";
@@ -278,11 +278,26 @@ export function MessagingConnectionsPage({
           />
         </div>
       ) : (
-        <EmptyState
-          icon={MessageSquare}
-          title="No messaging channels connected"
-          description="Connect a messaging platform above to start receiving approval notifications with interactive buttons."
-        />
+        <div className="flex flex-col items-center justify-center gap-5 py-20">
+          <div className="flex items-center gap-3">
+            {[
+              { icon: Mail, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-950/50" },
+              { icon: Hash, color: "text-pink-600 dark:text-pink-400", bg: "bg-pink-100 dark:bg-pink-950/50" },
+              { icon: MessageSquare, color: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-100 dark:bg-indigo-950/50" },
+              { icon: Send, color: "text-sky-600 dark:text-sky-400", bg: "bg-sky-100 dark:bg-sky-950/50" },
+            ].map(({ icon: Icon, color, bg }, i) => (
+              <div key={i} className={`flex size-11 items-center justify-center rounded-xl ${bg}`}>
+                <Icon className={`size-5 ${color}`} />
+              </div>
+            ))}
+          </div>
+          <div className="text-center space-y-2 max-w-sm">
+            <p className="text-base font-semibold text-foreground">No messaging channels connected</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Connect a messaging platform above to start receiving approval notifications with interactive buttons.
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Email dialog */}

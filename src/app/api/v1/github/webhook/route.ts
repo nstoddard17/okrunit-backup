@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyWebhookSignature, createCheckRun } from "@/lib/api/github";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 
 // ---------------------------------------------------------------------------
 // POST /api/v1/github/webhook
@@ -29,11 +30,11 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   switch (event) {
     case "installation":
-      return handleInstallation(payload);
+      return handleInstallation(request, payload);
     case "installation_repositories":
       return handleInstallationRepositories(payload);
     case "pull_request":
-      return handlePullRequest(payload);
+      return handlePullRequest(request, payload);
     case "check_suite":
       return handleCheckSuite(payload);
     case "ping":
@@ -48,6 +49,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 // ---------------------------------------------------------------------------
 
 async function handleInstallation(
+  request: Request,
   payload: Record<string, unknown>,
 ): Promise<NextResponse> {
   const action = payload.action as string;
@@ -100,6 +102,7 @@ async function handleInstallation(
           installation_id: installationId,
           account: account.login,
         },
+        ipAddress: getClientIp(request),
       });
     }
 
@@ -201,6 +204,7 @@ async function handleInstallationRepositories(
 // ---------------------------------------------------------------------------
 
 async function handlePullRequest(
+  request: Request,
   payload: Record<string, unknown>,
 ): Promise<NextResponse> {
   const action = payload.action as string;
@@ -326,6 +330,7 @@ async function handlePullRequest(
       pr_number: prNumber,
       sha,
     },
+    ipAddress: getClientIp(request),
   });
 
   return NextResponse.json({ ok: true, approval_id: approval.id });

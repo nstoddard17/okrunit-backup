@@ -310,7 +310,7 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
           </button>
         </div>
 
-        <div className="rounded-xl border border-border/50 bg-white p-4">
+        <div className="rounded-xl border border-border/50 bg-white dark:bg-card p-4">
           {bulkMode ? (
             <div className="space-y-4">
               {!showBulkList ? (
@@ -359,28 +359,28 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
                       {bulkEntries.length} invite
                       {bulkEntries.length !== 1 ? "s" : ""}
                     </p>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] text-muted-foreground">
-                        Set all:
+                    <div className="flex items-center gap-1 rounded-lg border border-border bg-white dark:bg-card p-0.5">
+                      <span className="text-[11px] font-medium text-muted-foreground px-1.5">
+                        Set all
                       </span>
                       <button
                         type="button"
                         onClick={() => handleSetAllRoles("member")}
-                        className="rounded px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-muted transition-colors"
+                        className="rounded-md px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted transition-colors"
                       >
                         Member
                       </button>
                       <button
                         type="button"
                         onClick={() => handleSetAllRoles("approver")}
-                        className="rounded px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-muted transition-colors"
+                        className="rounded-md px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted transition-colors"
                       >
                         Approver
                       </button>
                       <button
                         type="button"
                         onClick={() => handleSetAllRoles("admin")}
-                        className="rounded px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-muted transition-colors"
+                        className="rounded-md px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted transition-colors"
                       >
                         Admin
                       </button>
@@ -391,7 +391,7 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
                     {bulkEntries.map((entry) => (
                       <div
                         key={entry.email}
-                        className="flex items-center gap-2 rounded-lg border border-border/50 bg-white px-3 py-2"
+                        className="flex items-center gap-2 rounded-lg border border-border/50 bg-white dark:bg-card px-3 py-2"
                       >
                         <p className="flex-1 min-w-0 truncate text-sm">
                           {entry.email}
@@ -444,7 +444,7 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
                           type="button"
                           onClick={() => setBulkTeamDropdownOpen(!bulkTeamDropdownOpen)}
                           disabled={loading}
-                          className="flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm h-9 hover:bg-accent/50 transition-colors disabled:opacity-50"
+                          className="flex w-full items-center justify-between rounded-md border border-input bg-white dark:bg-card px-3 py-2 text-sm h-9 hover:bg-white/80 dark:hover:bg-card/80 transition-colors disabled:opacity-50"
                         >
                           <span className={bulkTeamIds.length === 0 ? "text-muted-foreground" : ""}>
                             {bulkTeamIds.length === 0
@@ -456,7 +456,7 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
                           <ChevronDown className="size-3.5 text-muted-foreground" />
                         </button>
                         {bulkTeamDropdownOpen && (
-                          <div className="absolute z-10 mt-1 w-full rounded-md border bg-white shadow-md py-1 max-h-[160px] overflow-y-auto">
+                          <div className="absolute z-10 mt-1 w-full rounded-md border bg-white dark:bg-card shadow-md py-1 max-h-[160px] overflow-y-auto">
                             {teams.map((team) => {
                               const selected = bulkTeamIds.includes(team.id);
                               return (
@@ -632,7 +632,7 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
                       type="button"
                       onClick={() => setTeamDropdownOpen(!teamDropdownOpen)}
                       disabled={loading}
-                      className="flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm h-9 hover:bg-accent/50 transition-colors disabled:opacity-50"
+                      className="flex w-full items-center justify-between rounded-md border border-input bg-white dark:bg-card px-3 py-2 text-sm h-9 hover:bg-white/80 dark:hover:bg-card/80 transition-colors disabled:opacity-50"
                     >
                       <span className={selectedTeamIds.length === 0 ? "text-muted-foreground" : ""}>
                         {selectedTeamIds.length === 0
@@ -644,7 +644,7 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
                       <ChevronDown className="size-3.5 text-muted-foreground" />
                     </button>
                     {teamDropdownOpen && (
-                      <div className="absolute z-10 mt-1 w-full rounded-md border bg-white shadow-md py-1 max-h-[160px] overflow-y-auto">
+                      <div className="absolute z-10 mt-1 w-full rounded-md border bg-white dark:bg-card shadow-md py-1 max-h-[160px] overflow-y-auto">
                         {teams.map((team) => {
                           const selected = selectedTeamIds.includes(team.id);
                           return (
@@ -765,7 +765,7 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
         </div>
 
         {invites.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/50 bg-white py-12 text-center">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/50 bg-white dark:bg-card py-12 text-center">
             <Mail className="size-8 text-muted-foreground/30 mb-3" />
             <p className="text-sm text-muted-foreground">
               No pending invitations
@@ -779,7 +779,7 @@ export function V2InviteSection({ invites, teams }: V2InviteSectionProps) {
             {invites.map((invite) => (
               <div
                 key={invite.id}
-                className="group flex items-center gap-3 rounded-xl border border-border/50 bg-white px-4 py-3 transition-colors hover:border-border"
+                className="group flex items-center gap-3 rounded-xl border border-border/50 bg-white dark:bg-card px-4 py-3 transition-colors hover:border-border"
               >
                 <div className="flex size-8 items-center justify-center rounded-full bg-violet-500/10">
                   <Mail className="size-3.5 text-violet-500" />

@@ -11,6 +11,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { validateAndConsumeToken } from "@/lib/notifications/tokens";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { deliverCallback } from "@/lib/api/callbacks";
 
 // ---------------------------------------------------------------------------
@@ -82,7 +83,7 @@ function htmlPage(
 // ---------------------------------------------------------------------------
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
   const { token } = await params;
@@ -199,6 +200,7 @@ export async function GET(
       decision: action.action,
       decision_source: "email",
     },
+    ipAddress: getClientIp(request),
   });
 
   // 7. Deliver callback if configured (fire-and-forget).

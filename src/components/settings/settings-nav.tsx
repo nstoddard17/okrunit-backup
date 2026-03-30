@@ -67,7 +67,7 @@ export function SettingsNav({ isAdmin, mobile = false }: SettingsNavProps) {
               className={cn(
                 "flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] transition-colors",
                 active
-                  ? "bg-primary/10 font-medium text-primary"
+                  ? "bg-emerald-50 dark:bg-emerald-950/50 font-medium text-emerald-700 dark:text-emerald-400"
                   : "text-foreground hover:bg-muted",
               )}
             >

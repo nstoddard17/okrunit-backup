@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { validateAndConsumeToken } from "@/lib/notifications/tokens";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { deliverCallback } from "@/lib/api/callbacks";
 
 // ---------------------------------------------------------------------------
@@ -169,6 +170,7 @@ export async function POST(request: NextRequest) {
     action: `approval.${newStatus}`,
     resourceType: "approval_request",
     resourceId: approval.id,
+    ipAddress: getClientIp(request),
     details: {
       decision: action,
       decision_source: decisionSource,

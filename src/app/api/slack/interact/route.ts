@@ -19,6 +19,7 @@ import { NextResponse, after } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { deliverCallback } from "@/lib/api/callbacks";
 import { isRejectionReasonRequired } from "@/lib/api/rejection-reason";
 
@@ -186,7 +187,7 @@ async function openSlackModal(params: {
 // Core: Apply the decision
 // ---------------------------------------------------------------------------
 
-async function applyDecisionAndRespond(params: {
+async function applyDecisionAndRespond(request: Request, params: {
   decision: "approve" | "reject";
   requestId: string;
   slackUserId: string;
@@ -280,6 +281,7 @@ async function applyDecisionAndRespond(params: {
       slack_user_id: slackUserId,
       slack_username: slackUsername,
     },
+    ipAddress: getClientIp(request),
   });
 
   // Deliver callback if configured (fire-and-forget).
@@ -462,7 +464,7 @@ export async function POST(request: Request) {
         }
 
         // Apply the decision.
-        const result = await applyDecisionAndRespond({
+        const result = await applyDecisionAndRespond(request, {
           decision,
           requestId,
           slackUserId,
@@ -531,7 +533,7 @@ export async function POST(request: Request) {
     const slackUsername =
       payload.user?.username ?? payload.user?.name ?? "Slack User";
 
-    const result = await applyDecisionAndRespond({
+    const result = await applyDecisionAndRespond(request, {
       decision,
       requestId,
       slackUserId: slackUserId,

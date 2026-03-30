@@ -11,6 +11,7 @@ import { authenticateRequest } from "@/lib/api/auth";
 import { errorResponse, ApiError } from "@/lib/api/errors";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 
 export async function GET(request: Request) {
   try {
@@ -110,6 +111,7 @@ export async function DELETE(request: Request) {
       action: "messaging_connection.deleted",
       resourceType: "messaging_connection",
       resourceId: connectionId,
+      ipAddress: getClientIp(request),
       details: {
         platform: existing.platform,
         workspace_name: existing.workspace_name,

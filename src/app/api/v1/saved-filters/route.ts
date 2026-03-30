@@ -8,6 +8,7 @@ import { z } from "zod";
 import { authenticateRequest } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // ---- Validation Schemas ---------------------------------------------------
@@ -120,6 +121,7 @@ export async function POST(request: Request) {
       action: "saved_filter.created",
       resourceType: "saved_filter",
       resourceId: filter.id,
+      ipAddress: getClientIp(request),
       details: {
         name: validated.name,
         is_default: validated.is_default ?? false,
@@ -194,6 +196,7 @@ export async function DELETE(request: Request) {
       action: "saved_filter.deleted",
       resourceType: "saved_filter",
       resourceId: validated.id,
+      ipAddress: getClientIp(request),
     });
 
     return NextResponse.json({ success: true });

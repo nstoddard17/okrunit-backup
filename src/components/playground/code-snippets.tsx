@@ -214,7 +214,7 @@ export function CodeSnippets({
               <div className="absolute top-2 right-2 z-10">
                 <CopyButton text={curlSnippet} />
               </div>
-              <pre className="max-h-[320px] overflow-auto rounded-md border bg-zinc-950 p-4 pr-20 text-xs leading-relaxed font-mono text-zinc-100">
+              <pre className="overflow-auto rounded-md border bg-zinc-950 p-4 pr-20 text-xs leading-relaxed font-mono text-zinc-100">
                 <code>{curlSnippet}</code>
               </pre>
             </div>
@@ -225,7 +225,7 @@ export function CodeSnippets({
               <div className="absolute top-2 right-2 z-10">
                 <CopyButton text={fetchSnippet} />
               </div>
-              <pre className="max-h-[320px] overflow-auto rounded-md border bg-zinc-950 p-4 pr-20 text-xs leading-relaxed font-mono text-zinc-100">
+              <pre className="overflow-auto rounded-md border bg-zinc-950 p-4 pr-20 text-xs leading-relaxed font-mono text-zinc-100">
                 <code>{fetchSnippet}</code>
               </pre>
             </div>
@@ -236,7 +236,7 @@ export function CodeSnippets({
               <div className="absolute top-2 right-2 z-10">
                 <CopyButton text={pythonSnippet} />
               </div>
-              <pre className="max-h-[320px] overflow-auto rounded-md border bg-zinc-950 p-4 pr-20 text-xs leading-relaxed font-mono text-zinc-100">
+              <pre className="overflow-auto rounded-md border bg-zinc-950 p-4 pr-20 text-xs leading-relaxed font-mono text-zinc-100">
                 <code>{pythonSnippet}</code>
               </pre>
             </div>

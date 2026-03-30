@@ -9,6 +9,7 @@ import { authenticateRequest } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
 import { createCommentSchema } from "@/lib/api/validation";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { dispatchNotifications } from "@/lib/notifications/orchestrator";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -110,6 +111,7 @@ export async function POST(
       action: "comment.created",
       resourceType: "approval_comment",
       resourceId: comment.id,
+      ipAddress: getClientIp(request),
       details: {
         request_id: id,
       },

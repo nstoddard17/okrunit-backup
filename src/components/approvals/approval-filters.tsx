@@ -41,7 +41,7 @@ export function ApprovalFilters({
   const hasActiveFilters = currentFilters.status || currentFilters.priority || currentFilters.search || currentFilters.connectionId || currentFilters.source || currentFilters.showArchived;
 
   return (
-    <div className="rounded-lg bg-white p-4 border border-border/40">
+    <div className="rounded-lg bg-white dark:bg-card p-4 border border-border/40">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
         <div className="relative flex-1 min-w-[180px]">
           <Search className="text-muted-foreground absolute top-1/2 left-3 size-3.5 -translate-y-1/2" />
@@ -51,7 +51,7 @@ export function ApprovalFilters({
             onChange={(e) =>
               onFilterChange({ ...currentFilters, search: e.target.value })
             }
-            className="h-9 border border-border/50 bg-white text-foreground pl-9 text-sm shadow-[var(--shadow-xs)]"
+            className="h-9 border border-border/50 bg-white dark:bg-card text-foreground pl-9 text-sm shadow-[var(--shadow-xs)]"
           />
         </div>
 
@@ -64,7 +64,7 @@ export function ApprovalFilters({
             })
           }
         >
-          <SelectTrigger className="h-9 w-full border border-border/50 bg-white text-foreground text-sm shadow-[var(--shadow-xs)] sm:w-[140px]">
+          <SelectTrigger className="h-9 w-full border border-border/50 bg-white dark:bg-card text-foreground text-sm shadow-[var(--shadow-xs)] sm:w-[140px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -86,7 +86,7 @@ export function ApprovalFilters({
             })
           }
         >
-          <SelectTrigger className="h-9 w-full border border-border/50 bg-white text-foreground text-sm shadow-[var(--shadow-xs)] sm:w-[140px]">
+          <SelectTrigger className="h-9 w-full border border-border/50 bg-white dark:bg-card text-foreground text-sm shadow-[var(--shadow-xs)] sm:w-[140px]">
             <SelectValue placeholder="Priority" />
           </SelectTrigger>
           <SelectContent>
@@ -107,7 +107,7 @@ export function ApprovalFilters({
             })
           }
         >
-          <SelectTrigger className="h-9 w-full border border-border/50 bg-white text-foreground text-sm shadow-[var(--shadow-xs)] sm:w-[150px]">
+          <SelectTrigger className="h-9 w-full border border-border/50 bg-white dark:bg-card text-foreground text-sm shadow-[var(--shadow-xs)] sm:w-[150px]">
             <SelectValue placeholder="Source" />
           </SelectTrigger>
           <SelectContent>
@@ -130,7 +130,7 @@ export function ApprovalFilters({
               })
             }
           >
-            <SelectTrigger className="h-9 w-full border border-border/50 bg-white text-foreground text-sm shadow-[var(--shadow-xs)] sm:w-[160px]">
+            <SelectTrigger className="h-9 w-full border border-border/50 bg-white dark:bg-card text-foreground text-sm shadow-[var(--shadow-xs)] sm:w-[160px]">
               <SelectValue placeholder="Connection" />
             </SelectTrigger>
             <SelectContent>
@@ -145,7 +145,7 @@ export function ApprovalFilters({
         )}
 
         <Button
-          variant={currentFilters.showArchived ? "secondary" : "ghost"}
+          variant={currentFilters.showArchived ? "secondary" : "outline"}
           size="sm"
           onClick={() =>
             onFilterChange({
@@ -153,7 +153,7 @@ export function ApprovalFilters({
               showArchived: !currentFilters.showArchived,
             })
           }
-          className="h-9 gap-1.5 text-xs"
+          className="h-9 gap-1.5 text-xs border-border/50 bg-white dark:bg-card text-foreground shadow-[var(--shadow-xs)]"
         >
           <Archive className="size-3.5" />
           {currentFilters.showArchived ? "Showing Archived" : "Show Archived"}

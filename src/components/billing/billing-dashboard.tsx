@@ -88,7 +88,7 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
       {/* ── My Plan Section (like Make.com) ── */}
       <div>
         <h3 className="mb-4 text-lg font-semibold">Subscription</h3>
-        <div className="divide-y rounded-lg border">
+        <div className="divide-y rounded-lg border bg-white dark:bg-card">
           {/* Row: My plan */}
           <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -96,7 +96,7 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
               <Badge variant={currentPlan === "free" ? "secondary" : "default"} className="text-xs">
                 {limits.name}
               </Badge>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-black dark:text-foreground">
                 {isUnlimited(limits.maxRequests) ? "Unlimited" : `${limits.maxRequests}`} requests/month
               </span>
             </div>
@@ -208,6 +208,7 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
                 "relative",
                 isCurrent && "border-primary ring-1 ring-primary/20",
                 isEnterprise && "bg-zinc-900 text-white border-zinc-800",
+                !isEnterprise && planId !== "free" && "bg-white dark:bg-card",
               )}>
                 {isCurrent && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -217,7 +218,7 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
                 <CardContent className="pt-6">
                   {/* Price area — fixed height */}
                   <div className="mb-5 h-[100px]">
-                    <h4 className="text-base font-bold">{plan.name}</h4>
+                    <h4 className={cn("text-base font-bold", !isEnterprise && "text-black dark:text-foreground")}>{plan.name}</h4>
                     <p className="mt-1">
                       <span className="text-3xl font-bold">
                         {displayPrice === 0 && !isEnterprise ? "$0" : isEnterprise ? "" : `$${displayPrice}`}
@@ -317,7 +318,7 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
       {/* ── Comparison Table (like Make.com) ── */}
       <div>
         <h3 className="mb-5 text-lg font-semibold">Comparison table</h3>
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-lg border bg-white dark:bg-card">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b">
@@ -325,7 +326,7 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
                 {PLAN_ORDER.map((planId) => {
                   const isCurrent = planId === currentPlan;
                   return (
-                    <th key={planId} className={cn("px-4 py-3 text-center font-semibold", isCurrent && "bg-primary/5")}>
+                    <th key={planId} className={cn("px-4 py-3 text-center font-semibold text-black dark:text-foreground", isCurrent && "bg-primary/5")}>
                       {isCurrent && <span className="block text-xs font-medium text-primary mb-0.5">Your plan</span>}
                       {PLAN_LIMITS[planId].name}
                     </th>
@@ -375,7 +376,7 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
                     }
 
                     return (
-                      <td key={planId} className={cn("px-4 py-3 text-center", isCurrent && "bg-primary/5")}>
+                      <td key={planId} className={cn("px-4 py-3 text-center text-black dark:text-foreground", isCurrent && "bg-primary/5")}>
                         {value}
                       </td>
                     );
@@ -391,7 +392,7 @@ export function BillingDashboard({ plans, subscription, usage, invoices, isAdmin
       {invoices.length > 0 && (
         <div>
           <h3 className="mb-4 text-lg font-semibold">Payments</h3>
-          <div className="overflow-x-auto rounded-lg border">
+          <div className="overflow-x-auto rounded-lg border bg-white dark:bg-card">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">

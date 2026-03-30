@@ -10,6 +10,7 @@ import { NextResponse } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import {
   verifyWebhookSignature,
   createCheckRun,
@@ -96,11 +97,11 @@ export async function POST(request: Request) {
 
     // 5. Handle pull_request actions
     if (action === "opened" || action === "synchronize") {
-      return handlePrOpenedOrSync(admin, orgId, installation.id, pr, repository, action);
+      return handlePrOpenedOrSync(request, admin, orgId, installation.id, pr, repository, action);
     }
 
     if (action === "closed") {
-      return handlePrClosed(admin, orgId, pr, repository);
+      return handlePrClosed(request, admin, orgId, pr, repository);
     }
 
     // Other PR actions (e.g. labeled, assigned) are ignored
@@ -119,6 +120,7 @@ export async function POST(request: Request) {
 // ---------------------------------------------------------------------------
 
 async function handlePrOpenedOrSync(
+  request: Request,
   admin: ReturnType<typeof createAdminClient>,
   orgId: string,
   installationId: number,
@@ -273,6 +275,7 @@ async function handlePrOpenedOrSync(
       repo,
       head_sha: pr.head.sha,
     },
+    ipAddress: getClientIp(request),
   });
 
   return NextResponse.json(
@@ -282,6 +285,7 @@ async function handlePrOpenedOrSync(
 }
 
 async function handlePrClosed(
+  request: Request,
   admin: ReturnType<typeof createAdminClient>,
   orgId: string,
   pr: PullRequestEvent["pull_request"],
@@ -333,6 +337,7 @@ async function handlePrClosed(
         pr_number: pr.number,
         repo,
       },
+      ipAddress: getClientIp(request),
     });
   }
 

@@ -20,6 +20,7 @@ import { NextResponse } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { deliverCallback } from "@/lib/api/callbacks";
 import { isRejectionReasonRequired } from "@/lib/api/rejection-reason";
 
@@ -238,7 +239,7 @@ function buildReasonModal(
 // Core: Apply the decision
 // ---------------------------------------------------------------------------
 
-async function applyDecision(params: {
+async function applyDecision(request: Request, params: {
   decision: "approve" | "reject";
   requestId: string;
   discordUserId: string;
@@ -348,6 +349,7 @@ async function applyDecision(params: {
       discord_user_id: discordUserId,
       discord_username: discordUsername,
     },
+    ipAddress: getClientIp(request),
   });
 
   // Deliver callback if configured (fire-and-forget).
@@ -553,7 +555,7 @@ export async function POST(request: Request) {
     const discordUsername =
       discordUser?.global_name ?? discordUser?.username ?? "Discord User";
 
-    const result = await applyDecision({
+    const result = await applyDecision(request, {
       decision: actionStr,
       requestId,
       discordUserId,

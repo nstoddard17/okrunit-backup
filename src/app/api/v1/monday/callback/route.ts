@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 
 const MONDAY_CLIENT_ID = process.env.MONDAY_CLIENT_ID!;
 const MONDAY_CLIENT_SECRET = process.env.MONDAY_CLIENT_SECRET!;
@@ -46,13 +47,13 @@ export async function GET(request: Request) {
 
   if (errorParam) {
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=${encodeURIComponent(errorParam)}`,
+      `${APP_URL}/requests/messaging?error=${encodeURIComponent(errorParam)}`,
     );
   }
 
   if (!code) {
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=missing_params`,
+      `${APP_URL}/requests/messaging?error=missing_params`,
     );
   }
 
@@ -71,7 +72,7 @@ export async function GET(request: Request) {
 
   if (!state) {
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=invalid_state`,
+      `${APP_URL}/requests/messaging?error=invalid_state`,
     );
   }
 
@@ -94,7 +95,7 @@ export async function GET(request: Request) {
       const body = await tokenResponse.text();
       console.error("[monday.com Callback] Token exchange HTTP error:", body);
       return NextResponse.redirect(
-        `${APP_URL}/settings/messaging?error=token_exchange_failed`,
+        `${APP_URL}/requests/messaging?error=token_exchange_failed`,
       );
     }
 
@@ -103,7 +104,7 @@ export async function GET(request: Request) {
     if (!tokenData.access_token) {
       console.error("[monday.com Callback] No access token in response");
       return NextResponse.redirect(
-        `${APP_URL}/settings/messaging?error=no_access_token`,
+        `${APP_URL}/requests/messaging?error=no_access_token`,
       );
     }
 
@@ -153,7 +154,7 @@ export async function GET(request: Request) {
     if (upsertError) {
       console.error("[monday.com Callback] Upsert failed:", upsertError);
       return NextResponse.redirect(
-        `${APP_URL}/settings/messaging?error=save_failed`,
+        `${APP_URL}/requests/messaging?error=save_failed`,
       );
     }
 
@@ -164,6 +165,7 @@ export async function GET(request: Request) {
       action: "messaging_connection.created",
       resourceType: "messaging_connection",
       resourceId: workspaceId,
+      ipAddress: getClientIp(request),
       details: {
         platform: "monday",
         workspace_name: workspaceName,
@@ -173,12 +175,12 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?success=monday`,
+      `${APP_URL}/requests/messaging?success=monday`,
     );
   } catch (error) {
     console.error("[monday.com Callback] Unexpected error:", error);
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=unexpected`,
+      `${APP_URL}/requests/messaging?error=unexpected`,
     );
   }
 }

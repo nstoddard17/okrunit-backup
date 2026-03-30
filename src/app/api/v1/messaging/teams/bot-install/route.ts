@@ -19,6 +19,7 @@ import { z } from "zod";
 import { authenticateRequest } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // ---------------------------------------------------------------------------
@@ -133,6 +134,7 @@ export async function POST(request: Request) {
         action: "messaging_connection.updated",
         resourceType: "messaging_connection",
         resourceId: existing.id,
+        ipAddress: getClientIp(request),
         details: {
           platform: "teams",
           conversation_id: body.conversation_id,
@@ -167,6 +169,7 @@ export async function POST(request: Request) {
       action: "messaging_connection.created",
       resourceType: "messaging_connection",
       resourceId: created.id,
+      ipAddress: getClientIp(request),
       details: {
         platform: "teams",
         conversation_id: body.conversation_id,

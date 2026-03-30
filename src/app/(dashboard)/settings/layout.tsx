@@ -14,7 +14,7 @@ export default async function SettingsLayout({
 
   return (
     <div className="flex w-full flex-col md:min-h-[calc(100vh-52px)] md:flex-row">
-      <aside className="hidden w-56 shrink-0 border-r border-border/40 bg-white md:block">
+      <aside className="hidden w-56 shrink-0 border-r border-border/40 bg-[var(--card)] md:block">
         <SettingsNav isAdmin={isAdmin} />
       </aside>
 

@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/api/audit";
+import { getClientIp } from "@/lib/api/ip-rate-limiter";
 
 const SLACK_CLIENT_ID = process.env.SLACK_CLIENT_ID!;
 const SLACK_CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET!;
@@ -51,13 +52,13 @@ export async function GET(request: Request) {
 
   if (errorParam) {
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=${encodeURIComponent(errorParam)}`,
+      `${APP_URL}/requests/messaging?error=${encodeURIComponent(errorParam)}`,
     );
   }
 
   if (!code || !stateParam) {
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=missing_params`,
+      `${APP_URL}/requests/messaging?error=missing_params`,
     );
   }
 
@@ -69,7 +70,7 @@ export async function GET(request: Request) {
     }
   } catch {
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=invalid_state`,
+      `${APP_URL}/requests/messaging?error=invalid_state`,
     );
   }
 
@@ -92,7 +93,7 @@ export async function GET(request: Request) {
       const body = await tokenResponse.text();
       console.error("[Slack Callback] Token exchange HTTP error:", body);
       return NextResponse.redirect(
-        `${APP_URL}/settings/messaging?error=token_exchange_failed`,
+        `${APP_URL}/requests/messaging?error=token_exchange_failed`,
       );
     }
 
@@ -101,7 +102,7 @@ export async function GET(request: Request) {
     if (!tokenData.ok) {
       console.error("[Slack Callback] Slack API error:", tokenData.error);
       return NextResponse.redirect(
-        `${APP_URL}/settings/messaging?error=${encodeURIComponent(tokenData.error ?? "slack_error")}`,
+        `${APP_URL}/requests/messaging?error=${encodeURIComponent(tokenData.error ?? "slack_error")}`,
       );
     }
 
@@ -141,7 +142,7 @@ export async function GET(request: Request) {
     if (upsertError) {
       console.error("[Slack Callback] Upsert failed:", upsertError);
       return NextResponse.redirect(
-        `${APP_URL}/settings/messaging?error=save_failed`,
+        `${APP_URL}/requests/messaging?error=save_failed`,
       );
     }
 
@@ -152,6 +153,7 @@ export async function GET(request: Request) {
       action: "messaging_connection.created",
       resourceType: "messaging_connection",
       resourceId: workspaceId,
+      ipAddress: getClientIp(request),
       details: {
         platform: "slack",
         workspace_name: workspaceName,
@@ -161,12 +163,12 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?success=slack`,
+      `${APP_URL}/requests/messaging?success=slack`,
     );
   } catch (error) {
     console.error("[Slack Callback] Unexpected error:", error);
     return NextResponse.redirect(
-      `${APP_URL}/settings/messaging?error=unexpected`,
+      `${APP_URL}/requests/messaging?error=unexpected`,
     );
   }
 }
