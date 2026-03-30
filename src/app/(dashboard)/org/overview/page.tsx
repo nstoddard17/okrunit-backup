@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SourceAvatar, SourceBadge } from "@/components/approvals/source-icons";
 import {
+  AlertTriangle,
   Hourglass,
   ShieldCheck,
   Unplug,
@@ -38,6 +39,8 @@ export default async function V2OrgOverviewPage() {
     { count: connectionCount },
     { count: memberCount },
     { data: recentActivity },
+    { count: slaBreachedCount },
+    { count: escalatedCount },
   ] = await Promise.all([
     // Single query for all status counts instead of 3 separate COUNT queries
     admin
@@ -59,6 +62,20 @@ export default async function V2OrgOverviewPage() {
       .eq("org_id", membership.org_id)
       .order("created_at", { ascending: false })
       .limit(8),
+    // SLA breached pending requests
+    admin
+      .from("approval_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", org.id)
+      .eq("status", "pending")
+      .eq("sla_breached", true),
+    // Currently escalated requests
+    admin
+      .from("approval_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", org.id)
+      .eq("status", "pending")
+      .gt("escalation_level", 0),
   ]);
 
   // Count statuses from single query result
@@ -181,6 +198,22 @@ export default async function V2OrgOverviewPage() {
   return (
     <div className="space-y-8">
       <Suspense><JoinedToast /></Suspense>
+      {/* Alert banners */}
+      {(slaBreachedCount ?? 0) > 0 && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-800">
+          <AlertTriangle className="size-4 shrink-0" />
+          <span className="font-medium">{slaBreachedCount} pending request{(slaBreachedCount ?? 0) !== 1 ? "s have" : " has"} breached SLA deadlines.</span>
+          <Link href="/requests" className="ml-auto text-xs font-medium underline">View</Link>
+        </div>
+      )}
+      {(escalatedCount ?? 0) > 0 && (
+        <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+          <AlertTriangle className="size-4 shrink-0" />
+          <span className="font-medium">{escalatedCount} request{(escalatedCount ?? 0) !== 1 ? "s are" : " is"} currently escalated.</span>
+          <Link href="/requests" className="ml-auto text-xs font-medium underline">View</Link>
+        </div>
+      )}
+
       {/* Org header — only on overview */}
       <div>
         <p className="text-xs font-medium text-primary mb-0.5">Organization</p>
