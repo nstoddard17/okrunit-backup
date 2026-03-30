@@ -6,6 +6,7 @@ import { JoinedToast } from "@/components/org/joined-toast";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SourceAvatar, SourceBadge } from "@/components/approvals/source-icons";
+import { OnboardingTutorial } from "@/components/onboarding/onboarding-tutorial";
 import {
   AlertTriangle,
   Hourglass,
@@ -213,6 +214,9 @@ export default async function V2OrgOverviewPage() {
           <Link href="/requests" className="ml-auto text-xs font-medium underline">View</Link>
         </div>
       )}
+
+      {/* Onboarding tutorial — shown until dismissed */}
+      <OnboardingTutorial />
 
       {/* Org header — only on overview */}
       <div>
