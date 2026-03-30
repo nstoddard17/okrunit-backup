@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Tests for SSRF Protection (isPrivateUrl)
+// OKrunit -- Tests for SSRF Protection (isPrivateUrl)
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect } from "vitest";

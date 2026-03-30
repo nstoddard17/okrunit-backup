@@ -22,11 +22,11 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "OKRunit - Human-in-the-Loop Approval Gateway for AI Agents & Automations",
-    template: "%s | OKRunit",
+    default: "OKrunit - Human-in-the-Loop Approval Gateway for AI Agents & Automations",
+    template: "%s | OKrunit",
   },
   description:
-    "Add human approval to any automation workflow. OKRunit pauses AI agents, Zapier zaps, Make scenarios, and n8n workflows until a human approves. One API call. Approve from Slack, email, or dashboard.",
+    "Add human approval to any automation workflow. OKrunit pauses AI agents, Zapier zaps, Make scenarios, and n8n workflows until a human approves. One API call. Approve from Slack, email, or dashboard.",
   keywords: [
     "human-in-the-loop",
     "approval gateway",
@@ -45,16 +45,16 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "OKRunit - Human Approval for Every Automation",
+    title: "OKrunit - Human Approval for Every Automation",
     description:
       "Add human approval to any automation workflow. One API call pauses execution until a human approves. Works with Zapier, Make, n8n, Slack, and any REST API.",
     url: "https://okrunit.com",
-    siteName: "OKRunit",
+    siteName: "OKrunit",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "OKRunit - Human Approval for Every Automation",
+    title: "OKrunit - Human Approval for Every Automation",
     description:
       "Add human approval to any automation workflow. One API call pauses execution until a human approves.",
   },

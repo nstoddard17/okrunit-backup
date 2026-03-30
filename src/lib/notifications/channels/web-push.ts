@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Web Push Notification Channel (VAPID-signed)
+// OKrunit -- Web Push Notification Channel (VAPID-signed)
 // ---------------------------------------------------------------------------
 
 import webPush from "web-push";

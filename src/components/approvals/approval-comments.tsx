@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Approval Comments: Threaded Comment List + Reply Form
+// OKrunit -- Approval Comments: Threaded Comment List + Reply Form
 // ---------------------------------------------------------------------------
 
 import { useState, useCallback } from "react";
@@ -131,6 +131,32 @@ export function ApprovalComments({
 
   return (
     <div className="space-y-3">
+      {/* Reply form */}
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <Textarea
+          placeholder="Write a comment..."
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          rows={1}
+          disabled={isSubmitting}
+          className="resize-none text-sm min-h-[36px]"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              if (body.trim()) handleSubmit(e);
+            }
+          }}
+        />
+        <Button
+          type="submit"
+          size="sm"
+          className="shrink-0 h-9"
+          disabled={isSubmitting || !body.trim()}
+        >
+          <Send className="size-3.5" />
+        </Button>
+      </form>
+
       {/* Comment list */}
       {comments.length === 0 ? (
         <p className="text-muted-foreground text-xs">No comments yet.</p>
@@ -170,32 +196,6 @@ export function ApprovalComments({
           ))}
         </div>
       )}
-
-      {/* Reply form */}
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <Textarea
-          placeholder="Write a comment..."
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          rows={1}
-          disabled={isSubmitting}
-          className="resize-none text-sm min-h-[36px]"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              if (body.trim()) handleSubmit(e);
-            }
-          }}
-        />
-        <Button
-          type="submit"
-          size="sm"
-          className="shrink-0 h-9"
-          disabled={isSubmitting || !body.trim()}
-        >
-          <Send className="size-3.5" />
-        </Button>
-      </form>
     </div>
   );
 }

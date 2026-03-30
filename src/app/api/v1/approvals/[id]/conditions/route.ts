@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Approval Conditions API: GET (list) + POST (add condition)
+// OKrunit -- Approval Conditions API: GET (list) + POST (add condition)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

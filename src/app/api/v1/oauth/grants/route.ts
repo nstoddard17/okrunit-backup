@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- OAuth Grants API: List active OAuth connections
+// OKrunit -- OAuth Grants API: List active OAuth connections
 // GET /api/v1/oauth/grants
 // ---------------------------------------------------------------------------
 

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Approval Flows API: GET (single) + PATCH (update) + DELETE
+// OKrunit -- Approval Flows API: GET (single) + PATCH (update) + DELETE
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

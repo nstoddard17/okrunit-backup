@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Discord OAuth Install Route
+// OKrunit -- Discord OAuth Install Route
 // ---------------------------------------------------------------------------
 // GET /api/v1/messaging/discord/install
 //
-// Redirects the user to Discord's OAuth2 authorize URL to add the OKRunit
+// Redirects the user to Discord's OAuth2 authorize URL to add the OKrunit
 // bot to their server. The state parameter encodes org_id for CSRF protection.
 // ---------------------------------------------------------------------------
 

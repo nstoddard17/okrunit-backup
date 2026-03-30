@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- SAML Login Initiator
+// OKrunit -- SAML Login Initiator
 // ---------------------------------------------------------------------------
 // GET /api/auth/saml/login?email=user@company.com
 //

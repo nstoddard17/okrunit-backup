@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Email Confirmation Template (v3)
+// OKrunit -- Email Confirmation Template (v3)
 // ---------------------------------------------------------------------------
 // Warm, Vend-inspired design with hero banner, illustration sections,
 // and personal sign-off using the shared layout helpers.
@@ -33,7 +33,7 @@ export function buildConfirmEmailHtml(params: ConfirmEmailParams): string {
 
   // --- Hero ---
   const hero = emailHero({
-    title: "Welcome to OKRunit! Let&rsquo;s get started.",
+    title: "Welcome to OKrunit! Let&rsquo;s get started.",
     descriptionHtml: `Hi ${escapeHtml(fullName)}! We&rsquo;re thrilled you&rsquo;re here. To activate your account and start routing approval flows, please verify your email address.`,
   });
 
@@ -105,7 +105,7 @@ export function buildConfirmEmailHtml(params: ConfirmEmailParams): string {
   // --- Sign-off ---
   const signoff = emailSignoff({
     message: "Welcome aboard!",
-    name: "The OKRunit Team",
+    name: "The OKrunit Team",
     title: "Human-in-the-loop, always",
   });
 
@@ -142,8 +142,8 @@ export function buildConfirmEmailHtml(params: ConfirmEmailParams): string {
   return emailLayout({
     body,
     heroBanner,
-    preheader: "Confirm your email to start using OKRunit",
+    preheader: "Confirm your email to start using OKrunit",
     footerText:
-      "If you did not create an OKRunit account, you can safely ignore this email.",
+      "If you did not create an OKrunit account, you can safely ignore this email.",
   });
 }

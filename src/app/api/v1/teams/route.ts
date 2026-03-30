@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Teams API: List + Create
+// OKrunit -- Teams API: List + Create
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- App-Wide Constants
+// OKrunit -- App-Wide Constants
 // ---------------------------------------------------------------------------
 
-export const APP_NAME = "OKRunit";
+export const APP_NAME = "OKrunit";
 
 /** Prefix prepended to every generated API key. */
 export const API_KEY_PREFIX = "gk_";

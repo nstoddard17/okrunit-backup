@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Usage Alert Email Template (v2 — Vend-inspired)
+// OKrunit -- Usage Alert Email Template (v2 — Vend-inspired)
 // ---------------------------------------------------------------------------
 
 import {
@@ -144,7 +144,7 @@ export function buildUsageAlertEmailHtml(
 
   // --- Sign-off ---
   const signoff = emailSignoff({
-    name: "The OKRunit Team",
+    name: "The OKrunit Team",
     title: "Billing & Usage",
   });
 

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- SSO/SAML Configuration API
+// OKrunit -- SSO/SAML Configuration API
 // ---------------------------------------------------------------------------
 
 import { NextRequest, NextResponse } from "next/server";

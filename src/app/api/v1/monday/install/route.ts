@@ -1,10 +1,10 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- monday.com OAuth Install Route
+// OKrunit -- monday.com OAuth Install Route
 // ---------------------------------------------------------------------------
 // GET /api/v1/monday/install
 //
 // Redirects the user to monday.com's OAuth2 authorize URL to install the
-// OKRunit app into their monday.com account.
+// OKrunit app into their monday.com account.
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

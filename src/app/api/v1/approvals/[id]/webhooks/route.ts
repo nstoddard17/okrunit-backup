@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Approval Webhooks API: GET (delivery history for an approval)
+// OKrunit -- Approval Webhooks API: GET (delivery history for an approval)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

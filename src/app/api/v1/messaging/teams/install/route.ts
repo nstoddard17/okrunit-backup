@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Microsoft Teams OAuth Install Route
+// OKrunit -- Microsoft Teams OAuth Install Route
 // ---------------------------------------------------------------------------
 // GET /api/v1/messaging/teams/install
 //
-// Redirects the user to Microsoft's OAuth2 authorize URL to grant OKRunit
+// Redirects the user to Microsoft's OAuth2 authorize URL to grant OKrunit
 // permission to send messages to Teams channels.
 // ---------------------------------------------------------------------------
 

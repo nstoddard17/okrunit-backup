@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Approvals API: POST (create) + GET (list with filters)
+// OKrunit -- Approvals API: POST (create) + GET (list with filters)
 // ---------------------------------------------------------------------------
 
 import { NextResponse, after } from "next/server";

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Messaging Connection PATCH (update routing rules + settings)
+// OKrunit -- Messaging Connection PATCH (update routing rules + settings)
 // ---------------------------------------------------------------------------
 // PATCH /api/v1/messaging/connections/[id]
 // ---------------------------------------------------------------------------

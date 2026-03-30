@@ -1,4 +1,4 @@
-# OKRunit
+# OKrunit
 
 Human-in-the-loop approval gateway for automated workflows.
 

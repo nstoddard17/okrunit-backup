@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- SLA Analytics API: GET
+// OKrunit -- SLA Analytics API: GET
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

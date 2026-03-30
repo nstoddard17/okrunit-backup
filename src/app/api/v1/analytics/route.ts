@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Analytics API: GET (comprehensive approval metrics and trends)
+// OKrunit -- Analytics API: GET (comprehensive approval metrics and trends)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

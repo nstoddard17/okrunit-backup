@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- GitHub Webhook Handler
+// OKrunit -- GitHub Webhook Handler
 //
 // Receives GitHub webhook events for pull_request actions:
-//   - opened / synchronize: Create an OKRunit approval + GitHub check run
+//   - opened / synchronize: Create an OKrunit approval + GitHub check run
 //   - closed: Cancel the associated pending approval
 // ---------------------------------------------------------------------------
 
@@ -253,7 +253,7 @@ async function handlePrOpenedOrSync(
       sha: pr.head.sha,
       status: "in_progress",
       details: {
-        title: "OKRunit Approval Required",
+        title: "OKrunit Approval Required",
         summary: `Waiting for human approval.\n\n**PR:** ${pr.title}\n**Author:** ${pr.user.login}`,
         details_url: `${appUrl}/dashboard?approval=${approval.id}`,
       },

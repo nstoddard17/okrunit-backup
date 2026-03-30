@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- SAML Assertion Consumer Service (ACS)
+// OKrunit -- SAML Assertion Consumer Service (ACS)
 // ---------------------------------------------------------------------------
 // POST /api/auth/saml/callback
 //

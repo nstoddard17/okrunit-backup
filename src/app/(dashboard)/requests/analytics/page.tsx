@@ -7,7 +7,7 @@ import type { ApprovalRateDataPoint } from "@/components/analytics/approval-rate
 import type { ResponseTimeDataPoint } from "@/components/analytics/response-time-chart";
 
 export const metadata = {
-  title: "Analytics - OKRunit",
+  title: "Analytics - OKrunit",
   description: "Dashboard analytics and approval statistics.",
 };
 

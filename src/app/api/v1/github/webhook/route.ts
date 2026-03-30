@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- GitHub App Webhook Handler
+// OKrunit -- GitHub App Webhook Handler
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";
@@ -248,7 +248,7 @@ async function handlePullRequest(
       sha,
       status: "queued",
       details: {
-        title: "OKRunit Approval Required",
+        title: "OKrunit Approval Required",
         summary: `Waiting for human approval for PR #${prNumber}: ${prTitle}`,
         details_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://okrunit.com"}/dashboard`,
       },
@@ -311,8 +311,8 @@ async function handlePullRequest(
       sha,
       status: "in_progress",
       details: {
-        title: "OKRunit Approval Pending",
-        summary: `Approval request created. [Review in OKRunit](${appUrl}/dashboard)`,
+        title: "OKrunit Approval Pending",
+        summary: `Approval request created. [Review in OKrunit](${appUrl}/dashboard)`,
         details_url: `${appUrl}/dashboard`,
       },
     });
@@ -405,7 +405,7 @@ async function handleCheckSuite(
       status: check.status,
       conclusion: check.conclusion,
       details: {
-        title: `OKRunit: ${approval.status.charAt(0).toUpperCase() + approval.status.slice(1)}`,
+        title: `OKrunit: ${approval.status.charAt(0).toUpperCase() + approval.status.slice(1)}`,
         summary: `Approval status: ${approval.status}`,
       },
     });

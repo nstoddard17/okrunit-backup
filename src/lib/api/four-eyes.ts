@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Four-Eyes Principle Enforcement
+// OKrunit -- Four-Eyes Principle Enforcement
 // ---------------------------------------------------------------------------
 
 import type { Organization, ApprovalRequest, ApprovalPriority } from "@/lib/types/database";

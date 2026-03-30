@@ -19,7 +19,7 @@ import {
 import type { ApprovalRequest } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Overview - OKRunit",
+  title: "Overview - OKrunit",
   description: "Organization overview and quick actions.",
 };
 

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Organization API: Update Organization
+// OKrunit -- Organization API: Update Organization
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

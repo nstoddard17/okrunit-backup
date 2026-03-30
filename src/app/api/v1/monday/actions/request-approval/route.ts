@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- monday.com Integration Action: Request Approval
+// OKrunit -- monday.com Integration Action: Request Approval
 // ---------------------------------------------------------------------------
 // POST /api/v1/monday/actions/request-approval
 //
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
 
     if (!connection) {
       return NextResponse.json(
-        { error: "No active monday.com connection found. Please install the OKRunit app in your monday.com account first." },
+        { error: "No active monday.com connection found. Please install the OKrunit app in your monday.com account first." },
         { status: 404 },
       );
     }

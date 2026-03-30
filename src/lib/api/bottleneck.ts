@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Bottleneck Detection
+// OKrunit -- Bottleneck Detection
 // ---------------------------------------------------------------------------
 //
 // Detect users with excessive pending approval load and suggest redistribution.

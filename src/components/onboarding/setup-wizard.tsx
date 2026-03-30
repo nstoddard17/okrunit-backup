@@ -1,13 +1,12 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSetupWizard } from "@/hooks/use-onboarding";
 import { WizardProgress } from "./wizard-progress";
 import { OrganizationStep } from "./organization-step";
 import { InviteTeamStep } from "./invite-team-step";
 import { ConnectMessagingStep } from "./connect-messaging-step";
-import { CreateConnectionStep } from "./create-connection-step";
-import { TestApprovalStep } from "./test-approval-step";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -29,18 +28,55 @@ export function SetupWizard({
     goToStep,
     completeStep,
     skipStep,
-    updateData,
+    resetWizard,
     isComplete,
   } = useSetupWizard();
 
-  // If already complete, redirect to dashboard
-  if (loaded && isComplete) {
-    router.push("/org/overview");
-    return null;
-  }
+  // Track step transitions for animation
+  const [displayedStep, setDisplayedStep] = useState<number | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [finishing, setFinishing] = useState(false);
+  const prevStepRef = useRef<number | null>(null);
 
-  // Show skeleton while loading localStorage state
-  if (!loaded) {
+  const currentStep = state.currentStep;
+
+  // Animate step transitions (skip if we're finishing setup)
+  useEffect(() => {
+    if (!loaded || finishing) return;
+
+    if (displayedStep === null) {
+      // Initial render — show immediately
+      setDisplayedStep(currentStep);
+      prevStepRef.current = currentStep;
+      return;
+    }
+
+    if (currentStep !== prevStepRef.current) {
+      // Step changed — trigger exit animation, then swap content
+      setIsAnimating(true);
+      const timer = setTimeout(() => {
+        setDisplayedStep(currentStep);
+        setIsAnimating(false);
+        prevStepRef.current = currentStep;
+      }, 200); // matches wizardSlideOut duration
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep, loaded, displayedStep, finishing]);
+
+  // If localStorage says complete but we're still on /setup, the DB was reset.
+  // Clear the stale localStorage state so the wizard starts fresh.
+  // Skip if we're in the process of finishing (to avoid flashing step 0).
+  const didReset = useRef(false);
+  useEffect(() => {
+    if (loaded && isComplete && !didReset.current && !finishing) {
+      didReset.current = true;
+      resetWizard();
+    }
+  }, [loaded, isComplete, resetWizard, finishing]);
+
+  // Show skeleton while loading localStorage state or resetting stale state
+  // Don't show skeleton if we're finishing (stay on last step)
+  if (!loaded || (isComplete && !didReset.current && !finishing)) {
     return (
       <Card>
         <CardContent className="space-y-6 p-8">
@@ -53,13 +89,21 @@ export function SetupWizard({
     );
   }
 
-  const currentStep = state.currentStep;
-
-  function handleCompleteSetup() {
-    // Mark as fully complete and navigate to dashboard
-    completeStep(4);
+  async function handleCompleteSetup() {
+    // Freeze the UI on the current step while we finish up
+    setFinishing(true);
+    try {
+      await fetch("/api/auth/complete-setup", { method: "POST" });
+    } catch {
+      // Non-blocking — the layout gate will still redirect if this fails
+    }
+    // Mark complete in localStorage after the DB call so the reset effect
+    // doesn't fire before we navigate away.
+    completeStep(2);
     router.push("/org/overview");
   }
+
+  const stepToRender = displayedStep ?? currentStep;
 
   return (
     <div className="space-y-6">
@@ -71,63 +115,51 @@ export function SetupWizard({
       />
 
       {/* Step content */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardContent className="p-6 sm:p-8">
-          {currentStep === 0 && (
-            <OrganizationStep
-              initialName={orgName}
-              orgId={orgId}
-              onComplete={() => completeStep(0)}
-            />
-          )}
+          <div
+            key={stepToRender}
+            style={{
+              animation: isAnimating
+                ? "wizardSlideOut 200ms ease-in forwards"
+                : "wizardSlideIn 350ms ease-out",
+            }}
+          >
+            {stepToRender === 0 && (
+              <OrganizationStep
+                initialName={orgName}
+                orgId={orgId}
+                onComplete={() => completeStep(0)}
+              />
+            )}
 
-          {currentStep === 1 && (
-            <InviteTeamStep
-              onComplete={() => completeStep(1)}
-              onBack={() => goToStep(0)}
-              onSkip={() => skipStep(1)}
-            />
-          )}
+            {stepToRender === 1 && (
+              <InviteTeamStep
+                onComplete={() => completeStep(1)}
+                onBack={() => goToStep(0)}
+                onSkip={() => skipStep(1)}
+              />
+            )}
 
-          {currentStep === 2 && (
-            <ConnectMessagingStep
-              connectedPlatforms={connectedPlatforms}
-              onComplete={() => completeStep(2)}
-              onBack={() => goToStep(1)}
-              onSkip={() => skipStep(2)}
-            />
-          )}
+            {stepToRender === 2 && (
+              <ConnectMessagingStep
+                connectedPlatforms={connectedPlatforms}
+                onComplete={() => {
+                  handleCompleteSetup();
+                }}
+                onBack={() => goToStep(1)}
+                onSkip={() => {
+                  handleCompleteSetup();
+                }}
+              />
+            )}
 
-          {currentStep === 3 && (
-            <CreateConnectionStep
-              existingConnectionId={state.connectionId}
-              existingApiKey={state.apiKey}
-              onComplete={(connectionId, apiKey) => {
-                updateData({ connectionId, apiKey });
-                completeStep(3);
-              }}
-              onBack={() => goToStep(2)}
-              onSkip={() => skipStep(3)}
-            />
-          )}
-
-          {currentStep === 4 && (
-            <TestApprovalStep
-              apiKey={state.apiKey}
-              existingTestApprovalId={state.testApprovalId}
-              onComplete={(approvalId) => {
-                updateData({ testApprovalId: approvalId });
-                handleCompleteSetup();
-              }}
-              onBack={() => goToStep(3)}
-            />
-          )}
-
-          {/* Edge case: step past the end */}
-          {currentStep >= 5 && (() => {
-            router.push("/org/overview");
-            return null;
-          })()}
+            {/* Edge case: step past the end */}
+            {stepToRender >= 3 && (() => {
+              handleCompleteSetup();
+              return null;
+            })()}
+          </div>
         </CardContent>
       </Card>
     </div>

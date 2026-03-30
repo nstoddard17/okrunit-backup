@@ -1,9 +1,9 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- API Request Builder
+// OKrunit -- API Request Builder
 // Interactive form for constructing and sending HTTP requests against the
-// OKRunit API. Includes pre-built request templates, connection-based
+// OKrunit API. Includes pre-built request templates, connection-based
 // auth pre-fill, and live code snippet generation.
 // ---------------------------------------------------------------------------
 
@@ -534,7 +534,7 @@ export function RequestBuilder({
             <div className="space-y-2">
               <FieldLabel
                 label="Endpoint"
-                tooltip="The API path to send the request to. Select from the list of available OKRunit API endpoints."
+                tooltip="The API path to send the request to. Select from the list of available OKrunit API endpoints."
               />
               <Select value={endpoint} onValueChange={handleEndpointSelect}>
                 <SelectTrigger className="w-full font-mono text-sm [&>span]:text-left [&>span]:truncate">
@@ -801,7 +801,7 @@ export function RequestBuilder({
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                Send this request to the OKRunit API and view the response on the right.
+                Send this request to the OKrunit API and view the response on the right.
               </TooltipContent>
             </Tooltip>
           </CardContent>

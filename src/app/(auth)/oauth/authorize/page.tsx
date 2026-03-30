@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- OAuth 2.0 Authorization / Consent Page
+// OKrunit -- OAuth 2.0 Authorization / Consent Page
 // ---------------------------------------------------------------------------
 
 import { redirect } from "next/navigation";
@@ -123,6 +123,13 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
     client.scopes.includes(s),
   );
 
+  // Get user profile for account display on consent screen.
+  const { data: profile } = await admin
+    .from("user_profiles")
+    .select("email, full_name, avatar_url")
+    .eq("id", user.id)
+    .single();
+
   return (
     <ConsentForm
       clientName={client.name}
@@ -136,6 +143,9 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
       codeChallengeMethod={params.code_challenge_method || ""}
       userId={user.id}
       orgId={membership.org_id}
+      userEmail={profile?.email || user.email || ""}
+      userFullName={profile?.full_name || null}
+      userAvatarUrl={profile?.avatar_url || null}
     />
   );
 }

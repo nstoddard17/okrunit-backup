@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Webhook Catcher Tab
+// OKrunit -- Webhook Catcher Tab
 // Displays a test URL for capturing webhook requests and shows captured
 // requests in real-time with expandable detail rows.
 // ---------------------------------------------------------------------------

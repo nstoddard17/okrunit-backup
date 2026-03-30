@@ -53,7 +53,7 @@ export function TestApprovalStep({
           body: JSON.stringify({
             title: "Test approval from setup wizard",
             description:
-              "This is a test approval created during the OKRunit setup wizard. Feel free to approve or reject it!",
+              "This is a test approval created during the OKrunit setup wizard. Feel free to approve or reject it!",
             priority: "medium",
             action_type: "test",
             source: "setup_wizard",
@@ -96,7 +96,7 @@ export function TestApprovalStep({
             You&apos;re all set!
           </h2>
           <p className="text-sm text-muted-foreground">
-            OKRunit is ready. Redirecting to your dashboard...
+            OKrunit is ready. Redirecting to your dashboard...
           </p>
         </div>
       </div>
@@ -108,7 +108,7 @@ export function TestApprovalStep({
       stepNumber={5}
       totalSteps={5}
       title="Send a test approval"
-      description="Create a test approval request to see how OKRunit works end to end."
+      description="Create a test approval request to see how OKrunit works end to end."
       onBack={onBack}
       onNext={hasSentTest ? handleComplete : undefined}
       nextLabel="Complete Setup"

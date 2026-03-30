@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Trust Counters API: Update + Delete (single counter)
+// OKrunit -- Trust Counters API: Update + Delete (single counter)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

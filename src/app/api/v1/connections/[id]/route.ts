@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Connections API: Update + Deactivate (single connection)
+// OKrunit -- Connections API: Update + Deactivate (single connection)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

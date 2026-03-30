@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Discord OAuth Callback Route
+// OKrunit -- Discord OAuth Callback Route
 // ---------------------------------------------------------------------------
 // GET /api/v1/messaging/discord/callback
 //
@@ -157,7 +157,7 @@ export async function GET(request: Request) {
             Authorization: `Bot ${tokenData.access_token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ name: "OKRunit" }),
+          body: JSON.stringify({ name: "OKrunit" }),
         },
       );
 

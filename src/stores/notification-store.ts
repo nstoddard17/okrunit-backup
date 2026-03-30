@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Notification Store (Zustand)
+// OKrunit -- Notification Store (Zustand)
 // ---------------------------------------------------------------------------
 //
 // Client-side store for tracking the unread notification count. This store

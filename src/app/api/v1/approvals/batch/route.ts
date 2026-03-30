@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Batch Approvals API: POST (batch approve/reject)
+// OKrunit -- Batch Approvals API: POST (batch approve/reject)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

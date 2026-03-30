@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Bulk Approval Rules API: List + Create
+// OKrunit -- Bulk Approval Rules API: List + Create
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

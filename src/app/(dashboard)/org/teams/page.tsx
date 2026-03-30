@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { V2TeamList } from "@/components/org/v2-team-list";
 
 export const metadata = {
-  title: "Teams - OKRunit",
+  title: "Teams - OKrunit",
   description: "Manage team groups in your organization.",
 };
 

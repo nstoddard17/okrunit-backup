@@ -4,7 +4,7 @@ import { DocsImage } from "@/components/docs/docs-image";
 export const metadata: Metadata = {
   title: "SSO / SAML Setup",
   description:
-    "Configure SAML Single Sign-On for your OKRunit organization. Works with Okta, Azure AD, Google Workspace, OneLogin, and any SAML 2.0 provider.",
+    "Configure SAML Single Sign-On for your OKrunit organization. Works with Okta, Azure AD, Google Workspace, OneLogin, and any SAML 2.0 provider.",
 };
 
 export default function SSODocsPage() {
@@ -14,7 +14,7 @@ export default function SSODocsPage() {
         SSO / SAML Setup
       </h1>
       <p className="mt-4 text-lg text-zinc-600 leading-relaxed">
-        SAML Single Sign-On lets your team members sign in to OKRunit using your
+        SAML Single Sign-On lets your team members sign in to OKrunit using your
         company&apos;s identity provider (IdP). SSO is available on Business and
         Enterprise plans.
       </p>
@@ -22,7 +22,7 @@ export default function SSODocsPage() {
       <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
         <h3 className="font-semibold text-emerald-900">Supported Providers</h3>
         <p className="mt-1 text-sm text-emerald-800">
-          OKRunit works with any SAML 2.0 identity provider, including Okta,
+          OKrunit works with any SAML 2.0 identity provider, including Okta,
           Azure AD (Entra ID), Google Workspace, OneLogin, JumpCloud, PingOne,
           and Auth0.
         </p>
@@ -30,7 +30,7 @@ export default function SSODocsPage() {
 
       <DocsImage
         src="/screenshots/docs/sso-settings.png"
-        alt="SSO configuration settings in the OKRunit dashboard"
+        alt="SSO configuration settings in the OKrunit dashboard"
         caption="The SSO settings page where you configure your identity provider."
       />
 
@@ -55,7 +55,7 @@ export default function SSODocsPage() {
             <p className="mt-1">
               In your identity provider&apos;s admin console, create a new SAML
               2.0 application. You&apos;ll need to provide these values from
-              OKRunit (found at the bottom of the SSO settings page):
+              OKrunit (found at the bottom of the SSO settings page):
             </p>
             <div className="mt-3 space-y-2">
               <div className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2">
@@ -111,7 +111,7 @@ export default function SSODocsPage() {
           </span>
           <div>
             <strong className="text-zinc-900">
-              Import it in OKRunit.
+              Import it in OKrunit.
             </strong>
             <p className="mt-1">
               Go to <strong>Settings &rarr; SSO</strong>, paste the metadata URL
@@ -171,7 +171,7 @@ export default function SSODocsPage() {
         <li>
           Set the <strong>Single sign-on URL</strong> to your ACS URL and the{" "}
           <strong>Audience URI</strong> to your Entity ID (shown in
-          OKRunit&apos;s SSO settings).
+          OKrunit&apos;s SSO settings).
         </li>
         <li>
           For <strong>Name ID format</strong>, select{" "}
@@ -180,7 +180,7 @@ export default function SSODocsPage() {
         <li>Click Next, then Finish.</li>
         <li>
           On the app&apos;s <strong>Sign On</strong> tab, find the{" "}
-          <strong>Metadata URL</strong> and paste it into OKRunit&apos;s Quick
+          <strong>Metadata URL</strong> and paste it into OKrunit&apos;s Quick
           Setup.
         </li>
         <li>Assign users or groups to the app in Okta.</li>
@@ -201,7 +201,7 @@ export default function SSODocsPage() {
         </li>
         <li>
           Click <strong>Create your own application</strong>, name it
-          &quot;OKRunit&quot;, select &quot;Integrate any other application&quot;.
+          &quot;OKrunit&quot;, select &quot;Integrate any other application&quot;.
         </li>
         <li>
           Go to <strong>Single sign-on &rarr; SAML</strong>.
@@ -210,11 +210,11 @@ export default function SSODocsPage() {
           In <strong>Basic SAML Configuration</strong>, set the{" "}
           <strong>Identifier (Entity ID)</strong> and{" "}
           <strong>Reply URL (ACS URL)</strong> to the values shown in
-          OKRunit&apos;s SSO settings.
+          OKrunit&apos;s SSO settings.
         </li>
         <li>
           Copy the <strong>App Federation Metadata Url</strong> from section 3
-          and paste it into OKRunit&apos;s Quick Setup.
+          and paste it into OKrunit&apos;s Quick Setup.
         </li>
         <li>Assign users or groups to the enterprise application.</li>
       </ol>
@@ -233,7 +233,7 @@ export default function SSODocsPage() {
           .
         </li>
         <li>
-          Name the app &quot;OKRunit&quot; and click Continue.
+          Name the app &quot;OKrunit&quot; and click Continue.
         </li>
         <li>
           On the <strong>Google Identity Provider details</strong> page, copy the{" "}
@@ -243,11 +243,11 @@ export default function SSODocsPage() {
         <li>
           In <strong>Service provider details</strong>, set the{" "}
           <strong>ACS URL</strong> and <strong>Entity ID</strong> to the values
-          from OKRunit&apos;s SSO settings. Set <strong>Name ID format</strong>{" "}
+          from OKrunit&apos;s SSO settings. Set <strong>Name ID format</strong>{" "}
           to <strong>EMAIL</strong>.
         </li>
         <li>
-          If Google provided a metadata URL, paste it into OKRunit&apos;s Quick
+          If Google provided a metadata URL, paste it into OKrunit&apos;s Quick
           Setup. Otherwise, manually enter the SSO URL and paste the certificate
           using the &quot;Edit&quot; link.
         </li>
@@ -313,7 +313,7 @@ export default function SSODocsPage() {
         Attribute Mapping
       </h2>
       <p className="mt-2 text-zinc-700">
-        OKRunit needs a few user attributes from your IdP. The defaults work for
+        OKrunit needs a few user attributes from your IdP. The defaults work for
         most providers, but you can customize them if needed.
       </p>
 
@@ -322,7 +322,7 @@ export default function SSODocsPage() {
           <thead>
             <tr className="border-b border-zinc-200 text-left">
               <th className="pb-2 pr-4 font-semibold text-zinc-900">
-                OKRunit Field
+                OKrunit Field
               </th>
               <th className="pb-2 pr-4 font-semibold text-zinc-900">
                 Default Attribute
@@ -383,7 +383,7 @@ export default function SSODocsPage() {
             1
           </span>
           <div>
-            Go to the OKRunit login page and click{" "}
+            Go to the OKrunit login page and click{" "}
             <strong>&quot;Sign in with SSO&quot;</strong>.
           </div>
         </li>
@@ -411,7 +411,7 @@ export default function SSODocsPage() {
           </span>
           <div>
             After authenticating, they&apos;re automatically redirected back to
-            OKRunit and signed in. If it&apos;s their first time, an account is
+            OKrunit and signed in. If it&apos;s their first time, an account is
             created automatically and they&apos;re added to your organization as
             a member.
           </div>
@@ -420,7 +420,7 @@ export default function SSODocsPage() {
 
       <DocsImage
         src="/screenshots/docs/login.png"
-        alt="OKRunit login page with SSO option"
+        alt="OKrunit login page with SSO option"
         caption="Users click 'Sign in with SSO' and enter their work email to authenticate via your IdP."
       />
 
@@ -466,7 +466,7 @@ curl -X PATCH https://okrunit.com/api/v1/org/sso \\
             What happens when a new user signs in via SSO?
           </h3>
           <p className="mt-1 text-sm text-zinc-600">
-            OKRunit automatically creates an account for them and adds them to
+            OKrunit automatically creates an account for them and adds them to
             your organization as a <strong>member</strong>. Organization admins
             can then adjust their role if needed.
           </p>
@@ -484,10 +484,10 @@ curl -X PATCH https://okrunit.com/api/v1/org/sso \\
 
         <div>
           <h3 className="font-semibold text-zinc-900">
-            Which SAML binding does OKRunit use?
+            Which SAML binding does OKrunit use?
           </h3>
           <p className="mt-1 text-sm text-zinc-600">
-            OKRunit uses <strong>HTTP-Redirect</strong> for the AuthnRequest (SP
+            OKrunit uses <strong>HTTP-Redirect</strong> for the AuthnRequest (SP
             &rarr; IdP) and <strong>HTTP-POST</strong> for the SAML Response (IdP
             &rarr; SP).
           </p>

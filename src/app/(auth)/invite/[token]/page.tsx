@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Accept Invite Page
+// OKrunit -- Accept Invite Page
 // ---------------------------------------------------------------------------
 
 import Link from "next/link";
@@ -11,7 +11,7 @@ import { logAuditEvent } from "@/lib/api/audit";
 import type { OrgInvite, Organization } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Accept Invite - OKRunit",
+  title: "Accept Invite - OKrunit",
   description: "Accept your team invitation.",
 };
 

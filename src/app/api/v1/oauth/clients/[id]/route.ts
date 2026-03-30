@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- OAuth Client Management: Get, Update, Delete
+// OKrunit -- OAuth Client Management: Get, Update, Delete
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

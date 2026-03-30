@@ -8,7 +8,7 @@ import { SSOConfigForm } from "@/components/settings/sso-config-form";
 import { Shield } from "lucide-react";
 
 export const metadata = {
-  title: "SSO Settings - OKRunit",
+  title: "SSO Settings - OKrunit",
   description: "Configure SAML Single Sign-On for your organization.",
 };
 

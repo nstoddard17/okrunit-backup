@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Email Channel Connect Route
+// OKrunit -- Email Channel Connect Route
 // ---------------------------------------------------------------------------
 // POST /api/v1/messaging/email/connect
 //

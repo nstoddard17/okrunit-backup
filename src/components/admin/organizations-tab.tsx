@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Admin Organizations Tab
+// OKrunit -- Admin Organizations Tab
 // Table of all organizations with counts and impersonate action.
 // ---------------------------------------------------------------------------
 

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Session Security (re-auth for critical, session timeout)
+// OKrunit -- Session Security (re-auth for critical, session timeout)
 // ---------------------------------------------------------------------------
 
 import type { Organization, ApprovalRequest } from "@/lib/types/database";

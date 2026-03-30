@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Team Invite Email Template
+// OKrunit -- Team Invite Email Template
 // ---------------------------------------------------------------------------
 
 import {
@@ -30,7 +30,7 @@ export function buildInviteEmailHtml(params: InviteEmailParams): string {
   const body = [
     emailHero({
       title: "You\u2019ve been invited!",
-      descriptionHtml: `<strong style="color:${emailTheme.ink};">${escapeHtml(orgName)}</strong> has invited you to join their team on OKRunit as ${roleArticle} <strong style="color:${emailTheme.ink};text-transform:capitalize;">${escapeHtml(role)}</strong>.`,
+      descriptionHtml: `<strong style="color:${emailTheme.ink};">${escapeHtml(orgName)}</strong> has invited you to join their team on OKrunit as ${roleArticle} <strong style="color:${emailTheme.ink};text-transform:capitalize;">${escapeHtml(role)}</strong>.`,
     }),
 
     emailCard(
@@ -65,7 +65,7 @@ export function buildInviteEmailHtml(params: InviteEmailParams): string {
                 Accept the invite to get started
               </p>
               <p style="margin:6px 0 0;color:${emailTheme.text};font-size:13px;line-height:21px;">
-                If you already have an OKRunit account, this link will attach the organization to your existing profile.
+                If you already have an OKrunit account, this link will attach the organization to your existing profile.
               </p>
             </td>
           </tr>
@@ -103,7 +103,7 @@ export function buildInviteEmailHtml(params: InviteEmailParams): string {
   return emailLayout({
     heroBanner: emailHeroBanner({ image: "team-invite.svg", imageWidth: 200, imageHeight: 150, alt: "Team invitation" }),
     body,
-    preheader: `You've been invited to join ${orgName} on OKRunit`,
+    preheader: `You've been invited to join ${orgName} on OKrunit`,
     footerText: `This invitation expires in ${INVITE_EXPIRY_DAYS} days. If you did not expect this email, you can safely ignore it.`,
   });
 }

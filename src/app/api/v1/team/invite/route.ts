@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Team Invite API: Create Invite + Send Email
+// OKrunit -- Team Invite API: Create Invite + Send Email
 // ---------------------------------------------------------------------------
 
 import { randomBytes } from "crypto";
@@ -175,7 +175,7 @@ export async function POST(request: Request) {
       process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     const inviteLink = `${appUrl}/invite/${token}`;
     const fromAddress =
-      process.env.RESEND_FROM_EMAIL ?? "OKRunit <noreply@okrunit.com>";
+      process.env.RESEND_FROM_EMAIL ?? "OKrunit <noreply@okrunit.com>";
 
     if (process.env.RESEND_API_KEY) {
       try {
@@ -189,7 +189,7 @@ export async function POST(request: Request) {
         await resend.emails.send({
           from: fromAddress,
           to: normalizedEmail,
-          subject: `You've been invited to join ${orgName} on OKRunit`,
+          subject: `You've been invited to join ${orgName} on OKrunit`,
           html,
         });
       } catch (emailError) {

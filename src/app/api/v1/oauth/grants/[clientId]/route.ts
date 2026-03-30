@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- OAuth Grants API: Revoke an OAuth connection
+// OKrunit -- OAuth Grants API: Revoke an OAuth connection
 // DELETE /api/v1/oauth/grants/[clientId]
 // ---------------------------------------------------------------------------
 // Revokes ALL access tokens and refresh tokens for the given OAuth client

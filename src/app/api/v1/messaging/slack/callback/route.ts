@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Slack OAuth Callback Route
+// OKrunit -- Slack OAuth Callback Route
 // ---------------------------------------------------------------------------
 // GET /api/v1/messaging/slack/callback
 //

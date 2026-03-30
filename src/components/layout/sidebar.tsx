@@ -9,7 +9,6 @@ import {
   Settings,
   FlaskConical,
   ShieldAlert,
-  Sparkles,
   MoreVertical,
   X,
 } from "lucide-react";
@@ -28,7 +27,6 @@ interface SidebarProps {
   pendingCount: number;
   userRole: string;
   isAppAdmin?: boolean;
-  showSetup?: boolean;
 }
 
 interface NavItem {
@@ -50,7 +48,7 @@ const navItems: NavItem[] = [
   { id: "admin", href: "/admin", label: "Admin", icon: ShieldAlert, appAdminOnly: true, overflow: true },
 ];
 
-export function Sidebar({ pendingCount, userRole, isAppAdmin, showSetup }: SidebarProps) {
+export function Sidebar({ pendingCount, userRole, isAppAdmin }: SidebarProps) {
   const pathname = usePathname();
   const { activePanel, setActivePanel, setMobileOpen } = useSidebarStore();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -190,7 +188,7 @@ export function Sidebar({ pendingCount, userRole, isAppAdmin, showSetup }: Sideb
           className="mb-2 flex w-full items-center justify-center px-2 py-1"
           onClick={() => { setActivePanel(null); setMobileOpen(false); }}
         >
-          <img src="/logo-icon.png" alt="OKRunit" className="size-14 object-contain drop-shadow-md" />
+          <img src="/logo-icon.png" alt="OKrunit" className="size-14 object-contain drop-shadow-md" />
         </Link>
 
         {/* First item (Org/Home) — above divider like Make.com */}
@@ -198,26 +196,6 @@ export function Sidebar({ pendingCount, userRole, isAppAdmin, showSetup }: Sideb
 
         {/* Divider — between first item and rest */}
         <div className="mx-auto my-2 h-px w-7 bg-white/25" />
-
-        {/* Setup */}
-        {showSetup && (
-          <Link
-            href="/setup"
-            onClick={() => { setActivePanel(null); setMobileOpen(false); }}
-            className="group flex w-full cursor-pointer flex-col items-center gap-1.5 py-3 text-white/80 transition-colors"
-          >
-            <div className={cn(
-              "flex size-9 items-center justify-center rounded-lg transition-colors",
-              pathname === "/setup" ? "bg-white/20" : "group-hover:bg-white/15",
-            )}>
-              <Sparkles className="size-[22px] shrink-0" />
-            </div>
-            <span className={cn(
-              "text-[11px] leading-tight",
-              pathname === "/setup" ? "font-semibold text-white" : "font-medium",
-            )}>Setup</span>
-          </Link>
-        )}
 
         {/* Remaining nav items — all rendered for measurement, overflow hidden */}
         <nav ref={navRef} className="flex w-full flex-1 flex-col items-center overflow-hidden">

@@ -24,7 +24,7 @@ const CONTACT_RATE_LIMIT = {
 const FROM_EMAIL =
   process.env.EMAIL_FROM ??
   process.env.RESEND_FROM_EMAIL ??
-  "OKRunit <noreply@okrunit.com>";
+  "OKrunit <noreply@okrunit.com>";
 const CONTACT_EMAIL_TO =
   process.env.CONTACT_EMAIL_TO ?? "support@okrunit.com";
 

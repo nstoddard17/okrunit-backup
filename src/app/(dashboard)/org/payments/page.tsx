@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { ExternalLink } from "lucide-react";
 
 export const metadata = {
-  title: "Payments - OKRunit",
+  title: "Payments - OKrunit",
   description: "View your payment history and invoices.",
 };
 

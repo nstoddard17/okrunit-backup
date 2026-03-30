@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Token Action Form (Client Component)
+// OKrunit -- Token Action Form (Client Component)
 // ---------------------------------------------------------------------------
 //
 // Shared form component used by both /approve/[token] and /reject/[token]

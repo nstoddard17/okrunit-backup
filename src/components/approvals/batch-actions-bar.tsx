@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Batch Actions Bar: Sticky bottom bar for bulk actions
+// OKrunit -- Batch Actions Bar: Sticky bottom bar for bulk actions
 // ---------------------------------------------------------------------------
 
 import { useState } from "react";

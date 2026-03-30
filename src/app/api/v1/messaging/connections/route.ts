@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Messaging Connections CRUD Route
+// OKrunit -- Messaging Connections CRUD Route
 // ---------------------------------------------------------------------------
 // GET  /api/v1/messaging/connections       -- List all connections for the org
 // DELETE /api/v1/messaging/connections?id=  -- Remove a connection

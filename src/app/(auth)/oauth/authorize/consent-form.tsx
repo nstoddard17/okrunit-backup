@@ -1,11 +1,11 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- OAuth 2.0 Consent Form
+// OKrunit -- OAuth 2.0 Consent Form
 // ---------------------------------------------------------------------------
 
 import { useState } from "react";
-import { Check, X } from "lucide-react";
+import { Check, X, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +44,9 @@ interface ConsentFormProps {
   codeChallengeMethod: string;
   userId: string;
   orgId: string;
+  userEmail: string;
+  userFullName: string | null;
+  userAvatarUrl: string | null;
 }
 
 export function ConsentForm({
@@ -58,6 +61,9 @@ export function ConsentForm({
   codeChallengeMethod,
   userId,
   orgId,
+  userEmail,
+  userFullName,
+  userAvatarUrl,
 }: ConsentFormProps) {
   const [loading, setLoading] = useState(false);
 
@@ -104,6 +110,24 @@ export function ConsentForm({
 
   return (
     <Card className="w-full">
+      {/* Logged-in account indicator */}
+      <div className="flex items-center justify-center gap-2 border-b px-6 py-3">
+        {userAvatarUrl ? (
+          <img
+            src={userAvatarUrl}
+            alt=""
+            className="size-6 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex size-6 items-center justify-center rounded-full bg-muted">
+            <User className="size-3.5 text-muted-foreground" />
+          </div>
+        )}
+        <span className="text-sm text-muted-foreground">
+          {userFullName ? `${userFullName} (${userEmail})` : userEmail}
+        </span>
+      </div>
+
       <CardHeader className="text-center">
         <CardTitle className="flex items-center justify-center gap-2 text-xl">
           Authorize{" "}
@@ -118,8 +142,8 @@ export function ConsentForm({
           )}
         </CardTitle>
         <CardDescription>
-          <strong>{clientName}</strong> is requesting access to your{" "}
-          <strong>{orgName}</strong> organization on OKRunit.
+          <strong>{clientName}</strong> is requesting access to{" "}
+          <strong>{orgName}</strong> on OKrunit.
         </CardDescription>
       </CardHeader>
 

@@ -81,7 +81,7 @@ export function CreateConnectionStep({
       stepNumber={4}
       totalSteps={5}
       title="Create an API connection"
-      description="Generate an API key so your automations can send approval requests to OKRunit."
+      description="Generate an API key so your automations can send approval requests to OKrunit."
       onBack={onBack}
       onNext={hasKey ? handleNext : undefined}
       onSkip={onSkip}

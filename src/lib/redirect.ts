@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Redirect Validation
+// OKrunit -- Redirect Validation
 // ---------------------------------------------------------------------------
 // Validates redirect URLs to prevent open redirect attacks.
 // Used after login to ensure the redirect_to parameter is safe.

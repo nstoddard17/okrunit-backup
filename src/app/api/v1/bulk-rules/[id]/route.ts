@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Bulk Approval Rules API: GET, PATCH, DELETE (single rule)
+// OKrunit -- Bulk Approval Rules API: GET, PATCH, DELETE (single rule)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Anomaly Detection
+// OKrunit -- Anomaly Detection
 // ---------------------------------------------------------------------------
 //
 // Checks for anomalous patterns in incoming approval requests. Called during

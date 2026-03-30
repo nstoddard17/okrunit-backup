@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Analytics: Cost of Delay API
+// OKrunit -- Analytics: Cost of Delay API
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

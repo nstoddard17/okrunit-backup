@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Rejection Reason Policy Helpers
+// OKrunit -- Rejection Reason Policy Helpers
 // ---------------------------------------------------------------------------
 //
 // Shared logic for determining whether a rejection reason is required,

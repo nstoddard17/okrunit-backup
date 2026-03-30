@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildAccountDeletionEmailHtml } from "@/lib/email/account-deletion";
 
-const FROM_EMAIL = process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
+const FROM_EMAIL = process.env.EMAIL_FROM || "OKrunit <noreply@okrunit.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 const DELETION_GRACE_DAYS = 30;
 
@@ -61,7 +61,7 @@ export async function POST() {
     await resend.emails.send({
       from: FROM_EMAIL,
       to: user.email!,
-      subject: "Confirm Account Deletion - OKRunit",
+      subject: "Confirm Account Deletion - OKrunit",
       html: buildAccountDeletionEmailHtml({
         confirmLink: confirmUrl,
         graceDays: DELETION_GRACE_DAYS,

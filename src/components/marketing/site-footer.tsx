@@ -36,13 +36,13 @@ export function SiteFooter() {
             <div className="flex items-center gap-3">
               <Image
                 src="/logo-icon.png"
-                alt="OKRunit"
+                alt="OKrunit"
                 width={32}
                 height={32}
                 className="size-8 object-contain"
               />
               <div>
-                <p className="text-base font-semibold text-slate-900">OKRunit</p>
+                <p className="text-base font-semibold text-slate-900">OKrunit</p>
                 <p className="text-sm text-slate-600">
                   Human approval for automations and agents
                 </p>
@@ -77,7 +77,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-8 flex flex-col gap-2 border-t border-green-200/80 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 OKRunit.</p>
+          <p>© 2026 OKrunit.</p>
           <p>Built for teams shipping automations with human oversight.</p>
         </div>
       </div>

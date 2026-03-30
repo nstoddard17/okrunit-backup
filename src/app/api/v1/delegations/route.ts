@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Delegations API: GET (list) + POST (create)
+// OKrunit -- Delegations API: GET (list) + POST (create)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

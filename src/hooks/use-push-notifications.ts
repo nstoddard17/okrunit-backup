@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Client Hook for Web Push Subscription Management
+// OKrunit -- Client Hook for Web Push Subscription Management
 // ---------------------------------------------------------------------------
 
 import { useState, useEffect, useCallback } from "react";

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Admin Users CRUD: Create, Update, Delete
+// OKrunit -- Admin Users CRUD: Create, Update, Delete
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- OAuth Client Management: List + Create
+// OKrunit -- OAuth Client Management: List + Create
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

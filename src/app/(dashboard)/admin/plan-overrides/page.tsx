@@ -2,7 +2,7 @@ import { getAdminData } from "@/lib/admin-data";
 import { PlanOverrideTab } from "@/components/admin/plan-override-tab";
 
 export const metadata = {
-  title: "Plan Overrides - Admin - OKRunit",
+  title: "Plan Overrides - Admin - OKrunit",
 };
 
 export default async function AdminPlanOverridesPage() {

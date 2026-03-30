@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Trust Counters API: List + Create
+// OKrunit -- Trust Counters API: List + Create
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

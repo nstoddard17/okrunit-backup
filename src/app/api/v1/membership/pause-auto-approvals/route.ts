@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Toggle auto-approval pause for the current user's membership
+// OKrunit -- Toggle auto-approval pause for the current user's membership
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

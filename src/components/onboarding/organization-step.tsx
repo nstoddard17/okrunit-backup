@@ -83,9 +83,9 @@ export function OrganizationStep({
   return (
     <StepLayout
       stepNumber={1}
-      totalSteps={5}
+      totalSteps={3}
       title="Name your organization"
-      description="This is how your organization will appear across OKRunit. You can change it later in settings."
+      description="This is how your organization will appear across OKrunit. You can change it later in settings."
       onNext={handleNext}
       onBack={onBack}
       showBack={false}
@@ -102,7 +102,7 @@ export function OrganizationStep({
           <div className="flex-1">
             <p className="text-sm font-medium">Organization name</p>
             <p className="text-xs text-muted-foreground">
-              Your team will see this name when working in OKRunit.
+              Your team will see this name when working in OKrunit.
             </p>
           </div>
         </div>

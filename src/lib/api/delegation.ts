@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Approval Delegation
+// OKrunit -- Approval Delegation
 // ---------------------------------------------------------------------------
 //
 // Allows users to delegate their approval responsibility to another team

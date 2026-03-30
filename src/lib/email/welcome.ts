@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Welcome Email Template (v3)
+// OKrunit -- Welcome Email Template (v3)
 // ---------------------------------------------------------------------------
 // Celebratory onboarding email with hero banner, illustration steps,
 // milestone card, and personal sign-off using the shared layout helpers.
@@ -27,7 +27,7 @@ export function buildWelcomeEmailHtml(params: WelcomeEmailParams): string {
   const { fullName } = params;
 
   // --- Hero banner (rocket emoji) ---
-  const heroBanner = emailHeroBanner({ image: "welcome-rocket.svg", imageWidth: 200, imageHeight: 170, alt: "Welcome to OKRunit" });
+  const heroBanner = emailHeroBanner({ image: "welcome-rocket.svg", imageWidth: 200, imageHeight: 170, alt: "Welcome to OKrunit" });
 
   // --- Hero ---
   const hero = emailHero({
@@ -36,13 +36,13 @@ export function buildWelcomeEmailHtml(params: WelcomeEmailParams): string {
       "Your account is live and ready to go. Here&rsquo;s a quick guide to get your first approval flow up and running.",
   });
 
-  // --- "Your OKRunit to-do list" section header ---
+  // --- "Your OKrunit to-do list" section header ---
   const todoHeader = `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 0;">
       <tr>
         <td>
           <p style="margin:0 0 4px;color:${emailTheme.ink};font-size:18px;font-weight:700;line-height:26px;">
-            Your OKRunit to-do list
+            Your OKrunit to-do list
           </p>
         </td>
       </tr>
@@ -124,7 +124,7 @@ export function buildWelcomeEmailHtml(params: WelcomeEmailParams): string {
   // --- Sign-off ---
   const signoff = emailSignoff({
     message: "Here&rsquo;s to your automation success,",
-    name: "The OKRunit Team",
+    name: "The OKrunit Team",
     title: "Human-in-the-loop, always",
   });
 
@@ -140,6 +140,6 @@ export function buildWelcomeEmailHtml(params: WelcomeEmailParams): string {
   return emailLayout({
     body,
     heroBanner,
-    preheader: "Your OKRunit account is ready — here's how to get started",
+    preheader: "Your OKrunit account is ready — here's how to get started",
   });
 }

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Smart Defaults
+// OKrunit -- Smart Defaults
 // Sensible out-of-the-box configuration for new organizations and users.
 // ---------------------------------------------------------------------------
 

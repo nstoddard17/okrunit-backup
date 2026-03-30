@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Subscription - OKRunit",
+  title: "Subscription - OKrunit",
   description: "Manage your subscription and billing.",
 };
 

@@ -86,7 +86,7 @@ export function InviteTeamStep({
   return (
     <StepLayout
       stepNumber={2}
-      totalSteps={5}
+      totalSteps={3}
       title="Invite your team"
       description="Add team members who will review and approve requests. You can always invite more people later."
       onBack={onBack}
@@ -148,7 +148,7 @@ export function InviteTeamStep({
             size="sm"
             onClick={addEmail}
             disabled={isPending}
-            className="mt-1"
+            className="mt-1 bg-white dark:bg-card"
           >
             <Plus className="size-4" />
             Add another

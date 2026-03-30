@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- OAuth Client List Component
+// OKrunit -- OAuth Client List Component
 // ---------------------------------------------------------------------------
 
 import { useState } from "react";

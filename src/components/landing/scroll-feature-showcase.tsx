@@ -102,7 +102,7 @@ function DashboardVisual() {
         {/* Mini sidebar */}
         <div className="hidden w-40 shrink-0 border-r border-[var(--border)] bg-[var(--sidebar)] sm:flex sm:flex-col">
           <div className="flex items-center justify-center border-b border-[var(--border)] px-3 py-2.5">
-            <Image src="/logo_text.png" alt="OKRunit" width={160} height={44} className="h-5 w-auto" />
+            <Image src="/logo_text.png" alt="OKrunit" width={160} height={44} className="h-5 w-auto" />
           </div>
           <div className="flex-1 space-y-0.5 px-2 py-2">
             {[

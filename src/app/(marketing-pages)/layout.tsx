@@ -6,7 +6,7 @@ import { MarketingSiteHeader } from "@/components/marketing/site-header";
 export const metadata: Metadata = {
   title: {
     default: "Company & Trust",
-    template: "%s | OKRunit",
+    template: "%s | OKrunit",
   },
 };
 

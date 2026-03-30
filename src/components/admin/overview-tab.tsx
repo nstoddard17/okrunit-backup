@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Admin Overview Tab
+// OKrunit -- Admin Overview Tab
 // System-wide stats cards with visual indicators.
 // ---------------------------------------------------------------------------
 

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Tests for Open Redirect Protection
+// OKrunit -- Tests for Open Redirect Protection
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect } from "vitest";

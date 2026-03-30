@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Approval-Specific Realtime Hook
+// OKrunit -- Approval-Specific Realtime Hook
 // ---------------------------------------------------------------------------
 
 import { useState, useCallback } from "react";

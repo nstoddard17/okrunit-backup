@@ -1,7 +1,7 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OKRunit -- Admin Plan Override Tab
+// OKrunit -- Admin Plan Override Tab
 // Lets app admins set a plan override on any organization for testing.
 // ---------------------------------------------------------------------------
 

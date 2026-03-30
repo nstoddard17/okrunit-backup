@@ -2,7 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { OAuthClientList } from "@/components/settings/oauth-client-list";
 
 export const metadata = {
-  title: "OAuth Apps - Admin - OKRunit",
+  title: "OAuth Apps - Admin - OKrunit",
 };
 
 export default async function AdminOAuthPage() {

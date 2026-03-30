@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Tests for HTML Sanitizer
+// OKrunit -- Tests for HTML Sanitizer
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect } from "vitest";

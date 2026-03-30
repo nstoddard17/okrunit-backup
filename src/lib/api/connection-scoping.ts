@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Connection Scoping Enforcement
+// OKrunit -- Connection Scoping Enforcement
 // ---------------------------------------------------------------------------
 
 import { PRIORITY_ORDER } from "@/lib/constants";

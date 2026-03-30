@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Rule Evaluation Engine
+// OKrunit -- Rule Evaluation Engine
 // ---------------------------------------------------------------------------
 
 import { createAdminClient } from "@/lib/supabase/admin";

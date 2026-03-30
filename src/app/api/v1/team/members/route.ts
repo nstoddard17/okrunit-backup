@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Team Members API: List, Update Role, Remove
+// OKrunit -- Team Members API: List, Update Role, Remove
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

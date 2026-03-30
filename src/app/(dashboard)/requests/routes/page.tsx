@@ -6,7 +6,7 @@ import { RoutesHub } from "@/components/routes/routes-hub";
 import type { ApprovalFlow, Team, UserProfile } from "@/lib/types/database";
 
 export const metadata = {
-  title: "Routes - OKRunit",
+  title: "Routes - OKrunit",
   description: "Configure approval flows and who must approve for each source.",
 };
 

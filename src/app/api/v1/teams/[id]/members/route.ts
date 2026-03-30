@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Team Members API: List + Add + Remove + Update Position
+// OKrunit -- Team Members API: List + Add + Remove + Update Position
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";
@@ -137,7 +137,7 @@ export async function GET(
 
 // ---- Email notification helper -------------------------------------------
 
-const FROM_EMAIL = process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
+const FROM_EMAIL = process.env.EMAIL_FROM || "OKrunit <noreply@okrunit.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 async function sendTeamAddedEmail(

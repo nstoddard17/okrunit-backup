@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- In-Memory Rate Limiter (IP / Key based)
+// OKrunit -- In-Memory Rate Limiter (IP / Key based)
 // ---------------------------------------------------------------------------
 // Sliding window counter using an in-memory Map with automatic cleanup.
 // Suitable for single-instance deployments. For multi-instance, replace

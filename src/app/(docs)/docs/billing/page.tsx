@@ -5,7 +5,7 @@ import { DocsImage } from "@/components/docs/docs-image";
 export const metadata: Metadata = {
   title: "Plans & Billing",
   description:
-    "OKRunit pricing plans — compare Free, Pro, Business, and Enterprise features, usage limits, and billing details.",
+    "OKrunit pricing plans — compare Free, Pro, Business, and Enterprise features, usage limits, and billing details.",
 };
 
 /* ------------------------------------------------------------------ */
@@ -174,7 +174,7 @@ export default function BillingPage() {
         Plans & Billing
       </h1>
       <p className="mt-4 text-lg text-zinc-600 leading-relaxed">
-        OKRunit offers plans for teams of every size, from solo developers
+        OKrunit offers plans for teams of every size, from solo developers
         experimenting with AI agents to enterprises with complex approval
         workflows.
       </p>
@@ -213,7 +213,7 @@ export default function BillingPage() {
         <div className="rounded-lg border border-zinc-200 p-4">
           <h3 className="font-semibold text-zinc-900">Free</h3>
           <p className="mt-1 text-sm text-zinc-600">
-            Perfect for trying out OKRunit. 50 approval requests per month, 2
+            Perfect for trying out OKrunit. 50 approval requests per month, 2
             connections, and 3 team members. Email notifications included.
           </p>
         </div>

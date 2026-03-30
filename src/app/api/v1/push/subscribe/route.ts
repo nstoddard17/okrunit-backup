@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Push Subscribe API: POST (store push subscription)
+// OKrunit -- Push Subscribe API: POST (store push subscription)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

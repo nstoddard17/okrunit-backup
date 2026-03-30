@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Custom Sign-Up Route
+// OKrunit -- Custom Sign-Up Route
 // ---------------------------------------------------------------------------
 // Creates the user via Supabase admin, then sends a branded confirmation
 // email through Resend instead of Supabase's default plain-text email.
@@ -15,11 +15,17 @@ import { buildConfirmEmailHtml } from "@/lib/email/confirm";
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 const FROM_EMAIL =
-  process.env.EMAIL_FROM || "OKRunit <noreply@okrunit.com>";
+  process.env.EMAIL_FROM || "OKrunit <noreply@okrunit.com>";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain an uppercase letter")
+    .regex(/[a-z]/, "Password must contain a lowercase letter")
+    .regex(/\d/, "Password must contain a number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain a special character"),
   fullName: z.string().min(1, "Full name is required"),
   inviteToken: z.string().optional(),
 });
@@ -67,10 +73,29 @@ export async function POST(request: Request) {
       );
     }
 
-    // The generated link contains the OTP token. We extract it and build our
-    // own confirmation URL that points to our callback.
-    const confirmLink =
-      linkData.properties?.action_link ?? "";
+    // Extract the token from Supabase's action link and build our own
+    // verification URL so the email never exposes the raw Supabase domain.
+    const actionLink = linkData.properties?.action_link ?? "";
+    let confirmLink = actionLink;
+
+    try {
+      const actionUrl = new URL(actionLink);
+      const tokenHash = actionUrl.searchParams.get("token");
+      const type = actionUrl.searchParams.get("type") || "signup";
+
+      if (tokenHash) {
+        const verifyUrl = new URL("/api/auth/verify", APP_URL);
+        verifyUrl.searchParams.set("token_hash", tokenHash);
+        verifyUrl.searchParams.set("type", type);
+        if (body.inviteToken) {
+          verifyUrl.searchParams.set("invite", body.inviteToken);
+        }
+        confirmLink = verifyUrl.toString();
+      }
+    } catch {
+      // If URL parsing fails, fall back to the raw action link
+      console.warn("[Auth] Failed to parse action link, using raw Supabase URL");
+    }
 
     // Send the branded confirmation email via Resend.
     if (process.env.RESEND_API_KEY) {
@@ -84,7 +109,7 @@ export async function POST(request: Request) {
         const { error: emailError } = await resend.emails.send({
           from: FROM_EMAIL,
           to: body.email,
-          subject: "Confirm your OKRunit account",
+          subject: "Confirm your OKrunit account",
           html,
         });
 

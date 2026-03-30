@@ -24,6 +24,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   saml_user_creation_failed: "Failed to create your account via SSO. Please try again.",
   saml_session_failed: "Failed to establish a session after SSO login. Please try again.",
   saml_error: "An unexpected error occurred during SSO login. Please try again.",
+  invalid_verification_link: "Invalid or expired verification link. Please request a new one.",
+  verification_failed: "Email verification failed. The link may have expired — please try signing up again.",
 };
 
 export function LoginForm() {
@@ -97,12 +99,6 @@ export function LoginForm() {
       <SocialLoginButtons mode="login" disabled={isPending} />
 
       <form onSubmit={handleSubmit} className="relative flex flex-col gap-4">
-        {lastProvider === "email" && (
-          <span className="absolute -top-2 -right-2 z-10 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold leading-none text-primary-foreground">
-            Last Used
-          </span>
-        )}
-
         {error && (
           <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
@@ -110,7 +106,14 @@ export function LoginForm() {
         )}
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">Email</Label>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="email">Email</Label>
+            {lastProvider === "email" && (
+              <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold leading-none text-primary-foreground">
+                Last used
+              </span>
+            )}
+          </div>
           <Input
             id="email"
             type="email"
@@ -198,21 +201,19 @@ export function LoginForm() {
           </div>
         </div>
       ) : (
-        <div className="relative">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full justify-between"
+          onClick={() => setShowSso(true)}
+        >
+          <span>Sign in with SSO</span>
           {lastProvider === "sso" && (
-            <span className="absolute -top-2 -right-2 z-10 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold leading-none text-primary-foreground">
-              Last Used
+            <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold leading-none text-primary-foreground">
+              Last used
             </span>
           )}
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => setShowSso(true)}
-          >
-            Sign in with SSO
-          </Button>
-        </div>
+        </Button>
       )}
 
       <p className="text-center text-sm text-muted-foreground">

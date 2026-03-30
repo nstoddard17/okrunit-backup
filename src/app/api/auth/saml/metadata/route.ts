@@ -1,10 +1,10 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- SAML SP Metadata Endpoint
+// OKrunit -- SAML SP Metadata Endpoint
 // ---------------------------------------------------------------------------
 // GET /api/auth/saml/metadata
 //
 // Returns the SAML Service Provider metadata XML. Identity providers use this
-// to configure OKRunit as a service provider.
+// to configure OKrunit as a service provider.
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";

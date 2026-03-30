@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { getOrgContext, getUserOrgs } from "@/lib/org-context";
@@ -26,21 +27,25 @@ export default async function DashboardLayout({
 
   const { profile, membership, org } = ctx;
 
+  // Force users who haven't completed setup through the wizard.
+  // Allow access to /setup itself to avoid a redirect loop.
+  if (!profile.setup_completed_at) {
+    const headerList = await headers();
+    const pathname = headerList.get("x-pathname") || "";
+    if (!pathname.startsWith("/setup")) {
+      redirect("/setup");
+    }
+  }
+
   const admin = createAdminClient();
-  const [userOrgs, { count: pendingCount }, { count: connectionCount }] = await Promise.all([
+  const [userOrgs, { count: pendingCount }] = await Promise.all([
     getUserOrgs(profile.id),
     admin
       .from("approval_requests")
       .select("*", { count: "exact", head: true })
       .eq("org_id", org.id)
       .eq("status", "pending"),
-    admin
-      .from("connections")
-      .select("*", { count: "exact", head: true })
-      .eq("org_id", org.id),
   ]);
-
-  const showSetup = (connectionCount ?? 0) === 0;
 
   return (
     <DashboardShell
@@ -56,7 +61,6 @@ export default async function DashboardLayout({
         pendingCount: pendingCount ?? 0,
         userRole: membership.role,
         isAppAdmin: profile.is_app_admin,
-        showSetup,
       }}
       emergencyStopActive={org.emergency_stop_active}
       user={{

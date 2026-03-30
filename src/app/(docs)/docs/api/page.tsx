@@ -5,7 +5,7 @@ import { DocsImage } from "@/components/docs/docs-image";
 export const metadata: Metadata = {
   title: "API Reference",
   description:
-    "Complete API reference for OKRunit — endpoints, authentication, request/response formats, and code examples.",
+    "Complete API reference for OKrunit — endpoints, authentication, request/response formats, and code examples.",
 };
 
 /* ------------------------------------------------------------------ */
@@ -78,7 +78,7 @@ export default function ApiReferencePage() {
         API Reference
       </h1>
       <p className="mt-4 text-lg text-zinc-600 leading-relaxed">
-        The OKRunit REST API lets you create approval requests, check their
+        The OKrunit REST API lets you create approval requests, check their
         status, and manage decisions programmatically. All endpoints are under
         the{" "}
         <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">
@@ -93,7 +93,7 @@ export default function ApiReferencePage() {
         </h3>
         <p className="mt-1 text-sm text-emerald-800">
           You don&apos;t need to use the API directly. The easiest way to connect
-          is to select the OKRunit node inside your automation platform (Zapier,
+          is to select the OKrunit node inside your automation platform (Zapier,
           Make, n8n, etc.) and connect your account — no code required.{" "}
           <Link href="/docs/integrations" className="underline font-medium">
             See Integrations &rarr;
@@ -103,7 +103,7 @@ export default function ApiReferencePage() {
 
       <DocsImage
         src="/screenshots/docs/api-playground.png"
-        alt="OKRunit API Playground for testing API calls interactively"
+        alt="OKrunit API Playground for testing API calls interactively"
         caption="Use the API Playground in the dashboard to test API calls interactively before writing code."
       />
 
@@ -118,7 +118,7 @@ export default function ApiReferencePage() {
         Authentication
       </h2>
       <p className="mt-4 text-zinc-700">
-        OKRunit supports two authentication methods:
+        OKrunit supports two authentication methods:
       </p>
 
       <h3 className="mt-6 text-lg font-semibold text-zinc-900">
@@ -177,7 +177,7 @@ export default function ApiReferencePage() {
       </h3>
       <p className="mt-2 text-zinc-700">
         For user-facing integrations (like Zapier, Make, and other platforms
-        that connect on behalf of users), OKRunit supports OAuth 2.0 with PKCE.
+        that connect on behalf of users), OKrunit supports OAuth 2.0 with PKCE.
         Available scopes:
       </p>
       <ul className="mt-2 space-y-1 text-sm text-zinc-700">

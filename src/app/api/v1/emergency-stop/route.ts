@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKRunit -- Emergency Stop API: POST (toggle)
+// OKrunit -- Emergency Stop API: POST (toggle)
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";
