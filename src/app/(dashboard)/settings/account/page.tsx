@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { AccountSettings } from "@/components/settings/account-settings";
-import { PasskeySettings } from "@/components/settings/passkey-settings";
+import { SessionManagement } from "@/components/settings/session-management";
 import type { NotificationSettings } from "@/lib/types/database";
 
 export const metadata = {
@@ -40,7 +40,7 @@ export default async function AccountSettingsPage() {
       />
 
       <div className="mt-8 rounded-xl border border-border/50 bg-[var(--card)] p-5">
-        <PasskeySettings />
+        <SessionManagement />
       </div>
     </PageContainer>
   );

@@ -67,6 +67,7 @@ const DEFAULT_SETTINGS: Omit<NotificationSettings, "id" | "created_at" | "update
   quiet_hours_start: "22:00",
   quiet_hours_end: "08:00",
   quiet_hours_timezone: "UTC",
+  quiet_hours_schedule: null,
   minimum_priority: "low",
   skip_approval_confirmation: false,
   dashboard_layout: "cards",

@@ -335,6 +335,7 @@ export interface NotificationSettings {
   quiet_hours_start: string | null;
   quiet_hours_end: string | null;
   quiet_hours_timezone: string | null;
+  quiet_hours_schedule: Record<string, { start: string; end: string } | null> | null;
   minimum_priority: ApprovalPriority;
   skip_approval_confirmation: boolean;
   dashboard_layout: DashboardLayout;
@@ -387,6 +388,7 @@ export interface ApprovalComment {
   request_id: string;
   user_id: string | null;
   connection_id: string | null;
+  source: string | null;
   body: string;
   created_at: string;
   updated_at: string;
