@@ -8,6 +8,7 @@ export const PLAN_LIMITS: Record<BillingPlan, {
   priceYearly: number;
   maxRequests: number;  // -1 = unlimited
   maxConnections: number;
+  maxTeams: number;     // -1 = unlimited
   maxTeamMembers: number;
   historyDays: number;
   features: string[];
@@ -18,6 +19,7 @@ export const PLAN_LIMITS: Record<BillingPlan, {
     priceYearly: 0,
     maxRequests: 100,
     maxConnections: 2,
+    maxTeams: 1,
     maxTeamMembers: 3,
     historyDays: 7,
     features: ["email_notifications"],
@@ -28,6 +30,7 @@ export const PLAN_LIMITS: Record<BillingPlan, {
     priceYearly: 192, // $16/mo billed annually
     maxRequests: -1,
     maxConnections: 15,
+    maxTeams: 5,
     maxTeamMembers: 15,
     historyDays: 90,
     features: [
@@ -44,6 +47,7 @@ export const PLAN_LIMITS: Record<BillingPlan, {
     priceYearly: 576, // $48/mo billed annually
     maxRequests: -1,
     maxConnections: -1,
+    maxTeams: -1,
     maxTeamMembers: -1,
     historyDays: 365,
     features: [
@@ -53,7 +57,6 @@ export const PLAN_LIMITS: Record<BillingPlan, {
       "rules_engine",
       "analytics",
       "analytics_export",
-      "sso_saml",
       "audit_log_export",
       "multi_step_approvals",
       "custom_routing",
@@ -65,6 +68,7 @@ export const PLAN_LIMITS: Record<BillingPlan, {
     priceYearly: 0,
     maxRequests: -1,
     maxConnections: -1,
+    maxTeams: -1,
     maxTeamMembers: -1,
     historyDays: -1,
     features: [

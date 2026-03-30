@@ -22,6 +22,7 @@ import { calculateRiskScore } from "@/lib/api/risk-scoring";
 import { resolveDelegates } from "@/lib/api/delegation";
 import { checkTrustThreshold } from "@/lib/api/trust-engine";
 import { dispatchNotifications } from "@/lib/notifications/orchestrator";
+import { createInAppNotificationBulk } from "@/lib/notifications/in-app";
 import { calculateSlaDeadline, checkSlaBreach, type SlaConfig } from "@/lib/api/sla";
 import { checkBottleneckThreshold } from "@/lib/api/bottleneck";
 import { enforceFourEyesOnCreation } from "@/lib/api/four-eyes";
@@ -629,6 +630,22 @@ export async function POST(request: Request) {
         assignedApprovers: assignedApprovers ?? undefined,
         assignedTeamId: assignedTeamId ?? undefined,
       });
+
+      // In-app notification for assigned approvers
+      if (!isAutoApproved && targetUserIds && targetUserIds.length > 0) {
+        const sourceName = connectionName ?? validated.source ?? autoDetectedSource;
+        await createInAppNotificationBulk(targetUserIds, {
+          orgId: auth.orgId,
+          category: "approval_awaiting",
+          title: `New request: ${validated.title}`,
+          body: sourceName
+            ? `${effectivePriority} priority · from ${sourceName}`
+            : `${effectivePriority} priority`,
+          actorName: connectionName ?? undefined,
+          resourceType: "approval_request",
+          resourceId: approval.id,
+        });
+      }
     });
 
     // 15b. Bottleneck detection (fire-and-forget)

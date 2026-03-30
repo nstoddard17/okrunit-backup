@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getOrgPlan } from "@/lib/billing/enforce";
 import { V2TeamList } from "@/components/org/v2-team-list";
 
 export const metadata = {
@@ -15,6 +16,7 @@ export default async function V2OrgTeamsPage() {
 
   if (membership.role !== "owner" && membership.role !== "admin") redirect("/org/overview");
 
+  const currentPlan = await getOrgPlan(membership.org_id);
   const admin = createAdminClient();
 
   const { data: teams } = await admin
@@ -46,6 +48,7 @@ export default async function V2OrgTeamsPage() {
       }))}
       memberCounts={memberCountMap}
       currentUserRole={membership.role}
+      currentPlan={currentPlan}
     />
   );
 }

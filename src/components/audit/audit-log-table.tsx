@@ -200,7 +200,7 @@ export function AuditLogTable({
       {/* ---- Filters ---- */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Select value={actionFilter} onValueChange={setActionFilter}>
-          <SelectTrigger className="w-full sm:w-[200px] bg-background text-foreground">
+          <SelectTrigger className="w-full sm:w-[200px] bg-white dark:bg-card text-foreground">
             <SelectValue placeholder="All actions" />
           </SelectTrigger>
           <SelectContent>
@@ -217,7 +217,7 @@ export function AuditLogTable({
           value={resourceTypeFilter}
           onValueChange={setResourceTypeFilter}
         >
-          <SelectTrigger className="w-full sm:w-[200px] bg-background text-foreground">
+          <SelectTrigger className="w-full sm:w-[200px] bg-white dark:bg-card text-foreground">
             <SelectValue placeholder="All resource types" />
           </SelectTrigger>
           <SelectContent>
@@ -245,7 +245,7 @@ export function AuditLogTable({
             size="sm"
             onClick={exportCsv}
             disabled={filteredEntries.length === 0}
-            className="gap-1.5 bg-background text-foreground hover:bg-muted"
+            className="gap-1.5 bg-white dark:bg-card text-foreground hover:bg-muted"
           >
             <Download className="size-3.5" />
             Export CSV
@@ -404,7 +404,7 @@ export function AuditLogTable({
             variant="outline"
             onClick={loadMore}
             disabled={isPending}
-            className="bg-background text-foreground hover:bg-muted"
+            className="bg-white dark:bg-card text-foreground hover:bg-muted"
           >
             {isPending ? (
               <>

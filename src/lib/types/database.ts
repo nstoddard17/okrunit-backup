@@ -637,6 +637,39 @@ export interface BottleneckAlert {
 
 // ---- Insert Types (omit server-generated columns) -------------------------
 
+// ---- In-App Notifications --------------------------------------------------
+
+export type NotificationCategory =
+  | "approval_awaiting"
+  | "approval_decided"
+  | "flow_step_decided"
+  | "approval_expiring"
+  | "team_invite"
+  | "team_added"
+  | "flow_assigned"
+  | "welcome";
+
+export interface InAppNotification {
+  id: string;
+  user_id: string;
+  org_id: string;
+  category: NotificationCategory;
+  title: string;
+  body: string | null;
+  icon_url: string | null;
+  actor_id: string | null;
+  actor_name: string | null;
+  resource_type: string | null;
+  resource_id: string | null;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+}
+
+// ---- Insert Types -----------------------------------------------------------
+
+export type InAppNotificationInsert = Omit<InAppNotification, "id" | "is_read" | "read_at" | "created_at">;
+
 export type OrganizationInsert = Omit<Organization, "id" | "created_at" | "updated_at">;
 export type UserProfileInsert = Omit<UserProfile, "created_at" | "updated_at">;
 export type OrgMembershipInsert = Omit<OrgMembership, "id" | "created_at" | "updated_at">;

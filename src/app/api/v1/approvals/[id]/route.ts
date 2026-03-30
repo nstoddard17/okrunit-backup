@@ -13,6 +13,7 @@ import { deliverCallback } from "@/lib/api/callbacks";
 import { checkConditions } from "@/lib/api/conditions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dispatchNotifications } from "@/lib/notifications/orchestrator";
+import { createInAppNotification, createInAppNotificationBulk } from "@/lib/notifications/in-app";
 import { findDelegationForDelegate } from "@/lib/api/delegation";
 import { updateTrustCounter } from "@/lib/api/trust-engine";
 import { checkSlaBreach } from "@/lib/api/sla";
@@ -765,8 +766,8 @@ export async function PATCH(
           );
         }
 
-        after(
-          dispatchNotifications({
+        after(async () => {
+          await dispatchNotifications({
             type: updated.status === "approved" ? "approval.approved" : "approval.rejected",
             orgId: auth.orgId,
             requestId: id,
@@ -775,8 +776,32 @@ export async function PATCH(
             connectionId: approval.connection_id,
             decidedBy: actorId,
             decisionComment: validated.comment,
-          })
-        );
+          });
+
+          // In-app: notify all org members about the decision
+          const actorName = await getUserDisplayName(admin, actorId);
+          const verb = updated.status === "approved" ? "approved" : "rejected";
+          const { data: members } = await admin
+            .from("org_memberships")
+            .select("user_id")
+            .eq("org_id", auth.orgId)
+            .neq("user_id", actorId);
+          const memberIds = (members ?? []).map((m: { user_id: string }) => m.user_id);
+          if (memberIds.length > 0) {
+            await createInAppNotificationBulk(memberIds, {
+              orgId: auth.orgId,
+              category: "approval_decided",
+              title: `${updated.title} was ${verb}`,
+              body: validated.comment
+                ? `${actorName} ${verb} · "${validated.comment}"`
+                : `${actorName} ${verb} this request`,
+              actorId,
+              actorName: actorName ?? undefined,
+              resourceType: "approval_request",
+              resourceId: id,
+            });
+          }
+        });
       }
 
       // 6g. Sequential chain: notify next approver if vote didn't finalize
@@ -791,8 +816,8 @@ export async function PATCH(
         const nextApprover = assignedApprovers.find((uid: string) => !votedSet.has(uid));
 
         if (nextApprover) {
-          after(
-            dispatchNotifications({
+          after(async () => {
+            await dispatchNotifications({
               type: "approval.next_approver",
               orgId: auth.orgId,
               requestId: id,
@@ -800,8 +825,18 @@ export async function PATCH(
               requestPriority: updated.priority,
               connectionId: approval.connection_id ?? undefined,
               targetUserIds: [nextApprover],
-            })
-          );
+            });
+
+            await createInAppNotification({
+              userId: nextApprover,
+              orgId: auth.orgId,
+              category: "approval_awaiting",
+              title: `Your turn: ${updated.title}`,
+              body: "The previous approver in the chain has approved. It's now waiting for your review.",
+              resourceType: "approval_request",
+              resourceId: id,
+            });
+          });
         }
       }
 
@@ -921,8 +956,8 @@ export async function PATCH(
     }
 
     // 10. Dispatch notifications
-    after(
-      dispatchNotifications({
+    after(async () => {
+      await dispatchNotifications({
         type: newStatus === "approved" ? "approval.approved" : "approval.rejected",
         orgId: auth.orgId,
         requestId: id,
@@ -931,8 +966,32 @@ export async function PATCH(
         connectionId: approval.connection_id,
         decidedBy: actorId,
         decisionComment: validated.comment,
-      })
-    );
+      });
+
+      // In-app: notify all org members about the decision
+      const actorName = await getUserDisplayName(admin, actorId);
+      const verb = newStatus === "approved" ? "approved" : "rejected";
+      const { data: members } = await admin
+        .from("org_memberships")
+        .select("user_id")
+        .eq("org_id", auth.orgId)
+        .neq("user_id", actorId);
+      const memberIds = (members ?? []).map((m: { user_id: string }) => m.user_id);
+      if (memberIds.length > 0) {
+        await createInAppNotificationBulk(memberIds, {
+          orgId: auth.orgId,
+          category: "approval_decided",
+          title: `${updated.title} was ${verb}`,
+          body: validated.comment
+            ? `${actorName} ${verb} · "${validated.comment}"`
+            : `${actorName} ${verb} this request`,
+          actorId,
+          actorName: actorName ?? undefined,
+          resourceType: "approval_request",
+          resourceId: id,
+        });
+      }
+    });
 
     return NextResponse.json(updated);
   } catch (error) {

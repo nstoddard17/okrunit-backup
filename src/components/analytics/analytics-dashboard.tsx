@@ -97,7 +97,7 @@ export function AnalyticsDashboard({
     <div className="space-y-8">
       {/* Header with export */}
       <div className="flex items-center justify-end">
-        <Button variant="outline" size="sm" onClick={exportCsv} className="gap-1.5">
+        <Button variant="outline" size="sm" onClick={exportCsv} className="gap-1.5 bg-white dark:bg-card">
           <Download className="size-3.5" />
           Export CSV
         </Button>

@@ -13,9 +13,11 @@ interface DashboardShellProps {
   user: { email: string; full_name: string | null };
   orgName: string;
   pendingCount: number;
+  currentOrgId: string;
+  userOrgs: { id: string; org_id: string; org_name: string; role: string; is_default: boolean }[];
 }
 
-export function DashboardShell({ children, sidebarProps, emergencyStopActive, user, orgName, pendingCount }: DashboardShellProps) {
+export function DashboardShell({ children, sidebarProps, emergencyStopActive, user, orgName, pendingCount, currentOrgId, userOrgs }: DashboardShellProps) {
   const { mobileOpen, setMobileOpen, setActivePanel } = useSidebarStore();
 
   // Close mobile sidebar on Escape
@@ -63,6 +65,8 @@ export function DashboardShell({ children, sidebarProps, emergencyStopActive, us
           user={user}
           orgName={orgName}
           pendingCount={pendingCount}
+          currentOrgId={currentOrgId}
+          userOrgs={userOrgs}
         />
         <main className="flex-1 overflow-y-auto">
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">

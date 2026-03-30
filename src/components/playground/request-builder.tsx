@@ -82,7 +82,7 @@ const API_ENDPOINTS: EndpointOption[] = [
   { path: "/api/v1/flows/{id}", methods: ["GET", "PATCH", "DELETE"], description: "Get, update, or delete a flow" },
   { path: "/api/v1/rules", methods: ["GET", "POST"], description: "List or create rules" },
   { path: "/api/v1/rules/{id}", methods: ["GET", "PATCH", "DELETE"], description: "Get, update, or delete a rule" },
-  { path: "/api/v1/webhooks", methods: ["GET", "POST"], description: "List or create webhooks" },
+  { path: "/api/v1/webhooks", methods: ["GET"], description: "List webhook deliveries" },
   { path: "/api/v1/webhooks/{id}/replay", methods: ["POST"], description: "Replay a webhook delivery" },
   { path: "/api/v1/analytics", methods: ["GET"], description: "Get analytics overview" },
   { path: "/api/v1/analytics/sla", methods: ["GET"], description: "Get SLA metrics" },
@@ -90,7 +90,8 @@ const API_ENDPOINTS: EndpointOption[] = [
   { path: "/api/v1/analytics/cost-of-delay", methods: ["GET"], description: "Get cost of delay metrics" },
   { path: "/api/v1/teams", methods: ["GET", "POST"], description: "List or create teams" },
   { path: "/api/v1/teams/{id}", methods: ["GET", "PATCH", "DELETE"], description: "Get, update, or delete a team" },
-  { path: "/api/v1/teams/{id}/members", methods: ["GET", "POST"], description: "List or add team members" },
+  { path: "/api/v1/teams/{id}/members", methods: ["GET", "POST", "PATCH", "DELETE"], description: "List, add, update, or remove team members" },
+  { path: "/api/v1/teams/{id}/positions", methods: ["GET", "POST", "DELETE"], description: "List, create, or delete team positions" },
   { path: "/api/v1/org", methods: ["PATCH"], description: "Update organization settings" },
   { path: "/api/v1/org/action-types", methods: ["GET"], description: "List action types" },
   { path: "/api/v1/export", methods: ["GET"], description: "Export data" },
@@ -101,7 +102,13 @@ const API_ENDPOINTS: EndpointOption[] = [
   { path: "/api/v1/delegations/{id}", methods: ["DELETE"], description: "Delete a delegation" },
   { path: "/api/v1/bulk-rules", methods: ["GET", "POST"], description: "List or create bulk rules" },
   { path: "/api/v1/bulk-rules/{id}", methods: ["GET", "PATCH", "DELETE"], description: "Manage a bulk rule" },
+  { path: "/api/v1/bulk-rules/{id}/execute", methods: ["POST"], description: "Execute a bulk rule" },
+  { path: "/api/v1/trust", methods: ["GET", "POST"], description: "List or create trust scores" },
+  { path: "/api/v1/trust/{id}", methods: ["DELETE"], description: "Delete a trust score" },
+  { path: "/api/v1/notifications/activity", methods: ["GET"], description: "List in-app notifications" },
+  { path: "/api/v1/notifications/read", methods: ["POST"], description: "Mark notifications as read" },
   { path: "/api/v1/saved-filters", methods: ["GET", "POST"], description: "List or create saved filters" },
+  { path: "/api/v1/billing/usage", methods: ["GET"], description: "Get current billing usage" },
 ];
 
 const COMMON_HEADERS = [
