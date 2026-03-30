@@ -24,6 +24,8 @@ import { checkTrustThreshold } from "@/lib/api/trust-engine";
 import { dispatchNotifications } from "@/lib/notifications/orchestrator";
 import { createInAppNotificationBulk } from "@/lib/notifications/in-app";
 import { calculateSlaDeadline, checkSlaBreach, type SlaConfig } from "@/lib/api/sla";
+import { calculateNextEscalation } from "@/lib/api/escalation";
+import type { EscalationConfig } from "@/lib/types/database";
 import { checkBottleneckThreshold } from "@/lib/api/bottleneck";
 import { enforceFourEyesOnCreation } from "@/lib/api/four-eyes";
 import { canCreateRequest } from "@/lib/billing/enforce";
@@ -61,7 +63,7 @@ export async function POST(request: Request) {
 
     const { data: org, error: orgError } = await admin
       .from("organizations")
-      .select("emergency_stop_active, default_auto_action, default_auto_action_minutes, sla_config, four_eyes_config")
+      .select("emergency_stop_active, default_auto_action, default_auto_action_minutes, sla_config, four_eyes_config, escalation_config")
       .eq("id", auth.orgId)
       .single();
 
@@ -504,6 +506,13 @@ export async function POST(request: Request) {
           (org.sla_config as SlaConfig) ?? null,
         );
 
+    // 13d. Calculate first escalation deadline from org config
+    const escalationConfig = org.escalation_config as EscalationConfig | null;
+    const firstEscalation =
+      !isAutoApproved && escalationConfig?.enabled
+        ? calculateNextEscalation(escalationConfig, 0, new Date())
+        : null;
+
     const { data: approval, error: insertError } = await admin
       .from("approval_requests")
       .insert({
@@ -541,6 +550,7 @@ export async function POST(request: Request) {
         require_rejection_reason: validated.require_rejection_reason ?? false,
         conditions_met: validated.conditions && validated.conditions.length > 0 ? false : true,
         sla_deadline: slaDeadline,
+        next_escalation_at: firstEscalation?.nextEscalationAt ?? null,
         notify_channel_ids: validated.notify_channel_ids ?? null,
       })
       .select("*")

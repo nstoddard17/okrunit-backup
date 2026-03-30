@@ -76,6 +76,23 @@ export interface SlaConfig {
   critical: number | null;
 }
 
+export type EscalationTarget =
+  | { type: "same_approvers" }
+  | { type: "org_admins" }
+  | { type: "team"; team_id: string }
+  | { type: "users"; user_ids: string[] };
+
+export interface EscalationLevel {
+  level: number;
+  delay_minutes: number;
+  target: EscalationTarget;
+}
+
+export interface EscalationConfig {
+  enabled: boolean;
+  levels: EscalationLevel[];
+}
+
 export interface GeoRestrictions {
   enabled: boolean;
   allowed_countries: string[];
@@ -97,6 +114,7 @@ export interface Organization {
   default_auto_action_minutes: number | null;
   rejection_reason_policy: RejectionReasonPolicy;
   sla_config: SlaConfig;
+  escalation_config: EscalationConfig | null;
   bottleneck_threshold: number;
   bottleneck_alert_enabled: boolean;
   ip_allowlist: string[];
@@ -203,6 +221,9 @@ export interface ApprovalRequest {
   sla_breached: boolean;
   sla_breached_at: string | null;
   sla_warning_sent: boolean;
+  escalation_level: number;
+  next_escalation_at: string | null;
+  last_escalated_at: string | null;
   notify_channel_ids: string[] | null;
   is_log: boolean;
   archived_at: string | null;

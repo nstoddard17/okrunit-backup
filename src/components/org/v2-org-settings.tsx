@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Bell,
   Crown,
   Globe,
   Loader2,
@@ -11,6 +12,7 @@ import {
   Shield,
   ShieldCheck,
   Timer,
+  Trash2,
   User,
   X,
   ClipboardPaste,
@@ -29,6 +31,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import type {
   ApprovalPriority,
+  EscalationConfig,
+  EscalationTarget,
   FourEyesConfig,
   GeoRestrictions,
   Organization,
@@ -442,6 +446,10 @@ export function V2OrgSettings({ org, role }: V2OrgSettingsProps) {
   const [geoCountriesInput, setGeoCountriesInput] = useState(
     org.geo_restrictions.allowed_countries.join(", "),
   );
+  const defaultEscalation: EscalationConfig = { enabled: false, levels: [] };
+  const [escalation, setEscalation] = useState<EscalationConfig>(
+    org.escalation_config ?? defaultEscalation,
+  );
 
   // ---- Dirty check ----
   const parsedIps = ipTags;
@@ -463,10 +471,11 @@ export function V2OrgSettings({ org, role }: V2OrgSettingsProps) {
     if (parsedIps.join("\n") !== org.ip_allowlist.join("\n")) return true;
     if (geoRestrictions.enabled !== org.geo_restrictions.enabled) return true;
     if (parsedCountries.join(",") !== org.geo_restrictions.allowed_countries.join(",")) return true;
+    if (JSON.stringify(escalation) !== JSON.stringify(org.escalation_config ?? defaultEscalation)) return true;
     return false;
   }, [
     rejectionPolicy, requireReauth, fourEyes, sla, sessionTimeout,
-    parsedIps, geoRestrictions.enabled, parsedCountries, org,
+    parsedIps, geoRestrictions.enabled, parsedCountries, escalation, org,
   ]);
 
   // ---- Save all changes ----
@@ -511,6 +520,10 @@ export function V2OrgSettings({ org, role }: V2OrgSettingsProps) {
         };
       }
 
+      if (JSON.stringify(escalation) !== JSON.stringify(org.escalation_config ?? defaultEscalation)) {
+        payload.escalation_config = escalation;
+      }
+
       if (Object.keys(payload).length === 0) return;
 
       const res = await fetch("/api/v1/org", {
@@ -546,6 +559,7 @@ export function V2OrgSettings({ org, role }: V2OrgSettingsProps) {
     setIpBulkInput("");
     setGeoRestrictions(org.geo_restrictions);
     setGeoCountriesInput(org.geo_restrictions.allowed_countries.join(", "));
+    setEscalation(org.escalation_config ?? defaultEscalation);
   }
 
   return (
@@ -857,6 +871,152 @@ export function V2OrgSettings({ org, role }: V2OrgSettingsProps) {
               disabled={!canEdit}
             />
           </SettingsRow>
+        )}
+      </SettingsSection>
+
+      {/* Escalation Rules */}
+      <SettingsSection
+        title="Escalation Rules"
+        description="Automatically remind or escalate approval requests when no one acts within a set time."
+        icon={Bell}
+      >
+        <SettingsRow
+          label="Enable escalation"
+          description="Automatically escalate pending approvals that aren't acted on."
+        >
+          <Switch
+            checked={escalation.enabled}
+            onCheckedChange={(checked) =>
+              setEscalation((prev) => ({ ...prev, enabled: checked }))
+            }
+            disabled={!canEdit}
+          />
+        </SettingsRow>
+
+        {escalation.enabled && (
+          <>
+            {escalation.levels
+              .sort((a, b) => a.level - b.level)
+              .map((lvl, idx) => (
+                <SettingsRow
+                  key={lvl.level}
+                  label={`Level ${lvl.level}`}
+                  description={`After ${lvl.delay_minutes} minutes, notify ${
+                    lvl.target.type === "same_approvers"
+                      ? "same approvers (remind)"
+                      : lvl.target.type === "org_admins"
+                        ? "all org admins"
+                        : lvl.target.type === "team"
+                          ? "a specific team"
+                          : "specific users"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={1}
+                      max={43200}
+                      value={lvl.delay_minutes}
+                      onChange={(e) => {
+                        const minutes = parseInt(e.target.value) || 1;
+                        setEscalation((prev) => ({
+                          ...prev,
+                          levels: prev.levels.map((l) =>
+                            l.level === lvl.level ? { ...l, delay_minutes: minutes } : l,
+                          ),
+                        }));
+                      }}
+                      className="w-20 h-8 text-sm"
+                      disabled={!canEdit}
+                    />
+                    <span className="text-xs text-muted-foreground">min</span>
+                    <Select
+                      value={lvl.target.type}
+                      onValueChange={(value) => {
+                        let target: EscalationTarget;
+                        switch (value) {
+                          case "org_admins":
+                            target = { type: "org_admins" };
+                            break;
+                          case "team":
+                            target = { type: "team", team_id: "" };
+                            break;
+                          case "users":
+                            target = { type: "users", user_ids: [] };
+                            break;
+                          default:
+                            target = { type: "same_approvers" };
+                        }
+                        setEscalation((prev) => ({
+                          ...prev,
+                          levels: prev.levels.map((l) =>
+                            l.level === lvl.level ? { ...l, target } : l,
+                          ),
+                        }));
+                      }}
+                      disabled={!canEdit}
+                    >
+                      <SelectTrigger className="w-[180px] h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="same_approvers">Remind approvers</SelectItem>
+                        <SelectItem value="org_admins">Notify all admins</SelectItem>
+                        <SelectItem value="team">Notify team</SelectItem>
+                        <SelectItem value="users">Notify specific users</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {canEdit && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                        onClick={() =>
+                          setEscalation((prev) => ({
+                            ...prev,
+                            levels: prev.levels.filter((l) => l.level !== lvl.level),
+                          }))
+                        }
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </SettingsRow>
+              ))}
+
+            {canEdit && escalation.levels.length < 5 && (
+              <div className="px-5 py-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs"
+                  onClick={() => {
+                    const nextLevel =
+                      escalation.levels.length > 0
+                        ? Math.max(...escalation.levels.map((l) => l.level)) + 1
+                        : 1;
+                    const defaultMinutes =
+                      nextLevel === 1 ? 30 : nextLevel === 2 ? 60 : nextLevel === 3 ? 120 : 240;
+                    setEscalation((prev) => ({
+                      ...prev,
+                      levels: [
+                        ...prev.levels,
+                        {
+                          level: nextLevel,
+                          delay_minutes: defaultMinutes,
+                          target: nextLevel === 1 ? { type: "same_approvers" as const } : { type: "org_admins" as const },
+                        },
+                      ],
+                    }));
+                  }}
+                >
+                  <Plus className="size-3.5" />
+                  Add escalation level
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </SettingsSection>
 

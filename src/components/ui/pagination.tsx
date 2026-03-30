@@ -41,10 +41,10 @@ export function Pagination({
         <div className="flex items-center gap-2">
           <span className="whitespace-nowrap">Per page:</span>
           <Select value={pageSize.toString()} onValueChange={(v) => onPageSizeChange(parseInt(v))}>
-            <SelectTrigger className="h-8 w-16 border-0 bg-muted/40 text-xs">
+            <SelectTrigger className="h-8 w-16 border bg-white text-xs dark:bg-zinc-900">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-zinc-900">
               {pageSizeOptions.map((size) => (
                 <SelectItem key={size} value={size.toString()}>
                   {size}
@@ -61,7 +61,7 @@ export function Pagination({
           size="icon-sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="h-8 w-8"
+          className="h-8 w-8 bg-white dark:bg-zinc-900"
         >
           <ChevronLeft className="size-4" />
         </Button>
@@ -92,7 +92,8 @@ export function Pagination({
                 onClick={() => onPageChange(page)}
                 className={cn(
                   "h-8 w-8 px-0",
-                  isCurrentPage && "pointer-events-none"
+                  isCurrentPage && "pointer-events-none",
+                  !isCurrentPage && "bg-white dark:bg-zinc-900"
                 )}
               >
                 {page}
@@ -106,7 +107,7 @@ export function Pagination({
           size="icon-sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="h-8 w-8"
+          className="h-8 w-8 bg-white dark:bg-zinc-900"
         >
           <ChevronRight className="size-4" />
         </Button>

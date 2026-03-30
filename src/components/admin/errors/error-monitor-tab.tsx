@@ -151,11 +151,11 @@ export function ErrorMonitorTab() {
             placeholder="Search errors..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9"
+            className="pl-9 h-9 bg-white dark:bg-zinc-900"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[140px] h-9">
+          <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-zinc-900">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -167,7 +167,7 @@ export function ErrorMonitorTab() {
           </SelectContent>
         </Select>
         <Select value={severityFilter} onValueChange={setSeverityFilter}>
-          <SelectTrigger className="w-[130px] h-9">
+          <SelectTrigger className="w-[130px] h-9 bg-white dark:bg-zinc-900">
             <SelectValue placeholder="Severity" />
           </SelectTrigger>
           <SelectContent>
@@ -179,7 +179,7 @@ export function ErrorMonitorTab() {
           </SelectContent>
         </Select>
         <Select value={sort} onValueChange={setSort}>
-          <SelectTrigger className="w-[140px] h-9">
+          <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-zinc-900">
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>
@@ -189,7 +189,7 @@ export function ErrorMonitorTab() {
             <SelectItem value="affected_users">Most Users</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" size="sm" onClick={fetchIssues} className="h-9 gap-1.5">
+        <Button variant="outline" size="sm" onClick={fetchIssues} className="h-9 gap-1.5 bg-white dark:bg-zinc-900">
           <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
           Refresh
         </Button>
