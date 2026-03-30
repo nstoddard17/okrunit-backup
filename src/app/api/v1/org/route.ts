@@ -34,6 +34,24 @@ const fourEyesConfigSchema = z.object({
   min_priority: priorityEnum.nullable(),
 });
 
+const escalationTargetSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("same_approvers") }),
+  z.object({ type: z.literal("org_admins") }),
+  z.object({ type: z.literal("team"), team_id: z.string().uuid() }),
+  z.object({ type: z.literal("users"), user_ids: z.array(z.string().uuid()).min(1).max(20) }),
+]);
+
+const escalationLevelSchema = z.object({
+  level: z.number().int().min(1).max(10),
+  delay_minutes: z.number().int().min(1).max(43200),
+  target: escalationTargetSchema,
+});
+
+const escalationConfigSchema = z.object({
+  enabled: z.boolean(),
+  levels: z.array(escalationLevelSchema).max(10),
+});
+
 const updateOrgSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name is too long").optional(),
   rejection_reason_policy: rejectionReasonPolicyEnum.optional(),
@@ -45,6 +63,7 @@ const updateOrgSchema = z.object({
   require_reauth_for_critical: z.boolean().optional(),
   session_timeout_minutes: z.number().int().min(5).max(43200).optional(),
   four_eyes_config: fourEyesConfigSchema.optional(),
+  escalation_config: escalationConfigSchema.optional(),
 }).refine(
   (data) =>
     data.name !== undefined ||
@@ -56,7 +75,8 @@ const updateOrgSchema = z.object({
     data.geo_restrictions !== undefined ||
     data.require_reauth_for_critical !== undefined ||
     data.session_timeout_minutes !== undefined ||
-    data.four_eyes_config !== undefined,
+    data.four_eyes_config !== undefined ||
+    data.escalation_config !== undefined,
   { message: "At least one field must be provided" },
 );
 
@@ -100,6 +120,7 @@ export async function PATCH(request: Request) {
     if (body.require_reauth_for_critical !== undefined) updatePayload.require_reauth_for_critical = body.require_reauth_for_critical;
     if (body.session_timeout_minutes !== undefined) updatePayload.session_timeout_minutes = body.session_timeout_minutes;
     if (body.four_eyes_config !== undefined) updatePayload.four_eyes_config = body.four_eyes_config;
+    if (body.escalation_config !== undefined) updatePayload.escalation_config = body.escalation_config;
 
     const { data: org, error } = await admin
       .from("organizations")

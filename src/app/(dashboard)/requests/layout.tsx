@@ -14,9 +14,9 @@ export default async function RequestsLayout({
   const isAdmin = membership.role === "owner" || membership.role === "admin";
 
   return (
-    <div className="flex w-full flex-col md:flex-row md:min-h-[calc(100vh-52px)]">
+    <div className="flex w-full flex-col md:h-[calc(100vh-52px)] md:flex-row md:overflow-hidden">
       {/* Left sidebar — desktop */}
-      <aside className="hidden md:block w-56 shrink-0 border-r border-border/40 bg-[var(--card)] pt-5">
+      <aside className="hidden md:block w-56 shrink-0 border-r border-border/40 bg-[var(--card)] pt-5 overflow-y-auto">
         <RequestsNav isAdmin={isAdmin} pendingCount={0} />
       </aside>
 
@@ -25,12 +25,12 @@ export default async function RequestsLayout({
         <RequestsNav isAdmin={isAdmin} pendingCount={0} mobile />
       </div>
 
-      {/* Main content */}
-      <main className="flex-1 min-w-0 overflow-y-auto">
+      {/* Main content — sole scroll container */}
+      <div className="relative flex-1 min-w-0 overflow-y-auto">
         <div className="px-6 lg:px-8 py-6">
           {children}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

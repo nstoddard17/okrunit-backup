@@ -27,7 +27,7 @@ import { useRealtime } from "@/hooks/use-realtime";
 import type { InAppNotification, NotificationCategory } from "@/lib/types/database";
 
 interface NotificationPanelProps {
-  pendingCount: number;
+  pendingCount?: number;
   userId?: string;
 }
 
@@ -73,27 +73,47 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
-export function NotificationPanel({ pendingCount, userId }: NotificationPanelProps) {
+export function NotificationPanel({ userId }: NotificationPanelProps) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
 
-  // Realtime: listen for new notifications to update badge instantly
+  // Realtime callbacks — declared before useRealtime to keep hook order stable
+  const handleRealtimeInsert = useCallback((record: InAppNotification) => {
+    setNotifications((prev) => {
+      if (prev.some((n) => n.id === record.id)) return prev;
+      return [record, ...prev].slice(0, 20);
+    });
+    if (!record.is_read) {
+      setUnreadCount((prev) => prev + 1);
+    }
+  }, []);
+
+  const handleRealtimeUpdate = useCallback((record: InAppNotification) => {
+    setNotifications((prev) => {
+      const updated = prev.map((n) => (n.id === record.id ? record : n));
+      setUnreadCount(updated.filter((n) => !n.is_read).length);
+      return updated;
+    });
+  }, []);
+
+  const handleRealtimeDelete = useCallback((oldRecord: InAppNotification) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== oldRecord.id));
+    if (!oldRecord.is_read) {
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    }
+  }, []);
+
+  // Realtime: listen for new, updated, and deleted notifications
   useRealtime<InAppNotification>({
     table: "in_app_notifications",
     filter: userId ? `user_id=eq.${userId}` : undefined,
     enabled: !!userId,
-    onInsert: useCallback((record: InAppNotification) => {
-      setNotifications((prev) => {
-        if (prev.some((n) => n.id === record.id)) return prev;
-        return [record, ...prev].slice(0, 20);
-      });
-      if (!record.is_read) {
-        setUnreadCount((prev) => prev + 1);
-      }
-    }, []),
+    onInsert: handleRealtimeInsert,
+    onUpdate: handleRealtimeUpdate,
+    onDelete: handleRealtimeDelete,
   });
 
   const fetchNotifications = useCallback(async () => {
@@ -113,12 +133,17 @@ export function NotificationPanel({ pendingCount, userId }: NotificationPanelPro
     }
   }, []);
 
-  // Fetch on first open and refresh on reopen
+  // Prefetch notifications on mount so badge count is accurate and data is ready
   useEffect(() => {
-    if (open) {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  // Refresh when panel is reopened
+  useEffect(() => {
+    if (open && fetched) {
       fetchNotifications();
     }
-  }, [open, fetchNotifications]);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleMarkAllRead() {
     try {
@@ -154,8 +179,7 @@ export function NotificationPanel({ pendingCount, userId }: NotificationPanelPro
     }
   }
 
-  // Use the greater of server-rendered pendingCount or fetched unreadCount
-  const badgeCount = fetched ? unreadCount : pendingCount;
+  const badgeCount = unreadCount;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>

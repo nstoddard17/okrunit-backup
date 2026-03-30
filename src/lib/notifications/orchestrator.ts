@@ -253,7 +253,8 @@ export async function dispatchNotifications(
         event.type === "approval.created" ||
         event.type === "approval.next_approver" ||
         event.type === "approval.sla_breached" ||
-        event.type === "approval.bottleneck";
+        event.type === "approval.bottleneck" ||
+        event.type === "approval.escalated";
       const isDecisionEvent =
         event.type === "approval.approved" ||
         event.type === "approval.rejected" ||
@@ -484,6 +485,7 @@ const TITLE_MAP: Record<NotificationEventType, string> = {
   "approval.execution_cancelled": "Scheduled Execution Cancelled",
   "approval.sla_breached": "SLA Breached",
   "approval.bottleneck": "Approval Bottleneck Detected",
+  "approval.escalated": "Approval Escalated",
 };
 
 function getNotificationTitle(event: NotificationEvent): string {
@@ -510,6 +512,8 @@ function getNotificationBody(event: NotificationEvent): string {
       return `"${event.requestTitle}" has breached its SLA deadline.`;
     case "approval.bottleneck":
       return `An approver has too many pending approvals.`;
+    case "approval.escalated":
+      return `"${event.requestTitle}" has been escalated (level ${event.escalationLevel ?? "?"}) and requires immediate attention.`;
     default:
       return event.requestTitle;
   }

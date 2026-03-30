@@ -15,7 +15,8 @@ export type NotificationEventType =
   | "approval.next_approver"
   | "approval.execution_cancelled"
   | "approval.sla_breached"
-  | "approval.bottleneck";
+  | "approval.bottleneck"
+  | "approval.escalated";
 
 /**
  * Payload passed into the notification orchestrator whenever an event occurs.
@@ -54,4 +55,6 @@ export interface NotificationEvent {
   assignedApprovers?: string[];
   /** Assigned team ID, used for DM-level filtering. */
   assignedTeamId?: string;
+  /** Current escalation level (1, 2, 3...) for escalated events. */
+  escalationLevel?: number;
 }

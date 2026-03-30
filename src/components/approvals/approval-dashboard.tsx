@@ -109,7 +109,6 @@ export function ApprovalDashboard({
             .from("approval_requests")
             .select("id, title, description, status, priority, action_type, source, connection_id, created_by, decided_by, assigned_approvers, assigned_team_id, flow_id, created_at, decided_at, expires_at, archived_at, required_approvals, idempotency_key, callback_url")
             .is("archived_at", null)
-            .order("status", { ascending: true })
             .order("created_at", { ascending: false })
             .limit(50),
           supabase
@@ -700,10 +699,11 @@ export function ApprovalDashboard({
 
       {/* Select all bar */}
       {approvals.length > 0 && (
-        <div className="flex items-center gap-2 px-1">
+        <div className="flex items-center gap-2 px-4">
           <Checkbox
             checked={selectedIds.size === approvals.length && approvals.length > 0}
             onCheckedChange={toggleSelectAll}
+            className="bg-white dark:bg-zinc-900"
           />
           <span className="text-xs text-muted-foreground">
             {selectedIds.size > 0
