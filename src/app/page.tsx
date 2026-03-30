@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/server";
-import { LandingPage } from "@/components/landing/landing-page";
+
+const LandingPage = dynamic(
+  () => import("@/components/landing/landing-page").then((m) => m.LandingPage),
+  { ssr: true },
+);
 import {
   OrganizationJsonLd,
   SoftwareAppJsonLd,

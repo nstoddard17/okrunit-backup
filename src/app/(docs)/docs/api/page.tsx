@@ -102,7 +102,7 @@ export default function ApiReferencePage() {
       </div>
 
       <DocsImage
-        src="/screenshots/docs/api-playground.png"
+        src="/screenshots/docs/api-playground.webp"
         alt="OKrunit API Playground for testing API calls interactively"
         caption="Use the API Playground in the dashboard to test API calls interactively before writing code."
       />
@@ -167,7 +167,7 @@ export default function ApiReferencePage() {
       </ol>
 
       <DocsImage
-        src="/screenshots/docs/connections-list.png"
+        src="/screenshots/docs/connections-list.webp"
         alt="Connections page showing API key management"
         caption="Create and manage API keys from the Connections page."
       />

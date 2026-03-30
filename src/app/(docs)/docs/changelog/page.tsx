@@ -66,7 +66,7 @@ export default function ChangelogPage() {
       </p>
 
       <DocsImage
-        src="/screenshots/docs/dashboard-overview.png"
+        src="/screenshots/docs/dashboard-overview.webp"
         alt="OKrunit dashboard showing the current state of the product"
         caption="The OKrunit dashboard as of v1.0.0."
       />

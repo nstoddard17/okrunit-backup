@@ -250,7 +250,7 @@ export default function BillingPage() {
       </ol>
 
       <DocsImage
-        src="/screenshots/docs/billing-dashboard.png"
+        src="/screenshots/docs/billing-dashboard.webp"
         alt="Billing dashboard showing current plan, usage stats, and upgrade options"
         caption="The billing dashboard shows your current plan, usage, and available upgrades."
       />
