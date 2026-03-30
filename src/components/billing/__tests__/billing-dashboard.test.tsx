@@ -104,7 +104,7 @@ describe("BillingDashboard", () => {
 
     it("displays team member usage", () => {
       render(<BillingDashboard {...defaultProps} />);
-      expect(screen.getByText("Team")).toBeTruthy();
+      expect(screen.getByText("Members")).toBeTruthy();
       expect(screen.getByText(/2 \/ 3 members/)).toBeTruthy();
     });
 
