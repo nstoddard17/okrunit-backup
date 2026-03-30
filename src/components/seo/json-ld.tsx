@@ -35,23 +35,27 @@ export function SoftwareAppJsonLd() {
         price: "0",
         priceCurrency: "USD",
         description:
-          "3 connections, 100 approvals/month, email notifications",
+          "2 connections, 100 approvals/month, 1 team, email notifications",
       },
       {
         "@type": "Offer",
         name: "Pro",
-        price: "49",
+        price: "20",
         priceCurrency: "USD",
         billingIncrement: "P1M",
         description:
-          "Unlimited connections and approvals, Slack notifications, rules engine, audit log",
+          "Unlimited approvals, 15 connections, 5 teams, Slack notifications, rules engine, analytics",
+      },
+      {
+        "@type": "Offer",
+        name: "Business",
+        price: "60",
+        priceCurrency: "USD",
+        billingIncrement: "P1M",
+        description:
+          "Unlimited everything, SSO/SAML, audit log export, multi-step approvals, custom routing",
       },
     ],
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      ratingCount: "48",
-    },
   };
 
   return (
@@ -117,7 +121,7 @@ export function FAQJsonLd() {
         name: "Is OKrunit free?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes, OKrunit has a free tier with 3 connections and 100 approvals per month. The Pro plan at $49/month includes unlimited connections, Slack notifications, rules engine, and audit logging.",
+          text: "Yes, OKrunit has a free tier with 2 connections, 100 approvals per month, and 1 team. The Pro plan at $20/month includes unlimited approvals, 15 connections, 5 teams, Slack notifications, rules engine, and analytics.",
         },
       },
       {
