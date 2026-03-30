@@ -104,7 +104,7 @@ export async function GET(request: Request) {
       getPerUserMetrics(orgId, startDate, endDate),
     ]);
 
-    // 4. Return comprehensive analytics
+    // 4. Return comprehensive analytics with cache headers
     return NextResponse.json({
       summary,
       trends: {
@@ -118,6 +118,10 @@ export async function GET(request: Request) {
       date_range: {
         start_date: startDate,
         end_date: endDate,
+      },
+    }, {
+      headers: {
+        "Cache-Control": "private, max-age=60, stale-while-revalidate=300",
       },
     });
   } catch (error) {

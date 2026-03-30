@@ -12,6 +12,7 @@ interface PlaygroundTabsProps {
   allConnections: Connection[];
   deliveryLogs: WebhookDeliveryLog[];
   isAdmin: boolean;
+  orgId: string;
 }
 
 export function PlaygroundTabs({
@@ -19,6 +20,7 @@ export function PlaygroundTabs({
   allConnections,
   deliveryLogs,
   isAdmin,
+  orgId,
 }: PlaygroundTabsProps) {
   const items: SectionNavItem[] = [
     { id: "builder", label: "Request Builder", icon: FlaskConical },
@@ -39,6 +41,7 @@ export function PlaygroundTabs({
             <DeliveryLogTable
               initialEntries={deliveryLogs}
               connections={allConnections}
+              orgId={orgId}
             />
           )}
         </>

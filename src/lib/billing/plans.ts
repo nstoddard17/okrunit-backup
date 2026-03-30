@@ -57,7 +57,6 @@ export const PLAN_LIMITS: Record<BillingPlan, {
       "rules_engine",
       "analytics",
       "analytics_export",
-      "sso_saml",
       "audit_log_export",
       "multi_step_approvals",
       "custom_routing",

@@ -15,8 +15,10 @@ import {
 } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronRight, Loader2, Webhook } from "lucide-react";
+import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
+import { useRealtime } from "@/hooks/use-realtime";
 import type { WebhookDeliveryLog, Connection } from "@/lib/types/database";
 import {
   Table,
@@ -120,6 +122,7 @@ function DetailSection({
 interface DeliveryLogTableProps {
   initialEntries: WebhookDeliveryLog[];
   connections: Connection[];
+  orgId: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -129,9 +132,25 @@ interface DeliveryLogTableProps {
 export function DeliveryLogTable({
   initialEntries,
   connections,
+  orgId,
 }: DeliveryLogTableProps) {
   const [entries, setEntries] =
     useState<WebhookDeliveryLog[]>(initialEntries);
+
+  // Realtime: auto-refresh when new deliveries come in
+  useRealtime<WebhookDeliveryLog>({
+    table: "webhook_delivery_log",
+    filter: `org_id=eq.${orgId}`,
+    onInsert: useCallback((record: WebhookDeliveryLog) => {
+      setEntries((prev) => [record, ...prev]);
+      toast.info("New webhook delivery");
+    }, []),
+    onUpdate: useCallback((record: WebhookDeliveryLog) => {
+      setEntries((prev) =>
+        prev.map((e) => (e.id === record.id ? record : e)),
+      );
+    }, []),
+  });
   const [hasMore, setHasMore] = useState(
     initialEntries.length >= PAGE_SIZE
   );

@@ -97,7 +97,7 @@ describe("hasFeature", () => {
   it("returns true for features included in the plan", () => {
     expect(hasFeature("free", "email_notifications")).toBe(true);
     expect(hasFeature("pro", "slack_notifications")).toBe(true);
-    expect(hasFeature("business", "sso_saml")).toBe(true);
+    expect(hasFeature("business", "custom_routing")).toBe(true);
     expect(hasFeature("enterprise", "dedicated_support")).toBe(true);
   });
 

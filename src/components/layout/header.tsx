@@ -35,6 +35,7 @@ interface HeaderProps {
   pendingCount?: number;
   currentOrgId?: string;
   userOrgs?: OrgItem[];
+  userId?: string;
 }
 
 function getInitials(name: string | null, email: string): string {
@@ -49,7 +50,7 @@ function getInitials(name: string | null, email: string): string {
   return email.charAt(0).toUpperCase();
 }
 
-export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, currentOrgId, userOrgs = [] }: HeaderProps) {
+export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, currentOrgId, userOrgs = [], userId }: HeaderProps) {
   const router = useRouter();
   const { setMobileOpen } = useSidebarStore();
 
@@ -139,7 +140,7 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
           </Button>
 
           {/* Notification bell + panel */}
-          <NotificationPanel pendingCount={pendingCount} />
+          <NotificationPanel pendingCount={pendingCount} userId={userId} />
 
           {/* User avatar dropdown */}
           {user && (
