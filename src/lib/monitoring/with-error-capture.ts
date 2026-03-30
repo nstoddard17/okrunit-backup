@@ -13,6 +13,7 @@
 import { errorResponse } from "@/lib/api/errors";
 import { captureError } from "./capture";
 import { addBreadcrumb, withBreadcrumbContext } from "./breadcrumbs";
+import { logger } from "./logger";
 
 type RouteHandler = (
   request: Request,
@@ -44,8 +45,22 @@ export function withErrorCapture(
         message: `${request.method} ${new URL(request.url).pathname}`,
       });
 
+      const start = performance.now();
+      const pathname = new URL(request.url).pathname;
+
       try {
-        return await handler(request, ctx);
+        const response = await handler(request, ctx);
+        const duration_ms = Math.round(performance.now() - start);
+        if (duration_ms > 100) {
+          logger.perf("API request", {
+            service: options?.service,
+            request_method: request.method,
+            request_url: pathname,
+            status_code: response.status,
+            duration_ms,
+          });
+        }
+        return response;
       } catch (error) {
         // Capture the error in our monitoring system
         captureError({
