@@ -150,7 +150,7 @@ export function ApprovalComments({
         <Button
           type="submit"
           size="sm"
-          className="shrink-0 h-9"
+          className="shrink-0 h-9 bg-emerald-600 hover:bg-emerald-700 text-white"
           disabled={isSubmitting || !body.trim()}
         >
           <Send className="size-3.5" />

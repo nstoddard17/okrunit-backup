@@ -5,9 +5,10 @@
 // ---------------------------------------------------------------------------
 
 import { useState } from "react";
-import { Check, X, User } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Card,
   CardContent,
@@ -16,6 +17,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+function getInitials(name: string | null, email: string): string {
+  if (name) {
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  }
+  return email[0]?.toUpperCase() || "?";
+}
 
 const SCOPE_LABELS: Record<string, { label: string; description: string }> = {
   "approvals:read": {
@@ -111,60 +124,56 @@ export function ConsentForm({
   return (
     <Card className="w-full">
       {/* Logged-in account indicator */}
-      <div className="flex items-center justify-center gap-2 border-b px-6 py-3">
-        {userAvatarUrl ? (
-          <img
-            src={userAvatarUrl}
-            alt=""
-            className="size-6 rounded-full object-cover"
-          />
-        ) : (
-          <div className="flex size-6 items-center justify-center rounded-full bg-muted">
-            <User className="size-3.5 text-muted-foreground" />
-          </div>
-        )}
-        <span className="text-sm text-muted-foreground">
-          {userFullName ? `${userFullName} (${userEmail})` : userEmail}
-        </span>
+      <div className="flex items-center gap-3 border-b px-5 py-2.5">
+        <Avatar className="size-7">
+          {userAvatarUrl && <AvatarImage src={userAvatarUrl} alt="" />}
+          <AvatarFallback className="!bg-primary text-[10px] font-bold !text-white">
+            {getInitials(userFullName, userEmail)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col">
+          {userFullName && (
+            <span className="text-sm font-medium leading-tight">{userFullName}</span>
+          )}
+          <span className="text-xs leading-tight text-muted-foreground">{userEmail}</span>
+        </div>
       </div>
 
-      <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center gap-2 text-xl">
+      <CardHeader className="px-5 pb-3 pt-4 text-center">
+        <CardTitle className="flex items-center justify-center gap-2 text-lg">
           Authorize{" "}
           {clientLogoUrl ? (
             <img
               src={clientLogoUrl}
               alt={clientName}
-              className="inline-block h-8 w-auto"
+              className="inline-block h-7 w-auto"
             />
           ) : (
             clientName
           )}
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs">
           <strong>{clientName}</strong> is requesting access to{" "}
           <strong>{orgName}</strong> on OKrunit.
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        <div className="space-y-1">
-          <p className="text-sm font-medium">
-            This will allow <strong>{clientName}</strong> to:
-          </p>
-        </div>
+      <CardContent className="space-y-3 px-5">
+        <p className="text-sm font-medium">
+          This will allow <strong>{clientName}</strong> to:
+        </p>
 
-        <ul className="space-y-3">
+        <ul className="space-y-2">
           {scopes.map((scope) => {
             const info = SCOPE_LABELS[scope];
             return (
               <li
                 key={scope}
-                className="flex items-start gap-3 rounded-lg border p-3"
+                className="flex items-start gap-3 rounded-lg border p-2.5"
               >
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
                 <div>
-                  <p className="text-sm font-medium">
+                  <p className="text-sm font-medium leading-tight">
                     {info?.label || scope}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -177,7 +186,7 @@ export function ConsentForm({
         </ul>
       </CardContent>
 
-      <CardFooter className="flex gap-3">
+      <CardFooter className="flex gap-3 px-5 pb-5 pt-2">
         <Button
           variant="outline"
           className="flex-1"
