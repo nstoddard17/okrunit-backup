@@ -1,0 +1,364 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OKrunit API",
+    "description": "Human-in-the-loop approval gateway for automated workflows. Create approval requests, manage connections, and configure routing rules.",
+    "version": "1.0.0",
+    "contact": {
+      "email": "support@okrunit.com",
+      "url": "https://okrunit.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://okrunit.com/api/v1",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    { "BearerAuth": [] }
+  ],
+  "paths": {
+    "/approvals": {
+      "post": {
+        "summary": "Create approval request",
+        "description": "Submit a new approval request for human review. Requires API key authentication.",
+        "tags": ["Approvals"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateApprovalRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Approval request created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApprovalResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      },
+      "get": {
+        "summary": "List approval requests",
+        "description": "List approval requests for your organization with optional filtering.",
+        "tags": ["Approvals"],
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["pending", "approved", "rejected", "cancelled", "expired"] } },
+          { "name": "priority", "in": "query", "schema": { "type": "string", "enum": ["low", "medium", "high", "critical"] } },
+          { "name": "search", "in": "query", "schema": { "type": "string" }, "description": "Full-text search on title and description" },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "page_size", "in": "query", "schema": { "type": "integer", "default": 20, "maximum": 100 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of approval requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/ApprovalRequest" } },
+                    "total": { "type": "integer" },
+                    "page": { "type": "integer" },
+                    "page_size": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/approvals/{id}": {
+      "get": {
+        "summary": "Get approval request",
+        "tags": ["Approvals"],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Approval request details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApprovalRequest" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "summary": "Respond to approval request",
+        "description": "Approve or reject a pending approval request.",
+        "tags": ["Approvals"],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RespondApprovalRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Decision recorded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApprovalRequest" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/approvals/batch": {
+      "post": {
+        "summary": "Batch approve/reject",
+        "description": "Approve or reject multiple approval requests at once (max 50).",
+        "tags": ["Approvals"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BatchApprovalRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Batch results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": { "type": "array", "items": { "type": "object" } },
+                    "succeeded": { "type": "integer" },
+                    "failed": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections": {
+      "post": {
+        "summary": "Create API connection",
+        "description": "Create a new API key connection for your organization.",
+        "tags": ["Connections"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateConnectionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Connection created with API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Connection" },
+                    "api_key": { "type": "string", "description": "The API key (only shown once)" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analytics": {
+      "get": {
+        "summary": "Get analytics",
+        "description": "Comprehensive approval metrics and trends.",
+        "tags": ["Analytics"],
+        "parameters": [
+          { "name": "period", "in": "query", "schema": { "type": "string", "enum": ["day", "week", "month"] } },
+          { "name": "start_date", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "end_date", "in": "query", "schema": { "type": "string", "format": "date-time" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Analytics data"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "API key from your OKrunit connection. Pass as `Authorization: Bearer <api_key>`."
+      }
+    },
+    "schemas": {
+      "CreateApprovalRequest": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 500, "description": "Short description of what needs approval" },
+          "description": { "type": "string", "maxLength": 5000, "description": "Detailed explanation" },
+          "action_type": { "type": "string", "description": "Type of action (e.g. deploy, delete, purchase)" },
+          "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"], "default": "medium" },
+          "callback_url": { "type": "string", "format": "uri", "description": "URL to POST the decision to when approved/rejected" },
+          "callback_headers": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Custom headers for callback" },
+          "metadata": { "type": "object", "description": "Arbitrary key-value data attached to the request" },
+          "context_html": { "type": "string", "maxLength": 50000, "description": "Rich HTML context displayed in the approval detail" },
+          "expires_at": { "type": "string", "format": "date-time", "description": "When the request expires if no action taken" },
+          "idempotency_key": { "type": "string", "description": "Unique key to prevent duplicate requests" },
+          "required_approvals": { "type": "integer", "minimum": 1, "maximum": 10, "default": 1, "description": "Number of approvals needed" },
+          "assigned_approvers": { "type": "array", "items": { "type": "string", "format": "uuid" }, "description": "Specific user IDs to approve" },
+          "assigned_team_id": { "type": "string", "format": "uuid", "description": "Team to assign for approval" },
+          "source": { "type": "string", "description": "Platform source (e.g. zapier, make, api)" },
+          "auto_action": { "type": "string", "enum": ["approve", "reject"], "description": "Auto-action if no response within timeout" },
+          "auto_action_after_minutes": { "type": "integer", "description": "Minutes before auto-action triggers" },
+          "is_log": { "type": "boolean", "description": "If true, auto-approved immediately as a log entry" }
+        }
+      },
+      "RespondApprovalRequest": {
+        "type": "object",
+        "required": ["decision"],
+        "properties": {
+          "decision": { "type": "string", "enum": ["approve", "reject"] },
+          "comment": { "type": "string", "maxLength": 2000 },
+          "scheduled_execution_at": { "type": "string", "format": "date-time", "description": "Schedule approval execution for later" }
+        }
+      },
+      "BatchApprovalRequest": {
+        "type": "object",
+        "required": ["ids", "decision"],
+        "properties": {
+          "ids": { "type": "array", "items": { "type": "string", "format": "uuid" }, "minItems": 1, "maxItems": 50 },
+          "decision": { "type": "string", "enum": ["approve", "reject"] },
+          "comment": { "type": "string" }
+        }
+      },
+      "CreateConnectionRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "description": { "type": "string", "maxLength": 500 },
+          "rate_limit_per_hour": { "type": "integer", "minimum": 1, "maximum": 10000, "default": 100 },
+          "allowed_action_types": { "type": "array", "items": { "type": "string" } },
+          "max_priority": { "type": "string", "enum": ["low", "medium", "high", "critical"], "nullable": true }
+        }
+      },
+      "ApprovalRequest": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "status": { "type": "string", "enum": ["pending", "approved", "rejected", "cancelled", "expired"] },
+          "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+          "action_type": { "type": "string", "nullable": true },
+          "source": { "type": "string", "nullable": true },
+          "decided_by": { "type": "string", "format": "uuid", "nullable": true },
+          "decided_at": { "type": "string", "format": "date-time", "nullable": true },
+          "created_at": { "type": "string", "format": "date-time" },
+          "expires_at": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "ApprovalResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "$ref": "#/components/schemas/ApprovalRequest" }
+        }
+      },
+      "Connection": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "api_key_prefix": { "type": "string" },
+          "is_active": { "type": "boolean" },
+          "rate_limit_per_hour": { "type": "integer" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "responses": {
+      "ValidationError": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" },
+                "issues": { "type": "array", "items": { "type": "object" } }
+              }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid authentication",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Rate limit exceeded",
+        "headers": {
+          "X-RateLimit-Limit": { "schema": { "type": "integer" } },
+          "X-RateLimit-Remaining": { "schema": { "type": "integer" } },
+          "X-RateLimit-Reset": { "schema": { "type": "string", "format": "date-time" } },
+          "Retry-After": { "schema": { "type": "integer" } }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
