@@ -344,9 +344,10 @@ export const ApprovalCard = memo(function ApprovalCard({
             <AlertDialogAction
               onClick={handleConfirm}
               className={cn(
+                "!text-white cursor-pointer",
                 confirmDialog === "approved"
-                  ? "bg-emerald-600 hover:bg-emerald-700"
-                  : "bg-red-600 hover:bg-red-700"
+                  ? "!bg-emerald-600 hover:!bg-emerald-700"
+                  : "!bg-red-600 hover:!bg-red-700"
               )}
             >
               {confirmDialog === "approved" ? "Approve" : "Reject"}
