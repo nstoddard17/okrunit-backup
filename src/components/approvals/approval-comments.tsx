@@ -16,6 +16,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -124,7 +134,7 @@ export function ApprovalComments({
 }: ApprovalCommentsProps) {
   const [body, setBody] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const isAdmin = currentUserRole === "owner" || currentUserRole === "admin";
 
@@ -178,28 +188,28 @@ export function ApprovalComments({
     }
   }
 
-  // ---- Delete handler -----------------------------------------------------
+  // ---- Delete handler (optimistic) -----------------------------------------
 
-  async function handleDelete(commentId: string) {
-    setDeletingId(commentId);
-    try {
-      const res = await fetch(
-        `/api/v1/approvals/${requestId}/comments?comment_id=${commentId}`,
-        { method: "DELETE" },
-      );
+  function handleConfirmDelete() {
+    if (!confirmDeleteId) return;
+    const commentId = confirmDeleteId;
+    setConfirmDeleteId(null);
+
+    // Optimistic: remove immediately
+    onCommentDeleted?.(commentId);
+    toast.success("Comment deleted");
+
+    // Background: send delete request
+    fetch(
+      `/api/v1/approvals/${requestId}/comments?comment_id=${commentId}`,
+      { method: "DELETE" },
+    ).then((res) => {
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error ?? "Failed to delete comment");
+        toast.error("Failed to delete comment on server");
       }
-      onCommentDeleted?.(commentId);
-      toast.success("Comment deleted");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to delete comment",
-      );
-    } finally {
-      setDeletingId(null);
-    }
+    }).catch(() => {
+      toast.error("Failed to delete comment");
+    });
   }
 
   // ---- Render -------------------------------------------------------------
@@ -282,8 +292,7 @@ export function ApprovalComments({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
-                        onClick={() => handleDelete(comment.id)}
-                        disabled={deletingId === comment.id}
+                        onClick={() => setConfirmDeleteId(comment.id)}
                         className="opacity-0 group-hover/comment:opacity-100 transition-opacity shrink-0 p-1 rounded text-muted-foreground/40 hover:text-destructive cursor-pointer"
                       >
                         <Trash2 className="size-3" />
@@ -297,6 +306,38 @@ export function ApprovalComments({
           })}
         </div>
       )}
+      {/* Delete confirmation */}
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={(open) => { if (!open) setConfirmDeleteId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete comment</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>This will permanently delete this comment. This action cannot be undone.</p>
+                {(() => {
+                  const target = comments.find((c) => c.id === confirmDeleteId);
+                  if (!target) return null;
+                  const preview = target.body.length > 120 ? target.body.slice(0, 117) + "..." : target.body;
+                  return (
+                    <div className="rounded-md bg-muted px-3 py-2 text-sm text-foreground whitespace-pre-wrap break-words">
+                      {preview}
+                    </div>
+                  );
+                })()}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
