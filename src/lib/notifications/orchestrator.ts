@@ -61,8 +61,8 @@ const DEFAULT_SETTINGS: Pick<
   | "quiet_hours_timezone"
   | "minimum_priority"
 > = {
-  email_enabled: true,
-  push_enabled: true,
+  email_enabled: false,
+  push_enabled: false,
   quiet_hours_enabled: false,
   quiet_hours_start: null,
   quiet_hours_end: null,
