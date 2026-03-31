@@ -654,8 +654,8 @@ export async function POST(request: Request) {
           category: "approval_awaiting",
           title: `New request: ${validated.title}`,
           body: sourceName
-            ? `${effectivePriority} priority · from ${sourceName}`
-            : `${effectivePriority} priority`,
+            ? `${effectivePriority.charAt(0).toUpperCase() + effectivePriority.slice(1)} priority · from ${sourceName.charAt(0).toUpperCase() + sourceName.slice(1)}`
+            : `${effectivePriority.charAt(0).toUpperCase() + effectivePriority.slice(1)} priority`,
           actorName: connectionName ?? undefined,
           resourceType: "approval_request",
           resourceId: approval.id,
