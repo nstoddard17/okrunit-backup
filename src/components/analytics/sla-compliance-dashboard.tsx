@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { SlaMetrics } from "@/lib/api/sla";
 import type { SlaConfig } from "@/lib/types/database";
 
@@ -81,7 +82,12 @@ export function SlaComplianceDashboard({ metrics, slaConfig, showDemo }: SlaComp
             <p className={cn("text-2xl font-bold tracking-tight leading-none", complianceColor(complianceRate))}>
               {complianceRate}%
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Compliance</p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <p className="text-xs text-muted-foreground mt-1 cursor-help">Compliance</p>
+              </TooltipTrigger>
+              <TooltipContent>Percentage of requests decided before their SLA deadline</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
@@ -92,7 +98,12 @@ export function SlaComplianceDashboard({ metrics, slaConfig, showDemo }: SlaComp
           </div>
           <div>
             <p className="text-2xl font-bold tracking-tight leading-none">{metrics.total}</p>
-            <p className="text-xs text-muted-foreground mt-1">Tracked</p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <p className="text-xs text-muted-foreground mt-1 cursor-help">Tracked</p>
+              </TooltipTrigger>
+              <TooltipContent>Requests with an SLA deadline based on their priority</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
@@ -107,7 +118,12 @@ export function SlaComplianceDashboard({ metrics, slaConfig, showDemo }: SlaComp
           </div>
           <div>
             <p className="text-2xl font-bold tracking-tight leading-none">{metrics.breached}</p>
-            <p className="text-xs text-muted-foreground mt-1">Breached</p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <p className="text-xs text-muted-foreground mt-1 cursor-help">Breached</p>
+              </TooltipTrigger>
+              <TooltipContent>Requests still pending when their SLA deadline passed</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
@@ -122,7 +138,12 @@ export function SlaComplianceDashboard({ metrics, slaConfig, showDemo }: SlaComp
                 ? formatMinutes(metrics.avg_response_time_minutes)
                 : "—"}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Avg Response</p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <p className="text-xs text-muted-foreground mt-1 cursor-help">Avg Response</p>
+              </TooltipTrigger>
+              <TooltipContent>Average time from request creation to decision</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </div>

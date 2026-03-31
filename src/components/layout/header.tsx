@@ -136,12 +136,12 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
             onClick={() => {
               document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
             }}
-            className="hidden sm:flex items-center gap-2 rounded-lg border border-border/50 bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="hidden sm:flex items-center gap-2.5 rounded-lg border border-border bg-white dark:bg-card px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground shadow-sm min-w-[200px]"
           >
-            <Search className="size-3.5" />
-            <span>Search...</span>
-            <kbd className="rounded border border-border bg-background px-1 py-0.5 text-[10px] font-medium">
-              ⌘K
+            <Search className="size-4" />
+            <span className="flex-1 text-left">Search...</span>
+            <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] font-medium" suppressHydrationWarning>
+              {typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘K" : "Ctrl+K"}
             </kbd>
           </button>
 
