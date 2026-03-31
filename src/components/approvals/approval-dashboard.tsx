@@ -17,7 +17,7 @@ import { BatchActionsBar } from "@/components/approvals/batch-actions-bar";
 import { FlowConfigDialog } from "@/components/approvals/flow-config-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ApprovalRequest, Connection, UserProfile } from "@/lib/types/database";
+import type { ApprovalRequest, ApprovalComment, Connection, UserProfile } from "@/lib/types/database";
 
 interface ApprovalDashboardProps {
   initialApprovals?: ApprovalRequest[];
@@ -25,6 +25,8 @@ interface ApprovalDashboardProps {
   approvalCreators?: Record<string, string>;
   canApprove?: boolean;
   orgId: string;
+  userId: string;
+  userRole: string;
 }
 
 export function ApprovalDashboard({
@@ -33,9 +35,12 @@ export function ApprovalDashboard({
   approvalCreators = {},
   canApprove = true,
   orgId,
+  userId,
+  userRole,
 }: ApprovalDashboardProps) {
   const [approvals, setApprovals] = useState<ApprovalRequest[]>(initialApprovals ?? []);
   const [connections, setConnections] = useState<Connection[]>(initialConnections ?? []);
+  const [commentsMap, setCommentsMap] = useState<Record<string, ApprovalComment[]>>({});
   const [selectedApproval, setSelectedApproval] = useState<ApprovalRequest | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -284,6 +289,23 @@ export function ApprovalDashboard({
         const { data, error } = await query;
         if (error) { toast.error("Failed to fetch approvals"); return; }
         setApprovals(data ?? []);
+
+        // Batch-fetch comments for all loaded approvals
+        if (data && data.length > 0) {
+          const ids = data.map((a: ApprovalRequest) => a.id);
+          const { data: allComments } = await supabase
+            .from("approval_comments")
+            .select("*")
+            .in("request_id", ids)
+            .order("created_at", { ascending: true });
+          if (allComments) {
+            const grouped: Record<string, ApprovalComment[]> = {};
+            for (const c of allComments) {
+              (grouped[c.request_id] ??= []).push(c);
+            }
+            setCommentsMap(grouped);
+          }
+        }
       } catch {
         toast.error("Failed to fetch approvals");
       } finally {
@@ -789,6 +811,12 @@ export function ApprovalDashboard({
         userProfiles={userProfiles}
         creatorName={selectedApproval ? allCreatorNames[selectedApproval.id] : undefined}
         onConfigureFlow={handleConfigureFlow}
+        initialComments={selectedApproval ? commentsMap[selectedApproval.id] ?? [] : []}
+        onCommentsChange={(approvalId, comments) => {
+          setCommentsMap((prev) => ({ ...prev, [approvalId]: comments }));
+        }}
+        currentUserId={userId}
+        currentUserRole={userRole}
       />
 
       {/* Batch actions bar */}

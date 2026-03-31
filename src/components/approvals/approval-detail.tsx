@@ -42,6 +42,10 @@ interface ApprovalDetailProps {
   userProfiles?: Map<string, UserProfile>;
   creatorName?: string;
   onConfigureFlow?: (approval: ApprovalRequest) => void;
+  initialComments?: ApprovalComment[];
+  onCommentsChange?: (approvalId: string, comments: ApprovalComment[]) => void;
+  currentUserId?: string;
+  currentUserRole?: string;
 }
 
 const statusStyles: Record<string, { label: string; dot: string; badge: string }> = {
@@ -89,16 +93,31 @@ export function ApprovalDetail({
   userProfiles,
   creatorName,
   onConfigureFlow,
+  initialComments,
+  onCommentsChange,
+  currentUserId,
+  currentUserRole,
 }: ApprovalDetailProps) {
-  const [comments, setComments] = useState<ApprovalComment[]>([]);
+  const [localComments, setLocalComments] = useState<ApprovalComment[]>([]);
+  const [hasFetched, setHasFetched] = useState<string | null>(null);
   const [prevApprovalId, setPrevApprovalId] = useState<string | null>(null);
 
-  // Reset comments when approval changes or sidebar closes
   const currentId = open && approval ? approval.id : null;
+
   if (currentId !== prevApprovalId) {
     setPrevApprovalId(currentId);
-    setComments([]);
   }
+
+  // Use initialComments from parent when available, otherwise local state
+  const hasParentComments = initialComments !== undefined && initialComments.length > 0;
+  const comments = hasParentComments ? initialComments : localComments;
+
+  const setComments = (newComments: ApprovalComment[] | ((prev: ApprovalComment[]) => ApprovalComment[])) => {
+    if (!currentId) return;
+    const resolved = typeof newComments === "function" ? newComments(comments) : newComments;
+    setLocalComments(resolved);
+    onCommentsChange?.(currentId, resolved);
+  };
 
   // Keyboard shortcuts: a = approve, r = reject (only when detail is open and request is pending)
   useEffect(() => {
@@ -122,9 +141,11 @@ export function ApprovalDetail({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, approval, canApprove, onRespond]);
 
-  // Fetch comments when sidebar opens
+  // Fetch comments when sidebar opens (only if parent didn't prefetch them)
   useEffect(() => {
     if (!currentId) return;
+    if (hasParentComments) return;
+    if (hasFetched === currentId) return;
 
     let cancelled = false;
 
@@ -133,7 +154,11 @@ export function ApprovalDetail({
         const res = await fetch(`/api/v1/approvals/${currentId}/comments`);
         if (!res.ok) return;
         const json = await res.json();
-        if (!cancelled) setComments(json.data ?? []);
+        if (!cancelled) {
+          setLocalComments(json.data ?? []);
+          setHasFetched(currentId);
+          onCommentsChange?.(currentId!, json.data ?? []);
+        }
       } catch {
         // ignore
       }
@@ -141,7 +166,8 @@ export function ApprovalDetail({
 
     fetchComments();
     return () => { cancelled = true; };
-  }, [currentId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentId, hasParentComments]);
 
   const handleCommentAdded = useCallback((comment: ApprovalComment) => {
     setComments((prev) => {
@@ -467,7 +493,12 @@ export function ApprovalDetail({
                 requestId={approval.id}
                 comments={comments}
                 onCommentAdded={handleCommentAdded}
+                onCommentDeleted={(commentId) => {
+                  setComments((prev) => prev.filter((c) => c.id !== commentId));
+                }}
                 userProfiles={userProfiles}
+                currentUserId={currentUserId}
+                currentUserRole={currentUserRole}
               />
             </div>
           </div>
