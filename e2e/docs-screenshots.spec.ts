@@ -201,21 +201,21 @@ test.describe("Dashboard screenshots for docs", () => {
 
   // --- Connections ---
   test("connections page", async ({ page }) => {
-    await page.goto("/connections", { waitUntil: "domcontentloaded" });
+    await page.goto("/requests/connections", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(3000);
     await shot(page, "connections-list");
   });
 
   // --- Routes ---
   test("routes page", async ({ page }) => {
-    await page.goto("/routes", { waitUntil: "domcontentloaded" });
+    await page.goto("/requests/routes", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(3000);
     await shot(page, "routes-list");
   });
 
   // --- Messaging ---
   test("messaging page", async ({ page }) => {
-    await page.goto("/messaging", { waitUntil: "domcontentloaded" });
+    await page.goto("/requests/messaging", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(3000);
     await shot(page, "messaging-channels");
   });
@@ -229,7 +229,7 @@ test.describe("Dashboard screenshots for docs", () => {
 
   // --- Audit log ---
   test("audit log page", async ({ page }) => {
-    await page.goto("/audit-log", { waitUntil: "domcontentloaded" });
+    await page.goto("/requests/audit-log", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(3000);
     await shot(page, "audit-log");
   });
@@ -250,28 +250,28 @@ test.describe("Dashboard screenshots for docs", () => {
 
   // --- Billing ---
   test("billing page", async ({ page }) => {
-    await page.goto("/org/billing", { waitUntil: "domcontentloaded" });
+    await page.goto("/org/subscription", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(3000);
     await shot(page, "billing-dashboard");
   });
 
   // --- Settings ---
   test("settings page", async ({ page }) => {
-    await page.goto("/settings", { waitUntil: "domcontentloaded" });
+    await page.goto("/settings/account", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(3000);
     await shot(page, "account-settings");
   });
 
   // --- SSO settings ---
   test("sso settings", async ({ page }) => {
-    await page.goto("/settings?tab=sso", { waitUntil: "domcontentloaded" });
+    await page.goto("/settings/account", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(3000);
     await shot(page, "sso-settings");
   });
 
   // --- Playground ---
   test("api playground", async ({ page }) => {
-    await page.goto("/playground", { waitUntil: "domcontentloaded" });
+    await page.goto("/playground/request-builder", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(3000);
     await shot(page, "api-playground");
   });
@@ -281,5 +281,47 @@ test.describe("Dashboard screenshots for docs", () => {
     await page.goto("/setup", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(3000);
     await shot(page, "setup-wizard");
+  });
+
+  // --- Rules ---
+  test("rules page", async ({ page }) => {
+    await page.goto("/requests/rules", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(3000);
+    await shot(page, "rules-list");
+  });
+
+  // --- SLA Compliance ---
+  test("sla compliance", async ({ page }) => {
+    await page.goto("/requests/sla?demo=true", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(3000);
+    await shot(page, "sla-compliance");
+  });
+
+  // --- Custom Roles ---
+  test("custom roles", async ({ page }) => {
+    await page.goto("/org/roles", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(3000);
+    await shot(page, "custom-roles");
+  });
+
+  // --- Org Settings ---
+  test("org settings", async ({ page }) => {
+    await page.goto("/org/settings", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(3000);
+    await shot(page, "org-settings", { fullPage: true });
+  });
+
+  // --- Subscription ---
+  test("subscription page", async ({ page }) => {
+    await page.goto("/org/subscription", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(3000);
+    await shot(page, "subscription");
+  });
+
+  // --- Notification History ---
+  test("notification history", async ({ page }) => {
+    await page.goto("/settings/notifications", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(3000);
+    await shot(page, "notification-history");
   });
 });
