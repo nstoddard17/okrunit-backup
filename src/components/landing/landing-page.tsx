@@ -1642,7 +1642,7 @@ function ScrollFeatures({ steps }: { steps: FeatureStep[] }) {
 export function LandingPage({ user }: LandingPageProps) {
   return (
     <div className="gk-v2 force-light min-h-screen overflow-x-clip font-[var(--font-dm-sans)] text-[var(--foreground)]">
-      <header className="sticky top-0 z-50 border-b border-white/20 bg-white lg:bg-white/80 lg:backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:gap-6 sm:py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <Image
