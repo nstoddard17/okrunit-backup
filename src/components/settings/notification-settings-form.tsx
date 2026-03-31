@@ -116,10 +116,10 @@ export function NotificationSettingsForm({
   const [isSaving, setIsSaving] = useState(false);
 
   // ---------------------------------------------------------------------------
-  // Save handler
+  // Save handler — accepts overrides so it can be called immediately on toggle
   // ---------------------------------------------------------------------------
 
-  async function handleSave() {
+  async function saveSettings(overrides: Record<string, unknown> = {}) {
     setIsSaving(true);
 
     try {
@@ -135,6 +135,7 @@ export function NotificationSettingsForm({
           quiet_hours_timezone: quietHoursEnabled ? quietHoursTimezone : null,
           minimum_priority: minimumPriority,
           skip_approval_confirmation: skipApprovalConfirmation,
+          ...overrides,
         }),
       });
 
@@ -143,7 +144,7 @@ export function NotificationSettingsForm({
         throw new Error(data?.error ?? "Failed to save settings");
       }
 
-      toast.success("Notification settings saved successfully.");
+      toast.success("Settings saved.");
     } catch (err) {
       console.error("Failed to save notification settings:", err);
       toast.error(err instanceof Error ? err.message : "Failed to save settings. Please try again.");
@@ -188,7 +189,7 @@ export function NotificationSettingsForm({
             <Switch
               id="email-toggle"
               checked={emailEnabled}
-              onCheckedChange={setEmailEnabled}
+              onCheckedChange={(checked) => { setEmailEnabled(checked); saveSettings({ email_enabled: checked }); }}
             />
           </div>
 
@@ -210,7 +211,7 @@ export function NotificationSettingsForm({
             <Switch
               id="push-toggle"
               checked={pushEnabled}
-              onCheckedChange={setPushEnabled}
+              onCheckedChange={(checked) => { setPushEnabled(checked); saveSettings({ push_enabled: checked }); }}
             />
           </div>
 
@@ -247,7 +248,7 @@ export function NotificationSettingsForm({
             <Switch
               id="quiet-hours-toggle"
               checked={quietHoursEnabled}
-              onCheckedChange={setQuietHoursEnabled}
+              onCheckedChange={(checked) => { setQuietHoursEnabled(checked); saveSettings({ quiet_hours_enabled: checked }); }}
             />
           </div>
 
@@ -354,7 +355,7 @@ export function NotificationSettingsForm({
             <Switch
               id="skip-confirmation-toggle"
               checked={skipApprovalConfirmation}
-              onCheckedChange={setSkipApprovalConfirmation}
+              onCheckedChange={(checked) => { setSkipApprovalConfirmation(checked); saveSettings({ skip_approval_confirmation: checked }); }}
             />
           </div>
         </CardContent>
@@ -362,7 +363,7 @@ export function NotificationSettingsForm({
 
       {/* ---- Save Button ---- */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isSaving}>
+        <Button onClick={() => saveSettings()} disabled={isSaving}>
           {isSaving && <Loader2 className="size-4 animate-spin" />}
           Save settings
         </Button>

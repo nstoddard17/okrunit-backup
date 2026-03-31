@@ -182,7 +182,7 @@ export function NotificationPanel({ userId }: NotificationPanelProps) {
   const badgeCount = unreadCount;
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -317,7 +317,9 @@ function NotificationRow({
         </div>
         {n.body && (
           <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-            {n.body}
+            {n.body
+              .replace(/^(\w)/, (c) => c.toUpperCase())
+              .replace(/· from (\w)/g, (_, c) => `· from ${c.toUpperCase()}`)}
           </p>
         )}
         <p className="mt-1 text-[11px] text-muted-foreground/70">
