@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import {
   Sheet,
   SheetContent,
@@ -98,24 +98,15 @@ export function ApprovalDetail({
   currentUserId,
   currentUserRole,
 }: ApprovalDetailProps) {
-  const [localComments, setLocalComments] = useState<ApprovalComment[]>([]);
-  const [hasFetched, setHasFetched] = useState<string | null>(null);
-  const [prevApprovalId, setPrevApprovalId] = useState<string | null>(null);
-
   const currentId = open && approval ? approval.id : null;
 
-  if (currentId !== prevApprovalId) {
-    setPrevApprovalId(currentId);
-  }
-
-  // Use initialComments from parent when available, otherwise local state
-  const hasParentComments = initialComments !== undefined && initialComments.length > 0;
-  const comments = hasParentComments ? initialComments : localComments;
+  // Comments are owned by the parent dashboard via commentsMap.
+  // This component just reads them and pushes changes up.
+  const comments = initialComments ?? [];
 
   const setComments = (newComments: ApprovalComment[] | ((prev: ApprovalComment[]) => ApprovalComment[])) => {
     if (!currentId) return;
     const resolved = typeof newComments === "function" ? newComments(comments) : newComments;
-    setLocalComments(resolved);
     onCommentsChange?.(currentId, resolved);
   };
 
@@ -141,33 +132,7 @@ export function ApprovalDetail({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, approval, canApprove, onRespond]);
 
-  // Fetch comments when sidebar opens (only if parent didn't prefetch them)
-  useEffect(() => {
-    if (!currentId) return;
-    if (hasParentComments) return;
-    if (hasFetched === currentId) return;
-
-    let cancelled = false;
-
-    async function fetchComments() {
-      try {
-        const res = await fetch(`/api/v1/approvals/${currentId}/comments`);
-        if (!res.ok) return;
-        const json = await res.json();
-        if (!cancelled) {
-          setLocalComments(json.data ?? []);
-          setHasFetched(currentId);
-          onCommentsChange?.(currentId!, json.data ?? []);
-        }
-      } catch {
-        // ignore
-      }
-    }
-
-    fetchComments();
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentId, hasParentComments]);
+  // No local fetch needed — comments are prefetched by the parent dashboard
 
   const handleCommentAdded = useCallback((comment: ApprovalComment) => {
     setComments((prev) => {
