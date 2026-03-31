@@ -126,7 +126,6 @@ export default async function V2OrgOverviewPage() {
       : Promise.resolve({} as Record<string, string>),
   ]);
 
-  const isAdmin = membership.role === "owner" || membership.role === "admin";
   const totalRequests = (approvedCount ?? 0) + (rejectedCount ?? 0) + (pendingCount ?? 0);
   const approvalRate = totalRequests > 0 ? Math.round(((approvedCount ?? 0) / totalRequests) * 100) : 0;
 

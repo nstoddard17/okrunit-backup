@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, type Page } from "@playwright/test";
 
 // Mobile viewport — iPhone 14
 const MOBILE_VIEWPORT = { width: 390, height: 844 };

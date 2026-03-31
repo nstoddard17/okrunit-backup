@@ -30,7 +30,7 @@ export default async function RequestsPage() {
     if (cb?.user_id) creatorUserIds.add(cb.user_id);
   }
 
-  let approvalCreators: Record<string, string> = {};
+  const approvalCreators: Record<string, string> = {};
   if (creatorUserIds.size > 0) {
     const { data: profiles } = await admin
       .from("user_profiles")
