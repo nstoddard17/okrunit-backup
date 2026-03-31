@@ -155,6 +155,6 @@ export function buildUsageAlertEmailHtml(
     heroBanner,
     preheader: `${orgName} is approaching plan limits`,
     footerText:
-      "You received this email because you are an owner or admin of this organization.",
+      `You received this email because you are an owner or admin of the ${orgName} organization.`,
   });
 }

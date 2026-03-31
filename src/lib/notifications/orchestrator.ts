@@ -149,7 +149,7 @@ export async function dispatchNotifications(
           ).then((tokens: { approveToken: string; rejectToken: string }) =>
             sendApprovalEmail({
               to: email,
-              subject: `[OKrunit] ${event.requestTitle}`,
+              subject: event.requestTitle,
               requestId: event.requestId,
               title: event.requestTitle,
               description: event.requestDescription,
@@ -171,7 +171,7 @@ export async function dispatchNotifications(
           promises.push(
             sendDecisionEmail({
               to: email,
-              subject: `[OKrunit] ${event.requestTitle} - ${decision}`,
+              subject: `${event.requestTitle} - ${decision}`,
               requestTitle: event.requestTitle,
               decision,
               decidedBy: event.decidedBy,
