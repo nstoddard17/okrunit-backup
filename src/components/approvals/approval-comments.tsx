@@ -312,15 +312,41 @@ export function ApprovalComments({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete comment</AlertDialogTitle>
             <AlertDialogDescription asChild>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <p>This will permanently delete this comment. This action cannot be undone.</p>
                 {(() => {
                   const target = comments.find((c) => c.id === confirmDeleteId);
                   if (!target) return null;
-                  const preview = target.body.length > 120 ? target.body.slice(0, 117) + "..." : target.body;
+                  const targetBadge = getSourceBadge(target);
                   return (
-                    <div className="rounded-md bg-muted px-3 py-2 text-sm text-foreground whitespace-pre-wrap break-words">
-                      {preview}
+                    <div className="rounded-lg border bg-muted/30 px-3 py-2.5">
+                      <div className="flex gap-2.5">
+                        <Avatar className="size-7 shrink-0 mt-0.5">
+                          {target.source && SOURCE_LOGOS[target.source] && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <AvatarImage src={SOURCE_LOGOS[target.source]} alt={SOURCE_LABELS[target.source] ?? target.source} />
+                          )}
+                          <AvatarFallback className="text-[10px]">
+                            {getAvatarInitials(target, userProfiles)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-semibold truncate text-foreground">
+                              {getAuthorName(target, userProfiles, connectionNames)}
+                            </span>
+                            <Badge variant={targetBadge.variant} className="text-[9px] px-1 py-0 shrink-0">
+                              {targetBadge.label}
+                            </Badge>
+                            <span className="text-muted-foreground text-[10px] shrink-0">
+                              {formatDistanceToNow(new Date(target.created_at), { addSuffix: true })}
+                            </span>
+                          </div>
+                          <p className="text-sm whitespace-pre-wrap break-words mt-0.5 leading-relaxed text-foreground">
+                            {target.body}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   );
                 })()}
@@ -331,7 +357,7 @@ export function ApprovalComments({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
+              className="bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer"
             >
               Delete
             </AlertDialogAction>
