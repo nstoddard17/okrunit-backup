@@ -6,6 +6,8 @@ import { User, Mail, Lock, Loader2, AlertTriangle, CheckCircle, Clock, Bell, Shi
 import { useTheme } from "next-themes";
 
 import { createClient } from "@/lib/supabase/client";
+import { MfaSettings } from "@/components/settings/mfa-settings";
+import { PasskeySettings } from "@/components/settings/passkey-settings";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -489,6 +491,24 @@ export function AccountSettings({
               </Button>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* -- Security: 2FA + Passkeys -- */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="size-5" />
+            Security
+          </CardTitle>
+          <CardDescription>
+            Protect your account with two-factor authentication and passkeys.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <MfaSettings inline />
+          <Separator />
+          <PasskeySettings />
         </CardContent>
       </Card>
 

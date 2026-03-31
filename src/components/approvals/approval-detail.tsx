@@ -135,11 +135,9 @@ export function ApprovalDetail({
   // No local fetch needed — comments are prefetched by the parent dashboard
 
   const handleCommentAdded = useCallback((comment: ApprovalComment) => {
-    setComments((prev) => {
-      if (prev.some((c) => c.id === comment.id)) return prev;
-      return [...prev, comment];
-    });
-  }, []);
+    if (!currentId) return;
+    onCommentsChange?.(currentId, [...(initialComments ?? []).filter((c) => c.id !== comment.id), comment]);
+  }, [currentId, initialComments, onCommentsChange]);
 
   if (!approval) return null;
 

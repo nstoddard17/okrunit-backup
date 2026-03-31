@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { safeRedirectUrl } from "@/lib/redirect";
+import { checkMfaRequired } from "@/lib/mfa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,9 +81,18 @@ export function LoginForm() {
         return;
       }
 
+      // Check if user has MFA enrolled — redirect to verification if so
+      const { required } = await checkMfaRequired(supabase);
+      const redirectTo = searchParams.get("redirect_to");
+
+      if (required) {
+        const mfaUrl = `/mfa-verify${redirectTo ? `?redirect_to=${encodeURIComponent(redirectTo)}` : ""}`;
+        router.push(mfaUrl);
+        return;
+      }
+
       // If there's a redirect_to param (e.g. from OAuth authorize), go there instead.
       // Validate it's a safe relative path to prevent open redirect attacks.
-      const redirectTo = searchParams.get("redirect_to");
       router.push(safeRedirectUrl(redirectTo));
     });
   }

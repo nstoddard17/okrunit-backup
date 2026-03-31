@@ -167,7 +167,7 @@ export function SafetySettings({
             variant={autoApprovalsPaused ? "default" : "outline"}
             onClick={handleTogglePause}
             disabled={pauseLoading}
-            className="w-full"
+            className={`w-full ${!autoApprovalsPaused ? "bg-white dark:bg-zinc-900" : ""}`}
           >
             {pauseLoading && <Loader2 className="size-4 animate-spin" />}
             {autoApprovalsPaused

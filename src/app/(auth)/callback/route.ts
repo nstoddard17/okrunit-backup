@@ -74,5 +74,11 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Check if user has MFA enrolled — redirect to verification if so
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.currentLevel === "aal1" && aal?.nextLevel === "aal2") {
+    return NextResponse.redirect(new URL("/mfa-verify", origin));
+  }
+
   return NextResponse.redirect(new URL("/org/overview", origin));
 }
