@@ -283,12 +283,20 @@ export function ApprovalDashboard({
   const approvedCount = approvals.filter((a) => a.status === "approved").length;
   const rejectedCount = approvals.filter((a) => a.status === "rejected").length;
 
-  // Pagination
-  const totalPages = Math.ceil(approvals.length / pageSize);
+  // Split pending from resolved — pending always shows at top, pagination only applies to resolved
+  const pendingApprovals = useMemo(() => approvals.filter((a) => a.status === "pending"), [approvals]);
+  const resolvedApprovals = useMemo(() => approvals.filter((a) => a.status !== "pending"), [approvals]);
+
+  // Pagination only applies to resolved items
+  const totalPages = Math.ceil(resolvedApprovals.length / pageSize);
   const paginatedApprovals = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return approvals.slice(start, start + pageSize);
-  }, [approvals, currentPage, pageSize]);
+    const paginatedResolved = resolvedApprovals.slice(
+      (currentPage - 1) * pageSize,
+      currentPage * pageSize,
+    );
+    // Always show ALL pending items + paginated resolved items
+    return [...pendingApprovals, ...paginatedResolved];
+  }, [pendingApprovals, resolvedApprovals, currentPage, pageSize]);
 
   const handlePageSizeChange = useCallback((newSize: number) => {
     setPageSize(newSize);
