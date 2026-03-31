@@ -283,20 +283,19 @@ export function ApprovalDashboard({
   const approvedCount = approvals.filter((a) => a.status === "approved").length;
   const rejectedCount = approvals.filter((a) => a.status === "rejected").length;
 
-  // Split pending from resolved — pending always shows at top, pagination only applies to resolved
-  const pendingApprovals = useMemo(() => approvals.filter((a) => a.status === "pending"), [approvals]);
-  const resolvedApprovals = useMemo(() => approvals.filter((a) => a.status !== "pending"), [approvals]);
+  // Sort: pending first, then resolved — both within page size limit
+  const sortedApprovals = useMemo(() => {
+    const pending = approvals.filter((a) => a.status === "pending");
+    const resolved = approvals.filter((a) => a.status !== "pending");
+    return [...pending, ...resolved];
+  }, [approvals]);
 
-  // Pagination only applies to resolved items
-  const totalPages = Math.ceil(resolvedApprovals.length / pageSize);
+  // Pagination applies to the full sorted list
+  const totalPages = Math.ceil(sortedApprovals.length / pageSize);
   const paginatedApprovals = useMemo(() => {
-    const paginatedResolved = resolvedApprovals.slice(
-      (currentPage - 1) * pageSize,
-      currentPage * pageSize,
-    );
-    // Always show ALL pending items + paginated resolved items
-    return [...pendingApprovals, ...paginatedResolved];
-  }, [pendingApprovals, resolvedApprovals, currentPage, pageSize]);
+    const start = (currentPage - 1) * pageSize;
+    return sortedApprovals.slice(start, start + pageSize);
+  }, [sortedApprovals, currentPage, pageSize]);
 
   const handlePageSizeChange = useCallback((newSize: number) => {
     setPageSize(newSize);
