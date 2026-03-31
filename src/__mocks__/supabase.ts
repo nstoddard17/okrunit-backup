@@ -55,7 +55,7 @@ export function createMockSupabaseClient() {
   // Every method returns the proxy (chainable), except `single`/`maybeSingle`
   // which resolve the pending result.
   for (const method of methods) {
-    chainable[method].mockImplementation((..._args: unknown[]) => {
+    chainable[method].mockImplementation(() => {
       if (method === "single" || method === "maybeSingle") {
         return Promise.resolve(pendingResult);
       }
@@ -65,14 +65,14 @@ export function createMockSupabaseClient() {
   }
 
   // Overrides: `from` also resets and returns proxy (for fresh chains)
-  chainable["from"].mockImplementation((..._args: unknown[]) => proxy);
+  chainable["from"].mockImplementation(() => proxy);
 
   // `select` with count option should still chain
-  chainable["select"].mockImplementation((..._args: unknown[]) => proxy);
+  chainable["select"].mockImplementation(() => proxy);
 
   // `insert`/`update`/`delete` resolve by default (no `.single()` needed)
   for (const m of ["insert", "update", "delete"]) {
-    chainable[m].mockImplementation((..._args: unknown[]) => proxy);
+    chainable[m].mockImplementation(() => proxy);
   }
 
   // Allow `.then()` on the proxy so `await admin.from(...).select(...)...` resolves

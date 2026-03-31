@@ -5,6 +5,7 @@
 // ---------------------------------------------------------------------------
 
 import { useState } from "react";
+import Image from "next/image";
 import { Check, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -143,9 +144,11 @@ export function ConsentForm({
         <CardTitle className="flex items-center justify-center gap-2 text-lg">
           Authorize{" "}
           {clientLogoUrl ? (
-            <img
+            <Image
               src={clientLogoUrl}
               alt={clientName}
+              width={28}
+              height={28}
               className="inline-block h-7 w-auto"
             />
           ) : (

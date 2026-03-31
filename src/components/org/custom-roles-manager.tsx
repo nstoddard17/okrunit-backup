@@ -183,7 +183,7 @@ export function CustomRolesManager({ initialRoles }: CustomRolesManagerProps) {
           <Users className="size-8 text-muted-foreground/30 mb-3" />
           <p className="text-sm font-medium text-muted-foreground">No custom roles</p>
           <p className="text-xs text-muted-foreground/60 mt-1">
-            Create roles like "Security Reviewer" or "Finance Approver" to organize your team.
+            Create roles like &quot;Security Reviewer&quot; or &quot;Finance Approver&quot; to organize your team.
           </p>
           <Button size="sm" className="mt-4 gap-1.5" onClick={openCreate}>
             <Plus className="size-3.5" />

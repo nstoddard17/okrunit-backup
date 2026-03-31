@@ -52,7 +52,7 @@ export async function GET(request: Request) {
     // Fetch member counts for all teams in a single query.
     const teamIds = (teams ?? []).map((t) => t.id);
 
-    let memberCounts = new Map<string, number>();
+    const memberCounts = new Map<string, number>();
 
     if (teamIds.length > 0) {
       const { data: counts, error: countError } = await admin

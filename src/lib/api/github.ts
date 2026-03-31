@@ -2,7 +2,7 @@
 // OKrunit -- GitHub App API Helpers
 // ---------------------------------------------------------------------------
 
-import { createHmac } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -215,6 +215,5 @@ export function verifyWebhookSignature(
   const expectedBuf = Buffer.from(expected);
   const signatureBuf = Buffer.from(signature);
 
-  const { timingSafeEqual } = require("crypto") as typeof import("crypto");
   return timingSafeEqual(expectedBuf, signatureBuf);
 }

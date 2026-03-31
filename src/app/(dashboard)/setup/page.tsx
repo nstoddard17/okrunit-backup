@@ -14,7 +14,7 @@ export default async function SetupPage() {
   const ctx = await getOrgContext();
   if (!ctx) redirect("/login");
 
-  const { org, membership } = ctx;
+  const { org } = ctx;
   const admin = createAdminClient();
 
   // Fetch connected messaging platforms for this org

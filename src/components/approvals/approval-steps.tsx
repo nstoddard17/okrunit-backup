@@ -229,7 +229,7 @@ export function ApprovalSteps({ requestId, canApprove, currentUserId }: Approval
                     )}
 
                     {isActive && hasVoted && (
-                      <p className="mt-2 text-xs text-muted-foreground">You've already voted on this step</p>
+                      <p className="mt-2 text-xs text-muted-foreground">You&apos;ve already voted on this step</p>
                     )}
                   </CardContent>
                 </Card>
