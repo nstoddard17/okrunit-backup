@@ -311,15 +311,27 @@ export function ApprovalComments({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete comment</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this comment. This action cannot be undone.
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>This will permanently delete this comment. This action cannot be undone.</p>
+                {(() => {
+                  const target = comments.find((c) => c.id === confirmDeleteId);
+                  if (!target) return null;
+                  const preview = target.body.length > 120 ? target.body.slice(0, 117) + "..." : target.body;
+                  return (
+                    <div className="rounded-md bg-muted px-3 py-2 text-sm text-foreground whitespace-pre-wrap break-words">
+                      {preview}
+                    </div>
+                  );
+                })()}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
             >
               Delete
             </AlertDialogAction>
