@@ -104,7 +104,7 @@ function getAvatarInitials(
 
 function getSourceBadge(comment: ApprovalComment): { label: string; variant: "secondary" | "outline" } {
   if (comment.source && comment.source !== "dashboard" && comment.source !== "api") {
-    return { label: SOURCE_LABELS[comment.source] ?? comment.source, variant: "outline" };
+    return { label: "App", variant: "outline" };
   }
   if (comment.user_id) return { label: "User", variant: "secondary" };
   return { label: "API", variant: "outline" };
