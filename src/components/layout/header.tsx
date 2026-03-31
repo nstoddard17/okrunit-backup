@@ -146,8 +146,8 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
           >
             <Search className="size-4" />
             <span className="flex-1 text-left">Search...</span>
-            <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] font-medium">
-              {isMac ? "⌘K" : "Ctrl+K"}
+            <kbd className="flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] font-medium">
+              {isMac ? <><span className="text-[14px] leading-none">⌘</span>K</> : "Ctrl+K"}
             </kbd>
           </button>
 

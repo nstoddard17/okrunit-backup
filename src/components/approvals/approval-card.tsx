@@ -17,9 +17,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-// Dropdown removed — actions are now inline buttons
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
-import { Clock, CheckCircle, XCircle, User2, Archive, ArchiveRestore, Settings2 } from "lucide-react";
+import { Clock, CheckCircle, XCircle, User2, MoreVertical, Eye, Archive, ArchiveRestore, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SourceAvatar, getSourceDisplay } from "@/components/approvals/source-icons";
 import type { ApprovalRequest } from "@/lib/types/database";
@@ -256,37 +262,42 @@ export const ApprovalCard = memo(function ApprovalCard({
                   <Settings2 className="size-4" />
                 </Button>
               )}
-              {approval.archived_at ? (
-                onUnarchive && (
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
                     className="size-7 p-0"
-                    title="Unarchive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onUnarchive(approval.id);
-                    }}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <ArchiveRestore className="size-4" />
+                    <MoreVertical className="size-4" />
+                    <span className="sr-only">More actions</span>
                   </Button>
-                )
-              ) : (
-                onArchive && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="size-7 p-0"
-                    title="Archive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onArchive(approval.id);
-                    }}
-                  >
-                    <Archive className="size-4" />
-                  </Button>
-                )
-              )}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenuItem onClick={onClick}>
+                    <Eye className="size-4" />
+                    Details
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {approval.archived_at ? (
+                    onUnarchive && (
+                      <DropdownMenuItem onClick={() => onUnarchive(approval.id)}>
+                        <ArchiveRestore className="size-4" />
+                        Unarchive
+                      </DropdownMenuItem>
+                    )
+                  ) : (
+                    onArchive && (
+                      <DropdownMenuItem onClick={() => onArchive(approval.id)}>
+                        <Archive className="size-4" />
+                        Archive
+                      </DropdownMenuItem>
+                    )
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
