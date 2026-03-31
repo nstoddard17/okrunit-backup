@@ -240,14 +240,14 @@ export const ApprovalCard = memo(function ApprovalCard({
                 </Button>
               </div>
             )}
-            <PriorityBadge priority={approval.priority} />
+            {!approval.is_log && <PriorityBadge priority={approval.priority} />}
             {approval.archived_at && (
               <Badge variant="secondary" className="text-[11px]">Archived</Badge>
             )}
-            <Badge variant={status.variant} className="text-[11px]">{status.label}</Badge>
+            {!approval.is_log && <Badge variant={status.variant} className="text-[11px]">{status.label}</Badge>}
 
             {/* Quick flow config button */}
-            {approval.flow_id && onConfigureFlow && (
+            {approval.flow_id && onConfigureFlow && !approval.is_log && (
               <Button
                 variant="ghost"
                 size="sm"
