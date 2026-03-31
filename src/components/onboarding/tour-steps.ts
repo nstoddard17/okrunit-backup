@@ -30,7 +30,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     title: "Approve or Reject",
     description:
       "Review the request details and make your decision. Click Approve to allow the action to proceed, or Reject to stop it. You can also add a comment explaining your decision.",
-    position: "left",
+    position: "top",
     actionLabel: "I'll try it",
   },
   {
