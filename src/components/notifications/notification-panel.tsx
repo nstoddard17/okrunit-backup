@@ -300,12 +300,10 @@ function NotificationRow({
     <Link
       href={getNotificationHref(n)}
       onClick={onNavigate}
-      className="flex items-center gap-3 px-4 py-3 transition-colors bg-white dark:bg-card hover:bg-accent border-b border-border/30 last:border-b-0"
+      className="flex items-start gap-3 px-4 py-3 transition-colors bg-white dark:bg-card hover:bg-accent border-b border-border/30 last:border-b-0"
     >
-      {/* Icon — centered in circle */}
-      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-        <DisplayIcon className={cn("size-4", iconColor)} />
-      </div>
+      {/* Icon — no background circle */}
+      <DisplayIcon className={cn("size-4 mt-0.5 shrink-0", iconColor)} />
 
       {/* Content */}
       <div className="min-w-0 flex-1">
@@ -315,13 +313,26 @@ function NotificationRow({
           </p>
           <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
         </div>
-        {n.body && (
-          <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-            {n.body
-              .replace(/^(\w)/, (c) => c.toUpperCase())
-              .replace(/· from (\w)/g, (_, c) => `· from ${c.toUpperCase()}`)}
-          </p>
-        )}
+        {n.body && (() => {
+          const formatted = n.body
+            .replace(/^(\w)/, (c: string) => c.toUpperCase())
+            .replace(/· from (\w)/g, (_: string, c: string) => `· from ${c.toUpperCase()}`);
+          const sourceMatch = n.body.match(/from (\w+)/i);
+          const sourceName = sourceMatch?.[1]?.toLowerCase();
+          return (
+            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground flex items-center gap-1">
+              {sourceName && (
+                <img
+                  src={`/logos/platforms/${sourceName}.png`}
+                  alt=""
+                  className="size-3.5 rounded shrink-0"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              )}
+              <span>{formatted}</span>
+            </p>
+          );
+        })()}
         <p className="mt-1 text-[11px] text-muted-foreground/70">
           {timeAgo(n.created_at)}
         </p>
