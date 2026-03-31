@@ -44,7 +44,8 @@ export default async function DashboardLayout({
       .from("approval_requests")
       .select("*", { count: "exact", head: true })
       .eq("org_id", org.id)
-      .eq("status", "pending"),
+      .eq("status", "pending")
+      .is("archived_at", null),
   ]);
 
   return (

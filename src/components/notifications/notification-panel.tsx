@@ -301,12 +301,15 @@ function NotificationRow({
       href={getNotificationHref(n)}
       onClick={onNavigate}
       className={cn(
-        "flex items-start gap-3 px-4 py-3 transition-colors hover:bg-accent",
+        "flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent",
         !n.is_read && "bg-primary/[0.03]",
       )}
     >
-      {/* Icon */}
-      <div className="mt-0.5 shrink-0">
+      {/* Icon — centered in circle */}
+      <div className={cn(
+        "flex size-8 shrink-0 items-center justify-center rounded-full",
+        !n.is_read ? "bg-primary/10" : "bg-muted/50",
+      )}>
         <DisplayIcon className={cn("size-4", iconColor)} />
       </div>
 
