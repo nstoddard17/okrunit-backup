@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useOnboardingTourStore } from "@/stores/onboarding-tour-store";
+import { TOUR_STEPS } from "@/components/onboarding/tour-steps";
 import { AlertTriangle, Menu, HelpCircle, LogOut, Settings, Check, ChevronsUpDown, Building2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -152,6 +154,9 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
           </button>
 
           {/* Help button with text label like Make.com */}
+          {/* Tour progress indicator */}
+          <TourHeaderIndicator />
+
           <Button variant="ghost" size="sm" asChild className="h-8 gap-1.5 text-muted-foreground hover:text-foreground">
             <a href="https://okrunit.com/docs" target="_blank" rel="noopener noreferrer">
               <HelpCircle className="size-4" />
@@ -198,5 +203,37 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
         </div>
       </div>
     </header>
+  );
+}
+
+function TourHeaderIndicator() {
+  const { isActive, currentStep, tourCompleted, tourDismissed, startTour } =
+    useOnboardingTourStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || tourCompleted || tourDismissed) return null;
+  if (isActive) return null; // Tour tooltip is showing, don't need indicator
+
+  const progress = Math.round((currentStep / TOUR_STEPS.length) * 100);
+  const isResuming = currentStep > 0;
+
+  return (
+    <button
+      onClick={startTour}
+      className="hidden sm:flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+    >
+      <div className="relative size-4">
+        <svg viewBox="0 0 36 36" className="size-4 -rotate-90">
+          <circle cx="18" cy="18" r="16" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.2" />
+          <circle cx="18" cy="18" r="16" fill="none" stroke="currentColor" strokeWidth="3"
+            strokeDasharray={`${progress} 100`} strokeLinecap="round" />
+        </svg>
+      </div>
+      {isResuming ? `${currentStep}/${TOUR_STEPS.length}` : "Tour"}
+    </button>
   );
 }
