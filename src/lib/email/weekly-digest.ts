@@ -189,6 +189,6 @@ export function buildWeeklyDigestEmailHtml(
     heroBanner,
     preheader: `${orgName}: ${stats.totalRequests} requests this week, ${approvalRate}% approval rate`,
     footerText:
-      "You received this weekly digest because you are a member of this organization. Manage preferences in your settings.",
+      `You received this weekly digest because you are a member of the ${orgName} organization. Manage preferences in your settings.`,
   });
 }

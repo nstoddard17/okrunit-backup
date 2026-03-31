@@ -527,7 +527,7 @@ export function emailLayout(options: {
                   src="${LOGO_URL}"
                   alt="OKrunit"
                   width="140"
-                  style="display:block;width:140px;height:auto;border:0;"
+                  style="display:block;width:140px;height:auto;border:0;background:#ffffff;border-radius:8px;padding:6px 12px;"
                 />
               </a>
             </td>
