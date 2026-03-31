@@ -122,75 +122,85 @@ export function SlaComplianceDashboard({ metrics, slaConfig }: SlaComplianceDash
           <CardTitle className="text-sm">Compliance by Priority</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {PRIORITIES.map((priority) => {
-              const data = metrics.per_priority[priority];
-              const slaMinutes = slaConfig[priority];
-              const priorityComplianceRate = data.total > 0
-                ? Math.round((1 - data.breach_rate / 100) * 10000) / 100
-                : 100;
-              const style = PRIORITY_STYLES[priority];
+          {metrics.total === 0 ? (
+            <div className="flex flex-col items-center py-6 text-center">
+              <ShieldCheck className="size-6 text-muted-foreground/30 mb-2" />
+              <p className="text-sm text-muted-foreground">No SLA-tracked requests in the last 30 days</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">
+                Requests with SLA deadlines will appear here once they come in.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {PRIORITIES.map((priority) => {
+                const data = metrics.per_priority[priority];
+                const slaMinutes = slaConfig[priority];
+                const priorityComplianceRate = data.total > 0
+                  ? Math.round((1 - data.breach_rate / 100) * 10000) / 100
+                  : 100;
+                const style = PRIORITY_STYLES[priority];
 
-              return (
-                <div key={priority} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className={cn("text-xs capitalize", style.color)}>
-                        {priority}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        SLA: {slaMinutes ? formatMinutes(slaMinutes) : "Not set"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs">
-                      <span className="text-muted-foreground">
-                        {data.total} tracked
-                      </span>
-                      {data.breached > 0 && (
-                        <span className="flex items-center gap-1 text-red-500">
-                          <AlertTriangle className="size-3" />
-                          {data.breached} breached
+                return (
+                  <div key={priority} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className={cn("text-xs capitalize", style.color)}>
+                          {priority}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          SLA: {slaMinutes ? formatMinutes(slaMinutes) : "Not set"}
                         </span>
-                      )}
-                      <span className={cn("font-semibold", complianceColor(priorityComplianceRate))}>
-                        {data.total > 0 ? `${priorityComplianceRate}%` : "—"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Progress bar */}
-                  {data.total > 0 && (
-                    <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className={cn(
-                          "h-full rounded-full transition-all",
-                          priorityComplianceRate >= 95
-                            ? "bg-emerald-500"
-                            : priorityComplianceRate >= 80
-                              ? "bg-amber-500"
-                              : "bg-red-500",
+                      </div>
+                      <div className="flex items-center gap-3 text-xs">
+                        <span className="text-muted-foreground">
+                          {data.total} tracked
+                        </span>
+                        {data.breached > 0 && (
+                          <span className="flex items-center gap-1 text-red-500">
+                            <AlertTriangle className="size-3" />
+                            {data.breached} breached
+                          </span>
                         )}
-                        style={{ width: `${Math.min(100, priorityComplianceRate)}%` }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Response time */}
-                  {data.avg_response_time_minutes > 0 && (
-                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                      <Clock className="size-3" />
-                      Avg response: {formatMinutes(data.avg_response_time_minutes)}
-                      {slaMinutes && data.avg_response_time_minutes > slaMinutes && (
-                        <span className="text-red-500 font-medium ml-1">
-                          (exceeds SLA by {formatMinutes(data.avg_response_time_minutes - slaMinutes)})
+                        <span className={cn("font-semibold", data.total > 0 ? complianceColor(priorityComplianceRate) : "text-muted-foreground")}>
+                          {data.total > 0 ? `${priorityComplianceRate}%` : "N/A"}
                         </span>
-                      )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+
+                    {/* Progress bar */}
+                    {data.total > 0 && (
+                      <div className="h-2 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className={cn(
+                            "h-full rounded-full transition-all",
+                            priorityComplianceRate >= 95
+                              ? "bg-emerald-500"
+                              : priorityComplianceRate >= 80
+                                ? "bg-amber-500"
+                                : "bg-red-500",
+                          )}
+                          style={{ width: `${Math.min(100, priorityComplianceRate)}%` }}
+                        />
+                      </div>
+                    )}
+
+                    {/* Response time — only show when this priority has tracked requests */}
+                    {data.total > 0 && data.avg_response_time_minutes > 0 && (
+                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <Clock className="size-3" />
+                        Avg response: {formatMinutes(data.avg_response_time_minutes)}
+                        {slaMinutes && data.avg_response_time_minutes > slaMinutes && (
+                          <span className="text-red-500 font-medium ml-1">
+                            (exceeds SLA by {formatMinutes(data.avg_response_time_minutes - slaMinutes)})
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
