@@ -69,7 +69,7 @@ export function ApprovalResponseForm({
   }
 
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-3" data-tour="response-form">
       <Button
         variant="success"
         onClick={() => setPendingDecision("approved")}

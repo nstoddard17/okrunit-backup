@@ -244,7 +244,7 @@ export function MessagingConnectionsPage({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" data-tour="messaging-section">
       {/* Platform cards grid */}
       <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
         {PLATFORMS.map((p) => (

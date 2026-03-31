@@ -136,6 +136,7 @@ export const ApprovalCard = memo(function ApprovalCard({
           glowColor,
           isNew && "ring-2 ring-emerald-400/60 animate-in fade-in slide-in-from-bottom-1 duration-500",
         )}
+        data-tour={approval.source === "onboarding" ? "test-request" : undefined}
         onClick={onClick}
       >
         <div className="flex items-center gap-3 px-4 py-3">
