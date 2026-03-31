@@ -9,7 +9,7 @@ import { useApprovalFiltersStore } from "@/stores/approval-filters-store";
 import { useRealtime } from "@/hooks/use-realtime";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Clock, CheckCircle, XCircle, RefreshCw, Archive } from "lucide-react";
+import { Clock, CheckCircle, XCircle, RefreshCw, Archive, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,7 +17,7 @@ import { BatchActionsBar } from "@/components/approvals/batch-actions-bar";
 import { FlowConfigDialog } from "@/components/approvals/flow-config-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ApprovalRequest, Connection, UserProfile } from "@/lib/types/database";
+import type { ApprovalRequest, ApprovalComment, Connection, UserProfile } from "@/lib/types/database";
 
 interface ApprovalDashboardProps {
   initialApprovals?: ApprovalRequest[];
@@ -25,6 +25,8 @@ interface ApprovalDashboardProps {
   approvalCreators?: Record<string, string>;
   canApprove?: boolean;
   orgId: string;
+  userId: string;
+  userRole: string;
 }
 
 export function ApprovalDashboard({
@@ -33,9 +35,12 @@ export function ApprovalDashboard({
   approvalCreators = {},
   canApprove = true,
   orgId,
+  userId,
+  userRole,
 }: ApprovalDashboardProps) {
   const [approvals, setApprovals] = useState<ApprovalRequest[]>(initialApprovals ?? []);
   const [connections, setConnections] = useState<Connection[]>(initialConnections ?? []);
+  const [commentsMap, setCommentsMap] = useState<Record<string, ApprovalComment[]>>({});
   const [selectedApproval, setSelectedApproval] = useState<ApprovalRequest | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -159,6 +164,30 @@ export function ApprovalDashboard({
     };
     loadInitialData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch comments for all loaded approvals
+  useEffect(() => {
+    if (approvals.length === 0) return;
+
+    const fetchComments = async () => {
+      const supabase = createClient();
+      const ids = approvals.map((a) => a.id);
+      const { data: allComments } = await supabase
+        .from("approval_comments")
+        .select("*")
+        .in("request_id", ids)
+        .order("created_at", { ascending: true });
+      if (allComments) {
+        const grouped: Record<string, ApprovalComment[]> = {};
+        for (const c of allComments) {
+          (grouped[c.request_id] ??= []).push(c as ApprovalComment);
+        }
+        setCommentsMap(grouped);
+      }
+    };
+
+    fetchComments();
+  }, [approvals]);
 
   // Load preferences from notification_settings
   useEffect(() => {
@@ -284,6 +313,23 @@ export function ApprovalDashboard({
         const { data, error } = await query;
         if (error) { toast.error("Failed to fetch approvals"); return; }
         setApprovals(data ?? []);
+
+        // Batch-fetch comments for all loaded approvals
+        if (data && data.length > 0) {
+          const ids = data.map((a: ApprovalRequest) => a.id);
+          const { data: allComments } = await supabase
+            .from("approval_comments")
+            .select("*")
+            .in("request_id", ids)
+            .order("created_at", { ascending: true });
+          if (allComments) {
+            const grouped: Record<string, ApprovalComment[]> = {};
+            for (const c of allComments) {
+              (grouped[c.request_id] ??= []).push(c);
+            }
+            setCommentsMap(grouped);
+          }
+        }
       } catch {
         toast.error("Failed to fetch approvals");
       } finally {
@@ -690,12 +736,48 @@ export function ApprovalDashboard({
         </Button>
       </div>
 
-      {/* Filters */}
-      <ApprovalFilters
-        onFilterChange={handleFilterChange}
-        connections={connections}
-        currentFilters={{ status, priority, search, source, showArchived }}
-      />
+      {/* Filters + Export */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <ApprovalFilters
+            onFilterChange={handleFilterChange}
+            connections={connections}
+            currentFilters={{ status, priority, search, source, showArchived }}
+          />
+        </div>
+        {approvals.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 text-xs shrink-0 bg-white dark:bg-card"
+            onClick={() => {
+              const headers = ["ID", "Title", "Status", "Priority", "Action Type", "Source", "Created", "Decided"];
+              const rows = approvals.map((a) => [
+                a.id,
+                `"${(a.title ?? "").replace(/"/g, '""')}"`,
+                a.status,
+                a.priority,
+                a.action_type ?? "",
+                a.source ?? "",
+                a.created_at,
+                a.decided_at ?? "",
+              ]);
+              const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `okrunit-approvals-${new Date().toISOString().slice(0, 10)}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+              toast.success("Exported to CSV");
+            }}
+          >
+            <Download className="size-3.5" />
+            Export
+          </Button>
+        )}
+      </div>
 
       {/* Select all bar */}
       {approvals.length > 0 && (
@@ -753,6 +835,12 @@ export function ApprovalDashboard({
         userProfiles={userProfiles}
         creatorName={selectedApproval ? allCreatorNames[selectedApproval.id] : undefined}
         onConfigureFlow={handleConfigureFlow}
+        initialComments={selectedApproval ? commentsMap[selectedApproval.id] ?? [] : []}
+        onCommentsChange={(approvalId, comments) => {
+          setCommentsMap((prev) => ({ ...prev, [approvalId]: comments }));
+        }}
+        currentUserId={userId}
+        currentUserRole={userRole}
       />
 
       {/* Batch actions bar */}

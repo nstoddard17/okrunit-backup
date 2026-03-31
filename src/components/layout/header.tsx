@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Menu, HelpCircle, LogOut, Settings, Check, ChevronsUpDown, Building2 } from "lucide-react";
+import { AlertTriangle, Menu, HelpCircle, LogOut, Settings, Check, ChevronsUpDown, Building2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -131,6 +131,20 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
 
         {/* Right: actions */}
         <div className="flex items-center gap-1.5">
+          {/* Search / Cmd+K hint */}
+          <button
+            onClick={() => {
+              document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+            }}
+            className="hidden sm:flex items-center gap-2.5 rounded-lg border border-border bg-white dark:bg-card px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground shadow-sm min-w-[200px]"
+          >
+            <Search className="size-4" />
+            <span className="flex-1 text-left">Search...</span>
+            <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] font-medium" suppressHydrationWarning>
+              {typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘K" : "Ctrl+K"}
+            </kbd>
+          </button>
+
           {/* Help button with text label like Make.com */}
           <Button variant="ghost" size="sm" asChild className="h-8 gap-1.5 text-muted-foreground hover:text-foreground">
             <a href="https://okrunit.com/docs" target="_blank" rel="noopener noreferrer">

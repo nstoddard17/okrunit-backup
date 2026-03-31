@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { NewsletterForm } from "@/components/marketing/newsletter-form";
 
 const FOOTER_GROUPS = [
   {
@@ -8,6 +9,7 @@ const FOOTER_GROUPS = [
       { href: "/docs", label: "Docs" },
       { href: "/docs/integrations", label: "Integrations" },
       { href: "/docs/api", label: "API" },
+      { href: "/pricing", label: "Pricing" },
       { href: "/docs/changelog", label: "Changelog" },
     ],
   },
@@ -15,7 +17,9 @@ const FOOTER_GROUPS = [
     title: "Company",
     links: [
       { href: "/about", label: "About" },
+      { href: "/blog", label: "Blog" },
       { href: "/contact", label: "Contact" },
+      { href: "/status", label: "Status" },
     ],
   },
   {
@@ -23,6 +27,7 @@ const FOOTER_GROUPS = [
     links: [
       { href: "/security", label: "Security" },
       { href: "/privacy", label: "Privacy" },
+      { href: "/terms", label: "Terms" },
     ],
   },
 ] as const;
@@ -52,6 +57,7 @@ export function SiteFooter() {
               Route high-risk actions through one approval layer before they
               execute, with clear routing, reviewer context, and audit visibility.
             </p>
+            <NewsletterForm />
           </div>
 
           <div className="grid grid-cols-2 gap-8 text-sm sm:grid-cols-3">

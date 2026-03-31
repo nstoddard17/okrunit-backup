@@ -53,6 +53,8 @@ export default async function RequestsPage() {
       approvalCreators={approvalCreators}
       canApprove={membership.can_approve ?? true}
       orgId={membership.org_id}
+      userId={membership.user_id}
+      userRole={membership.role}
     />
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import {
   Sheet,
   SheetContent,
@@ -42,6 +42,10 @@ interface ApprovalDetailProps {
   userProfiles?: Map<string, UserProfile>;
   creatorName?: string;
   onConfigureFlow?: (approval: ApprovalRequest) => void;
+  initialComments?: ApprovalComment[];
+  onCommentsChange?: (approvalId: string, comments: ApprovalComment[]) => void;
+  currentUserId?: string;
+  currentUserRole?: string;
 }
 
 const statusStyles: Record<string, { label: string; dot: string; badge: string }> = {
@@ -89,37 +93,46 @@ export function ApprovalDetail({
   userProfiles,
   creatorName,
   onConfigureFlow,
+  initialComments,
+  onCommentsChange,
+  currentUserId,
+  currentUserRole,
 }: ApprovalDetailProps) {
-  const [comments, setComments] = useState<ApprovalComment[]>([]);
-  const [prevApprovalId, setPrevApprovalId] = useState<string | null>(null);
-
-  // Reset comments when approval changes or sidebar closes
   const currentId = open && approval ? approval.id : null;
-  if (currentId !== prevApprovalId) {
-    setPrevApprovalId(currentId);
-    setComments([]);
-  }
 
-  // Fetch comments when sidebar opens
-  useEffect(() => {
+  // Comments are owned by the parent dashboard via commentsMap.
+  // This component just reads them and pushes changes up.
+  const comments = initialComments ?? [];
+
+  const setComments = (newComments: ApprovalComment[] | ((prev: ApprovalComment[]) => ApprovalComment[])) => {
     if (!currentId) return;
+    const resolved = typeof newComments === "function" ? newComments(comments) : newComments;
+    onCommentsChange?.(currentId, resolved);
+  };
 
-    let cancelled = false;
+  // Keyboard shortcuts: a = approve, r = reject (only when detail is open and request is pending)
+  useEffect(() => {
+    if (!open || !approval || approval.status !== "pending" || !canApprove) return;
 
-    async function fetchComments() {
-      try {
-        const res = await fetch(`/api/v1/approvals/${currentId}/comments`);
-        if (!res.ok) return;
-        const json = await res.json();
-        if (!cancelled) setComments(json.data ?? []);
-      } catch {
-        // ignore
+    function handleKey(e: KeyboardEvent) {
+      // Don't fire if user is typing in an input/textarea
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      if (e.key === "a" && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        onRespond(approval!.id, "approved", "");
+      } else if (e.key === "r" && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        onRespond(approval!.id, "rejected", "");
       }
     }
 
-    fetchComments();
-    return () => { cancelled = true; };
-  }, [currentId]);
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open, approval, canApprove, onRespond]);
+
+  // No local fetch needed — comments are prefetched by the parent dashboard
 
   const handleCommentAdded = useCallback((comment: ApprovalComment) => {
     setComments((prev) => {
@@ -445,7 +458,12 @@ export function ApprovalDetail({
                 requestId={approval.id}
                 comments={comments}
                 onCommentAdded={handleCommentAdded}
+                onCommentDeleted={(commentId) => {
+                  setComments((prev) => prev.filter((c) => c.id !== commentId));
+                }}
                 userProfiles={userProfiles}
+                currentUserId={currentUserId}
+                currentUserRole={currentUserRole}
               />
             </div>
           </div>

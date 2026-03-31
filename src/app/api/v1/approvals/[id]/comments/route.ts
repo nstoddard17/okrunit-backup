@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OKrunit -- Approval Comments API: GET (list) + POST (create)
+// OKrunit -- Approval Comments API: GET (list) + POST (create) + DELETE
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";
@@ -86,14 +86,28 @@ export async function POST(
       throw new ApiError(404, "Approval request not found", "NOT_FOUND");
     }
 
-    // 4. Insert the comment
+    // 4. Determine comment source
+    let commentSource = "dashboard";
+    if (auth.type === "api_key") {
+      commentSource = "api";
+    } else if (auth.type === "oauth") {
+      const { data: oauthClient } = await admin
+        .from("oauth_clients")
+        .select("name")
+        .eq("client_id", auth.clientId)
+        .single();
+      commentSource = oauthClient?.name?.toLowerCase() ?? "api";
+    }
+
+    // 5. Insert the comment
     const { data: comment, error: insertError } = await admin
       .from("approval_comments")
       .insert({
         request_id: id,
         body: validated.body,
-        user_id: auth.type === "session" ? auth.user.id : null,
+        user_id: auth.type === "session" ? auth.user.id : auth.type === "oauth" ? auth.userId : null,
         connection_id: auth.type === "api_key" ? auth.connection.id : null,
+        source: commentSource,
       })
       .select("*")
       .single();
@@ -140,6 +154,87 @@ export async function POST(
         { status: 400 },
       );
     }
+    return errorResponse(error);
+  }
+}
+
+// ---- DELETE /api/v1/approvals/[id]/comments?comment_id=... ----------------
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+    const auth = await authenticateRequest(request);
+
+    if (auth.type !== "session") {
+      throw new ApiError(401, "Session authentication required");
+    }
+
+    const url = new URL(request.url);
+    const commentId = url.searchParams.get("comment_id");
+
+    if (!commentId) {
+      throw new ApiError(400, "comment_id is required");
+    }
+
+    const admin = createAdminClient();
+
+    // Verify the comment exists and belongs to this approval
+    const { data: comment, error: fetchError } = await admin
+      .from("approval_comments")
+      .select("id, user_id, request_id")
+      .eq("id", commentId)
+      .eq("request_id", id)
+      .single();
+
+    if (fetchError || !comment) {
+      throw new ApiError(404, "Comment not found");
+    }
+
+    // Verify the approval belongs to the user's org
+    const { data: approval } = await admin
+      .from("approval_requests")
+      .select("id")
+      .eq("id", id)
+      .eq("org_id", auth.orgId)
+      .single();
+
+    if (!approval) {
+      throw new ApiError(404, "Approval request not found");
+    }
+
+    // Permission: comment author or admin/owner can delete
+    const isAuthor = comment.user_id === auth.user.id;
+    const isAdmin = auth.membership.role === "owner" || auth.membership.role === "admin";
+
+    if (!isAuthor && !isAdmin) {
+      throw new ApiError(403, "You can only delete your own comments");
+    }
+
+    const { error: deleteError } = await admin
+      .from("approval_comments")
+      .delete()
+      .eq("id", commentId);
+
+    if (deleteError) {
+      console.error("[Comments] Failed to delete comment:", deleteError);
+      throw new ApiError(500, "Failed to delete comment");
+    }
+
+    logAuditEvent({
+      orgId: auth.orgId,
+      userId: auth.user.id,
+      action: "comment.deleted",
+      resourceType: "approval_comment",
+      resourceId: commentId,
+      ipAddress: getClientIp(request),
+      details: { request_id: id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
     return errorResponse(error);
   }
 }

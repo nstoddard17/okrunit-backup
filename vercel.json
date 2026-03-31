@@ -11,6 +11,10 @@
     {
       "path": "/api/v1/cron/purge-deleted-accounts",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/v1/cron/data-retention",
+      "schedule": "0 4 * * *"
     }
   ]
 }
