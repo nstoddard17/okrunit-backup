@@ -316,8 +316,9 @@ function NotificationRow({
             .replace(/^(\w)/, (c: string) => c.toUpperCase())
             .replace(/· from (\w)/g, (_: string, c: string) => `· from ${c.toUpperCase()}`);
           const sourceMatch = n.body.match(/from (\w+)/i);
-          const sourceName = sourceMatch?.[1];
-          const sourceKey = sourceName?.toLowerCase();
+          const sourceRaw = sourceMatch?.[1];
+          const sourceName = sourceRaw ? sourceRaw.charAt(0).toUpperCase() + sourceRaw.slice(1) : undefined;
+          const sourceKey = sourceRaw?.toLowerCase();
 
           // Split at "from SourceName" to insert logo before it
           if (sourceName && sourceKey) {
