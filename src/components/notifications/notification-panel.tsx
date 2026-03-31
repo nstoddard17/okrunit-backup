@@ -300,36 +300,51 @@ function NotificationRow({
     <Link
       href={getNotificationHref(n)}
       onClick={onNavigate}
-      className="flex items-start gap-3 px-4 py-3 transition-colors bg-white dark:bg-card hover:bg-accent border-b border-border/30 last:border-b-0"
+      className="flex items-center gap-3 px-4 py-3 transition-colors bg-white dark:bg-card hover:bg-accent border-b border-border/30 last:border-b-0"
     >
-      {/* Icon — no background circle */}
-      <DisplayIcon className={cn("size-4 mt-0.5 shrink-0", iconColor)} />
+      {/* Icon — vertically centered, no circle */}
+      <DisplayIcon className={cn("size-4 shrink-0", iconColor)} />
 
       {/* Content */}
       <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <p className="text-sm leading-tight font-medium text-foreground">
-            {n.title}
-          </p>
-          <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
-        </div>
+        <p className="text-sm leading-tight font-medium text-foreground">
+          {n.title}
+        </p>
         {n.body && (() => {
-          const formatted = n.body
+          // Capitalize and extract source for logo placement next to source name
+          const capitalized = n.body
             .replace(/^(\w)/, (c: string) => c.toUpperCase())
             .replace(/· from (\w)/g, (_: string, c: string) => `· from ${c.toUpperCase()}`);
           const sourceMatch = n.body.match(/from (\w+)/i);
-          const sourceName = sourceMatch?.[1]?.toLowerCase();
+          const sourceName = sourceMatch?.[1];
+          const sourceKey = sourceName?.toLowerCase();
+
+          // Split at "from SourceName" to insert logo before it
+          if (sourceName && sourceKey) {
+            const parts = capitalized.split(new RegExp(`(from ${sourceName})`, "i"));
+            return (
+              <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                {parts[0]}
+                {parts[1] && (
+                  <span className="inline-flex items-center gap-1">
+                    from{" "}
+                    <img
+                      src={`/logos/platforms/${sourceKey}.png`}
+                      alt=""
+                      className="size-3.5 rounded inline-block align-text-bottom"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                    {" "}{sourceName}
+                  </span>
+                )}
+                {parts[2] ?? ""}
+              </p>
+            );
+          }
+
           return (
-            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground flex items-center gap-1">
-              {sourceName && (
-                <img
-                  src={`/logos/platforms/${sourceName}.png`}
-                  alt=""
-                  className="size-3.5 rounded shrink-0"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                />
-              )}
-              <span>{formatted}</span>
+            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+              {capitalized}
             </p>
           );
         })()}
