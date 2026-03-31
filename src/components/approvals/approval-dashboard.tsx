@@ -165,6 +165,30 @@ export function ApprovalDashboard({
     loadInitialData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Fetch comments for all loaded approvals
+  useEffect(() => {
+    if (approvals.length === 0) return;
+
+    const fetchComments = async () => {
+      const supabase = createClient();
+      const ids = approvals.map((a) => a.id);
+      const { data: allComments } = await supabase
+        .from("approval_comments")
+        .select("*")
+        .in("request_id", ids)
+        .order("created_at", { ascending: true });
+      if (allComments) {
+        const grouped: Record<string, ApprovalComment[]> = {};
+        for (const c of allComments) {
+          (grouped[c.request_id] ??= []).push(c as ApprovalComment);
+        }
+        setCommentsMap(grouped);
+      }
+    };
+
+    fetchComments();
+  }, [approvals]);
+
   // Load preferences from notification_settings
   useEffect(() => {
     const loadPreferences = async () => {
