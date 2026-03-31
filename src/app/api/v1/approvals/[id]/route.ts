@@ -804,6 +804,17 @@ export async function PATCH(
         });
       }
 
+      // 6g-pre. Mark "awaiting" notifications as read now that a decision was made
+      Promise.resolve(
+        admin
+          .from("in_app_notifications")
+          .update({ is_read: true, read_at: new Date().toISOString() })
+          .eq("resource_type", "approval_request")
+          .eq("resource_id", id)
+          .eq("category", "approval_awaiting")
+          .eq("is_read", false)
+      ).catch(() => {});
+
       // 6g. Sequential chain: notify next approver if vote didn't finalize
       if (updated.status === "pending" && approval.is_sequential && assignedApprovers) {
         // Collect all user IDs that have voted (including current actor)
