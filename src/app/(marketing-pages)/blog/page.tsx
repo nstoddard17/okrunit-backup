@@ -89,9 +89,9 @@ export default function BlogPage() {
               <p className="mt-2 text-zinc-600 leading-relaxed">
                 {post.description}
               </p>
-              <p className="mt-3 text-sm font-medium text-primary flex items-center gap-1">
-                Coming soon <ArrowRight className="size-3" />
-              </p>
+              <Link href="/docs/changelog" className="mt-3 text-sm font-medium text-primary flex items-center gap-1 hover:underline">
+                Read on changelog <ArrowRight className="size-3" />
+              </Link>
             </article>
           ))}
         </div>

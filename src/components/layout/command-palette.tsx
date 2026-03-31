@@ -121,7 +121,7 @@ export function CommandPalette({ orgId }: CommandPaletteProps) {
       <div className="fixed inset-0 bg-black/50" onClick={() => setOpen(false)} />
 
       {/* Dialog */}
-      <div className="fixed left-1/2 top-[20%] z-[101] w-full max-w-lg -translate-x-1/2 rounded-xl border border-border bg-white shadow-2xl dark:bg-card">
+      <div className="fixed left-1/2 top-[20%] z-[101] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 rounded-xl border border-border bg-white shadow-2xl dark:bg-card sm:w-full">
         <div className="flex items-center gap-2 border-b px-4 py-3">
           <Search className="size-4 text-muted-foreground" />
           <Command.Input
