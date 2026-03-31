@@ -17,15 +17,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+// Dropdown removed — actions are now inline buttons
 import { formatDistanceToNow } from "date-fns";
-import { Clock, CheckCircle, XCircle, User2, MoreVertical, Archive, ArchiveRestore, Settings2 } from "lucide-react";
+import { Clock, CheckCircle, XCircle, User2, Archive, ArchiveRestore, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SourceAvatar, getSourceDisplay } from "@/components/approvals/source-icons";
 import type { ApprovalRequest } from "@/lib/types/database";
@@ -98,8 +92,8 @@ export const ApprovalCard = memo(function ApprovalCard({
     label: approval.status,
     variant: "outline" as const,
   };
-  const borderColor = statusBorderColors[approval.status] ?? "border-l-zinc-300";
-  const glowColor = statusGlowColors[approval.status] ?? "card-interactive";
+  const borderColor = approval.is_log ? "border-l-blue-400" : (statusBorderColors[approval.status] ?? "border-l-zinc-300");
+  const glowColor = approval.is_log ? "card-interactive" : (statusGlowColors[approval.status] ?? "card-interactive");
 
   const isPending = approval.status === "pending";
 
@@ -246,62 +240,54 @@ export const ApprovalCard = memo(function ApprovalCard({
             )}
             {!approval.is_log && <Badge variant={status.variant} className="text-[11px]">{status.label}</Badge>}
 
-            {/* Quick flow config button */}
-            {approval.flow_id && onConfigureFlow && !approval.is_log && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hidden size-7 p-0 sm:inline-flex sm:opacity-0 sm:transition-opacity sm:group-hover/card:opacity-100"
-                title="Set who must approve"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onConfigureFlow(approval);
-                }}
-              >
-                <Settings2 className="size-4" />
-              </Button>
-            )}
-
-            {/* Three-dot menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            {/* Action buttons — visible on hover */}
+            <div className="hidden items-center gap-0.5 sm:flex sm:opacity-0 sm:transition-opacity sm:group-hover/card:opacity-100">
+              {approval.flow_id && onConfigureFlow && !approval.is_log && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="size-7 p-0 sm:opacity-0 sm:transition-opacity sm:group-hover/card:opacity-100 data-[state=open]:opacity-100"
-                  onClick={(e) => e.stopPropagation()}
+                  className="size-7 p-0"
+                  title="Configure Flow"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onConfigureFlow(approval);
+                  }}
                 >
-                  <MoreVertical className="size-4" />
-                  <span className="sr-only">More actions</span>
+                  <Settings2 className="size-4" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                {approval.flow_id && onConfigureFlow && (
-                  <>
-                    <DropdownMenuItem onClick={() => onConfigureFlow(approval)}>
-                      <Settings2 className="size-4" />
-                      Configure Flow
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                {approval.archived_at ? (
-                  onUnarchive && (
-                    <DropdownMenuItem onClick={() => onUnarchive(approval.id)}>
-                      <ArchiveRestore className="size-4" />
-                      Unarchive
-                    </DropdownMenuItem>
-                  )
-                ) : (
-                  onArchive && (
-                    <DropdownMenuItem onClick={() => onArchive(approval.id)}>
-                      <Archive className="size-4" />
-                      Archive
-                    </DropdownMenuItem>
-                  )
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              )}
+              {approval.archived_at ? (
+                onUnarchive && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="size-7 p-0"
+                    title="Unarchive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUnarchive(approval.id);
+                    }}
+                  >
+                    <ArchiveRestore className="size-4" />
+                  </Button>
+                )
+              ) : (
+                onArchive && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="size-7 p-0"
+                    title="Archive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onArchive(approval.id);
+                    }}
+                  >
+                    <Archive className="size-4" />
+                  </Button>
+                )
+              )}
+            </div>
           </div>
         </div>
       </Card>

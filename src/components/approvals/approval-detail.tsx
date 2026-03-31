@@ -414,7 +414,7 @@ export function ApprovalDetail({
                 </div>
               </div>
 
-              {approval.decided_at && (
+              {approval.decided_at && !approval.is_log && (
                 <div className="flex gap-3">
                   <div className="flex flex-col items-center">
                     <div className={cn(
@@ -429,6 +429,20 @@ export function ApprovalDetail({
                       {format(new Date(approval.decided_at), "PPp")}
                       {approval.decided_by && <span> by {getUserDisplayName(approval.decided_by, userProfiles)}</span>}
                       {approval.decision_source && <span> via {approval.decision_source}</span>}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {approval.is_log && (
+                <div className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <div className="size-2 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+                  </div>
+                  <div className="pb-4 min-w-0">
+                    <p className="text-sm font-medium text-blue-700">Logged as Activity</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(approval.created_at), "PPp")}
                     </p>
                   </div>
                 </div>
