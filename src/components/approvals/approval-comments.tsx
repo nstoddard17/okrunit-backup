@@ -357,7 +357,7 @@ export function ApprovalComments({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="cursor-pointer"
+              className="!bg-emerald-600 !text-white hover:!bg-emerald-700 cursor-pointer"
             >
               Delete
             </AlertDialogAction>
