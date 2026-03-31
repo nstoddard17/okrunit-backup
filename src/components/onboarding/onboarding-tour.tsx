@@ -74,6 +74,7 @@ export function OnboardingTour() {
       title={step.title}
       description={step.description}
       position={step.position}
+      actionLabel="Next"
       stepNumber={currentTourStep + 1}
       totalSteps={TOUR_STEPS.length}
       onNext={() => {

@@ -64,15 +64,16 @@ export function RoutesHub({
         </div>
 
         <div className="grid gap-3">
-          {flows.map((flow) => (
-            <FlowCard
-              key={flow.id}
-              flow={flow}
-              teams={teams}
-              members={members}
-              orgId={orgId}
-              positionsMap={positionsMap}
-            />
+          {flows.map((flow, idx) => (
+            <div key={flow.id} data-tour={idx === 0 ? "flow-card" : undefined}>
+              <FlowCard
+                flow={flow}
+                teams={teams}
+                members={members}
+                orgId={orgId}
+                positionsMap={positionsMap}
+              />
+            </div>
           ))}
         </div>
       </div>

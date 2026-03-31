@@ -34,9 +34,39 @@ const INTEGRATION_LINKS = [
     docsPath: "/docs/integrations#n8n",
   },
   {
+    name: "GitHub Actions",
+    logo: "/logos/platforms/github.png",
+    docsPath: "/docs/integrations#github-actions",
+  },
+  {
     name: "monday.com",
     logo: "/logos/platforms/monday.png",
     docsPath: "/docs/integrations#monday",
+  },
+  {
+    name: "Temporal",
+    logo: "/logos/platforms/temporal.png",
+    docsPath: "/docs/integrations#temporal",
+  },
+  {
+    name: "Prefect",
+    logo: "/logos/platforms/prefect.png",
+    docsPath: "/docs/integrations#prefect",
+  },
+  {
+    name: "Dagster",
+    logo: "/logos/platforms/dagster.png",
+    docsPath: "/docs/integrations#dagster",
+  },
+  {
+    name: "Windmill",
+    logo: "/logos/platforms/windmill.png",
+    docsPath: "/docs/integrations#windmill",
+  },
+  {
+    name: "Pipedream",
+    logo: "/logos/platforms/pipedream.png",
+    docsPath: "/docs/integrations#pipedream",
   },
 ];
 
@@ -60,13 +90,13 @@ export default async function ConnectionsPage() {
   ]);
 
   return (
-    <div>
+    <div data-tour="connection-section">
       {/* Integration quick links */}
       <div className="mb-8">
         <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
           Setup Guides
         </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {INTEGRATION_LINKS.map((integration) => (
             <Link
               key={integration.name}
