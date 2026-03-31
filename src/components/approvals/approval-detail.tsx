@@ -164,21 +164,35 @@ export function ApprovalDetail({
 
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+          {/* Activity log notice — at the top */}
+          {approval.is_log && (
+            <div className="rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 p-4">
+              <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">Activity Log</p>
+              <p className="text-xs text-blue-600 dark:text-blue-400/80 mt-0.5">
+                This is an activity log entry, not an approval request. No decision is needed.
+              </p>
+            </div>
+          )}
+
           {/* Card: Details */}
           <div className="rounded-xl border border-border/50 overflow-hidden">
             <div className="grid grid-cols-2 divide-x divide-y divide-border/40">
-              <div className="p-3.5">
-                <LabelWithTip label="Status" tip="The current state of this request. Pending means it's waiting for someone to approve or reject it." />
-                <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold", status.badge)}>
-                  <span className={cn("size-1.5 rounded-full", status.dot)} />
-                  {status.label}
-                </span>
-              </div>
+              {!approval.is_log && (
+                <div className="p-3.5">
+                  <LabelWithTip label="Status" tip="The current state of this request. Pending means it's waiting for someone to approve or reject it." />
+                  <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold", status.badge)}>
+                    <span className={cn("size-1.5 rounded-full", status.dot)} />
+                    {status.label}
+                  </span>
+                </div>
+              )}
 
-              <div className="p-3.5">
-                <LabelWithTip label="Priority" tip="How urgent this request is. Critical and high priority requests should be reviewed first." />
-                <PriorityBadge priority={approval.priority} />
-              </div>
+              {!approval.is_log && (
+                <div className="p-3.5">
+                  <LabelWithTip label="Priority" tip="How urgent this request is. Critical and high priority requests should be reviewed first." />
+                  <PriorityBadge priority={approval.priority} />
+                </div>
+              )}
 
               <div className="p-3.5">
                 <LabelWithTip label="Source" tip="The platform or tool that sent this request, like Zapier, Make, or a direct API call." />
@@ -228,8 +242,8 @@ export function ApprovalDetail({
             </div>
           </div>
 
-          {/* Card: Approvals */}
-          <div className="rounded-xl border border-border/50 p-4">
+          {/* Card: Approvals (hidden for activity logs) */}
+          {!approval.is_log && <div className="rounded-xl border border-border/50 p-4">
             {hasMultiApproval ? (
               <LabelWithTip
                 label={approval.is_sequential ? "Approval Chain" : "Approvals Required"}
@@ -328,7 +342,7 @@ export function ApprovalDetail({
                 Configure Flow Rules
               </Button>
             )}
-          </div>
+          </div>}
 
           {/* Card: Context */}
           {approval.context_html && (
@@ -359,16 +373,6 @@ export function ApprovalDetail({
                   </tbody>
                 </table>
               </div>
-            </div>
-          )}
-
-          {/* Activity log notice */}
-          {approval.is_log && (
-            <div className="rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 p-4">
-              <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">Activity Log</p>
-              <p className="text-xs text-blue-600 dark:text-blue-400/80 mt-0.5">
-                This is an activity log entry, not an approval request. No decision is needed.
-              </p>
             </div>
           )}
 
