@@ -73,13 +73,13 @@ export function Sidebar({ pendingCount: initialPendingCount, userRole, isAppAdmi
     filter: `org_id=eq.${currentOrgId}`,
     enabled: !!currentOrgId,
     onInsert: useCallback((record: ApprovalRequest) => {
-      if (record.status === "pending") {
+      if (record.status === "pending" && !record.archived_at) {
         setLivePendingCount((prev) => prev + 1);
       }
     }, []),
     onUpdate: useCallback((record: ApprovalRequest, oldRecord: ApprovalRequest) => {
-      const wasPending = oldRecord.status === "pending";
-      const isPending = record.status === "pending";
+      const wasPending = oldRecord.status === "pending" && !oldRecord.archived_at;
+      const isPending = record.status === "pending" && !record.archived_at;
       if (wasPending && !isPending) {
         setLivePendingCount((prev) => Math.max(0, prev - 1));
       } else if (!wasPending && isPending) {
