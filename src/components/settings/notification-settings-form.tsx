@@ -11,7 +11,7 @@
 import { useState } from "react";
 import { Bell, Mail, Clock, Loader2, ShieldCheck } from "lucide-react";
 
-import { createClient } from "@/lib/supabase/client";
+
 import type { NotificationSettings, ApprovalPriority } from "@/lib/types/database";
 import { Button } from "@/components/ui/button";
 import {
@@ -123,41 +123,30 @@ export function NotificationSettingsForm({
     setIsSaving(true);
 
     try {
-      const supabase = createClient();
+      const res = await fetch("/api/v1/settings/notifications", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email_enabled: emailEnabled,
+          push_enabled: pushEnabled,
+          quiet_hours_enabled: quietHoursEnabled,
+          quiet_hours_start: quietHoursEnabled ? quietHoursStart : null,
+          quiet_hours_end: quietHoursEnabled ? quietHoursEnd : null,
+          quiet_hours_timezone: quietHoursEnabled ? quietHoursTimezone : null,
+          minimum_priority: minimumPriority,
+          skip_approval_confirmation: skipApprovalConfirmation,
+        }),
+      });
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        toast.error("You must be logged in to save settings.");
-        return;
-      }
-
-      const payload = {
-        user_id: user.id,
-        email_enabled: emailEnabled,
-        push_enabled: pushEnabled,
-        quiet_hours_enabled: quietHoursEnabled,
-        quiet_hours_start: quietHoursEnabled ? quietHoursStart : null,
-        quiet_hours_end: quietHoursEnabled ? quietHoursEnd : null,
-        quiet_hours_timezone: quietHoursEnabled ? quietHoursTimezone : null,
-        minimum_priority: minimumPriority,
-        skip_approval_confirmation: skipApprovalConfirmation,
-      };
-
-      const { error } = await supabase
-        .from("notification_settings")
-        .upsert(payload, { onConflict: "user_id" });
-
-      if (error) {
-        throw error;
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to save settings");
       }
 
       toast.success("Notification settings saved successfully.");
     } catch (err) {
       console.error("Failed to save notification settings:", err);
-      toast.error("Failed to save settings. Please try again.");
+      toast.error(err instanceof Error ? err.message : "Failed to save settings. Please try again.");
     } finally {
       setIsSaving(false);
     }
