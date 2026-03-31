@@ -224,13 +224,13 @@ export function NotificationPanel({ userId }: NotificationPanelProps) {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="max-h-[420px] overflow-y-auto">
+        {/* Content — scroll isolated from page */}
+        <div className="max-h-[420px] overflow-y-auto overscroll-contain">
           {loading && !fetched ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="size-5 animate-spin text-muted-foreground" />
             </div>
-          ) : notifications.length === 0 ? (
+          ) : notifications.filter((n) => !n.is_read).length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-12 text-center">
               <div className="rounded-xl bg-muted p-3">
                 <Inbox className="size-6 text-muted-foreground" />
@@ -245,7 +245,7 @@ export function NotificationPanel({ userId }: NotificationPanelProps) {
             </div>
           ) : (
             <div>
-              {notifications.map((n) => (
+              {notifications.filter((n) => !n.is_read).map((n) => (
                 <NotificationRow
                   key={n.id}
                   notification={n}
@@ -300,33 +300,20 @@ function NotificationRow({
     <Link
       href={getNotificationHref(n)}
       onClick={onNavigate}
-      className={cn(
-        "flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent",
-        !n.is_read && "bg-primary/[0.03]",
-      )}
+      className="flex items-center gap-3 px-4 py-3 transition-colors bg-white dark:bg-card hover:bg-accent border-b border-border/30 last:border-b-0"
     >
       {/* Icon — centered in circle */}
-      <div className={cn(
-        "flex size-8 shrink-0 items-center justify-center rounded-full",
-        !n.is_read ? "bg-primary/10" : "bg-muted/50",
-      )}>
+      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
         <DisplayIcon className={cn("size-4", iconColor)} />
       </div>
 
       {/* Content */}
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <p
-            className={cn(
-              "text-sm leading-tight",
-              n.is_read ? "text-muted-foreground" : "font-medium text-foreground",
-            )}
-          >
+          <p className="text-sm leading-tight font-medium text-foreground">
             {n.title}
           </p>
-          {!n.is_read && (
-            <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
-          )}
+          <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
         </div>
         {n.body && (
           <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
