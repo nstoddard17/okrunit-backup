@@ -227,7 +227,7 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
             value={metadataUrl}
             onChange={(e) => setMetadataUrl(e.target.value)}
             placeholder="https://your-idp.com/app/metadata"
-            className="flex-1 rounded-lg border border-[var(--border)] bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            className="flex-1 rounded-lg border border-[var(--border)] bg-white dark:bg-zinc-900 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
           />
           <button
             type="button"
@@ -276,7 +276,7 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
               value={ssoDomain}
               onChange={(e) => setSsoDomain(e.target.value.toLowerCase())}
               placeholder="company.com"
-              className="w-full rounded-lg border border-[var(--border)] bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+              className="w-full rounded-lg border border-[var(--border)] bg-white dark:bg-zinc-900 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
               required
             />
             {fieldErrors.sso_domain && (
@@ -335,7 +335,7 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
                   value={entityId}
                   onChange={(e) => setEntityId(e.target.value)}
                   placeholder="https://idp.example.com/saml/metadata"
-                  className="w-full rounded-lg border border-[var(--border)] bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                  className="w-full rounded-lg border border-[var(--border)] bg-white dark:bg-zinc-900 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                   required
                 />
                 {fieldErrors.entity_id && (
@@ -354,7 +354,7 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
                   value={ssoUrl}
                   onChange={(e) => setSsoUrl(e.target.value)}
                   placeholder="https://idp.example.com/saml/sso"
-                  className="w-full rounded-lg border border-[var(--border)] bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                  className="w-full rounded-lg border border-[var(--border)] bg-white dark:bg-zinc-900 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                   required
                 />
                 {fieldErrors.sso_url && (
@@ -373,7 +373,7 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
                   onChange={(e) => setCertificate(e.target.value)}
                   placeholder={"-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----"}
                   rows={4}
-                  className="w-full rounded-lg border border-[var(--border)] bg-background px-3 py-2 font-mono text-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                  className="w-full rounded-lg border border-[var(--border)] bg-white dark:bg-zinc-900 px-3 py-2 font-mono text-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                   required={!existingConfig}
                 />
                 {fieldErrors.certificate && (
@@ -402,7 +402,7 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
                       type="text"
                       value={attrEmail}
                       onChange={(e) => setAttrEmail(e.target.value)}
-                      className="w-full rounded-lg border border-[var(--border)] bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                      className="w-full rounded-lg border border-[var(--border)] bg-white dark:bg-zinc-900 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
@@ -414,7 +414,7 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
                       type="text"
                       value={attrFirstName}
                       onChange={(e) => setAttrFirstName(e.target.value)}
-                      className="w-full rounded-lg border border-[var(--border)] bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                      className="w-full rounded-lg border border-[var(--border)] bg-white dark:bg-zinc-900 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
@@ -426,7 +426,7 @@ export function SSOConfigForm({ orgId }: SSOConfigFormProps) {
                       type="text"
                       value={attrLastName}
                       onChange={(e) => setAttrLastName(e.target.value)}
-                      className="w-full rounded-lg border border-[var(--border)] bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                      className="w-full rounded-lg border border-[var(--border)] bg-white dark:bg-zinc-900 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>

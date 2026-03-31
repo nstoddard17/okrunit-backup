@@ -45,6 +45,7 @@ export async function updateSession(request: NextRequest) {
     PUBLIC_PATHS.has(pathname) ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/signup") ||
+    pathname.startsWith("/mfa-verify") ||
     pathname.startsWith("/callback") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/approve") ||
@@ -76,6 +77,16 @@ export async function updateSession(request: NextRequest) {
       url.searchParams.set("redirect_to", request.nextUrl.pathname + request.nextUrl.search);
     }
 
+    return NextResponse.redirect(url);
+  }
+
+  // Enforce MFA: if user has TOTP enrolled but session is AAL1, redirect to verify
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.currentLevel === "aal1" && aal?.nextLevel === "aal2") {
+    const url = request.nextUrl.clone();
+    const redirectTo = pathname + request.nextUrl.search;
+    url.pathname = "/mfa-verify";
+    url.searchParams.set("redirect_to", redirectTo);
     return NextResponse.redirect(url);
   }
 
