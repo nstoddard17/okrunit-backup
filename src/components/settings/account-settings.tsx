@@ -217,26 +217,24 @@ export function AccountSettings({
 
   const saveNotifications = useCallback(async () => {
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const res = await fetch("/api/v1/settings/notifications", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email_enabled: emailEnabled,
+          quiet_hours_enabled: quietHoursEnabled,
+          quiet_hours_start: quietHoursEnabled ? quietHoursStart : null,
+          quiet_hours_end: quietHoursEnabled ? quietHoursEnd : null,
+          quiet_hours_timezone: quietHoursEnabled ? quietHoursTimezone : null,
+          minimum_priority: minimumPriority,
+          skip_approval_confirmation: skipApprovalConfirmation,
+        }),
+      });
 
-      const payload = {
-        user_id: user.id,
-        email_enabled: emailEnabled,
-        quiet_hours_enabled: quietHoursEnabled,
-        quiet_hours_start: quietHoursEnabled ? quietHoursStart : null,
-        quiet_hours_end: quietHoursEnabled ? quietHoursEnd : null,
-        quiet_hours_timezone: quietHoursEnabled ? quietHoursTimezone : null,
-        minimum_priority: minimumPriority,
-        skip_approval_confirmation: skipApprovalConfirmation,
-      };
-
-      const { error } = await supabase
-        .from("notification_settings")
-        .upsert(payload, { onConflict: "user_id" });
-
-      if (error) throw error;
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to save settings");
+      }
       toast.success("Settings saved");
     } catch (err) {
       console.error("Failed to save notification settings:", err);

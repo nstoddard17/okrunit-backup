@@ -257,6 +257,28 @@
   color-scheme: dark;
 }
 
+/* Force-light must override .dark .gk-v2 (higher specificity) */
+.dark .gk-v2.force-light {
+  --background: oklch(0.985 0.002 265);
+  --foreground: oklch(0.145 0.035 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0.035 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0.035 265);
+  --primary: oklch(0.62 0.19 145);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.965 0.005 265);
+  --secondary-foreground: oklch(0.25 0.04 265);
+  --muted: oklch(0.965 0.004 265);
+  --muted-foreground: oklch(0.50 0.03 265);
+  --accent: oklch(0.955 0.008 265);
+  --accent-foreground: oklch(0.25 0.04 265);
+  --border: oklch(0.92 0.008 265);
+  --input: oklch(0.92 0.008 265);
+  --ring: oklch(0.62 0.19 145);
+  color-scheme: light;
+}
+
 /* V2 Shadow scale */
 .gk-v2 {
   --shadow-xs: 0 1px 2px oklch(0.15 0.02 265 / 0.04);
