@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { MfaVerifyForm } from "./mfa-verify-form";
 
 export const metadata = {
@@ -5,5 +6,9 @@ export const metadata = {
 };
 
 export default function MfaVerifyPage() {
-  return <MfaVerifyForm />;
+  return (
+    <Suspense>
+      <MfaVerifyForm />
+    </Suspense>
+  );
 }
