@@ -112,7 +112,7 @@ export function ApprovalDashboard({
         const [{ data: approvalsData }, { data: connectionsData }] = await Promise.all([
           supabase
             .from("approval_requests")
-            .select("id, title, description, status, priority, action_type, source, connection_id, created_by, decided_by, assigned_approvers, assigned_team_id, flow_id, created_at, decided_at, expires_at, archived_at, required_approvals, idempotency_key, callback_url")
+            .select("id, title, description, status, priority, action_type, source, connection_id, created_by, decided_by, assigned_approvers, assigned_team_id, flow_id, created_at, decided_at, expires_at, archived_at, required_approvals, idempotency_key, callback_url, is_log")
             .is("archived_at", null)
             .order("created_at", { ascending: false })
             .limit(50),
