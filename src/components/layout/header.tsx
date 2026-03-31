@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { AlertTriangle, Menu, HelpCircle, LogOut, Settings, Check, ChevronsUpDown, Building2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,11 @@ function getInitials(name: string | null, email: string): string {
 export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, currentOrgId, userOrgs = [], userId }: HeaderProps) {
   const router = useRouter();
   const { setMobileOpen } = useSidebarStore();
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad/.test(navigator.userAgent));
+  }, []);
 
   const hasMultipleOrgs = userOrgs.length > 1;
 
@@ -140,8 +146,8 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
           >
             <Search className="size-4" />
             <span className="flex-1 text-left">Search...</span>
-            <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] font-medium" suppressHydrationWarning>
-              {typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘K" : "Ctrl+K"}
+            <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] font-medium">
+              {isMac ? "⌘K" : "Ctrl+K"}
             </kbd>
           </button>
 
