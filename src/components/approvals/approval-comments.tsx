@@ -14,7 +14,7 @@ import { useRealtime } from "@/hooks/use-realtime";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
   TooltipContent,
@@ -39,9 +39,24 @@ interface ApprovalCommentsProps {
 const SOURCE_LABELS: Record<string, string> = {
   zapier: "Zapier",
   make: "Make",
+  "make.com": "Make",
   n8n: "n8n",
   api: "API",
   dashboard: "User",
+};
+
+const SOURCE_LOGOS: Record<string, string> = {
+  zapier: "/logos/platforms/zapier.png",
+  make: "/logos/platforms/make.png",
+  "make.com": "/logos/platforms/make.png",
+  n8n: "/logos/platforms/n8n.png",
+  slack: "/logos/platforms/slack.png",
+  discord: "/logos/platforms/discord.png",
+  teams: "/logos/platforms/teams.png",
+  telegram: "/logos/platforms/telegram.png",
+  github: "/logos/platforms/github.png",
+  monday: "/logos/platforms/monday.png",
+  pipedream: "/logos/platforms/pipedream.png",
 };
 
 function getAuthorName(
@@ -230,6 +245,10 @@ export function ApprovalComments({
               <div key={comment.id} className="group/comment flex items-center gap-2.5">
                 <div className="flex flex-1 min-w-0 gap-2.5">
                   <Avatar className="size-7 shrink-0 mt-0.5">
+                    {comment.source && SOURCE_LOGOS[comment.source] && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <AvatarImage src={SOURCE_LOGOS[comment.source]} alt={SOURCE_LABELS[comment.source] ?? comment.source} />
+                    )}
                     <AvatarFallback className="text-[10px]">
                       {getAvatarInitials(comment, userProfiles)}
                     </AvatarFallback>
