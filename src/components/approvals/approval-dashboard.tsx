@@ -259,6 +259,25 @@ export function ApprovalDashboard({
     }, []),
   });
 
+  // Realtime: listen for new/deleted comments across all approvals
+  useRealtime<ApprovalComment>({
+    table: "approval_comments",
+    onInsert: useCallback((record: ApprovalComment) => {
+      setCommentsMap((prev) => {
+        const existing = prev[record.request_id] ?? [];
+        if (existing.some((c) => c.id === record.id)) return prev;
+        return { ...prev, [record.request_id]: [...existing, record] };
+      });
+    }, []),
+    onDelete: useCallback((oldRecord: ApprovalComment) => {
+      setCommentsMap((prev) => {
+        const existing = prev[oldRecord.request_id];
+        if (!existing) return prev;
+        return { ...prev, [oldRecord.request_id]: existing.filter((c) => c.id !== oldRecord.id) };
+      });
+    }, []),
+  });
+
   // Summary stats
   const pendingCount = approvals.filter((a) => a.status === "pending").length;
   const approvedCount = approvals.filter((a) => a.status === "approved").length;
