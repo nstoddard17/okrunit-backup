@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Menu, HelpCircle, LogOut, Settings, Check, ChevronsUpDown, Building2 } from "lucide-react";
+import { AlertTriangle, Menu, HelpCircle, LogOut, Settings, Check, ChevronsUpDown, Building2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -131,6 +131,20 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
 
         {/* Right: actions */}
         <div className="flex items-center gap-1.5">
+          {/* Search / Cmd+K hint */}
+          <button
+            onClick={() => {
+              document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+            }}
+            className="hidden sm:flex items-center gap-2 rounded-lg border border-border/50 bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Search className="size-3.5" />
+            <span>Search...</span>
+            <kbd className="rounded border border-border bg-background px-1 py-0.5 text-[10px] font-medium">
+              ⌘K
+            </kbd>
+          </button>
+
           {/* Help button with text label like Make.com */}
           <Button variant="ghost" size="sm" asChild className="h-8 gap-1.5 text-muted-foreground hover:text-foreground">
             <a href="https://okrunit.com/docs" target="_blank" rel="noopener noreferrer">

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
+import { Dialog as RadixDialog, VisuallyHidden } from "radix-ui";
 import {
   ClipboardList,
   Home,
@@ -117,6 +118,14 @@ export function CommandPalette({ orgId }: CommandPaletteProps) {
       label="Command palette"
       className="fixed inset-0 z-[100]"
     >
+      {/* Hidden title for accessibility (required by Radix Dialog) */}
+      <VisuallyHidden.Root>
+        <RadixDialog.Title>Search commands</RadixDialog.Title>
+        <RadixDialog.Description>
+          Search pages, approvals, and navigate the app
+        </RadixDialog.Description>
+      </VisuallyHidden.Root>
+
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/50" onClick={() => setOpen(false)} />
 

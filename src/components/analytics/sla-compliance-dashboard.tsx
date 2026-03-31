@@ -1,13 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import {
   ShieldCheck,
   ShieldAlert,
   Clock,
   TrendingUp,
   AlertTriangle,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { SlaMetrics } from "@/lib/api/sla";
@@ -45,13 +48,21 @@ function complianceBg(rate: number): string {
 interface SlaComplianceDashboardProps {
   metrics: SlaMetrics;
   slaConfig: SlaConfig;
+  showDemo?: boolean;
 }
 
-export function SlaComplianceDashboard({ metrics, slaConfig }: SlaComplianceDashboardProps) {
+export function SlaComplianceDashboard({ metrics, slaConfig, showDemo }: SlaComplianceDashboardProps) {
   const complianceRate = metrics.total > 0 ? Math.round((1 - metrics.breach_rate / 100) * 10000) / 100 : 100;
 
   return (
     <div className="space-y-6">
+      {/* Demo banner */}
+      {showDemo && (
+        <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+          <span>Showing demo data. <Link href="/requests/sla" className="font-medium underline">View real data</Link></span>
+        </div>
+      )}
+
       {/* Header */}
       <div>
         <p className="text-xs font-medium text-primary mb-0.5">Insights</p>
@@ -207,7 +218,15 @@ export function SlaComplianceDashboard({ metrics, slaConfig }: SlaComplianceDash
       {/* SLA Configuration reference */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Current SLA Targets</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Current SLA Targets</CardTitle>
+            <Button variant="outline" size="sm" className="h-7 text-xs gap-1 bg-white dark:bg-card" asChild>
+              <Link href="/org/settings">
+                <Settings className="size-3" />
+                Edit Targets
+              </Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
