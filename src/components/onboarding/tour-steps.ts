@@ -16,8 +16,31 @@ export interface PageTourConfig {
   pageId: string;
   pathname: string;
   pageName: string;
+  docsPath: string;
   steps: TourStepConfig[];
 }
+
+// ---- Overview Page --------------------------------------------------------
+
+const overviewSteps: TourStepConfig[] = [
+  {
+    id: "overview-stats",
+    targetSelector: null,
+    title: "Organization Overview",
+    description:
+      "Your dashboard shows key stats at a glance: pending requests, approval count, approval rate, active connections, and team members. Click any stat to navigate to the relevant page.",
+    position: "center",
+  },
+  {
+    id: "overview-activity",
+    targetSelector: "[data-tour='overview-main']",
+    title: "Your Dashboard",
+    description:
+      "This is your main dashboard. At the top is your organization name, followed by key stat widgets (pending requests, approval rate, connections, and members). Below that is the recent activity feed showing the latest approval requests with their status, priority, and source.",
+    position: "top",
+    highlightMode: "full-width",
+  },
+];
 
 // ---- Requests Page --------------------------------------------------------
 
@@ -59,7 +82,7 @@ const requestsSteps: TourStepConfig[] = [
     targetSelector: null,
     title: "Keyboard Shortcuts",
     description:
-      "When viewing a request's detail panel, press 'a' to approve or 'r' to reject. Press ⌘K (Ctrl+K on Windows) to open the search palette from anywhere.",
+      "When viewing a request's detail panel, press 'a' to approve or 'r' to reject. Press \u2318K (Ctrl+K on Windows) to open the search palette from anywhere.",
     position: "center",
   },
 ];
@@ -93,7 +116,7 @@ const rulesSteps: TourStepConfig[] = [
     targetSelector: null,
     title: "Conditional Rules",
     description:
-      "Rules let you automatically handle requests based on conditions. Auto-approve low-risk actions, route critical requests to specific teams, or require multiple approvers. Rules are evaluated in order — first match wins.",
+      "Rules let you automatically handle requests based on conditions. Auto-approve low-risk actions, route critical requests to specific teams, or require multiple approvers. Rules are evaluated in order \u2014 first match wins.",
     position: "center",
   },
   {
@@ -114,7 +137,7 @@ const connectionsSteps: TourStepConfig[] = [
     targetSelector: "[data-tour='connection-section']",
     title: "Connections",
     description:
-      "Connections are how external tools authenticate with OKrunit. Each connection has an API key for direct API access. You can also connect via OAuth from platforms like Zapier and Make.",
+      "Connections are how external tools authenticate with OKRunit. Each connection has an API key for direct API access. You can also connect via OAuth from platforms like Zapier and Make.",
     position: "bottom",
   },
   {
@@ -164,43 +187,252 @@ const analyticsSteps: TourStepConfig[] = [
     targetSelector: null,
     title: "Pattern Suggestions",
     description:
-      "Scroll down to see pattern suggestions — OKrunit analyzes your approval history and recommends auto-approve rules for requests that are consistently approved (90%+ rate, 10+ decisions).",
+      "Scroll down to see pattern suggestions \u2014 OKRunit analyzes your approval history and recommends auto-approve rules for requests that are consistently approved (90%+ rate, 10+ decisions).",
     position: "center",
   },
 ];
 
-// ---- Overview Page --------------------------------------------------------
+// ---- SLA Page -------------------------------------------------------------
 
-const overviewSteps: TourStepConfig[] = [
+const slaSteps: TourStepConfig[] = [
   {
-    id: "overview-stats",
+    id: "sla-overview",
     targetSelector: null,
-    title: "Organization Overview",
+    title: "SLA Configuration",
     description:
-      "Your dashboard shows key stats at a glance: pending requests, approval count, approval rate, active connections, and team members. Click any stat to navigate to the relevant page.",
+      "Set response time targets for each priority level. When a pending request exceeds its SLA deadline, it gets flagged and alert banners appear on the overview page.",
     position: "center",
   },
   {
-    id: "overview-activity",
-    targetSelector: "[data-tour='overview-main']",
-    title: "Your Dashboard",
+    id: "sla-escalation",
+    targetSelector: null,
+    title: "Escalation & Alerts",
     description:
-      "This is your main dashboard. At the top is your organization name, followed by key stat widgets (pending requests, approval rate, connections, and members). Below that is the recent activity feed showing the latest approval requests with their status, priority, and source.",
-    position: "top",
-    highlightMode: "full-width",
+      "Configure escalation rules so requests that breach SLA deadlines are automatically reassigned or escalated to managers. Email and push notifications are sent when deadlines approach.",
+    position: "center",
+  },
+];
+
+// ---- Audit Log Page -------------------------------------------------------
+
+const auditLogSteps: TourStepConfig[] = [
+  {
+    id: "audit-overview",
+    targetSelector: null,
+    title: "Audit Log",
+    description:
+      "Every action in OKRunit is recorded here \u2014 approvals, rejections, rule changes, team updates, and more. Use filters to search by actor, action type, or date range.",
+    position: "center",
+  },
+  {
+    id: "audit-export",
+    targetSelector: null,
+    title: "Export & Compliance",
+    description:
+      "Export audit logs as CSV for compliance reporting. The log is immutable \u2014 entries cannot be edited or deleted, ensuring a complete audit trail.",
+    position: "center",
+  },
+];
+
+// ---- Organizations Page ---------------------------------------------------
+
+const organizationsSteps: TourStepConfig[] = [
+  {
+    id: "orgs-overview",
+    targetSelector: null,
+    title: "Your Organizations",
+    description:
+      "This page shows all organizations you belong to. You can switch between organizations or create a new one. Each organization has its own requests, connections, teams, and settings.",
+    position: "center",
+  },
+  {
+    id: "orgs-switch",
+    targetSelector: null,
+    title: "Switching Organizations",
+    description:
+      "Click on any organization card to switch to it. You can also use the organization switcher in the sidebar to quickly jump between orgs without coming to this page.",
+    position: "center",
+  },
+];
+
+// ---- Teams Page -----------------------------------------------------------
+
+const teamsSteps: TourStepConfig[] = [
+  {
+    id: "teams-overview",
+    targetSelector: null,
+    title: "Teams",
+    description:
+      "Teams let you group members for approval routing. When a request is assigned to a team, any member of that team can approve it. Create teams based on departments, projects, or approval responsibilities.",
+    position: "center",
+  },
+  {
+    id: "teams-routing",
+    targetSelector: null,
+    title: "Team-Based Routing",
+    description:
+      "Assign teams to approval routes or rules so requests are automatically routed to the right group. Team members receive notifications and can approve from any connected channel.",
+    position: "center",
+  },
+];
+
+// ---- Members Page ---------------------------------------------------------
+
+const membersSteps: TourStepConfig[] = [
+  {
+    id: "members-overview",
+    targetSelector: null,
+    title: "Team Members",
+    description:
+      "Manage who has access to your organization. Each member has a role (Owner, Admin, Approver, or Member) that determines their permissions. Owners and Admins can invite new members.",
+    position: "center",
+  },
+  {
+    id: "members-roles",
+    targetSelector: null,
+    title: "Roles & Permissions",
+    description:
+      "Approvers can approve or reject requests. Admins can also manage settings, connections, and rules. Owners have full control including billing and member management.",
+    position: "center",
+  },
+];
+
+// ---- Invites Page ---------------------------------------------------------
+
+const invitesSteps: TourStepConfig[] = [
+  {
+    id: "invites-overview",
+    targetSelector: null,
+    title: "Pending Invitations",
+    description:
+      "View and manage outstanding invitations to your organization. You can resend invites, copy invite links, or revoke invitations that haven\u2019t been accepted yet.",
+    position: "center",
+  },
+];
+
+// ---- Roles Page -----------------------------------------------------------
+
+const rolesSteps: TourStepConfig[] = [
+  {
+    id: "roles-overview",
+    targetSelector: null,
+    title: "Custom Roles",
+    description:
+      "Define custom roles beyond the built-in Owner, Admin, Approver, and Member roles. Custom roles let you fine-tune permissions for specific workflows or compliance requirements.",
+    position: "center",
+  },
+];
+
+// ---- Org Settings Page ----------------------------------------------------
+
+const orgSettingsSteps: TourStepConfig[] = [
+  {
+    id: "org-settings-overview",
+    targetSelector: null,
+    title: "Organization Settings",
+    description:
+      "Configure your organization name, default approval settings, rejection reason policies, and security options like IP allowlists and geo-restrictions.",
+    position: "center",
+  },
+  {
+    id: "org-settings-security",
+    targetSelector: null,
+    title: "Security & Policies",
+    description:
+      "Set organization-wide policies: require rejection reasons, enable re-authentication for critical approvals, configure four-eyes principle enforcement, and set bottleneck alert thresholds.",
+    position: "center",
+  },
+];
+
+// ---- Billing Page ---------------------------------------------------------
+
+const billingSteps: TourStepConfig[] = [
+  {
+    id: "billing-overview",
+    targetSelector: null,
+    title: "Billing & Subscription",
+    description:
+      "View your current plan, usage, and billing history. Upgrade to unlock more connections, team members, and features like SSO, analytics export, and custom routing.",
+    position: "center",
+  },
+];
+
+// ---- Account Settings Page ------------------------------------------------
+
+const accountSettingsSteps: TourStepConfig[] = [
+  {
+    id: "account-overview",
+    targetSelector: null,
+    title: "Account Settings",
+    description:
+      "Manage your personal account: update your name, email, and notification preferences. You can also set up passkeys for passwordless authentication.",
+    position: "center",
+  },
+];
+
+// ---- Notification Settings Page -------------------------------------------
+
+const notificationSettingsSteps: TourStepConfig[] = [
+  {
+    id: "notification-settings-overview",
+    targetSelector: null,
+    title: "Notification Preferences",
+    description:
+      "Choose how you want to be notified about approval requests. Configure email, push notification, and in-app notification settings. You can set quiet hours to pause notifications.",
+    position: "center",
+  },
+];
+
+// ---- Playground Page ------------------------------------------------------
+
+const playgroundSteps: TourStepConfig[] = [
+  {
+    id: "playground-overview",
+    targetSelector: null,
+    title: "API Playground",
+    description:
+      "Test the OKRunit API directly from your browser. Create approval requests, check their status, and see how the API responds \u2014 all without writing code.",
+    position: "center",
+  },
+  {
+    id: "playground-builder",
+    targetSelector: null,
+    title: "Request Builder",
+    description:
+      "Use the request builder to construct API calls visually. Set the title, priority, metadata, and other fields, then send the request to see the result.",
+    position: "center",
   },
 ];
 
 // ---- All Page Tours -------------------------------------------------------
 
 export const PAGE_TOURS: PageTourConfig[] = [
-  { pageId: "overview", pathname: "/org/overview", pageName: "Overview", steps: overviewSteps },
-  { pageId: "requests", pathname: "/requests", pageName: "Requests", steps: requestsSteps },
-  { pageId: "routes", pathname: "/requests/routes", pageName: "Routes", steps: routesSteps },
-  { pageId: "rules", pathname: "/requests/rules", pageName: "Rules", steps: rulesSteps },
-  { pageId: "connections", pathname: "/requests/connections", pageName: "Connections", steps: connectionsSteps },
-  { pageId: "messaging", pathname: "/requests/messaging", pageName: "Messaging", steps: messagingSteps },
-  { pageId: "analytics", pathname: "/requests/analytics", pageName: "Analytics", steps: analyticsSteps },
+  // Dashboard
+  { pageId: "overview", pathname: "/org/overview", pageName: "Overview", docsPath: "/docs", steps: overviewSteps },
+  { pageId: "requests", pathname: "/requests", pageName: "Requests", docsPath: "/docs/approvals", steps: requestsSteps },
+  { pageId: "routes", pathname: "/requests/routes", pageName: "Routes", docsPath: "/docs/approvals", steps: routesSteps },
+  { pageId: "rules", pathname: "/requests/rules", pageName: "Rules", docsPath: "/docs/rules", steps: rulesSteps },
+  { pageId: "connections", pathname: "/requests/connections", pageName: "Connections", docsPath: "/docs/integrations", steps: connectionsSteps },
+  { pageId: "messaging", pathname: "/requests/messaging", pageName: "Messaging", docsPath: "/docs/notifications", steps: messagingSteps },
+  { pageId: "analytics", pathname: "/requests/analytics", pageName: "Analytics", docsPath: "/docs/approvals", steps: analyticsSteps },
+  { pageId: "sla", pathname: "/requests/sla", pageName: "SLA", docsPath: "/docs/sla", steps: slaSteps },
+  { pageId: "audit-log", pathname: "/requests/audit-log", pageName: "Audit Log", docsPath: "/docs/approvals", steps: auditLogSteps },
+
+  // Organization
+  { pageId: "organizations", pathname: "/org/organizations", pageName: "Organizations", docsPath: "/docs/onboarding", steps: organizationsSteps },
+  { pageId: "teams", pathname: "/org/teams", pageName: "Teams", docsPath: "/docs/approvals", steps: teamsSteps },
+  { pageId: "members", pathname: "/org/members", pageName: "Members", docsPath: "/docs/custom-roles", steps: membersSteps },
+  { pageId: "invites", pathname: "/org/invites", pageName: "Invites", docsPath: "/docs/onboarding", steps: invitesSteps },
+  { pageId: "roles", pathname: "/org/roles", pageName: "Roles", docsPath: "/docs/custom-roles", steps: rolesSteps },
+  { pageId: "org-settings", pathname: "/org/settings", pageName: "Org Settings", docsPath: "/docs", steps: orgSettingsSteps },
+  { pageId: "billing", pathname: "/org/billing", pageName: "Billing", docsPath: "/docs/billing", steps: billingSteps },
+
+  // Settings
+  { pageId: "account", pathname: "/settings/account", pageName: "Account", docsPath: "/docs/passkeys", steps: accountSettingsSteps },
+  { pageId: "notifications", pathname: "/settings/notifications", pageName: "Notifications", docsPath: "/docs/notifications", steps: notificationSettingsSteps },
+
+  // Dev tools
+  { pageId: "playground", pathname: "/playground", pageName: "Playground", docsPath: "/docs/api", steps: playgroundSteps },
 ];
 
 // Full tour order (for the sequential "Start Tour" flow)
@@ -210,3 +442,12 @@ export const FULL_TOUR_ORDER = ["requests", "routes", "rules", "connections", "m
 export const TOUR_STEPS = PAGE_TOURS.flatMap((p) =>
   p.steps.map((s) => ({ ...s, pathname: p.pathname, actionLabel: s.actionLabel ?? "Next" })),
 );
+
+// Helper: find tour config for a given pathname
+export function findPageTour(pathname: string): PageTourConfig | undefined {
+  return PAGE_TOURS.find((p) =>
+    p.pathname === "/org/overview"
+      ? pathname === "/org/overview"
+      : pathname === p.pathname || pathname.startsWith(p.pathname + "/")
+  );
+}
