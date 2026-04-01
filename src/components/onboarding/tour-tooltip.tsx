@@ -14,6 +14,7 @@ interface TourTooltipProps {
   stepNumber: number;
   totalSteps: number;
   onNext: () => void;
+  onBack?: () => void;
   onSkip: () => void;
 }
 
@@ -26,6 +27,7 @@ export function TourTooltip({
   stepNumber,
   totalSteps,
   onNext,
+  onBack,
   onSkip,
 }: TourTooltipProps) {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
@@ -158,10 +160,17 @@ export function TourTooltip({
           <p className="text-xs leading-relaxed text-muted-foreground">{description}</p>
           <div className="flex items-center justify-between mt-4">
             <button onClick={onSkip} className="text-xs text-muted-foreground hover:text-foreground">Skip tour</button>
-            <Button size="sm" className="h-8 gap-1.5 text-xs" onClick={onNext}>
-              {actionLabel}
-              <ArrowRight className="size-3" />
-            </Button>
+            <div className="flex items-center gap-2">
+              {onBack && (
+                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={onBack}>
+                  Back
+                </Button>
+              )}
+              <Button size="sm" className="h-8 gap-1.5 text-xs" onClick={onNext}>
+                {actionLabel}
+                <ArrowRight className="size-3" />
+              </Button>
+            </div>
           </div>
         </div>
         <div className="h-1 bg-muted rounded-b-xl overflow-hidden">
