@@ -191,7 +191,7 @@ export function TourTooltip({
         tooltipStyle = { position: "fixed", bottom: vh - r.top + gap, left: clampLeft(r.left) };
         break;
       case "left":
-        tooltipStyle = { position: "fixed", top: clampTop(r.top), left: clampLeft(r.left - gap - tooltipWidth) };
+        tooltipStyle = { position: "fixed", top: clampTop(r.top), left: clampLeft(r.left - gap - tooltipWidth - 12) };
         break;
       case "right":
       default:
