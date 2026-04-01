@@ -30,27 +30,42 @@ export default async function RequestsPage() {
     if (cb?.user_id) creatorUserIds.add(cb.user_id);
   }
 
-  const approvalCreators: Record<string, string> = {};
-  if (creatorUserIds.size > 0) {
-    const { data: profiles } = await admin
-      .from("user_profiles")
-      .select("id, full_name, email")
-      .in("id", [...creatorUserIds]);
+  const [approvalCreators, teamsMap] = await (async () => {
+    const creators: Record<string, string> = {};
+    if (creatorUserIds.size > 0) {
+      const { data: profiles } = await admin
+        .from("user_profiles")
+        .select("id, full_name, email")
+        .in("id", [...creatorUserIds]);
 
-    const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+      const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
 
-    for (const a of approvals ?? []) {
-      const cb = a.created_by as CreatedByInfo | null;
-      if (cb?.user_id) {
-        const p = profileMap.get(cb.user_id);
-        if (p) approvalCreators[a.id] = p.full_name || p.email;
+      for (const a of approvals ?? []) {
+        const cb = a.created_by as CreatedByInfo | null;
+        if (cb?.user_id) {
+          const p = profileMap.get(cb.user_id);
+          if (p) creators[a.id] = p.full_name || p.email;
+        }
       }
     }
-  }
+
+    const { data: teams } = await admin
+      .from("teams")
+      .select("id, name")
+      .eq("org_id", membership.org_id);
+
+    const tMap: Record<string, string> = {};
+    for (const t of teams ?? []) {
+      tMap[t.id] = t.name;
+    }
+
+    return [creators, tMap] as const;
+  })();
 
   return (
     <ApprovalDashboard
       approvalCreators={approvalCreators}
+      teamsMap={teamsMap}
       canApprove={membership.can_approve ?? true}
       orgId={membership.org_id}
       userId={membership.user_id}

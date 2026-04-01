@@ -679,6 +679,7 @@ export interface BottleneckAlert {
 
 export type NotificationCategory =
   | "approval_awaiting"
+  | "approval_created"
   | "approval_decided"
   | "flow_step_decided"
   | "approval_expiring"
@@ -701,6 +702,14 @@ export interface InAppNotification {
   resource_id: string | null;
   is_read: boolean;
   read_at: string | null;
+  created_at: string;
+}
+
+// ---- Request Watchers -------------------------------------------------------
+
+export interface RequestWatcher {
+  request_id: string;
+  user_id: string;
   created_at: string;
 }
 

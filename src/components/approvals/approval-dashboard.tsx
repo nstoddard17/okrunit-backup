@@ -24,6 +24,7 @@ interface ApprovalDashboardProps {
   initialApprovals?: ApprovalRequest[];
   connections?: Connection[];
   approvalCreators?: Record<string, string>;
+  teamsMap?: Record<string, string>;
   canApprove?: boolean;
   orgId: string;
   userId: string;
@@ -34,6 +35,7 @@ export function ApprovalDashboard({
   initialApprovals,
   connections: initialConnections,
   approvalCreators = {},
+  teamsMap = {},
   canApprove = true,
   orgId,
   userId,
@@ -217,6 +219,28 @@ export function ApprovalDashboard({
     loadPreferences();
   }, []);
 
+  // Mark all notifications as read when the requests page mounts,
+  // and continuously mark new ones as read while the user stays on the page.
+  useEffect(() => {
+    // Mark existing notifications as read immediately
+    fetch("/api/v1/notifications/read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ all: true }),
+    }).catch(() => {});
+
+    // Listen for new notifications arriving via realtime and mark them read
+    const handler = () => {
+      fetch("/api/v1/notifications/read", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ all: true }),
+      }).catch(() => {});
+    };
+    window.addEventListener("notification-received", handler);
+    return () => window.removeEventListener("notification-received", handler);
+  }, []);
+
   // Fetch usage/billing info to show limit banner
   useEffect(() => {
     const fetchUsage = async () => {
@@ -277,17 +301,21 @@ export function ApprovalDashboard({
       });
       markAsNew(record.id);
       toast.info("New approval request received");
+      // Notify sidebar (its own subscription may miss events due to channel dedup)
+      window.dispatchEvent(new CustomEvent("approval-realtime", { detail: { type: "INSERT", record } }));
     }, [markAsNew]),
-    onUpdate: useCallback((record: ApprovalRequest) => {
+    onUpdate: useCallback((record: ApprovalRequest, oldRecord: ApprovalRequest) => {
       setApprovals((prev) =>
         prev.map((a) => (a.id === record.id ? record : a))
       );
       setSelectedApproval((prev) =>
         prev?.id === record.id ? record : prev
       );
+      window.dispatchEvent(new CustomEvent("approval-realtime", { detail: { type: "UPDATE", record, oldRecord } }));
     }, []),
     onDelete: useCallback((oldRecord: ApprovalRequest) => {
       setApprovals((prev) => prev.filter((a) => a.id !== oldRecord.id));
+      window.dispatchEvent(new CustomEvent("approval-realtime", { detail: { type: "DELETE", record: oldRecord } }));
     }, []),
   });
 
@@ -434,15 +462,26 @@ export function ApprovalDashboard({
   // Tour step 5: auto-open detail panel for the test request
   const tourActivePageId = useOnboardingTourStore((s) => s.activePageId);
   const tourStepIndex = useOnboardingTourStore((s) => s.currentStepInPage);
+  const isTourOnDetailStep = tourActivePageId === "requests" && tourStepIndex === 4;
   useEffect(() => {
-    if (tourActivePageId === "requests" && tourStepIndex === 4) {
+    if (isTourOnDetailStep) {
       const testRequest = approvals.find((a) => a.source === "onboarding");
       if (testRequest && !detailOpen) {
         setSelectedApproval(testRequest);
         setDetailOpen(true);
       }
     }
-  }, [tourActivePageId, tourStepIndex, approvals, detailOpen]);
+  }, [isTourOnDetailStep, approvals, detailOpen]);
+
+  // Close detail panel when tour leaves step 5 (user clicked X, Skip, or Done)
+  const prevTourOnDetailStep = useRef(false);
+  useEffect(() => {
+    if (prevTourOnDetailStep.current && !isTourOnDetailStep && detailOpen) {
+      setDetailOpen(false);
+      setSelectedApproval(null);
+    }
+    prevTourOnDetailStep.current = isTourOnDetailStep;
+  }, [isTourOnDetailStep, detailOpen]);
 
   const handleCloseDetail = useCallback(() => {
     setDetailOpen(false);
@@ -481,6 +520,21 @@ export function ApprovalDashboard({
           ? "Request approved successfully"
           : "Request rejected"
       );
+
+      // Notify sidebar immediately so the badge count updates without waiting
+      // for the realtime event (which may be dropped due to channel dedup).
+      const oldRecord = approvals.find((a) => a.id === approvalId);
+      if (oldRecord) {
+        window.dispatchEvent(
+          new CustomEvent("approval-realtime", {
+            detail: {
+              type: "UPDATE",
+              record: { ...oldRecord, ...optimisticUpdate },
+              oldRecord,
+            },
+          })
+        );
+      }
 
       handleCloseDetail();
 
@@ -724,6 +778,8 @@ export function ApprovalDashboard({
     approvals: paginatedApprovals,
     connections,
     approvalCreators: allCreatorNames,
+    teamsMap,
+    userProfiles,
     onSelect: handleSelect,
     canApprove,
     isLoading,

@@ -61,6 +61,17 @@ export function Sidebar({ pendingCount: initialPendingCount, userRole, isAppAdmi
 
   // Live pending count — starts from server value, updated via realtime
   const [livePendingCount, setLivePendingCount] = useState(initialPendingCount);
+  // Deduplicate events: track IDs recently processed to avoid double-counting
+  // when both the realtime subscription and the DOM event fire for the same record.
+  const processedIds = useRef(new Set<string>());
+
+  const processEvent = useCallback((eventKey: string, apply: () => void) => {
+    if (processedIds.current.has(eventKey)) return;
+    processedIds.current.add(eventKey);
+    apply();
+    // Clear after 5s to avoid unbounded growth
+    setTimeout(() => processedIds.current.delete(eventKey), 5000);
+  }, []);
 
   // Sync with server value when it changes (e.g. after navigation)
   useEffect(() => {
@@ -74,6 +85,35 @@ export function Sidebar({ pendingCount: initialPendingCount, userRole, isAppAdmi
     return () => window.removeEventListener("onboarding-test-deleted", handler);
   }, []);
 
+  // Listen for approval-realtime events from the dashboard component.
+  // When multiple components subscribe to the same Supabase Realtime table+filter,
+  // Supabase may deduplicate and only deliver INSERT events to one channel. This
+  // ensures the sidebar count stays in sync even if its own subscription misses them.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { type, record } = (e as CustomEvent).detail;
+      const key = `${type}:${record.id}`;
+      if (type === "INSERT" && record.status === "pending" && !record.archived_at) {
+        processEvent(key, () => setLivePendingCount((prev) => prev + 1));
+      } else if (type === "DELETE" && record.status === "pending") {
+        processEvent(key, () => setLivePendingCount((prev) => Math.max(0, prev - 1)));
+      } else if (type === "UPDATE") {
+        const oldRecord = (e as CustomEvent).detail.oldRecord;
+        if (oldRecord) {
+          const wasPending = oldRecord.status === "pending" && !oldRecord.archived_at;
+          const isPending = record.status === "pending" && !record.archived_at;
+          if (wasPending && !isPending) {
+            processEvent(key, () => setLivePendingCount((prev) => Math.max(0, prev - 1)));
+          } else if (!wasPending && isPending) {
+            processEvent(key, () => setLivePendingCount((prev) => prev + 1));
+          }
+        }
+      }
+    };
+    window.addEventListener("approval-realtime", handler);
+    return () => window.removeEventListener("approval-realtime", handler);
+  }, [processEvent]);
+
   // Realtime: adjust pending count when approval requests are created/updated
   useRealtime<ApprovalRequest>({
     table: "approval_requests",
@@ -81,23 +121,23 @@ export function Sidebar({ pendingCount: initialPendingCount, userRole, isAppAdmi
     enabled: !!currentOrgId,
     onInsert: useCallback((record: ApprovalRequest) => {
       if (record.status === "pending" && !record.archived_at) {
-        setLivePendingCount((prev) => prev + 1);
+        processEvent(`INSERT:${record.id}`, () => setLivePendingCount((prev) => prev + 1));
       }
-    }, []),
+    }, [processEvent]),
     onUpdate: useCallback((record: ApprovalRequest, oldRecord: ApprovalRequest) => {
       const wasPending = oldRecord.status === "pending" && !oldRecord.archived_at;
       const isPending = record.status === "pending" && !record.archived_at;
       if (wasPending && !isPending) {
-        setLivePendingCount((prev) => Math.max(0, prev - 1));
+        processEvent(`UPDATE:${record.id}`, () => setLivePendingCount((prev) => Math.max(0, prev - 1)));
       } else if (!wasPending && isPending) {
-        setLivePendingCount((prev) => prev + 1);
+        processEvent(`UPDATE:${record.id}`, () => setLivePendingCount((prev) => prev + 1));
       }
-    }, []),
+    }, [processEvent]),
     onDelete: useCallback((oldRecord: ApprovalRequest) => {
       if (oldRecord.status === "pending") {
-        setLivePendingCount((prev) => Math.max(0, prev - 1));
+        processEvent(`DELETE:${oldRecord.id}`, () => setLivePendingCount((prev) => Math.max(0, prev - 1)));
       }
-    }, []),
+    }, [processEvent]),
   });
 
   const pendingCount = livePendingCount;

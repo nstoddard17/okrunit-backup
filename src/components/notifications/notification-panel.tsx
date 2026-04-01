@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useRealtime } from "@/hooks/use-realtime";
+import { toast } from "sonner";
 import type { InAppNotification, NotificationCategory } from "@/lib/types/database";
 
 interface NotificationPanelProps {
@@ -36,6 +37,7 @@ const CATEGORY_CONFIG: Record<
   { icon: typeof Bell; color: string }
 > = {
   approval_awaiting: { icon: Clock, color: "text-amber-500" },
+  approval_created: { icon: Inbox, color: "text-blue-400" },
   approval_decided: { icon: CheckCircle2, color: "text-emerald-500" },
   flow_step_decided: { icon: Workflow, color: "text-blue-500" },
   approval_expiring: { icon: Clock, color: "text-red-500" },
@@ -88,7 +90,15 @@ export function NotificationPanel({ userId }: NotificationPanelProps) {
     });
     if (!record.is_read) {
       setUnreadCount((prev) => prev + 1);
+      toast(record.title, {
+        description: record.body || undefined,
+        action: record.resource_type === "approval_request" && record.resource_id
+          ? { label: "View", onClick: () => { window.location.href = `/requests?highlight=${record.resource_id}`; } }
+          : undefined,
+      });
     }
+    // Notify other components (e.g. requests page auto-marks as read)
+    window.dispatchEvent(new Event("notification-received"));
   }, []);
 
   const handleRealtimeUpdate = useCallback((record: InAppNotification) => {

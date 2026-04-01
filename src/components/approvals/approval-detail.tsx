@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useOnboardingTourStore } from "@/stores/onboarding-tour-store";
 import {
   Sheet,
@@ -25,6 +25,9 @@ import {
   Settings2,
   MessageSquare,
   HelpCircle,
+  Eye,
+  EyeOff,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ApprovalRequest, ApprovalComment, UserProfile, CreatedByInfo } from "@/lib/types/database";
@@ -101,6 +104,31 @@ export function ApprovalDetail({
 }: ApprovalDetailProps) {
   const tourActive = useOnboardingTourStore((s) => s.activePageId === "requests" && s.currentStepInPage === 4);
   const currentId = open && approval ? approval.id : null;
+
+  // Watch state
+  const [isWatching, setIsWatching] = useState(false);
+  const [watcherCount, setWatcherCount] = useState(0);
+
+  useEffect(() => {
+    if (!currentId) return;
+    fetch(`/api/v1/approvals/${currentId}/watch`)
+      .then((r) => r.json())
+      .then((data) => {
+        setIsWatching(data.isWatching ?? false);
+        setWatcherCount(data.count ?? 0);
+      })
+      .catch(() => {});
+  }, [currentId]);
+
+  const toggleWatch = useCallback(async () => {
+    if (!currentId) return;
+    const method = isWatching ? "DELETE" : "POST";
+    const res = await fetch(`/api/v1/approvals/${currentId}/watch`, { method });
+    if (res.ok) {
+      setIsWatching(!isWatching);
+      setWatcherCount((prev) => prev + (isWatching ? -1 : 1));
+    }
+  }, [currentId, isWatching]);
 
   // Comments are owned by the parent dashboard via commentsMap.
   // This component just reads them and pushes changes up.
@@ -333,11 +361,25 @@ export function ApprovalDetail({
               </div>
             )}
 
+            {/* Watch/Unwatch toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-3"
+              onClick={toggleWatch}
+            >
+              {isWatching ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+              {isWatching ? "Unwatch" : "Watch"}
+              {watcherCount > 0 && (
+                <span className="ml-1 text-muted-foreground">· {watcherCount}</span>
+              )}
+            </Button>
+
             {approval.flow_id && onConfigureFlow && (
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full mt-3"
+                className="w-full mt-2"
                 onClick={() => onConfigureFlow(approval)}
               >
                 <Settings2 className="size-3.5" />
@@ -345,6 +387,20 @@ export function ApprovalDetail({
               </Button>
             )}
           </div>}
+
+          {/* Viewer banner: show when user is not an assigned approver */}
+          {approval.status === "pending" && approval.assigned_approvers && approval.assigned_approvers.length > 0 && currentUserId && !approval.assigned_approvers.includes(currentUserId) && (
+            <div className="flex items-start gap-2 rounded-xl border border-blue-200/60 dark:border-blue-800/40 bg-blue-50/50 dark:bg-blue-950/20 px-4 py-3">
+              <Info className="size-4 shrink-0 text-blue-500 mt-0.5" />
+              <p className="text-xs text-blue-700 dark:text-blue-400">
+                Awaiting approval from{" "}
+                {approval.assigned_approvers.length === 1
+                  ? getUserDisplayName(approval.assigned_approvers[0], userProfiles)
+                  : `${approval.assigned_approvers.length} assigned approvers`}.
+                {isWatching ? " You're watching this request." : ""}
+              </p>
+            </div>
+          )}
 
           {/* Card: Context */}
           {approval.context_html && (

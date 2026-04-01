@@ -35,6 +35,7 @@ interface ApprovalCardProps {
   approval: ApprovalRequest;
   connectionName?: string;
   creatorName?: string;
+  currentlyResponsible?: string | null;
   onClick: () => void;
   canApprove?: boolean;
   isLoading?: boolean;
@@ -78,6 +79,7 @@ export const ApprovalCard = memo(function ApprovalCard({
   approval,
   connectionName,
   creatorName,
+  currentlyResponsible,
   onClick,
   canApprove = true,
   isLoading = false,
@@ -257,6 +259,12 @@ export const ApprovalCard = memo(function ApprovalCard({
               <Badge variant="secondary" className="text-[11px]">Archived</Badge>
             )}
             {!approval.is_log && <Badge variant={status.variant} className="text-[11px]">{status.label}</Badge>}
+            {currentlyResponsible && (
+              <span className="flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40">
+                <User2 className="size-3 shrink-0" />
+                <span className="truncate max-w-[120px]">{currentlyResponsible}</span>
+              </span>
+            )}
 
             {/* Action buttons — visible on hover */}
             <div className={cn(

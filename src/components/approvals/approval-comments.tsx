@@ -4,9 +4,10 @@
 // OKrunit -- Approval Comments: Threaded Comment List + Reply Form
 // ---------------------------------------------------------------------------
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Send, Trash2 } from "lucide-react";
+import { Send, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 import type { ApprovalComment, UserProfile } from "@/lib/types/database";
@@ -135,8 +136,20 @@ export function ApprovalComments({
   const [body, setBody] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [votes, setVotes] = useState<Array<{ id: string; user_id: string; vote: string; comment: string | null; created_at: string }>>([]);
 
   const isAdmin = currentUserRole === "owner" || currentUserRole === "admin";
+
+  // Fetch votes for this request
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("approval_votes")
+      .select("id, user_id, vote, comment, created_at")
+      .eq("request_id", requestId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => { if (data) setVotes(data); });
+  }, [requestId]);
 
   // Subscribe to realtime INSERT events for this request's comments
   const handleRealtimeInsert = useCallback(
@@ -242,12 +255,46 @@ export function ApprovalComments({
         </Button>
       </form>
 
-      {/* Comment list */}
-      {comments.length === 0 ? (
-        <p className="text-muted-foreground text-xs">No comments yet.</p>
+      {/* Activity timeline: comments + votes interleaved chronologically */}
+      {comments.length === 0 && votes.length === 0 ? (
+        <p className="text-muted-foreground text-xs">No activity yet.</p>
       ) : (
         <div className="space-y-3">
-          {comments.map((comment) => {
+          {/* Render votes as system entries */}
+          {(() => {
+            // Merge comments and votes into a single timeline
+            type TimelineItem = { type: "comment"; data: ApprovalComment; at: number } | { type: "vote"; data: typeof votes[number]; at: number };
+            const timeline: TimelineItem[] = [
+              ...comments.map((c) => ({ type: "comment" as const, data: c, at: new Date(c.created_at).getTime() })),
+              ...votes.map((v) => ({ type: "vote" as const, data: v, at: new Date(v.created_at).getTime() })),
+            ].sort((a, b) => a.at - b.at);
+
+            return timeline.map((item) => {
+              if (item.type === "vote") {
+                const v = item.data;
+                const profile = userProfiles?.get(v.user_id);
+                const name = profile?.full_name || profile?.email || v.user_id.slice(0, 8) + "…";
+                const isApprove = v.vote === "approve";
+                return (
+                  <div key={`vote-${v.id}`} className="flex items-center gap-2 px-1 py-1.5 rounded-lg bg-muted/30">
+                    {isApprove
+                      ? <CheckCircle className="size-3.5 shrink-0 text-emerald-500" />
+                      : <XCircle className="size-3.5 shrink-0 text-red-500" />
+                    }
+                    <span className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">{name}</span>
+                      {" "}{isApprove ? "approved" : "rejected"}
+                      {v.comment && <span className="italic"> · &ldquo;{v.comment}&rdquo;</span>}
+                    </span>
+                    <span className="text-muted-foreground/60 text-[10px] ml-auto shrink-0">
+                      {formatDistanceToNow(new Date(v.created_at), { addSuffix: true })}
+                    </span>
+                  </div>
+                );
+              }
+
+              // Comment rendering (existing)
+              const comment = item.data;
             const canDelete = isAdmin || comment.user_id === currentUserId;
             const badge = getSourceBadge(comment);
 
@@ -303,7 +350,8 @@ export function ApprovalComments({
                 )}
               </div>
             );
-          })}
+            });
+          })()}
         </div>
       )}
       {/* Delete confirmation */}

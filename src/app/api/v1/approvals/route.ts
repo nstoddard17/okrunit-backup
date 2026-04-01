@@ -22,7 +22,7 @@ import { calculateRiskScore } from "@/lib/api/risk-scoring";
 import { resolveDelegates } from "@/lib/api/delegation";
 import { checkTrustThreshold } from "@/lib/api/trust-engine";
 import { dispatchNotifications } from "@/lib/notifications/orchestrator";
-import { createInAppNotificationBulk } from "@/lib/notifications/in-app";
+import { createInAppNotification, createInAppNotificationBulk } from "@/lib/notifications/in-app";
 import { calculateSlaDeadline, checkSlaBreach, type SlaConfig } from "@/lib/api/sla";
 import { calculateNextEscalation } from "@/lib/api/escalation";
 import type { EscalationConfig } from "@/lib/types/database";
@@ -185,6 +185,7 @@ export async function POST(request: Request) {
     // 7. Approval flow lookup: if source + source_id provided, find or create
     //    the matching flow and apply its saved defaults.
     let flowId: string | null = null;
+    let flowIsUnconfigured = false;
     let flowPriority: string | undefined;
     let flowExpiresAt: string | undefined;
     let flowRequiredApprovals: number | undefined;
@@ -207,6 +208,7 @@ export async function POST(request: Request) {
 
       if (existingFlow) {
         flowId = existingFlow.id;
+        flowIsUnconfigured = !existingFlow.is_configured;
 
         // Apply configured defaults (only if the flow has been customized
         // and apply_for_next has not been exhausted)
@@ -275,6 +277,7 @@ export async function POST(request: Request) {
 
         if (newFlow) {
           flowId = newFlow.id;
+          flowIsUnconfigured = true;
         }
       }
     }
@@ -646,22 +649,95 @@ export async function POST(request: Request) {
         assignedTeamId: assignedTeamId ?? undefined,
       });
 
-      // In-app notification for assigned approvers
-      if (!isAutoApproved && targetUserIds && targetUserIds.length > 0) {
+      // In-app notifications
+      if (!isAutoApproved) {
         const sourceName = connectionName ?? validated.source ?? autoDetectedSource;
-        await createInAppNotificationBulk(targetUserIds, {
-          orgId: auth.orgId,
-          category: "approval_awaiting",
-          title: `New request: ${validated.title}`,
-          body: sourceName
-            ? `${effectivePriority.charAt(0).toUpperCase() + effectivePriority.slice(1)} priority · from ${sourceName.charAt(0).toUpperCase() + sourceName.slice(1)}`
-            : `${effectivePriority.charAt(0).toUpperCase() + effectivePriority.slice(1)} priority`,
-          actorName: connectionName ?? undefined,
-          resourceType: "approval_request",
-          resourceId: approval.id,
-        });
+        const priorityLabel = effectivePriority.charAt(0).toUpperCase() + effectivePriority.slice(1);
+        const bodyText = sourceName
+          ? `${priorityLabel} priority · from ${sourceName.charAt(0).toUpperCase() + sourceName.slice(1)}`
+          : `${priorityLabel} priority`;
+
+        if (flowIsUnconfigured) {
+          // Unconfigured flow: only notify the connection owner to configure routing.
+          const ownerId = auth.type === "api_key"
+            ? auth.connection.created_by
+            : auth.type === "oauth" ? auth.userId : null;
+          if (ownerId) {
+            await createInAppNotification({
+              userId: ownerId,
+              orgId: auth.orgId,
+              category: "flow_assigned",
+              title: `New flow needs configuration`,
+              body: `"${validated.title}" arrived from a new source. Configure routing to assign approvers.`,
+              resourceType: "approval_request",
+              resourceId: approval.id,
+            });
+          }
+        } else if (targetUserIds && targetUserIds.length > 0) {
+          // Configured flow with assigned approvers:
+          // "Action needed" for current approvers
+          await createInAppNotificationBulk(targetUserIds, {
+            orgId: auth.orgId,
+            category: "approval_awaiting",
+            title: `New request: ${validated.title}`,
+            body: bodyText,
+            actorName: connectionName ?? undefined,
+            resourceType: "approval_request",
+            resourceId: approval.id,
+          });
+
+          // "FYI" for later-in-chain approvers (sequential only)
+          if (effectiveIsSequential && assignedApprovers && assignedApprovers.length > 1) {
+            const laterApprovers = assignedApprovers.slice(1).filter(
+              (id: string) => !targetUserIds!.includes(id)
+            );
+            if (laterApprovers.length > 0) {
+              await createInAppNotificationBulk(laterApprovers, {
+                orgId: auth.orgId,
+                category: "approval_created",
+                title: `New request: ${validated.title}`,
+                body: `${bodyText} · you'll be needed later in the approval chain`,
+                actorName: connectionName ?? undefined,
+                resourceType: "approval_request",
+                resourceId: approval.id,
+              });
+            }
+          }
+        } else {
+          // No assigned approvers (mode = "any" or "role_based"):
+          // Notify all eligible org members
+          const { data: eligibleMembers } = await admin
+            .from("org_memberships")
+            .select("user_id")
+            .eq("org_id", auth.orgId)
+            .in("role", ["approver", "admin", "owner"]);
+          const notifyUserIds = (eligibleMembers ?? []).map((m: { user_id: string }) => m.user_id);
+
+          if (notifyUserIds.length > 0) {
+            await createInAppNotificationBulk(notifyUserIds, {
+              orgId: auth.orgId,
+              category: "approval_awaiting",
+              title: `New request: ${validated.title}`,
+              body: bodyText,
+              actorName: connectionName ?? undefined,
+              resourceType: "approval_request",
+              resourceId: approval.id,
+            });
+          }
+        }
       }
     });
+
+    // 15a. Auto-watch: add the connection/OAuth owner as a watcher
+    const watchOwnerId = auth.type === "api_key"
+      ? auth.connection.created_by
+      : auth.type === "oauth" ? auth.userId : null;
+    if (watchOwnerId) {
+      admin
+        .from("request_watchers")
+        .upsert({ request_id: approval.id, user_id: watchOwnerId }, { onConflict: "request_id,user_id" })
+        .then();
+    }
 
     // 15b. Bottleneck detection (fire-and-forget)
     //      Check if any assigned approver now exceeds the threshold
