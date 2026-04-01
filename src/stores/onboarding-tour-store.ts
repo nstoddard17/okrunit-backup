@@ -54,6 +54,16 @@ function saveToServer(state: Record<string, unknown>) {
   }).catch(() => {});
 }
 
+function deleteTestRequest() {
+  fetch("/api/v1/onboarding", { method: "DELETE" })
+    .then(() => {
+      // Notify sidebar to refresh pending count since admin deletes
+      // may not trigger Supabase Realtime events
+      window.dispatchEvent(new CustomEvent("onboarding-test-deleted"));
+    })
+    .catch(() => {});
+}
+
 export const useOnboardingTourStore = create<OnboardingTourState>()(
   persist(
     (set, get) => ({
@@ -80,7 +90,7 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
         const { activePageId, currentStepInPage, fullTourActive, testRequestId } = get();
         // Clean up test request if one exists
         if (testRequestId) {
-          fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+          deleteTestRequest();
         }
         set({ fullTourActive: false, activePageId: null, testRequestId: null, tourPaused: true, pausedPageId: activePageId, pausedStepIndex: currentStepInPage, pausedWasFullTour: fullTourActive });
       },
@@ -115,7 +125,7 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
       completePageTour: () => {
         const { activePageId, touredPages, fullTourActive, testRequestId } = get();
         if (activePageId === "requests" && testRequestId) {
-          fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+          deleteTestRequest();
         }
         const updated = activePageId && !touredPages.includes(activePageId)
           ? [...touredPages, activePageId]
@@ -126,7 +136,7 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
       skipPageTour: () => {
         const { activePageId, touredPages, testRequestId } = get();
         if (activePageId === "requests" && testRequestId) {
-          fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+          deleteTestRequest();
         }
         const updated = activePageId && !touredPages.includes(activePageId)
           ? [...touredPages, activePageId]
