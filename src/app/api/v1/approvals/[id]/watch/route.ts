@@ -4,9 +4,15 @@
 
 import { NextResponse } from "next/server";
 
-import { authenticateRequest } from "@/lib/api/auth";
+import { authenticateRequest, type AuthResult } from "@/lib/api/auth";
 import { ApiError, errorResponse } from "@/lib/api/errors";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+function getUserId(auth: AuthResult): string | null {
+  if (auth.type === "session") return auth.user.id;
+  if (auth.type === "oauth") return auth.userId;
+  return null;
+}
 
 // ---- GET /api/v1/approvals/[id]/watch — watcher list + status -------------
 
@@ -37,7 +43,8 @@ export async function GET(
       .eq("request_id", id);
 
     const watcherList = watchers ?? [];
-    const isWatching = watcherList.some((w) => w.user_id === auth.userId);
+    const currentUserId = getUserId(auth);
+    const isWatching = currentUserId ? watcherList.some((w) => w.user_id === currentUserId) : false;
 
     return NextResponse.json({
       watchers: watcherList,
@@ -58,9 +65,10 @@ export async function POST(
   try {
     const auth = await authenticateRequest(request);
     const { id } = await params;
+    const currentUserId = getUserId(auth);
 
-    if (!auth.userId) {
-      throw new ApiError(403, "Session required to watch requests");
+    if (!currentUserId) {
+      throw new ApiError(403, "Session or OAuth required to watch requests");
     }
 
     const admin = createAdminClient();
@@ -80,7 +88,7 @@ export async function POST(
     await admin
       .from("request_watchers")
       .upsert(
-        { request_id: id, user_id: auth.userId },
+        { request_id: id, user_id: currentUserId },
         { onConflict: "request_id,user_id" },
       );
 
@@ -99,9 +107,10 @@ export async function DELETE(
   try {
     const auth = await authenticateRequest(request);
     const { id } = await params;
+    const currentUserId = getUserId(auth);
 
-    if (!auth.userId) {
-      throw new ApiError(403, "Session required");
+    if (!currentUserId) {
+      throw new ApiError(403, "Session or OAuth required");
     }
 
     const admin = createAdminClient();
@@ -110,7 +119,7 @@ export async function DELETE(
       .from("request_watchers")
       .delete()
       .eq("request_id", id)
-      .eq("user_id", auth.userId);
+      .eq("user_id", currentUserId);
 
     return NextResponse.json({ watching: false });
   } catch (err) {

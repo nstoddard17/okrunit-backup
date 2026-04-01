@@ -33,6 +33,7 @@ const CATEGORY_CONFIG: Record<
   { icon: typeof Bell; color: string; label: string }
 > = {
   approval_awaiting: { icon: Clock, color: "text-amber-500", label: "Awaiting" },
+  approval_created: { icon: Inbox, color: "text-blue-400", label: "New Request" },
   approval_decided: { icon: CheckCircle2, color: "text-emerald-500", label: "Decided" },
   flow_step_decided: { icon: Workflow, color: "text-blue-500", label: "Flow Step" },
   approval_expiring: { icon: Clock, color: "text-red-500", label: "Expiring" },
