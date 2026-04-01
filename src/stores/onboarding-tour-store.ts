@@ -2,31 +2,41 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface OnboardingTourState {
-  isActive: boolean;
-  currentStep: number;
-  testRequestId: string | null;
+  // Full tour
+  fullTourActive: boolean;
+  fullTourPageIndex: number;
   tourCompleted: boolean;
   tourDismissed: boolean;
+
+  // Per-page tour
+  activePageId: string | null;
+  currentStepInPage: number;
+  touredPages: string[];
+
+  // Test data
+  testRequestId: string | null;
   synced: boolean;
 
-  startTour: () => void;
-  pauseTour: () => void;
-  nextStep: () => void;
-  prevStep: () => void;
-  goToStep: (step: number) => void;
+  // Full tour actions
+  startFullTour: () => void;
+  pauseFullTour: () => void;
+  advanceFullTour: () => void;
+  completeFullTour: () => void;
+  dismissFullTour: () => void;
+
+  // Per-page actions
+  startPageTour: (pageId: string) => void;
+  nextStepInPage: () => void;
+  prevStepInPage: () => void;
+  completePageTour: () => void;
+  skipPageTour: () => void;
+
+  // Shared
   setTestRequestId: (id: string | null) => void;
-  completeTour: () => void;
-  dismissTour: () => void;
-  resetTour: () => void;
   syncFromServer: () => Promise<void>;
 }
 
-/** Fire-and-forget save to server */
-function saveToServer(state: {
-  currentStep: number;
-  tourCompleted: boolean;
-  tourDismissed: boolean;
-}) {
+function saveToServer(state: Record<string, unknown>) {
   fetch("/api/v1/onboarding/tour-state", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -37,81 +47,73 @@ function saveToServer(state: {
 export const useOnboardingTourStore = create<OnboardingTourState>()(
   persist(
     (set, get) => ({
-      isActive: false,
-      currentStep: 0,
-      testRequestId: null,
+      fullTourActive: false,
+      fullTourPageIndex: 0,
       tourCompleted: false,
       tourDismissed: false,
+      activePageId: null,
+      currentStepInPage: 0,
+      touredPages: [],
+      testRequestId: null,
       synced: false,
 
-      startTour: () => {
-        set({ isActive: true, currentStep: 0 });
+      startFullTour: () => {
+        set({ fullTourActive: true, fullTourPageIndex: 0, activePageId: null, currentStepInPage: 0, tourCompleted: false, tourDismissed: false });
         saveToServer({ currentStep: 0, tourCompleted: false, tourDismissed: false });
       },
-      pauseTour: () => {
-        set({ isActive: false, testRequestId: null });
+      pauseFullTour: () => {
+        set({ fullTourActive: false, activePageId: null, testRequestId: null });
       },
-      nextStep: () => {
-        const next = get().currentStep + 1;
-        set({ currentStep: next });
-        saveToServer({ currentStep: next, tourCompleted: false, tourDismissed: false });
+      advanceFullTour: () => {
+        set((s) => ({ fullTourPageIndex: s.fullTourPageIndex + 1, currentStepInPage: 0 }));
       },
-      prevStep: () => {
-        const prev = Math.max(0, get().currentStep - 1);
-        set({ currentStep: prev });
-        saveToServer({ currentStep: prev, tourCompleted: false, tourDismissed: false });
+      completeFullTour: () => {
+        set({ fullTourActive: false, activePageId: null, tourCompleted: true, testRequestId: null });
+        saveToServer({ tourCompleted: true, tourDismissed: false });
       },
-      goToStep: (step) => {
-        set({ currentStep: step });
-        saveToServer({ currentStep: step, tourCompleted: false, tourDismissed: false });
+      dismissFullTour: () => {
+        set({ fullTourActive: false, activePageId: null, tourDismissed: true, testRequestId: null });
+        saveToServer({ tourCompleted: false, tourDismissed: true });
       },
+
+      startPageTour: (pageId) => set({ activePageId: pageId, currentStepInPage: 0 }),
+      nextStepInPage: () => set((s) => ({ currentStepInPage: s.currentStepInPage + 1 })),
+      prevStepInPage: () => set((s) => ({ currentStepInPage: Math.max(0, s.currentStepInPage - 1) })),
+      completePageTour: () => {
+        const { activePageId, touredPages, fullTourActive } = get();
+        const updated = activePageId && !touredPages.includes(activePageId)
+          ? [...touredPages, activePageId]
+          : touredPages;
+        set({ touredPages: updated, activePageId: null, currentStepInPage: 0 });
+        if (fullTourActive) get().advanceFullTour();
+      },
+      skipPageTour: () => {
+        const { activePageId, touredPages } = get();
+        const updated = activePageId && !touredPages.includes(activePageId)
+          ? [...touredPages, activePageId]
+          : touredPages;
+        set({ touredPages: updated, activePageId: null, currentStepInPage: 0 });
+      },
+
       setTestRequestId: (id) => set({ testRequestId: id }),
-      completeTour: () => {
-        set({ isActive: false, tourCompleted: true, testRequestId: null });
-        saveToServer({ currentStep: 0, tourCompleted: true, tourDismissed: false });
-      },
-      dismissTour: () => {
-        set({ isActive: false, tourDismissed: true, testRequestId: null });
-        saveToServer({ currentStep: get().currentStep, tourCompleted: false, tourDismissed: true });
-      },
-      resetTour: () => {
-        set({
-          isActive: false,
-          currentStep: 0,
-          testRequestId: null,
-          tourCompleted: false,
-          tourDismissed: false,
-          synced: false,
-        });
-        saveToServer({ currentStep: 0, tourCompleted: false, tourDismissed: false });
-      },
       syncFromServer: async () => {
         if (get().synced) return;
         try {
           const res = await fetch("/api/v1/onboarding/tour-state");
           if (res.ok) {
             const data = await res.json();
-            set({
-              currentStep: data.currentStep,
-              tourCompleted: data.tourCompleted,
-              tourDismissed: data.tourDismissed,
-              synced: true,
-            });
+            set({ tourCompleted: data.tourCompleted, tourDismissed: data.tourDismissed, synced: true });
           }
-        } catch {
-          // Use localStorage as fallback
-        }
+        } catch {}
       },
     }),
     {
       name: "okrunit-onboarding-tour",
       partialize: (state) => ({
-        currentStep: state.currentStep,
-        testRequestId: state.testRequestId,
+        fullTourPageIndex: state.fullTourPageIndex,
         tourCompleted: state.tourCompleted,
         tourDismissed: state.tourDismissed,
-        // isActive is intentionally NOT persisted — tour should only be
-        // active when the user explicitly clicks Start/Continue
+        touredPages: state.touredPages,
       }),
     },
   ),
