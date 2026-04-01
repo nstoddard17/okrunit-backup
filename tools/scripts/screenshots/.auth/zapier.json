@@ -21,26 +21,6 @@
       "sameSite": "None"
     },
     {
-      "name": "builderSessionId",
-      "value": "43d0d546d8f54e71bb5a2e8e85fb4b92",
-      "domain": "zapier.com",
-      "path": "/",
-      "expires": 1775000363,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "None"
-    },
-    {
-      "name": "session_id",
-      "value": "e94cf865-3f14-4163-8085-bb25a08aa69e",
-      "domain": ".zapier.com",
-      "path": "/",
-      "expires": 1775002992.097363,
-      "httpOnly": false,
-      "secure": false,
-      "sameSite": "Lax"
-    },
-    {
       "name": "OTZ",
       "value": "8544910_76_80_104160_76_446820",
       "domain": "accounts.google.com",
@@ -325,7 +305,7 @@
       "value": "true",
       "domain": "zapier.com",
       "path": "/",
-      "expires": 1806535390.108594,
+      "expires": 1806553032.665034,
       "httpOnly": true,
       "secure": true,
       "sameSite": "None"
@@ -345,7 +325,7 @@
       "value": "26432066",
       "domain": ".zapier.com",
       "path": "/",
-      "expires": 1775604190.108687,
+      "expires": 1775621832.665132,
       "httpOnly": false,
       "secure": true,
       "sameSite": "None"
@@ -365,7 +345,7 @@
       "value": "2cb32853-42c7-4d57-8f29-a88181d563ae",
       "domain": ".zapier.com",
       "path": "/",
-      "expires": 1775604190.108811,
+      "expires": 1775621832.665217,
       "httpOnly": false,
       "secure": true,
       "sameSite": "None"
@@ -411,26 +391,6 @@
       "sameSite": "Lax"
     },
     {
-      "name": "AMP_MKTG_66c1d651b8",
-      "value": "JTdCJTIycmVmZXJyZXIlMjIlM0ElMjJodHRwcyUzQSUyRiUyRmFjY291bnRzLmdvb2dsZS5jb20lMkYlMjIlMkMlMjJyZWZlcnJpbmdfZG9tYWluJTIyJTNBJTIyYWNjb3VudHMuZ29vZ2xlLmNvbSUyMiU3RA==",
-      "domain": ".zapier.com",
-      "path": "/",
-      "expires": 1806534608,
-      "httpOnly": false,
-      "secure": false,
-      "sameSite": "Lax"
-    },
-    {
-      "name": "__Host-session.jwt",
-      "value": "eyJhbGciOiJSUzI1NiIsImN0eSI6Im5qd3QiLCJraWQiOiI3NzMxZGUxNTMyYTJkMzlkYThiN2JiNzhhMDlmZGUzY2EwZTkyZjZkIiwidHlwIjoiSldUIn0.eyJpc3MiOiJpZC56YXBpZXIuY29tIiwic3ViX3R5cGUiOiJzZXJ2aWNlIiwic3ViIjoiaWQuemFwaWVyLmNvbSIsImV4cCI6MTc3NDk5OTUwOC44OTM0MTUsIm5iZiI6MTc3NDk5ODU0OC45MDE5NzksImlhdCI6MTc3NDk5ODYwOC45MDE5NzksImF1ZCI6WyJ6YXBpZXIuY29tIl0sImp0aSI6IjBCa2otQ3dQLWVyQnVjc1dtbkozcVEiLCJzY3AiOlsiaW50ZXJuYWwiXSwibmp3dCI6ImV5SmhiR2NpT2lKU1V6STFOaUlzSW10cFpDSTZJamMzTXpGa1pURTFNekpoTW1Rek9XUmhPR0kzWW1JM09HRXdPV1prWlROallUQmxPVEptTm1RaUxDSjBlWEFpT2lKS1YxUWlmUS5leUpwYzNNaU9pSnBaQzU2WVhCcFpYSXVZMjl0SWl3aWMzVmlYM1I1Y0dVaU9pSmpkWE4wYjIxMWMyVnlJaXdpYzNWaUlqb2lNalkxTkRrME1qTWlMQ0psZUhBaU9qRTNOelE1T1RrMU1EZ3VPRGszTkRVNUxDSnVZbVlpT2pFM056UTVPVGcxTkRndU9EazNORFU1TENKcFlYUWlPakUzTnpRNU9UZzJNRGd1T0RrM05EVTVMQ0poZFdRaU9sc2llbUZ3YVdWeUxtTnZiU0pkTENKcWRHa2lPaUpxYnpaa09HRm9lVzFJU2pOcE1uUlNTMm80VkV0M0lpd2ljMk53SWpwYkltVjRkR1Z5Ym1Gc0lsMHNJbnBoY0RwMWFXUWlPaUl5TmpVM09EVTJNQ0lzSW5waGNEcDBiWE1pT2x0ZExDSjZZWEE2ZEcxemIzZHVJanBiWFN3aWVtRndPbkpzWlNJNkltOTNibVZ5SWl3aWVtRndPbUZzYkhwaGNITWlPblJ5ZFdVc0lucGhjRHBoWTJNaU9pSXlOalF6TWpBMk5pSXNJbnBoY0RwMWJtRnRaU0k2SW0xaGNtTjFjeTVzWlc5dVlYSmtRR05vWVdsdWNtVmhZM1F1WVhCd0lpd2llbUZ3T21selgzTjBZV1ptSWpwbVlXeHpaWDAuRXFRVmFGQjBRcnZFNHd0S2VjdzVRdkUxbklDRW9pTWxMUDl6Q3ZrS25Wb3NlNkJoOXF6QVpmRFZRUTg3MHZjREhEZ0huQlpaM0Q0Nm5JUkRIbUJWaGtiUTZGLXZ1Um9YMnBXZDB3dGZqX1hoNVczWGdqVHBDbExPRFJHcXFLZ3JLSGlUZFY5VkVqaFc0ampacXpVbmdPWmkxNmo3ZWg0R2k5VDg2M08tYWlLUFJhQVJfOUxGbkpjb2NuYmUtUnZ3RndpLUpNcFMwblNXZEN6S3hyWXYzWnozZFRSVFN1dWd4RHEydjIzS2xLeS1jb1JBVG54RkFRcHpHVS1JbXByR3FLVFMzelhkR1NBX2M0QWJGeXRCcC1BUVpiQW5nYTBpOUJtR2ZGdXlkaF85QjVLd2F0WFdrazREeER4VDVmeHRyTjlOelhRQkVmdlJFbmhYQi05TEs0SVhEM1lJSFR0cXdRUjllMGRHWGRUVk5QUzJENUxxMEJrbWNVNjc5VlNqZ3o2eTJkbVNyY3FndGJ2WFU3N0NBRi1XR1NZb1NrNXpLOHphRE9HcUJ6Y3NrRFVyZGQ0V0ZENjEzbmM4YjZjb0tVQm02OUZmTzUtT3RuejVXNDlNZkt1b1JpUUVNMWI4NUZzZFpidW5qVUZMbHVBcWdJMmdpQjVIQTJmRDlYMk5oU20xM3k0bmVkeUpIZHZfSWwxQkg1NzFaNk1NbEdFTXU1YlhmNTlNNTQxV3VZVTBwdy1wcEZpVC05YmM3T1Z4TWJkVzB6cWlGbGM4VWhQdjhsRTlEUml6TmFHaU40VjBpLXo4SThmNS0xRGJPUjhJNXNRTWo3UjVRT243QU1kaU5JRzNpak9RVnNOSDR3aklhazhkWGMzY05NQ1dYdjVISzZ4blRNSDZRLVUifQ.0uah6GDajzoWCxRCruZiCPqZU2mO0AvYjPaC9aq1NwUjII3ig16OlLDuRWMsoutl0fzncB2BeGUkCrJzSDiBYHfOfHxhVDl-z7i-BICl6njt4kd7Vo2qH9Rw0Lq8va5BW8anfgx2C_rb-u_b0jLa8kgDiWqVqqIe_9pkaU5bTECwxxV5aFqdP055Sz0S0zMtYQOlmhDR3YHO9h0hlyvL0ad4fUbhBNuMPRe0AIvjfiugBGTPXEu8y0E77IovQKQOHHT6DSxTb4uEsArJAZ-_zv7Z1U5_xkMRCPnY4ssiwiJqoNLM6JXscr8EDoAMRJXKL_lojuufPX-nxN1fc4YDCSjbulaJFfprkMvh10lx-GOlAUqi4QLk_9d9zk-IMnV7SUE80ZsgZpekxusU0Xs7zIXwdA9roqxvuJl8EaVJaf4Hj66MHyoHfQ32TV7Hg0IdWB0T0pKGcKUELz5oOJjIxaftCHZteHdt1S0UmV4J8dXyRR-uqtAeimBfARuiUQfuk9foyMGvHhl3NHrGnTTVJx-XNU_nWq0JyO30XelmXx7eRWfjO-aKhsj6Ee0aK-Mll5bp-Ma5_a6dT4RLOSle3g5t4bPG8JwMEzivraedjJvdL9U8WZ-OBDK3vWgwlVhK8DeyepmUe38yS7ny6lTwG8gRxBPMBqKHeoMPFe87UPA",
-      "domain": "zapier.com",
-      "path": "/",
-      "expires": 1774999509.119656,
-      "httpOnly": true,
-      "secure": true,
-      "sameSite": "Strict"
-    },
-    {
       "name": "intercom-id-su0xp8g6",
       "value": "b1619541-24e7-40f2-b246-5ba74ab2f6d0",
       "domain": ".zapier.com",
@@ -445,7 +405,7 @@
       "value": "a2a34f14-4565-4a5e-86b4-41abfba016d9",
       "domain": ".zapier.com",
       "path": "/",
-      "expires": 1798329384,
+      "expires": 1798347025,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -526,16 +486,6 @@
       "domain": ".tiktok.com",
       "path": "/",
       "expires": 1808694619.386695,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "None"
-    },
-    {
-      "name": "test_cookie",
-      "value": "CheckForPermission",
-      "domain": ".doubleclick.net",
-      "path": "/",
-      "expires": 1774999519.396204,
       "httpOnly": false,
       "secure": true,
       "sameSite": "None"
@@ -641,16 +591,6 @@
       "sameSite": "None"
     },
     {
-      "name": "__cf_bm",
-      "value": "qied9M1BhxyvbTzqm5nk5EBfIjXjI8fOr.soThw41XU-1774998620-1.0.1.1-pudKRw_VDbscUtcajq1s7Ho9eBHJqnymSdoThDwPN2JzMpCM7StsnivgTRRIb6W.DwrtxdSiILSRQRyzRq4YtCcT43EoDZLrLhBf9mUieiA",
-      "domain": ".linkedin.com",
-      "path": "/",
-      "expires": 1775000420.125565,
-      "httpOnly": true,
-      "secure": true,
-      "sameSite": "None"
-    },
-    {
       "name": "ttcsid",
       "value": "1774998619523::DzHFv2XZuTESNyFpg0nY.1.1774998629529.0::1.-13131.0::0.0.0.0::0.0.0",
       "domain": ".zapier.com",
@@ -671,64 +611,84 @@
       "sameSite": "Lax"
     },
     {
-      "name": "fs_lua",
-      "value": "1.1774999379686",
+      "name": "session_id",
+      "value": "87dde414-880d-4ee2-848f-597c6c93e0f0",
       "domain": ".zapier.com",
       "path": "/",
-      "expires": 1775001179,
+      "expires": 1775020631.93362,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "fs_lua",
+      "value": "1.1775017020056",
+      "domain": ".zapier.com",
+      "path": "/",
+      "expires": 1775018820,
       "httpOnly": false,
       "secure": true,
       "sameSite": "Strict"
     },
     {
       "name": "fs_uid",
-      "value": "#1XM#22078894-b7d5-43a1-8bdf-efaff6570aab:85a515a7-f5f7-453e-b551-ef1153c844ba:1774998564163::5###/1806534579",
+      "value": "#1XM#22078894-b7d5-43a1-8bdf-efaff6570aab:724e0507-5840-4467-a2e6-2958b204c06b:1775017020056::1###/1806534582",
       "domain": ".zapier.com",
       "path": "/",
-      "expires": 1806534579,
+      "expires": 1806534582,
       "httpOnly": false,
       "secure": true,
       "sameSite": "Strict"
     },
     {
-      "name": "intercom-session-su0xp8g6",
-      "value": "ZmtyYW1iWkQvbExaYVppbXVWLzZjZFdXOEJJTWdTUFV0Tld0SzBzT3FKcFUvdE84MnByR2M4RDdsUnZLbDBuUkN1VmZwZ2NUcGhwdzJhY0NaZEFWdGthZjJqYjB3Z21uUVNyOTRFYUlnU3Z6WnBiT0psQ2hQYzBBRXBoVHhIcUp0YVBkb2F0QjVHRFF1cmp5OG1sZUJEQ0NsOXA0djhDUXczOXZHOTBvNGZ5aVpnMTBtMlprSU90azQvdlZoUnU1V2VGcHZzdWNtR05zUllvTWR6dkV3dz09LS1xS0dRamlUSjV5M1VDd09ZelluTTJnPT0=--924e43f80f8d3cfcc45110da809caa717220d8fd",
+      "name": "AMP_MKTG_66c1d651b8",
+      "value": "JTdCJTdE",
       "domain": ".zapier.com",
       "path": "/",
-      "expires": 1775604184,
+      "expires": 1806553020,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
-      "name": "ssoid",
-      "value": "eyJzayI6ImdBQUFBQUJwekZkZVhxaGRkNmtuUEFCZWN4NzFsT2JybTcyUUVhajhGeWViMENrU1NjLTB4MHZSUktuZ1ZNRUlPeGl4RGZEVDl2WXBINjZIcktJdmhNVEhjbnNnaHpKZ0g4NEo4LU4yYjNyUVJ1UktiV1ZSbHNOM3NLY1BTd2dla2Y1NTlmU1BnQmVHIiwiY2lkIjoyNjU0OTQyM30:1w7iQQ:h-hwND8W3_65a0eknNkqdpdND3MbKlBh-AcvIo0BRqs",
+      "name": "intercom-session-su0xp8g6",
+      "value": "V3ZrLzAzOTFZbDduU3ViZkNKb01qejFlM21uaWhmcmdSbnZkUWFkNy9JdmptOXZJWWZYNVQ0VlBYdWVuSk15dkcvS0FoMzIyY1lpVkI2UjA2Q29aZ3poZlpOVjZJZXFFb2RwcDR3bEtvWDdsZUs0cStqbVcwQlpRZW55U0JuOFVJWGVDRk54czlXeTRaM0Zza1pPVUhMTnlmYUxrNHc3NVJKNUh6cnBZRXZ3R2lzTmRubFFBd1lDZGtKTDlhMTdsN2dia2hOOU9ReFp3MW5tSWNHVmdsUT09LS1nT05lQUtqWEJZWkNlNVFVVExVaDZRPT0=--77ce86c310aa0ac6206c990727c84c62c5fe5a8f",
       "domain": ".zapier.com",
       "path": "/",
-      "expires": 1775604190.108871,
-      "httpOnly": true,
-      "secure": true,
-      "sameSite": "None"
+      "expires": 1775621824,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
     },
     {
       "name": "_dd_s",
-      "value": "aid=0b13e8cb-6d10-4732-a34a-20262c744d30&rum=2&id=796a9f2b-2f15-4cfa-ab25-06160d68f74e&created=1774998608425&expire=1775000292059",
+      "value": "aid=0b13e8cb-6d10-4732-a34a-20262c744d30&rum=2&id=38af9d32-ec06-4871-978f-61b104345349&created=1775017014486&expire=1775017931890",
       "domain": "zapier.com",
       "path": "/",
-      "expires": 1806535392,
+      "expires": 1806553031,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Strict"
     },
     {
       "name": "AMP_66c1d651b8",
-      "value": "JTdCJTIyZGV2aWNlSWQlMjIlM0ElMjIwZTg1MWQwYi0yNGJiLTQyY2UtOTY2Yy0wYjAyOWQ1ZDcyOWElMjIlMkMlMjJ1c2VySWQlMjIlM0ElMjIyNjU0OTQyMyUyMiUyQyUyMnNlc3Npb25JZCUyMiUzQTE3NzQ5OTg2MDg4MTIlMkMlMjJvcHRPdXQlMjIlM0FmYWxzZSUyQyUyMmxhc3RFdmVudFRpbWUlMjIlM0ExNzc0OTk5MzkyMDYzJTJDJTIybGFzdEV2ZW50SWQlMjIlM0ExMSUyQyUyMnBhZ2VDb3VudGVyJTIyJTNBMCU3RA==",
+      "value": "JTdCJTIyZGV2aWNlSWQlMjIlM0ElMjIwZTg1MWQwYi0yNGJiLTQyY2UtOTY2Yy0wYjAyOWQ1ZDcyOWElMjIlMkMlMjJ1c2VySWQlMjIlM0ElMjIyNjU0OTQyMyUyMiUyQyUyMnNlc3Npb25JZCUyMiUzQTE3NzUwMTcwMjA2NzIlMkMlMjJvcHRPdXQlMjIlM0FmYWxzZSUyQyUyMmxhc3RFdmVudFRpbWUlMjIlM0ExNzc1MDE3MDMxODk2JTJDJTIybGFzdEV2ZW50SWQlMjIlM0EyMSUyQyUyMnBhZ2VDb3VudGVyJTIyJTNBMCU3RA==",
       "domain": ".zapier.com",
       "path": "/",
-      "expires": 1806535392,
+      "expires": 1806553031,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
+    },
+    {
+      "name": "ssoid",
+      "value": "eyJzayI6ImdBQUFBQUJwekp4SXBlb3hHbTFyVkU5VWgtR1BBam0tMnlZbDRlTW1sTWZDTFVvYXpFbkkwWXpQTTBVUWt2OHF1amlCbWZGSUhVeXlZMlVBS2gzVV9HaDBKOVluZDZERTkwZURQRUpzeEZaTWltOHRsT3dibTVScFJVLUR0OXNybDFmekE2VzNZTkd3IiwiY2lkIjoyNjU0OTQyM30:1w7n0y:QC2JK_QVsiqfD4hvQRIoRuSqY22hW19RTEOpjqbzN9Q",
+      "domain": ".zapier.com",
+      "path": "/",
+      "expires": 1775621832.665254,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
     }
   ],
   "origins": [
@@ -741,7 +701,7 @@
         },
         {
           "name": "ada-embed-manifest-cache",
-          "value": "\"{\\\"versions\\\":[{\\\"tag\\\":\\\"stable\\\",\\\"hash\\\":\\\"c43765c28a8cd4249f4835f5f5b9e0417c99bea2\\\",\\\"weight\\\":1}]}\""
+          "value": "\"{\\\"versions\\\":[{\\\"tag\\\":\\\"stable\\\",\\\"hash\\\":\\\"0066177086af5e914d0553ce877bca0c23588993\\\",\\\"weight\\\":1}]}\""
         },
         {
           "name": "ada-embed_chat-manifest-cache",
@@ -777,15 +737,15 @@
         },
         {
           "name": "userleap.ids",
-          "value": "{\"aeLM1cIAcLmG\":{\"sampled\":null,\"vid\":\"e2b61eac-1329-4e16-ba5b-63c76c203bbd\",\"trackStartUrl\":\"https://zapier.com/editor/357187461/draft/357187462/fields\",\"token\":\"tokenNotNeeded\",\"uid\":\"26549423\"}}"
+          "value": "{\"aeLM1cIAcLmG\":{\"sampled\":null,\"vid\":\"e2b61eac-1329-4e16-ba5b-63c76c203bbd\",\"trackStartUrl\":\"https://zapier.com/editor/357213034/draft/357213035/sample\",\"token\":\"tokenNotNeeded\",\"uid\":\"26549423\"}}"
         },
         {
           "name": "copilot2-conversations",
-          "value": "{\"357187461\":\"0a1c8c33-84af-4f8f-9af5-894ce33ff621\"}"
+          "value": "{\"357187461\":\"0a1c8c33-84af-4f8f-9af5-894ce33ff621\",\"357213034\":\"4243cf4b-771f-4322-b42e-e0595b96e634\"}"
         },
         {
           "name": "intercom.intercom-state-su0xp8g6",
-          "value": "{\"app\":{\"openConfig\":{\"unifiedStyling\":true,\"openTo\":\"home\",\"spaces\":[{\"type\":\"home\",\"label\":\"Home\",\"navigationLabel\":\"Home\",\"badge\":null},{\"type\":\"messages\",\"label\":\"Messages\",\"navigationLabel\":\"Messages\",\"badge\":null},{\"type\":\"tasks\",\"label\":\"Tasks\",\"navigationLabel\":\"Tasks\",\"badge\":null}],\"userHasReceivedChecklists\":false,\"userHasLiveNewsfeed\":false,\"userHasTickets\":false},\"selfServeSuggestionsMatch\":false,\"name\":\"Zapier\",\"features\":{\"anonymousInboundMessages\":true,\"googleAnalytics\":false,\"hubspotInstalled\":true,\"inboundMessages\":true,\"marketoEnrichmentInstalled\":false,\"googleAnalytics4Integration\":true},\"helpCenterSiteUrl\":\"https://intercom.help/zapiercom\",\"inboundConversationsDisabled\":true,\"isDeveloperWorkspace\":false,\"customGoogleAnalyticsTrackerId\":null},\"launcher\":{\"isLauncherEnabled\":false},\"launcherDiscoveryMode\":{\"hasDiscoveredLauncher\":true},\"launcherSettings\":{\"alignment\":\"right\",\"color\":\"#3d4592\",\"colorDark\":\"#8b93e0\",\"hasRequiredFeatures\":true,\"horizontalPadding\":20,\"instantBootEnabled\":false,\"launcherLogoUrl\":\"https://downloads.intercomcdn.com/i/o/460936/a9ebaee0e149685fff614481/ded800e461c70d748ea3ac7340b4a5ad.png\",\"launcherLogoDarkUrl\":null,\"secondaryColor\":\"#F0F1Fa\",\"secondaryColorDark\":\"#F0F1Fa\",\"showLauncher\":false,\"themeMode\":\"light\",\"updatedAt\":1774930386,\"verticalPadding\":20,\"isLoading\":false},\"user\":{\"id\":\"6999dff68b45d9385e47a1d2\",\"role\":\"user\",\"locale\":\"en\",\"hasConversations\":false},\"message\":{},\"conversations\":{\"byId\":{}},\"openOnBoot\":{\"type\":null,\"metadata\":{},\"lastOpenAtTimestamp\":1774999384527},\"operator\":{\"lastComposerEvent\":0},\"router\":{\"isInitialized\":false,\"navigationQueue\":[]}}"
+          "value": "{\"app\":{\"openConfig\":{\"unifiedStyling\":true,\"openTo\":\"home\",\"spaces\":[{\"type\":\"home\",\"label\":\"Home\",\"navigationLabel\":\"Home\",\"badge\":null},{\"type\":\"messages\",\"label\":\"Messages\",\"navigationLabel\":\"Messages\",\"badge\":null},{\"type\":\"tasks\",\"label\":\"Tasks\",\"navigationLabel\":\"Tasks\",\"badge\":null}],\"userHasReceivedChecklists\":false,\"userHasLiveNewsfeed\":false,\"userHasTickets\":false},\"selfServeSuggestionsMatch\":false,\"name\":\"Zapier\",\"features\":{\"anonymousInboundMessages\":true,\"googleAnalytics\":false,\"hubspotInstalled\":true,\"inboundMessages\":true,\"marketoEnrichmentInstalled\":false,\"googleAnalytics4Integration\":true},\"helpCenterSiteUrl\":\"https://intercom.help/zapiercom\",\"inboundConversationsDisabled\":true,\"isDeveloperWorkspace\":false,\"customGoogleAnalyticsTrackerId\":null},\"launcher\":{\"isLauncherEnabled\":false},\"launcherDiscoveryMode\":{\"hasDiscoveredLauncher\":true},\"launcherSettings\":{\"alignment\":\"right\",\"color\":\"#3d4592\",\"colorDark\":\"#8b93e0\",\"hasRequiredFeatures\":true,\"horizontalPadding\":20,\"instantBootEnabled\":false,\"launcherLogoUrl\":\"https://downloads.intercomcdn.com/i/o/460936/a9ebaee0e149685fff614481/ded800e461c70d748ea3ac7340b4a5ad.png\",\"launcherLogoDarkUrl\":null,\"secondaryColor\":\"#F0F1Fa\",\"secondaryColorDark\":\"#F0F1Fa\",\"showLauncher\":false,\"themeMode\":\"light\",\"updatedAt\":1775016794,\"verticalPadding\":20,\"isLoading\":false},\"user\":{\"id\":\"6999dff68b45d9385e47a1d2\",\"role\":\"user\",\"locale\":\"en\",\"hasConversations\":false},\"message\":{},\"conversations\":{\"byId\":{}},\"openOnBoot\":{\"type\":null,\"metadata\":{},\"lastOpenAtTimestamp\":1775017025052},\"operator\":{\"lastComposerEvent\":0},\"router\":{\"isInitialized\":false,\"navigationQueue\":[]}}"
         },
         {
           "name": "editor-popover-shown-sandbox",
@@ -805,7 +765,7 @@
         },
         {
           "name": "_fs_uid",
-          "value": "#1XM#22078894-b7d5-43a1-8bdf-efaff6570aab:85a515a7-f5f7-453e-b551-ef1153c844ba:1774998564163::5###/1806534579"
+          "value": "#1XM#22078894-b7d5-43a1-8bdf-efaff6570aab:724e0507-5840-4467-a2e6-2958b204c06b:1775017020056::1###/1806534582"
         },
         {
           "name": "sprig.anon.env.vid.map",
@@ -814,6 +774,10 @@
         {
           "name": "builderVisitorId",
           "value": "c5d65bd9e6db493fae96a94c62cc302a"
+        },
+        {
+          "name": "editor-popover-shown-357213034",
+          "value": "null"
         },
         {
           "name": "_uetsid",
@@ -837,7 +801,7 @@
         },
         {
           "name": "_fs_lua",
-          "value": "1.1774999379686"
+          "value": "1.1775017020056"
         },
         {
           "name": "_uetsid_exp",
@@ -849,7 +813,7 @@
         },
         {
           "name": "ada-embed-assigned-version",
-          "value": "\"c43765c28a8cd4249f4835f5f5b9e0417c99bea2\""
+          "value": "\"0066177086af5e914d0553ce877bca0c23588993\""
         },
         {
           "name": "AMP_unsent_66c1d651b8",

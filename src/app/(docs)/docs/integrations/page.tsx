@@ -339,7 +339,7 @@ export default function IntegrationsPage() {
           <span>Click <strong>Test</strong> to verify the connection works — you should see a new pending request in your OKrunit dashboard.</span>
         </div>
         <DocsImage
-          src="/screenshots/docs/integrations/zapier-step-7-test.webp"
+          src="/screenshots/docs/integrations/zapier-step-7-test-v2.webp"
           alt="Zapier test step button"
           caption="Test the step to confirm everything is connected."
         />
