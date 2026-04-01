@@ -225,7 +225,7 @@ export function TourTooltip({
       )}
 
       {/* Tooltip */}
-      <div ref={tooltipRef} className="fixed z-[10000] w-[calc(100%-2rem)] sm:w-[360px] max-w-[360px] rounded-xl border border-border bg-white shadow-2xl dark:bg-card animate-in fade-in slide-in-from-bottom-2 duration-300 transition-all ease-out" style={{ ...tooltipStyle, transitionProperty: "top, bottom, left, right, transform", transitionDuration: "300ms" }}>
+      <div ref={tooltipRef} className="fixed z-[10002] w-[calc(100%-2rem)] sm:w-[360px] max-w-[360px] rounded-xl border border-border bg-white shadow-2xl dark:bg-card animate-in fade-in slide-in-from-bottom-2 duration-300 transition-all ease-out" style={{ ...tooltipStyle, transitionProperty: "top, bottom, left, right, transform", transitionDuration: "300ms" }}>
         <div className="p-4">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div>
