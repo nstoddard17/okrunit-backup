@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useOnboardingTourStore } from "@/stores/onboarding-tour-store";
 
 export function OnboardingTutorial() {
-  const { isActive, currentStep, tourCompleted, tourDismissed, startTour, dismissTour } =
+  const { isActive, currentStep, tourCompleted, tourDismissed, startTour, pauseTour, dismissTour } =
     useOnboardingTourStore();
   const [mounted, setMounted] = useState(false);
 
@@ -37,7 +37,14 @@ export function OnboardingTutorial() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button size="sm" className="h-8 gap-1.5 text-xs" onClick={startTour}>
+          <Button size="sm" className="h-8 gap-1.5 text-xs" onClick={() => {
+            if (isResuming) {
+              // Resume from where they left off
+              useOnboardingTourStore.setState({ isActive: true });
+            } else {
+              startTour();
+            }
+          }}>
             {isResuming ? "Continue" : "Start Tour"}
             <ArrowRight className="size-3" />
           </Button>

@@ -223,7 +223,13 @@ function TourHeaderIndicator() {
 
   return (
     <button
-      onClick={startTour}
+      onClick={() => {
+        if (isResuming) {
+          useOnboardingTourStore.setState({ isActive: true });
+        } else {
+          startTour();
+        }
+      }}
       className="hidden sm:flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
     >
       <div className="relative size-4">

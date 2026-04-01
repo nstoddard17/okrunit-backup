@@ -84,6 +84,7 @@ export function OnboardingTour() {
           nextStep();
         }
       }}
+      onClose={completeTour}
       onSkip={completeTour}
     />
   );
