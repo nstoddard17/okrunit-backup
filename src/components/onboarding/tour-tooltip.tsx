@@ -72,8 +72,12 @@ export function TourTooltip({
             setReady(true);
           }, 400);
         } else {
-          // Small delay so the position is calculated before showing
-          setTimeout(() => setReady(true), 50);
+          // Wait for animations to complete before showing
+          setTimeout(() => {
+            // Re-read position after animations settle
+            setTargetRect(el.getBoundingClientRect());
+            setReady(true);
+          }, 300);
         }
         return;
       }
@@ -119,11 +123,24 @@ export function TourTooltip({
     el.style.backgroundColor = "white";
     el.style.borderRadius = "0.5rem";
 
+    // Also raise parent portal containers (for Radix portals)
+    const portalParents: HTMLElement[] = [];
+    let parent = el.parentElement;
+    while (parent && parent !== document.body) {
+      const parentZ = window.getComputedStyle(parent).zIndex;
+      if (parentZ !== "auto" && parseInt(parentZ) < 10000) {
+        portalParents.push(parent);
+        parent.style.zIndex = "10000";
+      }
+      parent = parent.parentElement;
+    }
+
     return () => {
       el.style.position = prevPosition;
       el.style.zIndex = prevZIndex;
       el.style.backgroundColor = prevBg;
       el.style.borderRadius = prevBorderRadius;
+      portalParents.forEach((p) => { p.style.zIndex = ""; });
     };
   }, [targetSelector, ready, highlightMode]);
 
