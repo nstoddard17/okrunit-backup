@@ -278,12 +278,35 @@ export const ApprovalCard = memo(function ApprovalCard({
                 </Button>
               )}
 
-              <DropdownMenu open={tourShowMoreMenu ? true : undefined}>
+              {/* During tour step 3: show a static fake menu (no Radix event interception) */}
+              {tourShowMoreMenu && (
+                <div className="relative">
+                  <Button variant="ghost" size="sm" className="size-7 p-0">
+                    <MoreVertical className="size-4" />
+                  </Button>
+                  <div
+                    data-tour="test-request-more-menu"
+                    className="absolute right-0 top-full mt-1 min-w-[8rem] rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
+                  >
+                    <div className="flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
+                      <Eye className="size-4 text-muted-foreground" />
+                      Details
+                    </div>
+                    <div className="bg-border -mx-1 my-1 h-px" />
+                    <div className="flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
+                      <Archive className="size-4 text-muted-foreground" />
+                      Archive
+                    </div>
+                  </div>
+                </div>
+              )}
+              {/* Normal dropdown (hidden during tour step 3) */}
+              <DropdownMenu open={undefined}>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="size-7 p-0"
+                    className={cn("size-7 p-0", tourShowMoreMenu && "hidden")}
                     onClick={(e) => e.stopPropagation()}
                     data-tour={isOnboardingRequest ? "test-request-more-btn" : undefined}
                   >
@@ -291,7 +314,7 @@ export const ApprovalCard = memo(function ApprovalCard({
                     <span className="sr-only">More actions</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()} data-tour={isOnboardingRequest ? "test-request-more-menu" : undefined}>
+                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenuItem onClick={onClick}>
                     <Eye className="size-4" />
                     Details
