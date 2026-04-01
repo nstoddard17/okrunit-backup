@@ -103,12 +103,18 @@ export function TourTooltip({
     const el = document.querySelector(targetSelector) as HTMLElement | null;
     if (!el) return;
 
-    // Save original styles and raise element above overlay
+    // Save original styles
     const prevPosition = el.style.position;
     const prevZIndex = el.style.zIndex;
     const prevBg = el.style.backgroundColor;
     const prevBorderRadius = el.style.borderRadius;
-    el.style.position = "relative";
+
+    // Only set position:relative if the element doesn't already have positioning
+    // (portal elements like dropdown menus already have fixed/absolute positioning)
+    const computed = window.getComputedStyle(el);
+    if (computed.position === "static") {
+      el.style.position = "relative";
+    }
     el.style.zIndex = "10000";
     el.style.backgroundColor = "white";
     el.style.borderRadius = "0.5rem";
