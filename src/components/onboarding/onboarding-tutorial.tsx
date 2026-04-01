@@ -33,7 +33,7 @@ export function OnboardingTutorial() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button size="sm" className="h-8 gap-1.5 text-xs" onClick={startFullTour}>
+          <Button size="sm" className="h-8 gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white" onClick={startFullTour}>
             Start Tour
             <ArrowRight className="size-3" />
           </Button>
