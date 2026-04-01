@@ -97,6 +97,17 @@ export function TourTooltip({
     };
   }, [targetSelector]);
 
+  // Raise the target element above the overlay so it's visible and interactive
+  useEffect(() => {
+    if (!targetSelector || !ready) return;
+    const el = document.querySelector(targetSelector) as HTMLElement | null;
+    if (!el) return;
+    const prev = el.style.cssText;
+    el.style.position = "relative";
+    el.style.zIndex = "9999";
+    return () => { el.style.cssText = prev; };
+  }, [targetSelector, ready]);
+
   if (!mounted) return null;
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
@@ -167,18 +178,19 @@ export function TourTooltip({
           <div className="absolute bottom-0 left-0 bg-black/40 pointer-events-auto" style={{ top: targetRect.top - 8, width: targetRect.left - 8 }} />
         </div>
       ) : (
-        <div className="fixed inset-0 z-[9998] bg-black/40 animate-in fade-in duration-200" onClick={onClose}
-          style={targetRect && !isCentered ? {
-            clipPath: `polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%, 0% 0%, ${targetRect.left - 8}px ${targetRect.top - 8}px, ${targetRect.left - 8}px ${targetRect.bottom + 8}px, ${targetRect.right + 8}px ${targetRect.bottom + 8}px, ${targetRect.right + 8}px ${targetRect.top - 8}px, ${targetRect.left - 8}px ${targetRect.top - 8}px)`
-          } : undefined}
-        />
+        <div className="fixed inset-0 z-[9998] bg-black/40 animate-in fade-in duration-200" onClick={onClose} />
       )}
 
-      {/* Highlight ring (skip for full-width mode) */}
+      {/* Highlight: white background + ring to make the target "pop" above the overlay */}
       {targetRect && !isCentered && highlightMode !== "full-width" && (
-        <div className="fixed z-[9999] rounded-lg ring-2 ring-primary ring-offset-2 pointer-events-none transition-all duration-300 ease-out"
-          style={{ top: targetRect.top - 4, left: targetRect.left - 4, width: targetRect.width + 8, height: targetRect.height + 8 }}
-        />
+        <>
+          <div className="fixed z-[9999] rounded-lg bg-white dark:bg-card pointer-events-none transition-all duration-300 ease-out"
+            style={{ top: targetRect.top - 8, left: targetRect.left - 8, width: targetRect.width + 16, height: targetRect.height + 16 }}
+          />
+          <div className="fixed z-[9999] rounded-lg ring-2 ring-primary ring-offset-2 pointer-events-none transition-all duration-300 ease-out"
+            style={{ top: targetRect.top - 4, left: targetRect.left - 4, width: targetRect.width + 8, height: targetRect.height + 8 }}
+          />
+        </>
       )}
 
       {/* Tooltip */}
