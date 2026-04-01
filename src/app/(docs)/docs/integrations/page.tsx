@@ -266,54 +266,112 @@ export default function IntegrationsPage() {
       </h2>
 
       {/* Zapier */}
-      <h3 className="mt-8 text-xl font-semibold text-zinc-900">
+      <h3 id="zapier" className="mt-8 scroll-mt-24 text-xl font-semibold text-zinc-900">
         Zapier
       </h3>
       <p className="mt-2 text-zinc-700">
         OKrunit is available as a native Zapier app. Here&apos;s how to add it to
         any Zap:
       </p>
-      <ol className="mt-4 space-y-3 text-zinc-700">
-        <li className="flex gap-3">
+      <div className="mt-4 space-y-2">
+        <div className="flex gap-3 text-zinc-700">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
-          <span>In the Zap editor, click <strong>+</strong> to add a new step.</span>
-        </li>
-        <li className="flex gap-3">
+          <span>In the Zap editor, click the <strong>Action</strong> step to open the app picker.</span>
+        </div>
+        <DocsImage
+          src="/screenshots/docs/integrations/zapier-step-1-editor.webp"
+          alt="Zapier editor showing the Action step highlighted"
+          caption="Click the Action step in the Zap editor to add OKrunit."
+        />
+
+        <div className="flex gap-3 text-zinc-700">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
           <span>Search for <strong>&quot;OKrunit&quot;</strong> in the app search.</span>
-        </li>
-        <li className="flex gap-3">
+        </div>
+        <DocsImage
+          src="/screenshots/docs/integrations/zapier-step-2-app-picker.webp"
+          alt="Zapier app picker with the search bar highlighted"
+          caption="Type 'OKrunit' in the search bar to find the app."
+        />
+
+        <div className="flex gap-3 text-zinc-700">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
-          <span>Select the <strong>Create Approval Request</strong> action.</span>
-        </li>
-        <li className="flex gap-3">
+          <span>Select <strong>OKrunit</strong> from the results.</span>
+        </div>
+        <DocsImage
+          src="/screenshots/docs/integrations/zapier-step-3-search-okrunit.webp"
+          alt="Zapier search results showing OKrunit"
+          caption="Click OKrunit in the search results."
+        />
+
+        <div className="flex gap-3 text-zinc-700">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
-          <span>Click <strong>Sign in to OKrunit</strong> — this opens the OAuth flow. Sign in with your OKrunit credentials and authorize access.</span>
-        </li>
-        <li className="flex gap-3">
+          <span>Choose the <strong>Request Approval</strong> action event from the dropdown.</span>
+        </div>
+        <DocsImage
+          src="/screenshots/docs/integrations/zapier-step-4b-request-approval.webp"
+          alt="Zapier event dropdown showing Request Approval action"
+          caption="Select 'Request Approval' to pause the Zap until a human decides."
+        />
+
+        <div className="flex gap-3 text-zinc-700">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">5</span>
-          <span>Map your trigger data to the approval fields (title, description, priority).</span>
-        </li>
-        <li className="flex gap-3">
+          <span>Connect your OKrunit account — click <strong>Sign in to OKrunit</strong> to authorize via OAuth, or select an existing connection.</span>
+        </div>
+        <DocsImage
+          src="/screenshots/docs/integrations/zapier-step-5-account.webp"
+          alt="Zapier account connection screen for OKrunit"
+          caption="Connect your OKrunit account to authorize Zapier."
+        />
+
+        <div className="flex gap-3 text-zinc-700">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">6</span>
-          <span>Test the step — you should see a new pending request appear in your OKrunit dashboard.</span>
-        </li>
-      </ol>
+          <span>Map your trigger data to the approval fields — <strong>What needs approval?</strong>, <strong>Details</strong>, and optional <strong>Metadata</strong>.</span>
+        </div>
+        <DocsImage
+          src="/screenshots/docs/integrations/zapier-step-6-fields.webp"
+          alt="Zapier field configuration showing title, details, and metadata fields"
+          caption="Fill in the approval request fields. Use the + button to insert data from previous steps."
+        />
+
+        <div className="flex gap-3 text-zinc-700">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">7</span>
+          <span>Click <strong>Test</strong> to verify the connection works — you should see a new pending request in your OKrunit dashboard.</span>
+        </div>
+        <DocsImage
+          src="/screenshots/docs/integrations/zapier-step-7-test.webp"
+          alt="Zapier test step button"
+          caption="Test the step to confirm everything is connected."
+        />
+      </div>
       <p className="mt-3 text-sm text-zinc-500">
         Zapier also supports triggers for <strong>Approval Decided</strong> and
         <strong> Approval Created</strong>, so you can build Zaps that react to
-        decisions.
+        decisions. The Zap will wait <strong>indefinitely</strong> until someone
+        approves or rejects — there is no timeout.
       </p>
 
       {/* Make */}
-      <h3 className="mt-8 text-xl font-semibold text-zinc-900">
+      <h3 id="make" className="mt-8 scroll-mt-24 text-xl font-semibold text-zinc-900">
         Make (Integromat)
       </h3>
       <p className="mt-2 text-zinc-700">
         OKrunit has a custom Make app with modules for creating and managing
-        approval requests:
+        approval requests. Because Make&apos;s HTTP modules have a maximum timeout
+        of 5 minutes, approvals use a <strong>two-scenario pattern</strong>:
       </p>
-      <ol className="mt-4 space-y-3 text-zinc-700">
+      <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+        <p className="text-sm font-medium text-amber-900">Two-scenario pattern</p>
+        <p className="mt-1 text-sm text-amber-800 leading-relaxed">
+          <strong>Scenario 1</strong> creates the approval request and continues
+          immediately (it does not wait). <strong>Scenario 2</strong> uses a
+          webhook trigger that listens for OKrunit&apos;s decision callback and
+          performs the follow-up actions. This allows the approval to take as long
+          as needed with no timeout.
+        </p>
+      </div>
+      <p className="mt-4 text-sm font-medium text-zinc-900">Scenario 1 — Send the request:</p>
+      <ol className="mt-2 space-y-3 text-zinc-700">
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
           <span>In your Make scenario, click <strong>+</strong> to add a module.</span>
@@ -324,7 +382,7 @@ export default function IntegrationsPage() {
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
-          <span>Choose a module: <strong>Create an Approval</strong>, <strong>Watch Approvals</strong>, or <strong>Search Approvals</strong>.</span>
+          <span>Choose the <strong>Create an Approval</strong> module.</span>
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
@@ -332,14 +390,32 @@ export default function IntegrationsPage() {
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">5</span>
-          <span>Configure the fields and run the scenario.</span>
+          <span>Configure the fields. This scenario will run and create the request immediately — it does not wait for a decision.</span>
+        </li>
+      </ol>
+      <p className="mt-4 text-sm font-medium text-zinc-900">Scenario 2 — Handle the decision:</p>
+      <ol className="mt-2 space-y-3 text-zinc-700">
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
+          <span>Create a new scenario with a <strong>Webhooks &gt; Custom webhook</strong> trigger.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
+          <span>Copy the webhook URL and paste it as the <strong>callback_url</strong> in your Scenario 1&apos;s Create Approval module.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
+          <span>Add your follow-up modules after the webhook trigger — these will run when OKrunit sends the approval decision.</span>
         </li>
       </ol>
 
       {/* n8n */}
-      <h3 className="mt-8 text-xl font-semibold text-zinc-900">n8n</h3>
+      <h3 id="n8n" className="mt-8 scroll-mt-24 text-xl font-semibold text-zinc-900">n8n</h3>
       <p className="mt-2 text-zinc-700">
-        OKrunit provides a community node for n8n:
+        OKrunit provides a community node for n8n. Use n8n&apos;s built-in{" "}
+        <strong>Wait</strong> node to pause the workflow until the approval
+        decision comes back — there is <strong>no timeout</strong> on self-hosted
+        n8n.
       </p>
       <ol className="mt-4 space-y-3 text-zinc-700">
         <li className="flex gap-3">
@@ -348,7 +424,7 @@ export default function IntegrationsPage() {
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
-          <span>Add the <strong>OKrunit</strong> node (trigger or action).</span>
+          <span>Add the <strong>OKrunit</strong> action node to create the approval request.</span>
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
@@ -356,12 +432,16 @@ export default function IntegrationsPage() {
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
-          <span>Configure the node and execute.</span>
+          <span>After the OKrunit node, add a <strong>Wait</strong> node configured to resume on webhook. Pass the Wait node&apos;s resume URL as the <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">callback_url</code> in the OKrunit node.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">5</span>
+          <span>Add your follow-up nodes after the Wait node — these run once the approval decision is received.</span>
         </li>
       </ol>
 
       {/* GitHub Actions */}
-      <h3 className="mt-8 text-xl font-semibold text-zinc-900">
+      <h3 id="github-actions" className="mt-8 scroll-mt-24 text-xl font-semibold text-zinc-900">
         GitHub Actions
       </h3>
       <p className="mt-2 text-zinc-700">
@@ -378,12 +458,372 @@ export default function IntegrationsPage() {
     # The action waits until the request is approved or rejected
     # If rejected, the step fails and the workflow stops`}</code>
       </pre>
+      <p className="mt-3 text-sm text-zinc-500">
+        The action polls OKrunit every 30 seconds until a decision is made.
+        GitHub Actions steps have a default <strong>6-hour timeout</strong> — you
+        can increase it with{" "}
+        <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">timeout-minutes</code> in
+        your workflow YAML.
+      </p>
+
+      {/* monday.com */}
+      <h3 id="monday" className="mt-8 scroll-mt-24 text-xl font-semibold text-zinc-900">
+        monday.com
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        OKrunit integrates with monday.com via integration recipes:
+      </p>
+      <ol className="mt-4 space-y-3 text-zinc-700">
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
+          <span>Open your monday.com board and click <strong>Integrate</strong> in the top menu.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
+          <span>Search for <strong>&quot;OKrunit&quot;</strong> in the integration center.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
+          <span>Choose a recipe: <strong>When status changes, request approval</strong> or <strong>When item created, request approval</strong>.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
+          <span>Authorize your OKrunit account when prompted.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">5</span>
+          <span>Add a second recipe: <strong>When OKrunit approval decided, update status</strong> — this listens for the decision webhook and updates your board automatically.</span>
+        </li>
+      </ol>
+      <p className="mt-3 text-sm text-zinc-500">
+        monday.com uses a two-recipe pattern: one to send the request, one to handle the decision. This allows the approval to take as long as needed.
+      </p>
+
+      {/* Temporal */}
+      <h3 id="temporal" className="mt-8 scroll-mt-24 text-xl font-semibold text-zinc-900">
+        Temporal
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        The <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">okrunit-temporal</code> Python
+        package provides workflows and activities for durable human-in-the-loop
+        approvals. The workflow waits <strong>indefinitely</strong> with heartbeat
+        support.
+      </p>
+      <ol className="mt-4 space-y-3 text-zinc-700">
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
+          <span>Install the package: <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">pip install okrunit-temporal</code></span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
+          <span>Create an API key on the <strong>Connections</strong> page in your OKrunit dashboard.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
+          <span>Import and register the <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">ApprovalGateWorkflow</code> and OKrunit activities in your Temporal worker.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
+          <span>Start the workflow from your application code — it creates the approval request and polls until a decision is made, using heartbeats to stay alive.</span>
+        </li>
+      </ol>
+      <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
+        <code className="text-zinc-100">{`from okrunit_temporal import ApprovalGateWorkflow
+
+# Start from your application code
+result = await client.execute_workflow(
+    ApprovalGateWorkflow.run,
+    {"title": "Deploy v3.2 to production", "priority": "high"},
+    id="deploy-approval",
+    task_queue="okrunit",
+)
+# result.status == "approved" or "rejected"`}</code>
+      </pre>
+
+      {/* Prefect */}
+      <h3 id="prefect" className="mt-8 scroll-mt-24 text-xl font-semibold text-zinc-900">
+        Prefect
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        The <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">prefect-okrunit</code> Python
+        package provides tasks and flows that pause Prefect flow runs until a
+        human decision is made.
+      </p>
+      <ol className="mt-4 space-y-3 text-zinc-700">
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
+          <span>Install the package: <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">pip install prefect-okrunit</code></span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
+          <span>Store your OKrunit API key in a Prefect Secret block named <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">okrunit-api-key</code>.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
+          <span>Use the <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">approval_gate</code> flow in your Prefect flows to pause execution until the request is approved or rejected.</span>
+        </li>
+      </ol>
+      <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
+        <code className="text-zinc-100">{`from prefect_okrunit import approval_gate
+
+@flow
+def deploy_pipeline():
+    # ... pre-deployment steps ...
+    result = approval_gate(
+        title="Deploy to production",
+        priority="high",
+    )
+    if result.status == "approved":
+        # ... deploy ...`}</code>
+      </pre>
+
+      {/* Dagster */}
+      <h3 id="dagster" className="mt-8 scroll-mt-24 text-xl font-semibold text-zinc-900">
+        Dagster
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        The <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">dagster-okrunit</code> Python
+        package provides a resource, ops, and sensors for gating Dagster jobs
+        behind human approval.
+      </p>
+      <ol className="mt-4 space-y-3 text-zinc-700">
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
+          <span>Install the package: <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">pip install dagster-okrunit</code></span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
+          <span>Configure the <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">OKRunitResource</code> with your API key in your Dagster definitions.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
+          <span>Use <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">approval_gate_op</code> in your jobs or add the <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">approval_decided_sensor</code> to react to decisions.</span>
+        </li>
+      </ol>
+      <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed">
+        <code className="text-zinc-100">{`from dagster_okrunit import OKRunitResource, approval_gate_op
+
+@job(resource_defs={"okrunit": OKRunitResource(api_key="gk_...")})
+def deploy_with_approval():
+    approval = approval_gate_op()
+    deploy_to_prod(approval)`}</code>
+      </pre>
+
+      {/* Windmill */}
+      <h3 id="windmill" className="mt-8 scroll-mt-24 text-xl font-semibold text-zinc-900">
+        Windmill
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        OKrunit provides TypeScript scripts that you deploy directly to your
+        Windmill instance using the <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm text-zinc-800">wmill</code> CLI.
+      </p>
+      <ol className="mt-4 space-y-3 text-zinc-700">
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
+          <span>Create an OKrunit resource type in Windmill using the provided <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">resource-type.json</code> schema.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
+          <span>Add a resource with your OKrunit API key.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
+          <span>Deploy the OKrunit scripts via <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">wmill push</code> or copy them into your workspace.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
+          <span>Use the <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">wait_for_approval</code> flow in your Windmill workflows — it creates the request and polls until decided.</span>
+        </li>
+      </ol>
+
+      {/* Pipedream */}
+      <h3 id="pipedream" className="mt-8 scroll-mt-24 text-xl font-semibold text-zinc-900">
+        Pipedream
+      </h3>
+      <p className="mt-2 text-zinc-700">
+        OKrunit provides native Pipedream source and action components for
+        building approval workflows.
+      </p>
+      <ol className="mt-4 space-y-3 text-zinc-700">
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">1</span>
+          <span>In your Pipedream workflow, click <strong>+</strong> to add a step and search for <strong>&quot;OKrunit&quot;</strong>.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">2</span>
+          <span>Select an action: <strong>Create Approval</strong>, <strong>Get Approval</strong>, <strong>List Approvals</strong>, or <strong>Add Comment</strong>.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">3</span>
+          <span>Connect your OKrunit account by entering your API key.</span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">4</span>
+          <span>For triggers, use the <strong>New Approval</strong> or <strong>Approval Decided</strong> sources to start workflows when events occur in OKrunit.</span>
+        </li>
+      </ol>
 
       <DocsImage
         src="/screenshots/docs/routes-list.webp"
         alt="Approval routes configuration in the OKrunit dashboard"
         caption="Configure routing rules to control who gets notified and how many approvals are required per source."
       />
+
+      {/* How your workflow waits */}
+      <h2 className="mt-12 text-2xl font-semibold text-zinc-900">
+        How your workflow waits for a decision
+      </h2>
+      <p className="mt-4 text-zinc-700">
+        Each platform handles the &quot;pause and wait&quot; pattern differently.
+        Here&apos;s how OKrunit works with each one to ensure your workflow waits
+        as long as needed until a human approves or rejects.
+      </p>
+
+      <div className="mt-6 space-y-4">
+        {/* Zapier */}
+        <div className="rounded-lg border border-zinc-200 p-5">
+          <h4 className="font-semibold text-zinc-900">Zapier — Waits indefinitely</h4>
+          <p className="mt-2 text-sm text-zinc-700 leading-relaxed">
+            The <strong>Request Approval</strong> action uses Zapier&apos;s native callback
+            pattern. When the Zap reaches the OKrunit step, it pauses execution and
+            waits for OKrunit to send back the decision. There is <strong>no timeout</strong> —
+            the Zap stays paused until someone approves or rejects, or you manually
+            replay/cancel the execution. If the request is rejected, downstream
+            steps are automatically skipped.
+          </p>
+          <p className="mt-2 text-xs text-zinc-500">
+            Pattern: Single-step pause with callback resume (performResume)
+          </p>
+        </div>
+
+        {/* Make */}
+        <div className="rounded-lg border border-zinc-200 p-5">
+          <h4 className="font-semibold text-zinc-900">Make (Integromat) — Two-scenario pattern</h4>
+          <p className="mt-2 text-sm text-zinc-700 leading-relaxed">
+            Make&apos;s HTTP modules have a 40-second default timeout (configurable
+            up to 5 minutes), which isn&apos;t enough for human approvals. Instead,
+            use two scenarios: <strong>Scenario 1</strong> creates the approval
+            request and continues immediately. <strong>Scenario 2</strong> uses a
+            webhook trigger that listens for OKrunit&apos;s decision callback and
+            performs the follow-up actions. This pattern allows the approval to take
+            as long as needed.
+          </p>
+          <p className="mt-2 text-xs text-zinc-500">
+            Pattern: Two scenarios — fire-and-forget + webhook listener
+          </p>
+        </div>
+
+        {/* n8n */}
+        <div className="rounded-lg border border-zinc-200 p-5">
+          <h4 className="font-semibold text-zinc-900">n8n — Waits indefinitely</h4>
+          <p className="mt-2 text-sm text-zinc-700 leading-relaxed">
+            n8n&apos;s <strong>Wait</strong> node can pause a workflow until a
+            webhook callback is received. Add the OKrunit node to create the
+            request, followed by a Wait node configured to resume on webhook. When
+            OKrunit sends the decision to the resume URL, the workflow continues.
+            Self-hosted n8n has <strong>no timeout</strong> on Wait nodes. n8n Cloud
+            may have execution time limits depending on your plan.
+          </p>
+          <p className="mt-2 text-xs text-zinc-500">
+            Pattern: Single workflow with Wait node (webhook resume)
+          </p>
+        </div>
+
+        {/* GitHub Actions */}
+        <div className="rounded-lg border border-zinc-200 p-5">
+          <h4 className="font-semibold text-zinc-900">GitHub Actions — Polls until decided (6-hour default timeout)</h4>
+          <p className="mt-2 text-sm text-zinc-700 leading-relaxed">
+            The <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">okrunit/approve-action</code> GitHub
+            Action creates the approval request and then polls OKrunit&apos;s API every
+            30 seconds until a decision is made. GitHub Actions steps have a default{" "}
+            <strong>6-hour timeout</strong>. You can increase this with{" "}
+            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800">timeout-minutes</code> in
+            your workflow YAML. If the request is rejected, the step fails and the
+            workflow stops.
+          </p>
+          <p className="mt-2 text-xs text-zinc-500">
+            Pattern: Polling loop with configurable timeout
+          </p>
+        </div>
+
+        {/* monday.com */}
+        <div className="rounded-lg border border-zinc-200 p-5">
+          <h4 className="font-semibold text-zinc-900">monday.com — Two-recipe pattern (no timeout)</h4>
+          <p className="mt-2 text-sm text-zinc-700 leading-relaxed">
+            monday.com&apos;s integration recipes don&apos;t support long-running
+            pauses, so OKrunit uses a two-recipe approach: <strong>Recipe 1</strong> triggers
+            on a board event (status change, item created) and sends the approval
+            request to OKrunit. <strong>Recipe 2</strong> listens for OKrunit&apos;s
+            decision webhook and updates the board item status accordingly. Since
+            each recipe runs independently, there is <strong>no timeout</strong> on
+            the approval decision.
+          </p>
+          <p className="mt-2 text-xs text-zinc-500">
+            Pattern: Two recipes — event trigger + webhook listener
+          </p>
+        </div>
+
+        {/* Workflow engines */}
+        <div className="rounded-lg border border-zinc-200 p-5">
+          <h4 className="font-semibold text-zinc-900">Temporal, Prefect, Dagster, Windmill, Pipedream — Waits indefinitely</h4>
+          <p className="mt-2 text-sm text-zinc-700 leading-relaxed">
+            Workflow engines are designed for long-running, durable workflows.
+            The OKrunit activity/task creates the request and polls for the decision
+            with configurable intervals and heartbeats. These engines handle
+            retries, timeouts, and resumption natively — your workflow will wait as
+            long as needed. Temporal and Prefect support <strong>heartbeats</strong> to
+            keep the activity alive during extended waits.
+          </p>
+          <p className="mt-2 text-xs text-zinc-500">
+            Pattern: Durable polling with heartbeats
+          </p>
+        </div>
+      </div>
+
+      {/* Summary table */}
+      <div className="mt-8 overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-zinc-200 text-left">
+              <th className="pb-3 pr-4 font-semibold text-zinc-900">Platform</th>
+              <th className="pb-3 pr-4 font-semibold text-zinc-900">Wait pattern</th>
+              <th className="pb-3 font-semibold text-zinc-900">Timeout</th>
+            </tr>
+          </thead>
+          <tbody className="text-zinc-700">
+            <tr className="border-b border-zinc-100">
+              <td className="py-2.5 pr-4 font-medium">Zapier</td>
+              <td className="py-2.5 pr-4">Callback resume (single Zap)</td>
+              <td className="py-2.5">None</td>
+            </tr>
+            <tr className="border-b border-zinc-100">
+              <td className="py-2.5 pr-4 font-medium">Make</td>
+              <td className="py-2.5 pr-4">Two scenarios</td>
+              <td className="py-2.5">None</td>
+            </tr>
+            <tr className="border-b border-zinc-100">
+              <td className="py-2.5 pr-4 font-medium">n8n</td>
+              <td className="py-2.5 pr-4">Wait node with webhook</td>
+              <td className="py-2.5">None (self-hosted)</td>
+            </tr>
+            <tr className="border-b border-zinc-100">
+              <td className="py-2.5 pr-4 font-medium">GitHub Actions</td>
+              <td className="py-2.5 pr-4">Polling loop</td>
+              <td className="py-2.5">6 hours (configurable)</td>
+            </tr>
+            <tr className="border-b border-zinc-100">
+              <td className="py-2.5 pr-4 font-medium">monday.com</td>
+              <td className="py-2.5 pr-4">Two recipes</td>
+              <td className="py-2.5">None</td>
+            </tr>
+            <tr>
+              <td className="py-2.5 pr-4 font-medium">Workflow engines</td>
+              <td className="py-2.5 pr-4">Durable polling + heartbeats</td>
+              <td className="py-2.5">None</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       {/* All integrations grid */}
       <h2 className="mt-12 text-2xl font-semibold text-zinc-900">

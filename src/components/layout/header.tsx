@@ -207,7 +207,7 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
 }
 
 function TourHeaderIndicator() {
-  const { isActive, currentStep, tourCompleted, tourDismissed, startTour } =
+  const { fullTourActive, activePageId, tourCompleted, tourDismissed, touredPages, startFullTour } =
     useOnboardingTourStore();
   const [mounted, setMounted] = useState(false);
 
@@ -216,20 +216,15 @@ function TourHeaderIndicator() {
   }, []);
 
   if (!mounted || tourCompleted || tourDismissed) return null;
-  if (isActive) return null; // Tour tooltip is showing, don't need indicator
+  if (fullTourActive || activePageId) return null;
 
-  const progress = Math.round((currentStep / TOUR_STEPS.length) * 100);
-  const isResuming = currentStep > 0;
+  const totalPages = TOUR_STEPS.length;
+  const toured = touredPages.length;
+  const progress = Math.round((toured / Math.max(totalPages, 1)) * 100);
 
   return (
     <button
-      onClick={() => {
-        if (isResuming) {
-          useOnboardingTourStore.setState({ isActive: true });
-        } else {
-          startTour();
-        }
-      }}
+      onClick={startFullTour}
       className="hidden sm:flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
     >
       <div className="relative size-4">
@@ -239,7 +234,7 @@ function TourHeaderIndicator() {
             strokeDasharray={`${progress} 100`} strokeLinecap="round" />
         </svg>
       </div>
-      {isResuming ? `${currentStep}/${TOUR_STEPS.length}` : "Tour"}
+      {toured > 0 ? `${toured}/${totalPages}` : "Tour"}
     </button>
   );
 }
