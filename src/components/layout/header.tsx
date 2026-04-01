@@ -139,6 +139,9 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
 
         {/* Right: actions */}
         <div className="flex items-center gap-1.5">
+          {/* Tour progress indicator — left of search */}
+          <TourHeaderIndicator />
+
           {/* Search / Cmd+K hint */}
           <button
             onClick={() => {
@@ -152,10 +155,6 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
               {isMac ? <><span className="text-[14px] leading-none">⌘</span>K</> : "Ctrl+K"}
             </kbd>
           </button>
-
-          {/* Help button with text label like Make.com */}
-          {/* Tour progress indicator */}
-          <TourHeaderIndicator />
 
           <Button variant="ghost" size="sm" asChild className="h-8 gap-1.5 text-muted-foreground hover:text-foreground">
             <a href="https://okrunit.com/docs" target="_blank" rel="noopener noreferrer">
@@ -207,7 +206,7 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
 }
 
 function TourHeaderIndicator() {
-  const { fullTourActive, activePageId, tourCompleted, tourDismissed, touredPages, startFullTour } =
+  const { fullTourActive, activePageId, tourCompleted, tourDismissed, touredPages, fullTourPageIndex, startFullTour } =
     useOnboardingTourStore();
   const [mounted, setMounted] = useState(false);
 
@@ -216,16 +215,18 @@ function TourHeaderIndicator() {
   }, []);
 
   if (!mounted || tourCompleted || tourDismissed) return null;
+  // Hide while tour tooltip is actively showing
   if (fullTourActive || activePageId) return null;
 
   const totalPages = TOUR_STEPS.length;
   const toured = touredPages.length;
   const progress = Math.round((toured / Math.max(totalPages, 1)) * 100);
+  const isPaused = fullTourPageIndex > 0 || toured > 0;
 
   return (
     <button
       onClick={startFullTour}
-      className="hidden sm:flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+      className="hidden sm:flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 dark:hover:bg-emerald-950"
     >
       <div className="relative size-4">
         <svg viewBox="0 0 36 36" className="size-4 -rotate-90">
@@ -234,7 +235,7 @@ function TourHeaderIndicator() {
             strokeDasharray={`${progress} 100`} strokeLinecap="round" />
         </svg>
       </div>
-      {toured > 0 ? `${toured}/${totalPages}` : "Tour"}
+      {isPaused ? "Resume Tour" : "Tour"}
     </button>
   );
 }

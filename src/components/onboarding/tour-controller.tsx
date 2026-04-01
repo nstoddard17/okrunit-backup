@@ -105,18 +105,13 @@ export function TourController() {
   const handleBack = useCallback(() => prevStepInPage(), [prevStepInPage]);
 
   const handleClose = useCallback(() => {
-    if (fullTourActive) {
-      pauseFullTour();
+    // Just pause — don't skip or dismiss. User can resume via header button.
+    if (activePageId === "requests") {
       fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
-      setTimeout(() => router.push("/org/overview"), 100);
-    } else {
-      skipPageTour();
-      if (activePageId === "requests") {
-        fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
-        setTestRequestId(null);
-      }
+      setTestRequestId(null);
     }
-  }, [fullTourActive, activePageId, pauseFullTour, skipPageTour, setTestRequestId, router]);
+    pauseFullTour();
+  }, [activePageId, pauseFullTour, setTestRequestId]);
 
   const handleSkip = useCallback(() => {
     if (fullTourActive) {
