@@ -79,11 +79,11 @@ const requestsSteps: TourStepConfig[] = [
   },
   {
     id: "requests-keyboard",
-    targetSelector: null,
+    targetSelector: "[data-tour='detail-panel']",
     title: "Keyboard Shortcuts",
     description:
-      "When viewing a request's detail panel, press 'a' to approve or 'r' to reject. Press \u2318K (Ctrl+K on Windows) to open the search palette from anywhere.",
-    position: "center",
+      "With the detail panel open like this, press 'a' to approve or 'r' to reject instantly. Press \u2318K (Ctrl+K on Windows) from anywhere to open the search palette. These shortcuts only work when the detail panel is open.",
+    position: "left",
   },
 ];
 

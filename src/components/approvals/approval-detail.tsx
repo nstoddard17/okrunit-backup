@@ -151,7 +151,7 @@ export function ApprovalDetail({
 
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col bg-card">
+      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col bg-card" data-tour="detail-panel">
         {/* Header */}
         <div className="px-5 pt-5 pb-4 bg-card border-b border-border/50">
           <SheetTitle className="text-base font-semibold leading-snug">{approval.title}</SheetTitle>
