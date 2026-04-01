@@ -14,12 +14,14 @@ export function TourController() {
     currentStep,
     testRequestId,
     nextStep,
+    prevStep,
     setTestRequestId,
     completeTour,
     dismissTour,
   } = useOnboardingTourStore();
 
   const step = TOUR_STEPS[currentStep];
+  const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === TOUR_STEPS.length - 1;
 
   // Create test request when tour starts
@@ -71,6 +73,10 @@ export function TourController() {
     nextStep();
   }, [isLastStep, completeTour, nextStep, router]);
 
+  const handleBack = useCallback(() => {
+    prevStep();
+  }, [prevStep]);
+
   const handleSkip = useCallback(async () => {
     // Clean up test data
     try {
@@ -102,6 +108,7 @@ export function TourController() {
       stepNumber={currentStep + 1}
       totalSteps={TOUR_STEPS.length}
       onNext={handleNext}
+      onBack={isFirstStep ? undefined : handleBack}
       onSkip={handleSkip}
     />
   );

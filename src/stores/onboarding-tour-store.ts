@@ -10,6 +10,7 @@ interface OnboardingTourState {
 
   startTour: () => void;
   nextStep: () => void;
+  prevStep: () => void;
   goToStep: (step: number) => void;
   setTestRequestId: (id: string) => void;
   completeTour: () => void;
@@ -28,6 +29,7 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
 
       startTour: () => set({ isActive: true, currentStep: 0 }),
       nextStep: () => set((s) => ({ currentStep: s.currentStep + 1 })),
+      prevStep: () => set((s) => ({ currentStep: Math.max(0, s.currentStep - 1) })),
       goToStep: (step) => set({ currentStep: step }),
       setTestRequestId: (id) => set({ testRequestId: id }),
       completeTour: () =>
