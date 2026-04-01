@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
+import { useOnboardingTourStore } from "@/stores/onboarding-tour-store";
 import {
   Sheet,
   SheetContent,
@@ -98,6 +99,7 @@ export function ApprovalDetail({
   currentUserId,
   currentUserRole,
 }: ApprovalDetailProps) {
+  const tourActive = useOnboardingTourStore((s) => s.activePageId === "requests" && s.currentStepInPage === 4);
   const currentId = open && approval ? approval.id : null;
 
   // Comments are owned by the parent dashboard via commentsMap.
@@ -150,7 +152,7 @@ export function ApprovalDetail({
   const createdBy = approval.created_by as CreatedByInfo | null;
 
   return (
-    <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()} modal={!tourActive}>
       <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col bg-card" data-tour="detail-panel">
         {/* Header */}
         <div className="px-5 pt-5 pb-4 bg-card border-b border-border/50">
@@ -378,7 +380,7 @@ export function ApprovalDetail({
 
           {/* Card: Decision */}
           {approval.status === "pending" && canApprove && !approval.is_log && (
-            <div className="rounded-xl border border-border/50 p-4" data-tour="decision-buttons">
+            <div className="rounded-xl border border-border/50 p-4">
               <LabelWithTip label="Your Decision" tip="Approve or reject this request. Your decision gets sent back to the workflow that created it." />
               <div className="mt-1">
                 <ApprovalResponseForm

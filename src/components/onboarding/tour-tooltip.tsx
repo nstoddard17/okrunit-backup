@@ -10,7 +10,7 @@ interface TourTooltipProps {
   title: string;
   description: string;
   position: "top" | "bottom" | "left" | "right" | "center";
-  highlightMode?: "default" | "full-width";
+  highlightMode?: "default" | "full-width" | "no-ring";
   actionLabel: string;
   stepNumber: number;
   totalSteps: number;
@@ -171,33 +171,11 @@ export function TourTooltip({
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    // Detect if the target lives inside a fixed/absolute container (e.g. a Sheet panel)
-    // and use that container's bounds to constrain the tooltip horizontally.
-    let containerLeft = pad;
-    let containerRight = vw - pad;
-    if (targetSelector) {
-      const el = document.querySelector(targetSelector);
-      if (el) {
-        let parent = el.parentElement;
-        while (parent && parent !== document.body) {
-          const pos = window.getComputedStyle(parent).position;
-          if (pos === "fixed" || pos === "absolute") {
-            const pr = parent.getBoundingClientRect();
-            containerLeft = Math.max(pad, pr.left + pad);
-            containerRight = Math.min(vw - pad, pr.right - pad);
-            break;
-          }
-          parent = parent.parentElement;
-        }
-      }
-    }
-    const containerWidth = containerRight - containerLeft;
-
     // Smart positioning: try requested position, auto-flip if not enough space
     let finalPos = position;
 
     // For left position: shrink tooltip to fit available space instead of flipping
-    const availableLeft = r.left - 24 - pad; // 24px gap from target element
+    const availableLeft = r.left - gap - pad;
     if (finalPos === "left") {
       if (availableLeft < 200) {
         finalPos = "bottom"; // Only flip if truly no space
@@ -210,24 +188,20 @@ export function TourTooltip({
     if (finalPos === "bottom" && r.bottom + gap + 200 > vh) finalPos = "top";
     if (finalPos === "top" && r.top - gap - 200 < 0) finalPos = "bottom";
 
-    // Constrain tooltip width to container (e.g. Sheet panel)
-    actualTooltipWidth = Math.min(actualTooltipWidth, containerWidth);
-
-    // Clamp horizontal position within the container bounds
-    const clampLeft = (left: number) => Math.max(containerLeft, Math.min(left, containerRight - actualTooltipWidth));
+    // Clamp horizontal position to stay within viewport
+    const clampLeft = (left: number) => Math.max(pad, Math.min(left, vw - actualTooltipWidth - pad));
     // Clamp vertical position
     const clampTop = (top: number) => Math.max(pad, Math.min(top, vh - 200));
 
     switch (finalPos) {
       case "bottom":
-        tooltipStyle = { position: "fixed", top: clampTop(r.bottom + gap), left: clampLeft(r.left + r.width / 2 - actualTooltipWidth / 2) };
+        tooltipStyle = { position: "fixed", top: clampTop(r.bottom + gap), left: clampLeft(r.left) };
         break;
       case "top":
-        tooltipStyle = { position: "fixed", bottom: vh - r.top + gap, left: clampLeft(r.left + r.width / 2 - actualTooltipWidth / 2) };
+        tooltipStyle = { position: "fixed", bottom: vh - r.top + gap, left: clampLeft(r.left) };
         break;
       case "left": {
-        // Position tooltip so its right edge is well clear of the highlight ring
-        const rightEdge = r.left - 24; // 24px clear of the target element
+        const rightEdge = r.left - gap;
         const leftEdge = Math.max(pad, rightEdge - actualTooltipWidth);
         tooltipStyle = { position: "fixed", top: clampTop(r.top), left: leftEdge, width: Math.min(actualTooltipWidth, rightEdge - pad) };
         break;
@@ -252,12 +226,23 @@ export function TourTooltip({
           {/* Left bar — sidebar column, from content top to bottom of viewport */}
           <div className="absolute bottom-0 left-0 bg-black/40 pointer-events-auto" style={{ top: targetRect.top - 8, width: targetRect.left - 8 }} />
         </div>
+      ) : targetRect && !isCentered && highlightMode === "no-ring" ? (
+        <div className="fixed inset-0 z-[9998] pointer-events-none animate-in fade-in duration-200">
+          {/* Top strip */}
+          <div className="absolute inset-x-0 top-0 bg-black/40 pointer-events-auto" style={{ height: targetRect.top }} onClick={onClose} />
+          {/* Bottom strip */}
+          <div className="absolute inset-x-0 bottom-0 bg-black/40 pointer-events-auto" style={{ top: targetRect.bottom }} onClick={onClose} />
+          {/* Left strip */}
+          <div className="absolute left-0 bg-black/40 pointer-events-auto" style={{ top: targetRect.top, height: targetRect.height, width: targetRect.left }} onClick={onClose} />
+          {/* Right strip */}
+          <div className="absolute right-0 bg-black/40 pointer-events-auto" style={{ top: targetRect.top, height: targetRect.height, left: targetRect.right }} onClick={onClose} />
+        </div>
       ) : (
         <div className="fixed inset-0 z-[9998] bg-black/40 animate-in fade-in duration-200" onClick={onClose} />
       )}
 
       {/* Highlight ring around target */}
-      {targetRect && !isCentered && highlightMode !== "full-width" && (
+      {targetRect && !isCentered && highlightMode !== "full-width" && highlightMode !== "no-ring" && (
         <div className="fixed z-[10001] rounded-lg ring-2 ring-primary ring-offset-2 ring-offset-white dark:ring-offset-card pointer-events-none transition-all duration-300 ease-out"
           style={{ top: targetRect.top - 4, left: targetRect.left - 4, width: targetRect.width + 8, height: targetRect.height + 8 }}
         />

@@ -8,7 +8,7 @@ export interface TourStepConfig {
   title: string;
   description: string;
   position: "top" | "bottom" | "left" | "right" | "center";
-  highlightMode?: "default" | "full-width";
+  highlightMode?: "default" | "full-width" | "no-ring";
   actionLabel?: string;
 }
 
@@ -39,6 +39,14 @@ const overviewSteps: TourStepConfig[] = [
       "This is your main dashboard. At the top is your organization name, followed by key stat widgets (pending requests, approval rate, connections, and members). Below that is the recent activity feed showing the latest approval requests with their status, priority, and source.",
     position: "top",
     highlightMode: "full-width",
+  },
+  {
+    id: "overview-search-palette",
+    targetSelector: null,
+    title: "Search Palette",
+    description:
+      "Press \u2318K (Ctrl+K on Windows) from anywhere to open the search palette. Quickly find requests, navigate between pages, or run common actions without leaving the keyboard.",
+    position: "center",
   },
 ];
 
@@ -79,11 +87,12 @@ const requestsSteps: TourStepConfig[] = [
   },
   {
     id: "requests-keyboard",
-    targetSelector: "[data-tour='decision-buttons']",
+    targetSelector: "[data-tour='detail-panel']",
     title: "Keyboard Shortcuts",
     description:
-      "With the detail panel open like this, press 'a' to approve or 'r' to reject instantly. Press \u2318K (Ctrl+K on Windows) from anywhere to open the search palette. These shortcuts only work when the detail panel is open.",
-    position: "bottom",
+      "With the detail panel open like this, press 'a' to approve or 'r' to reject instantly.",
+    position: "left",
+    highlightMode: "no-ring",
   },
 ];
 
