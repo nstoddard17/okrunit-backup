@@ -148,11 +148,13 @@ export function TourTooltip({
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
   const isCentered = position === "center" || !targetRect;
-  const tooltipWidth = isMobile ? window.innerWidth - 32 : 360;
+  const defaultTooltipWidth = isMobile ? window.innerWidth - 32 : 360;
   const gap = 12;
   const pad = 16; // min padding from viewport edges
+  const highlightPad = 12; // extra space for highlight ring
 
   let tooltipStyle: React.CSSProperties;
+  let actualTooltipWidth = defaultTooltipWidth;
   if (isCentered) {
     tooltipStyle = { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
   } else if (highlightMode === "full-width" && targetRect) {
@@ -172,14 +174,22 @@ export function TourTooltip({
     // Smart positioning: try requested position, auto-flip if not enough space
     let finalPos = position;
 
-    // Check if preferred position fits
-    if (finalPos === "left" && r.left - gap - tooltipWidth < pad) finalPos = "right";
-    if (finalPos === "right" && r.right + gap + tooltipWidth > vw - pad) finalPos = "bottom";
+    // For left position: shrink tooltip to fit available space instead of flipping
+    const availableLeft = r.left - highlightPad - gap - pad;
+    if (finalPos === "left") {
+      if (availableLeft < 200) {
+        finalPos = "bottom"; // Only flip if truly no space
+      } else {
+        actualTooltipWidth = Math.min(defaultTooltipWidth, availableLeft);
+      }
+    }
+
+    if (finalPos === "right" && r.right + gap + actualTooltipWidth > vw - pad) finalPos = "bottom";
     if (finalPos === "bottom" && r.bottom + gap + 200 > vh) finalPos = "top";
     if (finalPos === "top" && r.top - gap - 200 < 0) finalPos = "bottom";
 
     // Clamp horizontal position to stay within viewport
-    const clampLeft = (left: number) => Math.max(pad, Math.min(left, vw - tooltipWidth - pad));
+    const clampLeft = (left: number) => Math.max(pad, Math.min(left, vw - actualTooltipWidth - pad));
     // Clamp vertical position
     const clampTop = (top: number) => Math.max(pad, Math.min(top, vh - 200));
 
@@ -191,7 +201,7 @@ export function TourTooltip({
         tooltipStyle = { position: "fixed", bottom: vh - r.top + gap, left: clampLeft(r.left) };
         break;
       case "left":
-        tooltipStyle = { position: "fixed", top: clampTop(r.top), left: clampLeft(r.left - gap - tooltipWidth) };
+        tooltipStyle = { position: "fixed", top: clampTop(r.top), left: pad, width: actualTooltipWidth };
         break;
       case "right":
       default:
@@ -225,7 +235,7 @@ export function TourTooltip({
       )}
 
       {/* Tooltip */}
-      <div ref={tooltipRef} className="fixed z-[10002] w-[calc(100%-2rem)] sm:w-[360px] max-w-[360px] rounded-xl border border-border bg-white shadow-2xl dark:bg-card animate-in fade-in slide-in-from-bottom-2 duration-300 transition-all ease-out" style={{ ...tooltipStyle, transitionProperty: "top, bottom, left, right, transform", transitionDuration: "300ms" }}>
+      <div ref={tooltipRef} className="fixed z-[10002] rounded-xl border border-border bg-white shadow-2xl dark:bg-card animate-in fade-in slide-in-from-bottom-2 duration-300 transition-all ease-out" style={{ ...tooltipStyle, width: tooltipStyle.width ?? (isMobile ? "calc(100% - 2rem)" : actualTooltipWidth), maxWidth: actualTooltipWidth, transitionProperty: "top, bottom, left, right, transform", transitionDuration: "300ms" }}>
         <div className="p-4">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div>
