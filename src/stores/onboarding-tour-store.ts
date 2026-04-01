@@ -17,6 +17,7 @@ interface OnboardingTourState {
   tourPaused: boolean;
   pausedPageId: string | null;
   pausedStepIndex: number;
+  pausedWasFullTour: boolean;
 
   // Test data
   testRequestId: string | null;
@@ -63,21 +64,26 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
       tourPaused: false,
       pausedPageId: null,
       pausedStepIndex: 0,
+      pausedWasFullTour: false,
       testRequestId: null,
       synced: false,
 
       startFullTour: () => {
-        set({ fullTourActive: true, fullTourPageIndex: 0, activePageId: null, currentStepInPage: 0, tourCompleted: false, tourDismissed: false, tourPaused: false, pausedPageId: null, pausedStepIndex: 0 });
+        set({ fullTourActive: true, fullTourPageIndex: 0, activePageId: null, currentStepInPage: 0, tourCompleted: false, tourDismissed: false, tourPaused: false, pausedPageId: null, pausedStepIndex: 0, pausedWasFullTour: false });
         saveToServer({ currentStep: 0, tourCompleted: false, tourDismissed: false });
       },
       pauseFullTour: () => {
-        const { activePageId, currentStepInPage } = get();
-        set({ fullTourActive: false, activePageId: null, testRequestId: null, tourPaused: true, pausedPageId: activePageId, pausedStepIndex: currentStepInPage });
+        const { activePageId, currentStepInPage, fullTourActive, testRequestId } = get();
+        // Clean up test request if one exists
+        if (testRequestId) {
+          fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+        }
+        set({ fullTourActive: false, activePageId: null, testRequestId: null, tourPaused: true, pausedPageId: activePageId, pausedStepIndex: currentStepInPage, pausedWasFullTour: fullTourActive });
       },
       resumeTour: () => {
-        const { pausedPageId, pausedStepIndex } = get();
+        const { pausedPageId, pausedStepIndex, pausedWasFullTour } = get();
         if (pausedPageId) {
-          set({ activePageId: pausedPageId, currentStepInPage: pausedStepIndex, tourPaused: false, pausedPageId: null, pausedStepIndex: 0 });
+          set({ activePageId: pausedPageId, currentStepInPage: pausedStepIndex, fullTourActive: pausedWasFullTour, tourPaused: false, pausedPageId: null, pausedStepIndex: 0, pausedWasFullTour: false });
         } else {
           // No specific page was paused — start the full tour
           get().startFullTour();
@@ -87,10 +93,12 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
         set((s) => ({ fullTourPageIndex: s.fullTourPageIndex + 1, currentStepInPage: 0 }));
       },
       completeFullTour: () => {
+        if (get().testRequestId) fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
         set({ fullTourActive: false, activePageId: null, tourCompleted: true, testRequestId: null, tourPaused: false, pausedPageId: null });
         saveToServer({ tourCompleted: true, tourDismissed: false });
       },
       dismissFullTour: () => {
+        if (get().testRequestId) fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
         set({ fullTourActive: false, activePageId: null, tourDismissed: true, testRequestId: null, tourPaused: false, pausedPageId: null });
         saveToServer({ tourCompleted: false, tourDismissed: true });
       },
@@ -99,19 +107,25 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
       nextStepInPage: () => set((s) => ({ currentStepInPage: s.currentStepInPage + 1 })),
       prevStepInPage: () => set((s) => ({ currentStepInPage: Math.max(0, s.currentStepInPage - 1) })),
       completePageTour: () => {
-        const { activePageId, touredPages, fullTourActive } = get();
+        const { activePageId, touredPages, fullTourActive, testRequestId } = get();
+        if (activePageId === "requests" && testRequestId) {
+          fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+        }
         const updated = activePageId && !touredPages.includes(activePageId)
           ? [...touredPages, activePageId]
           : touredPages;
-        set({ touredPages: updated, activePageId: null, currentStepInPage: 0 });
+        set({ touredPages: updated, activePageId: null, currentStepInPage: 0, testRequestId: null });
         if (fullTourActive) get().advanceFullTour();
       },
       skipPageTour: () => {
-        const { activePageId, touredPages } = get();
+        const { activePageId, touredPages, testRequestId } = get();
+        if (activePageId === "requests" && testRequestId) {
+          fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+        }
         const updated = activePageId && !touredPages.includes(activePageId)
           ? [...touredPages, activePageId]
           : touredPages;
-        set({ touredPages: updated, activePageId: null, currentStepInPage: 0 });
+        set({ touredPages: updated, activePageId: null, currentStepInPage: 0, testRequestId: null });
       },
 
       setTestRequestId: (id) => set({ testRequestId: id }),
@@ -133,6 +147,10 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
         tourCompleted: state.tourCompleted,
         tourDismissed: state.tourDismissed,
         touredPages: state.touredPages,
+        tourPaused: state.tourPaused,
+        pausedPageId: state.pausedPageId,
+        pausedStepIndex: state.pausedStepIndex,
+        pausedWasFullTour: state.pausedWasFullTour,
       }),
     },
   ),

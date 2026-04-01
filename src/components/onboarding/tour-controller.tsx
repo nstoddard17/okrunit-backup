@@ -43,7 +43,6 @@ export function TourController() {
     const nextPageId = FULL_TOUR_ORDER[fullTourPageIndex];
     if (!nextPageId) {
       completeFullTour();
-      fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
       setTimeout(() => router.push("/org/overview"), 100);
       return;
     }
@@ -93,40 +92,27 @@ export function TourController() {
 
   const handleNext = useCallback(() => {
     if (isLastStep) {
-      if (activePageId === "requests") {
-        fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
-        setTestRequestId(null);
-      }
       completePageTour();
       return;
     }
     nextStepInPage();
-  }, [isLastStep, activePageId, completePageTour, nextStepInPage, setTestRequestId]);
+  }, [isLastStep, completePageTour, nextStepInPage]);
 
   const handleBack = useCallback(() => prevStepInPage(), [prevStepInPage]);
 
   const handleClose = useCallback(() => {
     // Just pause — don't skip or dismiss. User can resume via header button.
-    if (activePageId === "requests") {
-      fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
-      setTestRequestId(null);
-    }
     pauseFullTour();
-  }, [activePageId, pauseFullTour, setTestRequestId]);
+  }, [pauseFullTour]);
 
   const handleSkip = useCallback(() => {
     if (fullTourActive) {
       dismissFullTour();
-      fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
       setTimeout(() => router.push("/org/overview"), 100);
     } else {
       skipPageTour();
-      if (activePageId === "requests") {
-        fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
-        setTestRequestId(null);
-      }
     }
-  }, [fullTourActive, activePageId, dismissFullTour, skipPageTour, setTestRequestId, router]);
+  }, [fullTourActive, dismissFullTour, skipPageTour, router]);
 
   if (!currentStep || !currentPageTour) return null;
 
