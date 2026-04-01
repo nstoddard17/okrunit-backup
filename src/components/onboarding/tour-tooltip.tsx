@@ -34,17 +34,25 @@ export function TourTooltip({
 }: TourTooltipProps) {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [ready, setReady] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Reset ready state when step changes (targetSelector changes)
+  useEffect(() => {
+    setReady(false);
+  }, [targetSelector]);
+
   // Find and track the target element
   useEffect(() => {
     if (!targetSelector) {
       setTargetRect(null);
-      return;
+      // For centered tooltips (no target), mark ready after a short delay
+      const t = setTimeout(() => setReady(true), 100);
+      return () => clearTimeout(t);
     }
 
     let timeout: ReturnType<typeof setTimeout>;
@@ -57,7 +65,13 @@ export function TourTooltip({
         setTargetRect(rect);
         if (rect.top < 0 || rect.bottom > window.innerHeight) {
           el.scrollIntoView({ behavior: "smooth", block: "center" });
-          setTimeout(() => setTargetRect(el.getBoundingClientRect()), 400);
+          setTimeout(() => {
+            setTargetRect(el.getBoundingClientRect());
+            setReady(true);
+          }, 400);
+        } else {
+          // Small delay so the position is calculated before showing
+          setTimeout(() => setReady(true), 50);
         }
         return;
       }
@@ -131,10 +145,13 @@ export function TourTooltip({
     }
   }
 
+  // Don't render until position is determined
+  if (!ready) return null;
+
   return createPortal(
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 z-[9998] bg-black/40" onClick={onClose}
+      <div className="fixed inset-0 z-[9998] bg-black/40 animate-in fade-in duration-200" onClick={onClose}
         style={targetRect && !isCentered ? {
           clipPath: `polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%, 0% 0%, ${targetRect.left - 8}px ${targetRect.top - 8}px, ${targetRect.left - 8}px ${targetRect.bottom + 8}px, ${targetRect.right + 8}px ${targetRect.bottom + 8}px, ${targetRect.right + 8}px ${targetRect.top - 8}px, ${targetRect.left - 8}px ${targetRect.top - 8}px)`
         } : undefined}
@@ -142,13 +159,13 @@ export function TourTooltip({
 
       {/* Highlight ring */}
       {targetRect && !isCentered && (
-        <div className="fixed z-[9999] rounded-lg ring-2 ring-primary ring-offset-2 pointer-events-none"
+        <div className="fixed z-[9999] rounded-lg ring-2 ring-primary ring-offset-2 pointer-events-none transition-all duration-300 ease-out"
           style={{ top: targetRect.top - 4, left: targetRect.left - 4, width: targetRect.width + 8, height: targetRect.height + 8 }}
         />
       )}
 
       {/* Tooltip */}
-      <div ref={tooltipRef} className="fixed z-[10000] w-[calc(100%-2rem)] sm:w-[360px] max-w-[360px] rounded-xl border border-border bg-white shadow-2xl dark:bg-card" style={tooltipStyle}>
+      <div ref={tooltipRef} className="fixed z-[10000] w-[calc(100%-2rem)] sm:w-[360px] max-w-[360px] rounded-xl border border-border bg-white shadow-2xl dark:bg-card animate-in fade-in slide-in-from-bottom-2 duration-300 transition-all ease-out" style={{ ...tooltipStyle, transitionProperty: "top, bottom, left, right, transform", transitionDuration: "300ms" }}>
         <div className="p-4">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div>
