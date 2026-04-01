@@ -241,6 +241,7 @@ function HelpDropdown() {
         size="sm"
         className="h-8 gap-1.5 text-muted-foreground hover:text-foreground"
         onClick={() => setOpen(!open)}
+        data-tour-help-btn
       >
         <HelpCircle className="size-4" />
         <span className="hidden sm:inline text-xs">Help</span>

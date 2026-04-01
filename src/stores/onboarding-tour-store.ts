@@ -19,6 +19,9 @@ interface OnboardingTourState {
   pausedStepIndex: number;
   pausedWasFullTour: boolean;
 
+  // Hint state — show "Resume Tour is in Help" hint once
+  hasSeenPauseHint: boolean;
+
   // Test data
   testRequestId: string | null;
   synced: boolean;
@@ -65,6 +68,7 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
       pausedPageId: null,
       pausedStepIndex: 0,
       pausedWasFullTour: false,
+      hasSeenPauseHint: false,
       testRequestId: null,
       synced: false,
 
@@ -153,6 +157,7 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
         pausedPageId: state.pausedPageId,
         pausedStepIndex: state.pausedStepIndex,
         pausedWasFullTour: state.pausedWasFullTour,
+        hasSeenPauseHint: state.hasSeenPauseHint,
       }),
     },
   ),

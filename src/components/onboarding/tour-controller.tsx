@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useCallback, useMemo } from "react";
+import { useEffect, useCallback, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { useOnboardingTourStore } from "@/stores/onboarding-tour-store";
 import { PAGE_TOURS, FULL_TOUR_ORDER, findPageTour } from "@/components/onboarding/tour-steps";
@@ -19,6 +20,7 @@ export function TourController() {
     tourDismissed,
     tourCompleted,
     tourPaused,
+    hasSeenPauseHint,
     startPageTour,
     nextStepInPage,
     prevStepInPage,
@@ -71,16 +73,20 @@ export function TourController() {
       .catch(() => {});
   }, [activePageId, testRequestId, setTestRequestId]);
 
-  // Clear paused state when navigating to a new page
+  // Clear paused state when navigating to a different page
+  const prevPathname = useRef(pathname);
   useEffect(() => {
-    if (tourPaused) {
-      useOnboardingTourStore.setState({ tourPaused: false, pausedPageId: null, pausedStepIndex: 0, pausedWasFullTour: false });
+    if (pathname !== prevPathname.current) {
+      prevPathname.current = pathname;
+      if (tourPaused) {
+        useOnboardingTourStore.setState({ tourPaused: false, pausedPageId: null, pausedStepIndex: 0, pausedWasFullTour: false });
+      }
     }
-  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pathname, tourPaused]);
 
-  // Auto-start per-page tour on first visit (not in full tour mode)
+  // Auto-start per-page tour on first visit (not in full tour mode, not paused)
   useEffect(() => {
-    if (fullTourActive || activePageId) return;
+    if (fullTourActive || activePageId || tourPaused) return;
 
     const pageTour = findPageTour(pathname);
 
@@ -88,7 +94,7 @@ export function TourController() {
       const timer = setTimeout(() => startPageTour(pageTour.pageId), 1000);
       return () => clearTimeout(timer);
     }
-  }, [pathname, fullTourActive, activePageId, touredPages, startPageTour]);
+  }, [pathname, fullTourActive, activePageId, tourPaused, touredPages, startPageTour]);
 
   const currentStep = currentPageTour?.steps[currentStepInPage];
   const isFirstStep = currentStepInPage === 0;
@@ -118,7 +124,13 @@ export function TourController() {
     }
   }, [fullTourActive, dismissFullTour, skipPageTour, router]);
 
-  if (!currentStep || !currentPageTour) return null;
+  if (!currentStep || !currentPageTour) {
+    // Show pause hint when tour is paused and user hasn't seen it before
+    if (tourPaused && !hasSeenPauseHint) {
+      return <PauseHint />;
+    }
+    return null;
+  }
 
   const actionLabel = isLastStep
     ? fullTourActive ? "Next Page" : "Done"
@@ -139,5 +151,48 @@ export function TourController() {
       onClose={handleClose}
       onSkip={handleSkip}
     />
+  );
+}
+
+function PauseHint() {
+  const [visible, setVisible] = useState(false);
+  const [position, setPosition] = useState<{ top: number; right: number } | null>(null);
+
+  useEffect(() => {
+    // Find the Help button in the header
+    const helpBtn = document.querySelector("[data-tour-help-btn]");
+    if (helpBtn) {
+      const rect = helpBtn.getBoundingClientRect();
+      setPosition({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+    }
+    // Small delay before showing
+    const showTimer = setTimeout(() => setVisible(true), 300);
+    // Auto-dismiss after 5 seconds
+    const hideTimer = setTimeout(() => {
+      useOnboardingTourStore.setState({ hasSeenPauseHint: true });
+      setVisible(false);
+    }, 5300);
+    return () => { clearTimeout(showTimer); clearTimeout(hideTimer); };
+  }, []);
+
+  if (!visible || !position) return null;
+
+  return createPortal(
+    <div
+      className="fixed z-[10000] w-64 rounded-lg border border-border bg-white shadow-lg dark:bg-card p-3 animate-in fade-in slide-in-from-top-2 duration-200"
+      style={{ top: position.top, right: position.right }}
+    >
+      <button
+        className="absolute right-2 top-2 text-muted-foreground hover:text-foreground"
+        onClick={() => {
+          useOnboardingTourStore.setState({ hasSeenPauseHint: true });
+          setVisible(false);
+        }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <p className="text-xs text-foreground font-medium pr-4">You can resume the tour anytime from the Help menu above.</p>
+    </div>,
+    document.body,
   );
 }
