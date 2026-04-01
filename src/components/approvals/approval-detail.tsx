@@ -378,7 +378,7 @@ export function ApprovalDetail({
 
           {/* Card: Decision */}
           {approval.status === "pending" && canApprove && !approval.is_log && (
-            <div className="rounded-xl border border-border/50 p-4">
+            <div className="rounded-xl border border-border/50 p-4" data-tour="decision-buttons">
               <LabelWithTip label="Your Decision" tip="Approve or reject this request. Your decision gets sent back to the workflow that created it." />
               <div className="mt-1">
                 <ApprovalResponseForm
