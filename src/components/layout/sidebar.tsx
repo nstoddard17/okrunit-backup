@@ -67,6 +67,13 @@ export function Sidebar({ pendingCount: initialPendingCount, userRole, isAppAdmi
     setLivePendingCount(initialPendingCount);
   }, [initialPendingCount]);
 
+  // Listen for onboarding test request cleanup (admin deletes may not trigger Realtime)
+  useEffect(() => {
+    const handler = () => setLivePendingCount((prev) => Math.max(0, prev - 1));
+    window.addEventListener("onboarding-test-deleted", handler);
+    return () => window.removeEventListener("onboarding-test-deleted", handler);
+  }, []);
+
   // Realtime: adjust pending count when approval requests are created/updated
   useRealtime<ApprovalRequest>({
     table: "approval_requests",
