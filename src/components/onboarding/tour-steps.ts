@@ -444,10 +444,21 @@ export const TOUR_STEPS = PAGE_TOURS.flatMap((p) =>
 );
 
 // Helper: find tour config for a given pathname
+// Prefers exact matches, then longest prefix match to avoid greedy matching
+// (e.g. /requests/connections should match connections tour, not requests tour)
 export function findPageTour(pathname: string): PageTourConfig | undefined {
-  return PAGE_TOURS.find((p) =>
-    p.pathname === "/org/overview"
-      ? pathname === "/org/overview"
-      : pathname === p.pathname || pathname.startsWith(p.pathname + "/")
-  );
+  // Try exact match first
+  const exact = PAGE_TOURS.find((p) => p.pathname === pathname);
+  if (exact) return exact;
+
+  // Fall back to longest prefix match
+  let best: PageTourConfig | undefined;
+  for (const p of PAGE_TOURS) {
+    if (pathname.startsWith(p.pathname + "/")) {
+      if (!best || p.pathname.length > best.pathname.length) {
+        best = p;
+      }
+    }
+  }
+  return best;
 }
