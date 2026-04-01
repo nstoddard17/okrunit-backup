@@ -26,7 +26,7 @@ interface OnboardingTourState {
   // Full tour actions
   startFullTour: () => void;
   pauseFullTour: () => void;
-  resumeTour: () => void;
+  resumeTour: (currentPathname?: string) => void;
   advanceFullTour: () => void;
   completeFullTour: () => void;
   dismissFullTour: () => void;
@@ -80,12 +80,14 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
         }
         set({ fullTourActive: false, activePageId: null, testRequestId: null, tourPaused: true, pausedPageId: activePageId, pausedStepIndex: currentStepInPage, pausedWasFullTour: fullTourActive });
       },
-      resumeTour: () => {
+      resumeTour: (overridePageId?: string) => {
         const { pausedPageId, pausedStepIndex, pausedWasFullTour } = get();
-        if (pausedPageId) {
-          set({ activePageId: pausedPageId, currentStepInPage: pausedStepIndex, fullTourActive: pausedWasFullTour, tourPaused: false, pausedPageId: null, pausedStepIndex: 0, pausedWasFullTour: false });
+        const pageId = overridePageId ?? pausedPageId;
+        const stepIndex = overridePageId && overridePageId !== pausedPageId ? 0 : pausedStepIndex;
+
+        if (pageId) {
+          set({ activePageId: pageId, currentStepInPage: stepIndex, fullTourActive: pausedWasFullTour, tourPaused: false, pausedPageId: null, pausedStepIndex: 0, pausedWasFullTour: false });
         } else {
-          // No specific page was paused — start the full tour
           get().startFullTour();
         }
       },
