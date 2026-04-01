@@ -9,7 +9,7 @@ import { useApprovalFiltersStore } from "@/stores/approval-filters-store";
 import { useRealtime } from "@/hooks/use-realtime";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Clock, CheckCircle, XCircle, RefreshCw, Archive, Download } from "lucide-react";
+import { Clock, CheckCircle, XCircle, RefreshCw, Archive, Download, AlertTriangle, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -53,6 +53,13 @@ export function ApprovalDashboard({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
+  const [usageInfo, setUsageInfo] = useState<{
+    plan: string;
+    requestsUsed: number;
+    requestsLimit: number;
+    limitReached: boolean;
+    nearLimit: boolean;
+  } | null>(null);
 
   const { status, priority, search, source, showArchived, setStatus, setPriority, setSearch, setSource, setShowArchived } =
     useApprovalFiltersStore();
@@ -207,6 +214,30 @@ export function ApprovalDashboard({
       }
     };
     loadPreferences();
+  }, []);
+
+  // Fetch usage/billing info to show limit banner
+  useEffect(() => {
+    const fetchUsage = async () => {
+      try {
+        const res = await fetch("/api/v1/billing/usage");
+        if (!res.ok) return;
+        const data = await res.json();
+        const limit = data.limits?.maxRequests ?? -1;
+        const used = data.usage?.requests ?? 0;
+        if (limit === -1) return; // unlimited plan, no banner needed
+        setUsageInfo({
+          plan: data.plan,
+          requestsUsed: used,
+          requestsLimit: limit,
+          limitReached: used >= limit,
+          nearLimit: used >= limit * 0.8 && used < limit,
+        });
+      } catch {
+        // Silently fail — banner is non-critical
+      }
+    };
+    fetchUsage();
   }, []);
 
   // Track new IDs with auto-clear
@@ -741,6 +772,38 @@ export function ApprovalDashboard({
 
   return (
     <div className={`space-y-6 ${selectedIds.size > 0 ? "pb-20" : ""}`}>
+      {/* Usage limit banner */}
+      {usageInfo?.limitReached && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-950/30">
+          <AlertTriangle className="size-5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+              Monthly request limit reached ({usageInfo.requestsUsed}/{usageInfo.requestsLimit})
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              New API requests will be rejected until the limit resets next month. Upgrade to Pro for unlimited requests.
+            </p>
+          </div>
+          <Button size="sm" className="shrink-0 gap-1.5" asChild>
+            <a href="/org/subscription">
+              Upgrade
+              <ArrowUpRight className="size-3.5" />
+            </a>
+          </Button>
+        </div>
+      )}
+      {usageInfo?.nearLimit && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-100 bg-amber-50/50 px-4 py-3 dark:border-amber-900/30 dark:bg-amber-950/20">
+          <AlertTriangle className="size-4 shrink-0 text-amber-500" />
+          <p className="flex-1 text-sm text-amber-800 dark:text-amber-300">
+            Approaching request limit — {usageInfo.requestsUsed}/{usageInfo.requestsLimit} used this month.{" "}
+            <a href="/org/subscription" className="font-medium underline underline-offset-2 hover:text-amber-900 dark:hover:text-amber-200">
+              Upgrade for unlimited
+            </a>
+          </p>
+        </div>
+      )}
+
       {/* Live indicator + refresh */}
       <div className="flex items-center justify-end gap-2">
         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
