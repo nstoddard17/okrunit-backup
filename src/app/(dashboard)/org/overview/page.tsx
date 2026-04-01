@@ -218,6 +218,7 @@ export default async function V2OrgOverviewPage() {
       <OnboardingTutorial />
 
       {/* Org header — only on overview */}
+      <div data-tour="overview-main" className="space-y-8">
       <div>
         <p className="text-xs font-medium text-primary mb-0.5">Organization</p>
         <h1 className="text-xl font-semibold tracking-tight">{org.name}</h1>
@@ -360,6 +361,7 @@ export default async function V2OrgOverviewPage() {
             </p>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

@@ -181,11 +181,11 @@ const overviewSteps: TourStepConfig[] = [
   },
   {
     id: "overview-activity",
-    targetSelector: null,
-    title: "Recent Activity",
+    targetSelector: "[data-tour='overview-main']",
+    title: "Your Dashboard",
     description:
-      "Below the stats, you'll see the most recent approval requests with their status, priority, and source. Alert banners appear at the top when requests breach SLA deadlines or are escalated.",
-    position: "center",
+      "This is your main dashboard. At the top is your organization name, followed by key stat widgets (pending requests, approval rate, connections, and members). Below that is the recent activity feed showing the latest approval requests with their status, priority, and source.",
+    position: "right",
   },
 ];
 
