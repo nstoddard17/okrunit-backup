@@ -87,13 +87,13 @@ export function TourController() {
   }, [prevStep]);
 
   const handleClose = useCallback(async () => {
-    // Clean up test data and go home
-    try {
-      await fetch("/api/v1/onboarding", { method: "DELETE" });
-    } catch {}
+    // Pause FIRST to prevent navigation effect from redirecting
     pauseTour();
-    setTestRequestId(null); // Clear so it recreates on resume
-    router.push("/org/overview");
+    setTestRequestId(null);
+    // Then clean up test data
+    fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+    // Navigate home after state is settled
+    setTimeout(() => router.push("/org/overview"), 100);
   }, [pauseTour, setTestRequestId, router]);
 
   const handleSkip = useCallback(async () => {

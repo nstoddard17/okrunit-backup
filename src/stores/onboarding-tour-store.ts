@@ -48,7 +48,9 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
         set({ isActive: true, currentStep: 0 });
         saveToServer({ currentStep: 0, tourCompleted: false, tourDismissed: false });
       },
-      pauseTour: () => set({ isActive: false }),
+      pauseTour: () => {
+        set({ isActive: false, testRequestId: null });
+      },
       nextStep: () => {
         const next = get().currentStep + 1;
         set({ currentStep: next });
@@ -108,7 +110,8 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
         testRequestId: state.testRequestId,
         tourCompleted: state.tourCompleted,
         tourDismissed: state.tourDismissed,
-        isActive: state.isActive,
+        // isActive is intentionally NOT persisted — tour should only be
+        // active when the user explicitly clicks Start/Continue
       }),
     },
   ),
