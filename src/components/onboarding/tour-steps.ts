@@ -58,16 +58,17 @@ const requestsSteps: TourStepConfig[] = [
     targetSelector: "[data-tour='test-request']",
     title: "Quick Actions on Hover",
     description:
-      "Hover over any pending request to reveal Approve and Reject buttons directly on the card — no need to open the detail panel for quick decisions.",
+      "Hover over any pending request to reveal Approve and Reject buttons directly on the card \u2014 no need to open the detail panel for quick decisions.",
     position: "bottom",
+    highlightMode: "full-width",
   },
   {
     id: "requests-three-dots",
-    targetSelector: "[data-tour='test-request']",
+    targetSelector: "[data-tour='test-request-more-menu']",
     title: "More Options",
     description:
       "The three-dot menu (visible on hover) lets you archive the request, configure the flow, or open the full detail panel for more context.",
-    position: "bottom",
+    position: "left",
   },
   {
     id: "requests-filters",

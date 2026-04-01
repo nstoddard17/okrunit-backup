@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, memo } from "react";
+import { useOnboardingTourStore } from "@/stores/onboarding-tour-store";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -102,6 +103,13 @@ export const ApprovalCard = memo(function ApprovalCard({
   const glowColor = approval.is_log ? "card-interactive" : (statusGlowColors[approval.status] ?? "card-interactive");
 
   const isPending = approval.status === "pending";
+
+  // Tour: force-show hover actions on the onboarding test request
+  const isOnboardingRequest = approval.source === "onboarding";
+  const { activePageId, currentStepInPage } = useOnboardingTourStore();
+  const tourShowApproveButtons = isOnboardingRequest && activePageId === "requests" && currentStepInPage === 1;
+  const tourShowMoreMenu = isOnboardingRequest && activePageId === "requests" && currentStepInPage === 2;
+  const tourForceVisible = tourShowApproveButtons || tourShowMoreMenu;
 
   const handleInlineClick = (
     e: React.MouseEvent,
@@ -218,7 +226,10 @@ export const ApprovalCard = memo(function ApprovalCard({
             )}
             {/* Inline approve/reject — visible on hover (hidden for logs) */}
             {isPending && canApprove && onInlineAction && !approval.is_log && (
-              <div className="hidden items-center gap-1.5 sm:flex sm:opacity-0 sm:transition-opacity sm:group-hover/card:opacity-100">
+              <div className={cn(
+                "hidden items-center gap-1.5 sm:flex sm:transition-opacity",
+                tourShowApproveButtons ? "sm:opacity-100" : "sm:opacity-0 sm:group-hover/card:opacity-100",
+              )}>
                 <Button
                   size="sm"
                   variant="success"
@@ -248,7 +259,10 @@ export const ApprovalCard = memo(function ApprovalCard({
             {!approval.is_log && <Badge variant={status.variant} className="text-[11px]">{status.label}</Badge>}
 
             {/* Action buttons — visible on hover */}
-            <div className="hidden items-center gap-0.5 sm:flex sm:opacity-0 sm:transition-opacity sm:group-hover/card:opacity-100">
+            <div className={cn(
+              "hidden items-center gap-0.5 sm:flex sm:transition-opacity",
+              tourForceVisible ? "sm:opacity-100" : "sm:opacity-0 sm:group-hover/card:opacity-100",
+            )}>
               {approval.flow_id && onConfigureFlow && !approval.is_log && (
                 <Button
                   variant="ghost"
@@ -264,19 +278,20 @@ export const ApprovalCard = memo(function ApprovalCard({
                 </Button>
               )}
 
-              <DropdownMenu>
+              <DropdownMenu open={tourShowMoreMenu ? true : undefined}>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
                     className="size-7 p-0"
                     onClick={(e) => e.stopPropagation()}
+                    data-tour={isOnboardingRequest ? "test-request-more-btn" : undefined}
                   >
                     <MoreVertical className="size-4" />
                     <span className="sr-only">More actions</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()} data-tour={isOnboardingRequest ? "test-request-more-menu" : undefined}>
                   <DropdownMenuItem onClick={onClick}>
                     <Eye className="size-4" />
                     Details
