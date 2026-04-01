@@ -657,8 +657,10 @@ export async function POST(request: Request) {
           ? `${priorityLabel} priority · from ${sourceName.charAt(0).toUpperCase() + sourceName.slice(1)}`
           : `${priorityLabel} priority`;
 
-        if (flowIsUnconfigured) {
-          // Unconfigured flow: only notify the connection owner to configure routing.
+        if (flowIsUnconfigured && (!targetUserIds || targetUserIds.length === 0)) {
+          // Unconfigured flow with no approvers resolved: notify connection owner
+          // to configure routing. Also notify all eligible approvers so the request
+          // doesn't sit unnoticed.
           const ownerId = auth.type === "api_key"
             ? auth.connection.created_by
             : auth.type === "oauth" ? auth.userId : null;
@@ -669,6 +671,28 @@ export async function POST(request: Request) {
               category: "flow_assigned",
               title: `New flow needs configuration`,
               body: `"${validated.title}" arrived from a new source. Configure routing to assign approvers.`,
+              resourceType: "approval_request",
+              resourceId: approval.id,
+            });
+          }
+
+          // Also notify eligible approvers so the request isn't missed
+          const { data: eligibleMembers } = await admin
+            .from("org_memberships")
+            .select("user_id")
+            .eq("org_id", auth.orgId)
+            .in("role", ["approver", "admin", "owner"]);
+          const eligibleIds = (eligibleMembers ?? [])
+            .map((m: { user_id: string }) => m.user_id)
+            .filter((id: string) => id !== ownerId);
+
+          if (eligibleIds.length > 0) {
+            await createInAppNotificationBulk(eligibleIds, {
+              orgId: auth.orgId,
+              category: "approval_awaiting",
+              title: `New request: ${validated.title}`,
+              body: bodyText,
+              actorName: connectionName ?? undefined,
               resourceType: "approval_request",
               resourceId: approval.id,
             });

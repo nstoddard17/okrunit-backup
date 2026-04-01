@@ -93,13 +93,13 @@ export function Sidebar({ pendingCount: initialPendingCount, userRole, isAppAdmi
     const handler = (e: Event) => {
       const { type, record } = (e as CustomEvent).detail;
       const key = `${type}:${record.id}`;
-      if (type === "INSERT" && record.status === "pending" && !record.archived_at) {
+      if (type === "INSERT" && record.status === "pending" && !record.archived_at && !record.is_log) {
         processEvent(key, () => setLivePendingCount((prev) => prev + 1));
-      } else if (type === "DELETE" && record.status === "pending") {
+      } else if (type === "DELETE" && record.status === "pending" && !record.is_log) {
         processEvent(key, () => setLivePendingCount((prev) => Math.max(0, prev - 1)));
       } else if (type === "UPDATE") {
         const oldRecord = (e as CustomEvent).detail.oldRecord;
-        if (oldRecord) {
+        if (oldRecord && !record.is_log) {
           const wasPending = oldRecord.status === "pending" && !oldRecord.archived_at;
           const isPending = record.status === "pending" && !record.archived_at;
           if (wasPending && !isPending) {
@@ -120,11 +120,12 @@ export function Sidebar({ pendingCount: initialPendingCount, userRole, isAppAdmi
     filter: `org_id=eq.${currentOrgId}`,
     enabled: !!currentOrgId,
     onInsert: useCallback((record: ApprovalRequest) => {
-      if (record.status === "pending" && !record.archived_at) {
+      if (record.status === "pending" && !record.archived_at && !record.is_log) {
         processEvent(`INSERT:${record.id}`, () => setLivePendingCount((prev) => prev + 1));
       }
     }, [processEvent]),
     onUpdate: useCallback((record: ApprovalRequest, oldRecord: ApprovalRequest) => {
+      if (record.is_log || oldRecord.is_log) return;
       const wasPending = oldRecord.status === "pending" && !oldRecord.archived_at;
       const isPending = record.status === "pending" && !record.archived_at;
       if (wasPending && !isPending) {
@@ -134,7 +135,7 @@ export function Sidebar({ pendingCount: initialPendingCount, userRole, isAppAdmi
       }
     }, [processEvent]),
     onDelete: useCallback((oldRecord: ApprovalRequest) => {
-      if (oldRecord.status === "pending") {
+      if (oldRecord.status === "pending" && !oldRecord.is_log) {
         processEvent(`DELETE:${oldRecord.id}`, () => setLivePendingCount((prev) => Math.max(0, prev - 1)));
       }
     }, [processEvent]),
