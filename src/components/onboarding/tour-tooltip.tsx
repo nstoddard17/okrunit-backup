@@ -175,7 +175,7 @@ export function TourTooltip({
     let finalPos = position;
 
     // For left position: shrink tooltip to fit available space instead of flipping
-    const availableLeft = r.left - highlightPad - gap - pad;
+    const availableLeft = r.left - 24 - pad; // 24px gap from target element
     if (finalPos === "left") {
       if (availableLeft < 200) {
         finalPos = "bottom"; // Only flip if truly no space
@@ -201,8 +201,10 @@ export function TourTooltip({
         tooltipStyle = { position: "fixed", bottom: vh - r.top + gap, left: clampLeft(r.left) };
         break;
       case "left": {
-        const idealLeft = r.left - highlightPad - gap - actualTooltipWidth;
-        tooltipStyle = { position: "fixed", top: clampTop(r.top), left: Math.max(pad, idealLeft), width: actualTooltipWidth };
+        // Position tooltip so its right edge is well clear of the highlight ring
+        const rightEdge = r.left - 24; // 24px clear of the target element
+        const leftEdge = Math.max(pad, rightEdge - actualTooltipWidth);
+        tooltipStyle = { position: "fixed", top: clampTop(r.top), left: leftEdge, width: Math.min(actualTooltipWidth, rightEdge - pad) };
         break;
       }
       case "right":
