@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useOnboardingTourStore } from "@/stores/onboarding-tour-store";
-import { PAGE_TOURS, FULL_TOUR_ORDER } from "@/components/onboarding/tour-steps";
+import { PAGE_TOURS, FULL_TOUR_ORDER, findPageTour } from "@/components/onboarding/tour-steps";
 import { TourTooltip } from "@/components/onboarding/tour-tooltip";
 
 export function TourController() {
@@ -75,10 +75,7 @@ export function TourController() {
   useEffect(() => {
     if (fullTourActive || activePageId || tourDismissed || tourCompleted || tourPaused) return;
 
-    const pageTour = PAGE_TOURS.find((p) => {
-      if (p.pathname === "/org/overview") return pathname === "/org/overview";
-      return pathname === p.pathname;
-    });
+    const pageTour = findPageTour(pathname);
 
     if (pageTour && !touredPages.includes(pageTour.pageId)) {
       const timer = setTimeout(() => startPageTour(pageTour.pageId), 1000);

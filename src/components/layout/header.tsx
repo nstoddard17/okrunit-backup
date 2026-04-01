@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useOnboardingTourStore } from "@/stores/onboarding-tour-store";
-import { TOUR_STEPS, PAGE_TOURS } from "@/components/onboarding/tour-steps";
-import { AlertTriangle, Menu, HelpCircle, LogOut, Settings, Check, ChevronsUpDown, Building2, Search } from "lucide-react";
+import { TOUR_STEPS, findPageTour } from "@/components/onboarding/tour-steps";
+import { AlertTriangle, Menu, HelpCircle, LogOut, Settings, Check, ChevronsUpDown, Building2, Search, BookOpen, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -140,9 +140,6 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
 
         {/* Right: actions */}
         <div className="flex items-center gap-1.5">
-          {/* Tour progress indicator — left of search */}
-          <TourHeaderIndicator />
-
           {/* Search / Cmd+K hint */}
           <button
             onClick={() => {
@@ -157,12 +154,8 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
             </kbd>
           </button>
 
-          <Button variant="ghost" size="sm" asChild className="h-8 gap-1.5 text-muted-foreground hover:text-foreground">
-            <a href="https://okrunit.com/docs" target="_blank" rel="noopener noreferrer">
-              <HelpCircle className="size-4" />
-              <span className="hidden sm:inline text-xs">Help</span>
-            </a>
-          </Button>
+          {/* Help dropdown with contextual docs + tour */}
+          <HelpDropdown />
 
           {/* Notification bell + panel */}
           <NotificationPanel pendingCount={pendingCount} userId={userId} />
@@ -206,47 +199,76 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
   );
 }
 
-function TourHeaderIndicator() {
+function HelpDropdown() {
   const pathname = usePathname();
-  const { fullTourActive, activePageId, tourCompleted, tourDismissed, tourPaused, touredPages, startFullTour, resumeTour } =
+  const { fullTourActive, activePageId, tourPaused, touredPages, resumeTour } =
     useOnboardingTourStore();
+  const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
+  useEffect(() => { setMounted(true); }, []);
+
+  // Close on click outside
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
 
-  if (!mounted || tourCompleted || tourDismissed) return null;
-  // Hide while tour tooltip is actively showing
-  if (fullTourActive || activePageId) return null;
-  // Only show if paused or has progress
-  if (!tourPaused && touredPages.length === 0) return null;
+  const currentPageTour = mounted ? findPageTour(pathname) : undefined;
+  const docsPath = currentPageTour?.docsPath ?? "/docs";
+  const hasTour = !!currentPageTour;
+  const isTourActive = fullTourActive || !!activePageId;
+  const hasTouredThisPage = currentPageTour ? touredPages.includes(currentPageTour.pageId) : false;
 
-  const totalPages = TOUR_STEPS.length;
-  const toured = touredPages.length;
-  const progress = Math.round((toured / Math.max(totalPages, 1)) * 100);
+  const tourLabel = tourPaused ? "Resume Tour" : hasTouredThisPage ? "Restart Tour" : "Start Tour";
 
-  const handleResume = () => {
-    // Find the tour for the page the user is currently on
-    const currentPage = PAGE_TOURS.find((p) =>
-      p.pathname === "/org/overview" ? pathname === "/org/overview" : pathname === p.pathname
-    );
-    resumeTour(currentPage?.pageId);
+  const handleTour = () => {
+    setOpen(false);
+    if (currentPageTour) {
+      resumeTour(currentPageTour.pageId);
+    }
   };
 
   return (
-    <button
-      onClick={tourPaused ? handleResume : startFullTour}
-      className="hidden sm:flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 dark:hover:bg-emerald-950"
-    >
-      <div className="relative size-4">
-        <svg viewBox="0 0 36 36" className="size-4 -rotate-90">
-          <circle cx="18" cy="18" r="16" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.2" />
-          <circle cx="18" cy="18" r="16" fill="none" stroke="currentColor" strokeWidth="3"
-            strokeDasharray={`${progress} 100`} strokeLinecap="round" />
-        </svg>
-      </div>
-      Resume Tour
-    </button>
+    <div ref={ref} className="relative">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 gap-1.5 text-muted-foreground hover:text-foreground"
+        onClick={() => setOpen(!open)}
+      >
+        <HelpCircle className="size-4" />
+        <span className="hidden sm:inline text-xs">Help</span>
+      </Button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-border bg-white shadow-lg dark:bg-card z-50 py-1 animate-in fade-in slide-in-from-top-1 duration-150">
+          <a
+            href={docsPath}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+            onClick={() => setOpen(false)}
+          >
+            <BookOpen className="size-4 text-muted-foreground" />
+            Documentation
+          </a>
+          {hasTour && !isTourActive && (
+            <button
+              onClick={handleTour}
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+            >
+              <Sparkles className="size-4 text-emerald-600" />
+              {tourLabel}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
