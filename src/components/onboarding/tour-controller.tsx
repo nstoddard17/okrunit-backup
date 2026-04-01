@@ -18,6 +18,7 @@ export function TourController() {
     touredPages,
     tourDismissed,
     tourCompleted,
+    tourPaused,
     startPageTour,
     nextStepInPage,
     prevStepInPage,
@@ -71,9 +72,9 @@ export function TourController() {
       .catch(() => {});
   }, [activePageId, testRequestId, setTestRequestId]);
 
-  // Auto-start per-page tour on first visit (not in full tour mode)
+  // Auto-start per-page tour on first visit (not in full tour mode, not paused)
   useEffect(() => {
-    if (fullTourActive || activePageId || tourDismissed || tourCompleted) return;
+    if (fullTourActive || activePageId || tourDismissed || tourCompleted || tourPaused) return;
 
     const pageTour = PAGE_TOURS.find((p) => {
       if (p.pathname === "/org/overview") return pathname === "/org/overview";
@@ -84,7 +85,7 @@ export function TourController() {
       const timer = setTimeout(() => startPageTour(pageTour.pageId), 1000);
       return () => clearTimeout(timer);
     }
-  }, [pathname, fullTourActive, activePageId, tourDismissed, tourCompleted, touredPages, startPageTour]);
+  }, [pathname, fullTourActive, activePageId, tourDismissed, tourCompleted, tourPaused, touredPages, startPageTour]);
 
   const currentStep = currentPageTour?.steps[currentStepInPage];
   const isFirstStep = currentStepInPage === 0;

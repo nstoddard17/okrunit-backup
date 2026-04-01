@@ -206,7 +206,7 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
 }
 
 function TourHeaderIndicator() {
-  const { fullTourActive, activePageId, tourCompleted, tourDismissed, touredPages, fullTourPageIndex, startFullTour } =
+  const { fullTourActive, activePageId, tourCompleted, tourDismissed, tourPaused, touredPages, startFullTour, resumeTour } =
     useOnboardingTourStore();
   const [mounted, setMounted] = useState(false);
 
@@ -217,15 +217,16 @@ function TourHeaderIndicator() {
   if (!mounted || tourCompleted || tourDismissed) return null;
   // Hide while tour tooltip is actively showing
   if (fullTourActive || activePageId) return null;
+  // Only show if paused or has progress
+  if (!tourPaused && touredPages.length === 0) return null;
 
   const totalPages = TOUR_STEPS.length;
   const toured = touredPages.length;
   const progress = Math.round((toured / Math.max(totalPages, 1)) * 100);
-  const isPaused = fullTourPageIndex > 0 || toured > 0;
 
   return (
     <button
-      onClick={startFullTour}
+      onClick={tourPaused ? resumeTour : startFullTour}
       className="hidden sm:flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 dark:hover:bg-emerald-950"
     >
       <div className="relative size-4">
@@ -235,7 +236,7 @@ function TourHeaderIndicator() {
             strokeDasharray={`${progress} 100`} strokeLinecap="round" />
         </svg>
       </div>
-      {isPaused ? "Resume Tour" : "Tour"}
+      Resume Tour
     </button>
   );
 }
