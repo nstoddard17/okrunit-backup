@@ -18,6 +18,7 @@ import { FlowConfigDialog } from "@/components/approvals/flow-config-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ApprovalRequest, ApprovalComment, Connection, UserProfile } from "@/lib/types/database";
+import { useOnboardingTourStore } from "@/stores/onboarding-tour-store";
 
 interface ApprovalDashboardProps {
   initialApprovals?: ApprovalRequest[];
@@ -429,6 +430,19 @@ export function ApprovalDashboard({
     setSelectedApproval(approval);
     setDetailOpen(true);
   }, []);
+
+  // Tour step 5: auto-open detail panel for the test request
+  const tourActivePageId = useOnboardingTourStore((s) => s.activePageId);
+  const tourStepIndex = useOnboardingTourStore((s) => s.currentStepInPage);
+  useEffect(() => {
+    if (tourActivePageId === "requests" && tourStepIndex === 4) {
+      const testRequest = approvals.find((a) => a.source === "onboarding");
+      if (testRequest && !detailOpen) {
+        setSelectedApproval(testRequest);
+        setDetailOpen(true);
+      }
+    }
+  }, [tourActivePageId, tourStepIndex, approvals, detailOpen]);
 
   const handleCloseDetail = useCallback(() => {
     setDetailOpen(false);
