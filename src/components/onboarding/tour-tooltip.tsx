@@ -202,7 +202,7 @@ export function TourTooltip({
                   Back
                 </Button>
               )}
-              <Button size="sm" className="h-8 gap-1.5 text-xs" onClick={onNext}>
+              <Button size="sm" className="h-8 gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white" onClick={onNext}>
                 {actionLabel}
                 <ArrowRight className="size-3" />
               </Button>
