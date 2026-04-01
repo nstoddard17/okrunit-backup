@@ -14,7 +14,7 @@ interface OnboardingTourState {
   nextStep: () => void;
   prevStep: () => void;
   goToStep: (step: number) => void;
-  setTestRequestId: (id: string) => void;
+  setTestRequestId: (id: string | null) => void;
   completeTour: () => void;
   dismissTour: () => void;
   resetTour: () => void;

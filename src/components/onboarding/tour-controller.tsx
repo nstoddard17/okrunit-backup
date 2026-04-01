@@ -25,9 +25,9 @@ export function TourController() {
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === TOUR_STEPS.length - 1;
 
-  // Create test request when tour starts
+  // Create test request when tour becomes active (any step)
   useEffect(() => {
-    if (!isActive || currentStep !== 0 || testRequestId) return;
+    if (!isActive || testRequestId) return;
 
     async function createTestRequest() {
       try {
@@ -41,18 +41,17 @@ export function TourController() {
       }
     }
     createTestRequest();
-  }, [isActive, currentStep, testRequestId, setTestRequestId]);
+  }, [isActive, testRequestId, setTestRequestId]);
 
   // Navigate to the correct page for the current step
   useEffect(() => {
     if (!isActive || !step) return;
 
-    // Check if we're on the right page
     const expectedPath = step.pathname;
     const isOnCorrectPage =
       expectedPath === "/org/overview"
-        ? pathname === "/org/overview" || pathname.startsWith("/org/overview")
-        : pathname.startsWith(expectedPath);
+        ? pathname === "/org/overview"
+        : pathname === expectedPath || pathname.startsWith(expectedPath + "/");
 
     if (!isOnCorrectPage) {
       router.push(expectedPath);
@@ -61,36 +60,49 @@ export function TourController() {
 
   const handleNext = useCallback(async () => {
     if (isLastStep) {
-      // Clean up test data
       try {
         await fetch("/api/v1/onboarding", { method: "DELETE" });
-      } catch {
-        // Non-critical
-      }
+      } catch {}
       completeTour();
       router.push("/org/overview");
       return;
     }
+
+    // Step 1 → Step 2: auto-click the test request to open detail panel
+    if (currentStep === 0) {
+      const testCard = document.querySelector("[data-tour='test-request']") as HTMLElement;
+      if (testCard) {
+        testCard.click();
+        // Wait for the detail panel to open, then advance
+        setTimeout(() => nextStep(), 500);
+        return;
+      }
+    }
+
     nextStep();
-  }, [isLastStep, completeTour, nextStep, router]);
+  }, [isLastStep, currentStep, completeTour, nextStep, router]);
 
   const handleBack = useCallback(() => {
     prevStep();
   }, [prevStep]);
 
-  const handleClose = useCallback(() => {
-    pauseTour(); // Just pause — tour card stays on overview
-  }, [pauseTour]);
-
-  const handleSkip = useCallback(async () => {
-    // Clean up test data
+  const handleClose = useCallback(async () => {
+    // Clean up test data and go home
     try {
       await fetch("/api/v1/onboarding", { method: "DELETE" });
-    } catch {
-      // Non-critical
-    }
+    } catch {}
+    pauseTour();
+    setTestRequestId(null); // Clear so it recreates on resume
+    router.push("/org/overview");
+  }, [pauseTour, setTestRequestId, router]);
+
+  const handleSkip = useCallback(async () => {
+    try {
+      await fetch("/api/v1/onboarding", { method: "DELETE" });
+    } catch {}
     dismissTour();
-  }, [dismissTour]);
+    router.push("/org/overview");
+  }, [dismissTour, router]);
 
   if (!isActive || !step) return null;
 
@@ -98,8 +110,8 @@ export function TourController() {
   const expectedPath = step.pathname;
   const isOnCorrectPage =
     expectedPath === "/org/overview"
-      ? pathname === "/org/overview" || pathname.startsWith("/org/overview")
-      : pathname.startsWith(expectedPath);
+      ? pathname === "/org/overview"
+      : pathname === expectedPath || pathname.startsWith(expectedPath + "/");
 
   if (!isOnCorrectPage) return null;
 

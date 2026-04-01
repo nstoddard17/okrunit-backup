@@ -19,9 +19,9 @@ export const TOUR_STEPS: TourStepConfig[] = [
     targetSelector: "[data-tour='test-request']",
     title: "Your First Approval Request",
     description:
-      "This is an approval request — it was created by an automation and is waiting for a human to review it. Click it to open the detail panel and see the full context.",
+      "This is an approval request — it was created by an automation and is waiting for a human to review it. Click Next and we'll open the detail panel so you can see the full context.",
     position: "bottom",
-    actionLabel: "Next",
+    actionLabel: "Open Request",
   },
   {
     id: "approve-reject",
@@ -29,9 +29,9 @@ export const TOUR_STEPS: TourStepConfig[] = [
     targetSelector: "[data-tour='response-form']",
     title: "Approve or Reject",
     description:
-      "Review the request details and make your decision. Click Approve to allow the action to proceed, or Reject to stop it. You can also add a comment explaining your decision.",
+      "This is the decision form. Click Approve to allow the action to proceed, or Reject to stop it. You can also add a comment explaining your decision. For now, click Next to continue the tour.",
     position: "top",
-    actionLabel: "I'll try it",
+    actionLabel: "Next",
   },
   {
     id: "explore-routes",
