@@ -191,9 +191,10 @@ export function TourTooltip({
               </Button>
             </div>
           </div>
-        </div>
-        <div className="h-1 bg-muted rounded-b-xl overflow-hidden">
-          <div className="h-full bg-primary transition-all duration-300" style={{ width: `${(stepNumber / totalSteps) * 100}%` }} />
+          {/* Progress bar — integrated inside the card padding */}
+          <div className="mt-4 h-1 rounded-full bg-muted overflow-hidden">
+            <div className="h-full rounded-full bg-primary transition-all duration-500 ease-out" style={{ width: `${(stepNumber / totalSteps) * 100}%` }} />
+          </div>
         </div>
       </div>
     </>,
