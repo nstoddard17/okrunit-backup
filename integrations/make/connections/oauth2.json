@@ -1,26 +1,78 @@
 {
-  "label": "OKRunit",
-  "type": "oauth2",
-  "parameters": [],
-  "common": [
-    {
-      "name": "baseUrl",
-      "type": "hidden",
-      "default": "https://okrunit.com"
+  "authorize": {
+    "url": "https://okrunit.com/oauth/authorize",
+    "qs": {
+      "scope": "{{join(oauth.scope, ' ')}}",
+      "client_id": "{{ifempty(parameters.clientId, common.clientId)}}",
+      "redirect_uri": "{{oauth.makeRedirectUri}}",
+      "response_type": "code"
+    },
+    "temp": {
+      "code_verifier": "{{uuid}}"
+    },
+    "response": {
+      "temp": {
+        "code": "{{query.code}}"
+      }
     }
-  ],
-  "oauth2": {
-    "authorizeUrl": "https://okrunit.com/oauth/authorize",
-    "tokenUrl": "https://okrunit.com/api/v1/oauth/token",
-    "scope": ["approvals:read", "approvals:write", "comments:write"],
-    "scopeSeparator": " ",
-    "authStyle": "body",
-    "pkce": true,
-    "autoRefresh": true
   },
-  "test": {
+  "token": {
+    "url": "https://okrunit.com/api/v1/oauth/token",
+    "method": "POST",
+    "body": {
+      "code": "{{temp.code}}",
+      "client_id": "{{ifempty(parameters.clientId, common.clientId)}}",
+      "client_secret": "{{ifempty(parameters.clientSecret, common.clientSecret)}}",
+      "grant_type": "authorization_code",
+      "redirect_uri": "{{oauth.makeRedirectUri}}",
+      "code_verifier": "{{temp.code_verifier}}"
+    },
+    "type": "urlencoded",
+    "response": {
+      "data": {
+        "expires": "{{addSeconds(now, body.expires_in)}}",
+        "accessToken": "{{body.access_token}}",
+        "refreshToken": "{{body.refresh_token}}"
+      }
+    },
+    "log": {
+      "sanitize": [
+        "request.body.code",
+        "request.body.client_secret",
+        "response.body.access_token",
+        "response.body.refresh_token"
+      ]
+    }
+  },
+  "refresh": {
+    "condition": "{{data.expires < addMinutes(now, 15)}}",
+    "url": "https://okrunit.com/api/v1/oauth/token",
+    "method": "POST",
+    "body": {
+      "client_id": "{{ifempty(parameters.clientId, common.clientId)}}",
+      "client_secret": "{{ifempty(parameters.clientSecret, common.clientSecret)}}",
+      "grant_type": "refresh_token",
+      "refresh_token": "{{data.refreshToken}}"
+    },
+    "type": "urlencoded",
+    "response": {
+      "data": {
+        "expires": "{{addSeconds(now, body.expires_in)}}",
+        "accessToken": "{{body.access_token}}",
+        "refreshToken": "{{body.refresh_token}}"
+      }
+    },
+    "log": {
+      "sanitize": [
+        "request.body.client_secret",
+        "request.body.refresh_token",
+        "response.body.access_token",
+        "response.body.refresh_token"
+      ]
+    }
+  },
+  "info": {
     "url": "https://okrunit.com/api/v1/approvals",
-    "method": "GET",
     "headers": {
       "Authorization": "Bearer {{connection.accessToken}}"
     },
@@ -28,10 +80,12 @@
       "page_size": "1"
     },
     "response": {
-      "valid": "{{ifempty(body.data, '[]')}}",
       "error": {
-        "message": "{{body.error}}"
+        "message": "[{{statusCode}}] {{body.error}}"
       }
+    },
+    "log": {
+      "sanitize": ["request.headers.Authorization"]
     }
   }
 }

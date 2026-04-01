@@ -20,11 +20,19 @@ export async function POST(request: Request) {
   const now = new Date().toISOString();
 
   if (body.all === true) {
-    const { error } = await admin
+    let query = admin
       .from("in_app_notifications")
       .update({ is_read: true, read_at: now })
       .eq("user_id", user.id)
       .eq("is_read", false);
+
+    // Optional: only mark notifications created before a cutoff timestamp.
+    // This lets callers preserve new notifications that arrive after page load.
+    if (body.before) {
+      query = query.lte("created_at", body.before);
+    }
+
+    const { error } = await query;
 
     if (error) {
       return NextResponse.json({ error: "Failed to mark all as read" }, { status: 500 });

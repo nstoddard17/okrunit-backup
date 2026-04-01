@@ -778,15 +778,26 @@ export async function PATCH(
             decisionComment: validated.comment,
           });
 
-          // In-app: notify all org members about the decision
+          // In-app: notify watchers + assigned approvers about the decision
           const actorName = await getUserDisplayName(admin, actorId);
           const verb = updated.status === "approved" ? "approved" : "rejected";
-          const { data: members } = await admin
-            .from("org_memberships")
+
+          // Gather all interested parties: assigned approvers + watchers
+          const notifyIds = new Set<string>();
+          if (approval.assigned_approvers) {
+            for (const uid of approval.assigned_approvers) notifyIds.add(uid);
+          }
+          const { data: watcherRows } = await admin
+            .from("request_watchers")
             .select("user_id")
-            .eq("org_id", auth.orgId)
-            .neq("user_id", actorId);
-          const memberIds = (members ?? []).map((m: { user_id: string }) => m.user_id);
+            .eq("request_id", id);
+          if (watcherRows) {
+            for (const w of watcherRows) notifyIds.add(w.user_id);
+          }
+          // Exclude the person who made the decision
+          notifyIds.delete(actorId);
+
+          const memberIds = Array.from(notifyIds);
           if (memberIds.length > 0) {
             await createInAppNotificationBulk(memberIds, {
               orgId: auth.orgId,

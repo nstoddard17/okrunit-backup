@@ -3,12 +3,15 @@
 import { ApprovalCard } from "@/components/approvals/approval-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { InboxIcon } from "lucide-react";
-import type { ApprovalRequest, Connection } from "@/lib/types/database";
+import { getCurrentlyResponsible } from "@/lib/approvals/responsible";
+import type { ApprovalRequest, Connection, UserProfile } from "@/lib/types/database";
 
 interface ApprovalListGroupedProps {
   approvals: ApprovalRequest[];
   connections: Connection[];
   approvalCreators?: Record<string, string>;
+  teamsMap?: Record<string, string>;
+  userProfiles?: Map<string, UserProfile>;
   onSelect: (approval: ApprovalRequest) => void;
   canApprove?: boolean;
   isLoading?: boolean;
@@ -27,6 +30,8 @@ export function ApprovalListGrouped({
   approvals,
   connections,
   approvalCreators = {},
+  teamsMap = {},
+  userProfiles = new Map(),
   onSelect,
   canApprove = true,
   isLoading = false,
@@ -41,6 +46,7 @@ export function ApprovalListGrouped({
   onConfigureFlow,
 }: ApprovalListGroupedProps) {
   const connectionMap = new Map(connections.map((c) => [c.id, c.name]));
+  const teamsLookup = new Map(Object.entries(teamsMap).map(([id, name]) => [id, { id, name }]));
 
   if (approvals.length === 0) {
     return (
@@ -78,6 +84,7 @@ export function ApprovalListGrouped({
                     : undefined
                 }
                 creatorName={approvalCreators[approval.id]}
+                currentlyResponsible={getCurrentlyResponsible(approval, userProfiles, teamsLookup)}
                 onClick={() => onSelect(approval)}
                 canApprove={canApprove}
                 isLoading={isLoading}
