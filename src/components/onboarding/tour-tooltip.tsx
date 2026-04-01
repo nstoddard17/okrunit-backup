@@ -15,6 +15,7 @@ interface TourTooltipProps {
   totalSteps: number;
   onNext: () => void;
   onBack?: () => void;
+  onClose: () => void;
   onSkip: () => void;
 }
 
@@ -28,6 +29,7 @@ export function TourTooltip({
   totalSteps,
   onNext,
   onBack,
+  onClose,
   onSkip,
 }: TourTooltipProps) {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
@@ -132,7 +134,7 @@ export function TourTooltip({
   return createPortal(
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 z-[9998] bg-black/40" onClick={onSkip}
+      <div className="fixed inset-0 z-[9998] bg-black/40" onClick={onClose}
         style={targetRect && !isCentered ? {
           clipPath: `polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%, 0% 0%, ${targetRect.left - 8}px ${targetRect.top - 8}px, ${targetRect.left - 8}px ${targetRect.bottom + 8}px, ${targetRect.right + 8}px ${targetRect.bottom + 8}px, ${targetRect.right + 8}px ${targetRect.top - 8}px, ${targetRect.left - 8}px ${targetRect.top - 8}px)`
         } : undefined}
@@ -153,7 +155,7 @@ export function TourTooltip({
               <p className="text-xs font-medium text-primary">Step {stepNumber} of {totalSteps}</p>
               <h3 className="text-sm font-semibold text-foreground mt-0.5">{title}</h3>
             </div>
-            <button onClick={onSkip} className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted" aria-label="Skip tour">
+            <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted" aria-label="Close">
               <X className="size-4" />
             </button>
           </div>

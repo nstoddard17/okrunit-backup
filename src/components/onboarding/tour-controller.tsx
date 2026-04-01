@@ -15,6 +15,7 @@ export function TourController() {
     testRequestId,
     nextStep,
     prevStep,
+    pauseTour,
     setTestRequestId,
     completeTour,
     dismissTour,
@@ -77,6 +78,10 @@ export function TourController() {
     prevStep();
   }, [prevStep]);
 
+  const handleClose = useCallback(() => {
+    pauseTour(); // Just pause — tour card stays on overview
+  }, [pauseTour]);
+
   const handleSkip = useCallback(async () => {
     // Clean up test data
     try {
@@ -109,6 +114,7 @@ export function TourController() {
       totalSteps={TOUR_STEPS.length}
       onNext={handleNext}
       onBack={isFirstStep ? undefined : handleBack}
+      onClose={handleClose}
       onSkip={handleSkip}
     />
   );
