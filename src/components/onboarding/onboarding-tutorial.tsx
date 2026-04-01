@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { useOnboardingTourStore } from "@/stores/onboarding-tour-store";
 
 export function OnboardingTutorial() {
-  const { isActive, currentStep, tourCompleted, tourDismissed, startTour, pauseTour, dismissTour } =
+  const { isActive, currentStep, tourCompleted, tourDismissed, startTour, pauseTour, dismissTour, syncFromServer } =
     useOnboardingTourStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // Sync tour state from database on mount (handles cross-browser/device)
+    syncFromServer();
+  }, [syncFromServer]);
 
   // Don't render on server or if tour is completed/dismissed/active
   if (!mounted || tourCompleted || tourDismissed || isActive) return null;
