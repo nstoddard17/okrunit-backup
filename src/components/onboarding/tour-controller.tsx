@@ -1,129 +1,152 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useOnboardingTourStore } from "@/stores/onboarding-tour-store";
-import { TOUR_STEPS } from "@/components/onboarding/tour-steps";
+import { PAGE_TOURS, FULL_TOUR_ORDER } from "@/components/onboarding/tour-steps";
 import { TourTooltip } from "@/components/onboarding/tour-tooltip";
 
 export function TourController() {
   const router = useRouter();
   const pathname = usePathname();
   const {
-    isActive,
-    currentStep,
+    fullTourActive,
+    fullTourPageIndex,
+    activePageId,
+    currentStepInPage,
     testRequestId,
-    nextStep,
-    prevStep,
-    pauseTour,
+    touredPages,
+    tourDismissed,
+    tourCompleted,
+    startPageTour,
+    nextStepInPage,
+    prevStepInPage,
+    completePageTour,
+    skipPageTour,
+    advanceFullTour,
+    pauseFullTour,
+    completeFullTour,
+    dismissFullTour,
     setTestRequestId,
-    completeTour,
-    dismissTour,
   } = useOnboardingTourStore();
 
-  const step = TOUR_STEPS[currentStep];
-  const isFirstStep = currentStep === 0;
-  const isLastStep = currentStep === TOUR_STEPS.length - 1;
+  const currentPageTour = useMemo(
+    () => (activePageId ? PAGE_TOURS.find((p) => p.pageId === activePageId) ?? null : null),
+    [activePageId],
+  );
 
-  // Create test request when tour becomes active (any step)
+  // Full tour: navigate to next page and start its tour
   useEffect(() => {
-    if (!isActive || testRequestId) return;
+    if (!fullTourActive || activePageId) return;
 
-    async function createTestRequest() {
-      try {
-        const res = await fetch("/api/v1/onboarding", { method: "POST" });
-        if (res.ok) {
-          const data = await res.json();
-          setTestRequestId(data.data.id);
-        }
-      } catch {
-        // Non-critical
-      }
-    }
-    createTestRequest();
-  }, [isActive, testRequestId, setTestRequestId]);
-
-  // Navigate to the correct page for the current step
-  useEffect(() => {
-    if (!isActive || !step) return;
-
-    const expectedPath = step.pathname;
-    const isOnCorrectPage =
-      expectedPath === "/org/overview"
-        ? pathname === "/org/overview"
-        : pathname === expectedPath || pathname.startsWith(expectedPath + "/");
-
-    if (!isOnCorrectPage) {
-      router.push(expectedPath);
-    }
-  }, [isActive, step, pathname, router]);
-
-  const handleNext = useCallback(async () => {
-    if (isLastStep) {
-      try {
-        await fetch("/api/v1/onboarding", { method: "DELETE" });
-      } catch {}
-      completeTour();
-      router.push("/org/overview");
+    const nextPageId = FULL_TOUR_ORDER[fullTourPageIndex];
+    if (!nextPageId) {
+      completeFullTour();
+      fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+      setTimeout(() => router.push("/org/overview"), 100);
       return;
     }
 
-    // Step 1 → Step 2: auto-click the test request to open detail panel
-    if (currentStep === 0) {
-      const testCard = document.querySelector("[data-tour='test-request']") as HTMLElement;
-      if (testCard) {
-        testCard.click();
-        // Wait for the detail panel to open, then advance
-        setTimeout(() => nextStep(), 500);
-        return;
-      }
+    const pageTour = PAGE_TOURS.find((p) => p.pageId === nextPageId);
+    if (!pageTour) {
+      advanceFullTour();
+      return;
     }
 
-    nextStep();
-  }, [isLastStep, currentStep, completeTour, nextStep, router]);
+    const onCorrectPage = pathname === pageTour.pathname || pathname.startsWith(pageTour.pathname + "/");
+    if (!onCorrectPage) {
+      router.push(pageTour.pathname);
+    }
+    const delay = onCorrectPage ? 300 : 800;
+    const timer = setTimeout(() => startPageTour(nextPageId), delay);
+    return () => clearTimeout(timer);
+  }, [fullTourActive, activePageId, fullTourPageIndex, pathname, router, completeFullTour, advanceFullTour, startPageTour]);
 
-  const handleBack = useCallback(() => {
-    prevStep();
-  }, [prevStep]);
+  // Create test request for requests page
+  useEffect(() => {
+    if (activePageId !== "requests" || testRequestId) return;
+    fetch("/api/v1/onboarding", { method: "POST" })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => { if (data?.data?.id) setTestRequestId(data.data.id); })
+      .catch(() => {});
+  }, [activePageId, testRequestId, setTestRequestId]);
 
-  const handleClose = useCallback(async () => {
-    // Pause FIRST to prevent navigation effect from redirecting
-    pauseTour();
-    setTestRequestId(null);
-    // Then clean up test data
-    fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
-    // Navigate home after state is settled
-    setTimeout(() => router.push("/org/overview"), 100);
-  }, [pauseTour, setTestRequestId, router]);
+  // Auto-start per-page tour on first visit (not in full tour mode)
+  useEffect(() => {
+    if (fullTourActive || activePageId || tourDismissed || tourCompleted) return;
 
-  const handleSkip = useCallback(async () => {
-    try {
-      await fetch("/api/v1/onboarding", { method: "DELETE" });
-    } catch {}
-    dismissTour();
-    router.push("/org/overview");
-  }, [dismissTour, router]);
+    const pageTour = PAGE_TOURS.find((p) => {
+      if (p.pathname === "/org/overview") return pathname === "/org/overview";
+      return pathname === p.pathname;
+    });
 
-  if (!isActive || !step) return null;
+    if (pageTour && !touredPages.includes(pageTour.pageId)) {
+      const timer = setTimeout(() => startPageTour(pageTour.pageId), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, fullTourActive, activePageId, tourDismissed, tourCompleted, touredPages, startPageTour]);
 
-  // Don't render tooltip until we're on the correct page
-  const expectedPath = step.pathname;
-  const isOnCorrectPage =
-    expectedPath === "/org/overview"
-      ? pathname === "/org/overview"
-      : pathname === expectedPath || pathname.startsWith(expectedPath + "/");
+  const currentStep = currentPageTour?.steps[currentStepInPage];
+  const isFirstStep = currentStepInPage === 0;
+  const isLastStep = currentPageTour ? currentStepInPage === currentPageTour.steps.length - 1 : false;
 
-  if (!isOnCorrectPage) return null;
+  const handleNext = useCallback(() => {
+    if (isLastStep) {
+      if (activePageId === "requests") {
+        fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+        setTestRequestId(null);
+      }
+      completePageTour();
+      return;
+    }
+    nextStepInPage();
+  }, [isLastStep, activePageId, completePageTour, nextStepInPage, setTestRequestId]);
+
+  const handleBack = useCallback(() => prevStepInPage(), [prevStepInPage]);
+
+  const handleClose = useCallback(() => {
+    if (fullTourActive) {
+      pauseFullTour();
+      fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+      setTimeout(() => router.push("/org/overview"), 100);
+    } else {
+      skipPageTour();
+      if (activePageId === "requests") {
+        fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+        setTestRequestId(null);
+      }
+    }
+  }, [fullTourActive, activePageId, pauseFullTour, skipPageTour, setTestRequestId, router]);
+
+  const handleSkip = useCallback(() => {
+    if (fullTourActive) {
+      dismissFullTour();
+      fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+      setTimeout(() => router.push("/org/overview"), 100);
+    } else {
+      skipPageTour();
+      if (activePageId === "requests") {
+        fetch("/api/v1/onboarding", { method: "DELETE" }).catch(() => {});
+        setTestRequestId(null);
+      }
+    }
+  }, [fullTourActive, activePageId, dismissFullTour, skipPageTour, setTestRequestId, router]);
+
+  if (!currentStep || !currentPageTour) return null;
+
+  const actionLabel = isLastStep
+    ? fullTourActive ? "Next Page" : "Done"
+    : currentStep.actionLabel ?? "Next";
 
   return (
     <TourTooltip
-      targetSelector={step.targetSelector}
-      title={step.title}
-      description={step.description}
-      position={step.position}
-      actionLabel={step.actionLabel}
-      stepNumber={currentStep + 1}
-      totalSteps={TOUR_STEPS.length}
+      targetSelector={currentStep.targetSelector}
+      title={currentStep.title}
+      description={currentStep.description}
+      position={currentStep.position}
+      actionLabel={actionLabel}
+      stepNumber={currentStepInPage + 1}
+      totalSteps={currentPageTour.steps.length}
       onNext={handleNext}
       onBack={isFirstStep ? undefined : handleBack}
       onClose={handleClose}
