@@ -13,6 +13,11 @@ interface OnboardingTourState {
   currentStepInPage: number;
   touredPages: string[];
 
+  // Pause state — true when user clicked outside tooltip
+  tourPaused: boolean;
+  pausedPageId: string | null;
+  pausedStepIndex: number;
+
   // Test data
   testRequestId: string | null;
   synced: boolean;
@@ -20,6 +25,7 @@ interface OnboardingTourState {
   // Full tour actions
   startFullTour: () => void;
   pauseFullTour: () => void;
+  resumeTour: () => void;
   advanceFullTour: () => void;
   completeFullTour: () => void;
   dismissFullTour: () => void;
@@ -54,29 +60,42 @@ export const useOnboardingTourStore = create<OnboardingTourState>()(
       activePageId: null,
       currentStepInPage: 0,
       touredPages: [],
+      tourPaused: false,
+      pausedPageId: null,
+      pausedStepIndex: 0,
       testRequestId: null,
       synced: false,
 
       startFullTour: () => {
-        set({ fullTourActive: true, fullTourPageIndex: 0, activePageId: null, currentStepInPage: 0, tourCompleted: false, tourDismissed: false });
+        set({ fullTourActive: true, fullTourPageIndex: 0, activePageId: null, currentStepInPage: 0, tourCompleted: false, tourDismissed: false, tourPaused: false, pausedPageId: null, pausedStepIndex: 0 });
         saveToServer({ currentStep: 0, tourCompleted: false, tourDismissed: false });
       },
       pauseFullTour: () => {
-        set({ fullTourActive: false, activePageId: null, testRequestId: null });
+        const { activePageId, currentStepInPage } = get();
+        set({ fullTourActive: false, activePageId: null, testRequestId: null, tourPaused: true, pausedPageId: activePageId, pausedStepIndex: currentStepInPage });
+      },
+      resumeTour: () => {
+        const { pausedPageId, pausedStepIndex } = get();
+        if (pausedPageId) {
+          set({ activePageId: pausedPageId, currentStepInPage: pausedStepIndex, tourPaused: false, pausedPageId: null, pausedStepIndex: 0 });
+        } else {
+          // No specific page was paused — start the full tour
+          get().startFullTour();
+        }
       },
       advanceFullTour: () => {
         set((s) => ({ fullTourPageIndex: s.fullTourPageIndex + 1, currentStepInPage: 0 }));
       },
       completeFullTour: () => {
-        set({ fullTourActive: false, activePageId: null, tourCompleted: true, testRequestId: null });
+        set({ fullTourActive: false, activePageId: null, tourCompleted: true, testRequestId: null, tourPaused: false, pausedPageId: null });
         saveToServer({ tourCompleted: true, tourDismissed: false });
       },
       dismissFullTour: () => {
-        set({ fullTourActive: false, activePageId: null, tourDismissed: true, testRequestId: null });
+        set({ fullTourActive: false, activePageId: null, tourDismissed: true, testRequestId: null, tourPaused: false, pausedPageId: null });
         saveToServer({ tourCompleted: false, tourDismissed: true });
       },
 
-      startPageTour: (pageId) => set({ activePageId: pageId, currentStepInPage: 0 }),
+      startPageTour: (pageId) => set({ activePageId: pageId, currentStepInPage: 0, tourPaused: false, pausedPageId: null }),
       nextStepInPage: () => set((s) => ({ currentStepInPage: s.currentStepInPage + 1 })),
       prevStepInPage: () => set((s) => ({ currentStepInPage: Math.max(0, s.currentStepInPage - 1) })),
       completePageTour: () => {
