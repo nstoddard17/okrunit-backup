@@ -60,7 +60,6 @@ const requestsSteps: TourStepConfig[] = [
     description:
       "Hover over any pending request to reveal Approve and Reject buttons directly on the card \u2014 no need to open the detail panel for quick decisions.",
     position: "bottom",
-    highlightMode: "full-width",
   },
   {
     id: "requests-three-dots",
