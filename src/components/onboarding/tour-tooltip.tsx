@@ -160,8 +160,11 @@ export function TourTooltip({
     <>
       {/* Overlay */}
       {targetRect && !isCentered && highlightMode === "full-width" ? (
-        <div className="fixed inset-0 z-[9998] pointer-events-none" onClick={onClose}>
+        <div className="fixed inset-0 z-[9998] pointer-events-none animate-in fade-in duration-200" onClick={onClose}>
+          {/* Top bar — full width, from top of viewport to top of content */}
           <div className="absolute inset-x-0 top-0 bg-black/40 pointer-events-auto" style={{ height: targetRect.top - 8 }} />
+          {/* Left bar — sidebar column, from content top to bottom of viewport */}
+          <div className="absolute bottom-0 left-0 bg-black/40 pointer-events-auto" style={{ top: targetRect.top - 8, width: targetRect.left - 8 }} />
         </div>
       ) : (
         <div className="fixed inset-0 z-[9998] bg-black/40 animate-in fade-in duration-200" onClick={onClose}
