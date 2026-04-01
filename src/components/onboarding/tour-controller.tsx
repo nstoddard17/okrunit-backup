@@ -71,9 +71,16 @@ export function TourController() {
       .catch(() => {});
   }, [activePageId, testRequestId, setTestRequestId]);
 
-  // Auto-start per-page tour on first visit (not in full tour mode, not paused)
+  // Clear paused state when navigating to a new page
   useEffect(() => {
-    if (fullTourActive || activePageId || tourDismissed || tourCompleted || tourPaused) return;
+    if (tourPaused) {
+      useOnboardingTourStore.setState({ tourPaused: false, pausedPageId: null, pausedStepIndex: 0, pausedWasFullTour: false });
+    }
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-start per-page tour on first visit (not in full tour mode)
+  useEffect(() => {
+    if (fullTourActive || activePageId) return;
 
     const pageTour = findPageTour(pathname);
 
@@ -81,7 +88,7 @@ export function TourController() {
       const timer = setTimeout(() => startPageTour(pageTour.pageId), 1000);
       return () => clearTimeout(timer);
     }
-  }, [pathname, fullTourActive, activePageId, tourDismissed, tourCompleted, tourPaused, touredPages, startPageTour]);
+  }, [pathname, fullTourActive, activePageId, touredPages, startPageTour]);
 
   const currentStep = currentPageTour?.steps[currentStepInPage];
   const isFirstStep = currentStepInPage === 0;
