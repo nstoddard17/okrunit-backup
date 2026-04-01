@@ -10,6 +10,7 @@ interface TourTooltipProps {
   title: string;
   description: string;
   position: "top" | "bottom" | "left" | "right" | "center";
+  highlightMode?: "default" | "full-width";
   actionLabel: string;
   stepNumber: number;
   totalSteps: number;
@@ -25,6 +26,7 @@ export function TourTooltip({
   description,
   position,
   actionLabel,
+  highlightMode = "default",
   stepNumber,
   totalSteps,
   onNext,
@@ -106,6 +108,12 @@ export function TourTooltip({
   let tooltipStyle: React.CSSProperties;
   if (isCentered) {
     tooltipStyle = { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
+  } else if (highlightMode === "full-width" && targetRect) {
+    // Position tooltip centered horizontally in the dimmed area above the content
+    const tooltipHeight = 180; // approximate
+    const availableSpace = targetRect.top - 8;
+    const topPos = Math.max(pad, availableSpace - tooltipHeight - gap);
+    tooltipStyle = { position: "fixed", top: topPos, left: "50%", transform: "translateX(-50%)" };
   } else if (isMobile) {
     // On mobile, always show at bottom of screen
     tooltipStyle = { position: "fixed", bottom: pad, left: pad, right: pad };
@@ -151,14 +159,20 @@ export function TourTooltip({
   return createPortal(
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 z-[9998] bg-black/40 animate-in fade-in duration-200" onClick={onClose}
-        style={targetRect && !isCentered ? {
-          clipPath: `polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%, 0% 0%, ${targetRect.left - 8}px ${targetRect.top - 8}px, ${targetRect.left - 8}px ${targetRect.bottom + 8}px, ${targetRect.right + 8}px ${targetRect.bottom + 8}px, ${targetRect.right + 8}px ${targetRect.top - 8}px, ${targetRect.left - 8}px ${targetRect.top - 8}px)`
-        } : undefined}
-      />
+      {targetRect && !isCentered && highlightMode === "full-width" ? (
+        <div className="fixed inset-0 z-[9998] pointer-events-none" onClick={onClose}>
+          <div className="absolute inset-x-0 top-0 bg-black/40 pointer-events-auto" style={{ height: targetRect.top - 8 }} />
+        </div>
+      ) : (
+        <div className="fixed inset-0 z-[9998] bg-black/40 animate-in fade-in duration-200" onClick={onClose}
+          style={targetRect && !isCentered ? {
+            clipPath: `polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%, 0% 0%, ${targetRect.left - 8}px ${targetRect.top - 8}px, ${targetRect.left - 8}px ${targetRect.bottom + 8}px, ${targetRect.right + 8}px ${targetRect.bottom + 8}px, ${targetRect.right + 8}px ${targetRect.top - 8}px, ${targetRect.left - 8}px ${targetRect.top - 8}px)`
+          } : undefined}
+        />
+      )}
 
-      {/* Highlight ring */}
-      {targetRect && !isCentered && (
+      {/* Highlight ring (skip for full-width mode) */}
+      {targetRect && !isCentered && highlightMode !== "full-width" && (
         <div className="fixed z-[9999] rounded-lg ring-2 ring-primary ring-offset-2 pointer-events-none transition-all duration-300 ease-out"
           style={{ top: targetRect.top - 4, left: targetRect.left - 4, width: targetRect.width + 8, height: targetRect.height + 8 }}
         />

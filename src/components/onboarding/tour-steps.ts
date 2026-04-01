@@ -8,6 +8,7 @@ export interface TourStepConfig {
   title: string;
   description: string;
   position: "top" | "bottom" | "left" | "right" | "center";
+  highlightMode?: "default" | "full-width";
   actionLabel?: string;
 }
 
@@ -185,7 +186,8 @@ const overviewSteps: TourStepConfig[] = [
     title: "Your Dashboard",
     description:
       "This is your main dashboard. At the top is your organization name, followed by key stat widgets (pending requests, approval rate, connections, and members). Below that is the recent activity feed showing the latest approval requests with their status, priority, and source.",
-    position: "right",
+    position: "top",
+    highlightMode: "full-width",
   },
 ];
 

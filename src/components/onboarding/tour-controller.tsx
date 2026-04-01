@@ -144,6 +144,7 @@ export function TourController() {
       title={currentStep.title}
       description={currentStep.description}
       position={currentStep.position}
+      highlightMode={currentStep.highlightMode}
       actionLabel={actionLabel}
       stepNumber={currentStepInPage + 1}
       totalSteps={currentPageTour.steps.length}
