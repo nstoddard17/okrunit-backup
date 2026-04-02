@@ -175,7 +175,8 @@ export function TourTooltip({
     let finalPos = position;
 
     // For left position: shrink tooltip to fit available space instead of flipping
-    const availableLeft = r.left - gap - pad;
+    const leftPositionGap = 60; // clear gap between tooltip and target
+    const availableLeft = r.left - leftPositionGap - pad;
     if (finalPos === "left") {
       if (availableLeft < 200) {
         finalPos = "bottom"; // Only flip if truly no space
@@ -185,7 +186,13 @@ export function TourTooltip({
     }
 
     if (finalPos === "right" && r.right + gap + actualTooltipWidth > vw - pad) finalPos = "bottom";
-    if (finalPos === "bottom" && r.bottom + gap + 200 > vh) finalPos = "top";
+    if (finalPos === "bottom" && r.bottom + gap + 200 > vh) {
+      // Only flip to top if there's more room above than below
+      const spaceAbove = r.top;
+      const spaceBelow = vh - r.bottom;
+      if (spaceAbove > spaceBelow) finalPos = "top";
+      // Otherwise stay at bottom — clampTop will keep it on screen
+    }
     if (finalPos === "top" && r.top - gap - 200 < 0) finalPos = "bottom";
 
     // Clamp horizontal position to stay within viewport
@@ -201,9 +208,15 @@ export function TourTooltip({
         tooltipStyle = { position: "fixed", bottom: vh - r.top + gap, left: clampLeft(r.left) };
         break;
       case "left": {
-        const rightEdge = r.left - gap;
-        const leftEdge = Math.max(pad, rightEdge - actualTooltipWidth);
-        tooltipStyle = { position: "fixed", top: clampTop(r.top), left: leftEdge, width: Math.min(actualTooltipWidth, rightEdge - pad) };
+        // Position using CSS `right` so the tooltip's right edge is anchored relative to the viewport
+        const rightAnchor = vw - r.left + leftPositionGap;
+        // Vertically center the tooltip relative to the visible portion of the target
+        const visibleTop = Math.max(0, r.top);
+        const visibleBottom = Math.min(vh, r.bottom);
+        const visibleMid = (visibleTop + visibleBottom) / 2;
+        const tooltipHeight = tooltipRef.current?.offsetHeight ?? 200;
+        const topPos = clampTop(visibleMid - tooltipHeight / 2);
+        tooltipStyle = { position: "fixed", top: topPos, right: rightAnchor, width: actualTooltipWidth };
         break;
       }
       case "right":

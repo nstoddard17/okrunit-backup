@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { ApprovalFilters } from "@/components/approvals/approval-filters";
 import { ApprovalListGrouped } from "@/components/approvals/approval-list-grouped";
 import { ApprovalDetail } from "@/components/approvals/approval-detail";
@@ -453,6 +454,23 @@ export function ApprovalDashboard({
   const handleStatClick = useCallback((filterStatus: string | undefined) => {
     handleFilterChange({ status: filterStatus, priority, search, source, showArchived });
   }, [handleFilterChange, priority, search, source, showArchived]);
+
+  // Auto-open detail panel from ?open=<id> query param (e.g. from notification click)
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const openRequestId = searchParams.get("open");
+  const handledOpenRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!openRequestId || handledOpenRef.current === openRequestId) return;
+    const target = approvals.find((a) => a.id === openRequestId);
+    if (target) {
+      handledOpenRef.current = openRequestId;
+      setSelectedApproval(target);
+      setDetailOpen(true);
+      // Clean up the URL without triggering a navigation
+      router.replace("/requests", { scroll: false });
+    }
+  }, [openRequestId, approvals, router]);
 
   const handleSelect = useCallback((approval: ApprovalRequest) => {
     setSelectedApproval(approval);

@@ -45,6 +45,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { SOURCE_CONFIG } from "@/components/approvals/source-icons";
 import { cn } from "@/lib/utils";
 import type { ApprovalFlow, ApproverMode, UserRole } from "@/lib/types/database";
@@ -102,6 +112,7 @@ interface FlowCardProps {
   members: MemberOption[];
   orgId: string;
   positionsMap?: Record<string, string>;
+  onDelete?: (flowId: string) => void;
 }
 
 // Draft state shape for sessionStorage persistence
@@ -148,7 +159,7 @@ function clearDraft(flowId: string) {
   }
 }
 
-export const FlowCard = memo(function FlowCard({ flow, teams, members, orgId, positionsMap }: FlowCardProps) {
+export const FlowCard = memo(function FlowCard({ flow, teams, members, orgId, positionsMap, onDelete }: FlowCardProps) {
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -329,22 +340,19 @@ export const FlowCard = memo(function FlowCard({ flow, teams, members, orgId, po
 
   // ---- Delete flow ----------------------------------------------------------
 
-  async function handleDeleteFlow() {
-    setDeleting(true);
-    try {
-      const res = await fetch(`/api/v1/flows/${flow.id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.error ?? "Failed to delete flow");
-      }
-      clearDraft(flow.id);
-      toast.success("Flow deleted");
-      router.refresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete flow");
-    } finally {
-      setDeleting(false);
-      setConfirmDelete(false);
+  function handleDeleteFlow() {
+    clearDraft(flow.id);
+    setConfirmDelete(false);
+    if (onDelete) {
+      onDelete(flow.id);
+    } else {
+      // Fallback if no parent handler
+      fetch(`/api/v1/flows/${flow.id}`, { method: "DELETE" })
+        .then((res) => {
+          if (res.ok) { toast.success("Flow deleted"); router.refresh(); }
+          else toast.error("Failed to delete flow");
+        })
+        .catch(() => toast.error("Failed to delete flow"));
     }
   }
 
@@ -578,26 +586,14 @@ export const FlowCard = memo(function FlowCard({ flow, teams, members, orgId, po
                     tabIndex={0}
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (confirmDelete) {
-                        handleDeleteFlow();
-                      } else {
-                        setConfirmDelete(true);
-                        setTimeout(() => setConfirmDelete(false), 3000);
-                      }
+                      setConfirmDelete(true);
                     }}
-                    className={cn(
-                      "flex size-7 items-center justify-center rounded-md transition-colors",
-                      confirmDelete
-                        ? "bg-destructive/10 text-destructive"
-                        : "text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10",
-                    )}
+                    className="flex size-7 items-center justify-center rounded-md transition-colors text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10"
                   >
                     {deleting ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
                   </span>
                 </TooltipTrigger>
-                <TooltipContent side="top">
-                  {confirmDelete ? "Click again to confirm" : "Delete flow"}
-                </TooltipContent>
+                <TooltipContent side="top">Delete flow</TooltipContent>
               </Tooltip>
             )}
             <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", expanded && "rotate-180")} />
@@ -1004,53 +1000,46 @@ export const FlowCard = memo(function FlowCard({ flow, teams, members, orgId, po
                   Cancel
                 </Button>
               </div>
-              {!confirmDelete ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConfirmDelete(true);
-                  }}
-                  disabled={saving || deleting}
-                >
-                  <Trash2 className="size-3.5" />
-                  Delete
-                </Button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-destructive">Delete this flow?</span>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="gap-1"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteFlow();
-                    }}
-                    disabled={deleting}
-                  >
-                    {deleting ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3" />}
-                    Confirm
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmDelete(false);
-                    }}
-                    disabled={deleting}
-                  >
-                    No
-                  </Button>
-                </div>
-              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setConfirmDelete(true);
+                }}
+                disabled={saving || deleting}
+              >
+                <Trash2 className="size-3.5" />
+                Delete
+              </Button>
             </div>
           </div>
         )}
       </CardContent>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete flow</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &ldquo;{flow.name}&rdquo;? This will remove all routing configuration for this flow. Existing requests will not be affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteFlow}
+              disabled={deleting}
+              className="!bg-destructive !text-destructive-foreground hover:!bg-destructive/90"
+            >
+              {deleting ? <Loader2 className="size-3.5 animate-spin mr-1" /> : <Trash2 className="size-3.5 mr-1" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 });

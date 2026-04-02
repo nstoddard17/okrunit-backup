@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Unplug } from "lucide-react";
 import { toast } from "sonner";
@@ -20,10 +20,16 @@ interface ConnectionListProps {
 export function ConnectionList({ initialConnections }: ConnectionListProps) {
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
+  const [connections, setConnections] = useState(initialConnections);
+
+  // Keep in sync if server data changes (e.g. after create)
+  useEffect(() => { setConnections(initialConnections); }, [initialConnections]);
 
   // ---- Handlers -----------------------------------------------------------
 
   async function handleDeactivate(id: string) {
+    // Optimistic update
+    setConnections((prev) => prev.map((c) => c.id === id ? { ...c, is_active: false } : c));
     try {
       const res = await fetch(`/api/v1/connections/${id}`, {
         method: "PATCH",
@@ -37,8 +43,9 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
       }
 
       toast.success("Connection deactivated");
-      router.refresh();
     } catch (err) {
+      // Revert on failure
+      setConnections((prev) => prev.map((c) => c.id === id ? { ...c, is_active: true } : c));
       toast.error(
         err instanceof Error ? err.message : "Failed to deactivate connection",
       );
@@ -46,6 +53,8 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
   }
 
   async function handleActivate(id: string) {
+    // Optimistic update
+    setConnections((prev) => prev.map((c) => c.id === id ? { ...c, is_active: true } : c));
     try {
       const res = await fetch(`/api/v1/connections/${id}`, {
         method: "PATCH",
@@ -59,8 +68,9 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
       }
 
       toast.success("Connection activated");
-      router.refresh();
     } catch (err) {
+      // Revert on failure
+      setConnections((prev) => prev.map((c) => c.id === id ? { ...c, is_active: false } : c));
       toast.error(
         err instanceof Error ? err.message : "Failed to activate connection",
       );
@@ -68,6 +78,9 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
   }
 
   async function handleDelete(id: string) {
+    // Optimistic removal
+    const removed = connections.find((c) => c.id === id);
+    setConnections((prev) => prev.filter((c) => c.id !== id));
     try {
       const res = await fetch(`/api/v1/connections/${id}`, {
         method: "DELETE",
@@ -79,8 +92,9 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
       }
 
       toast.success("Connection deleted");
-      router.refresh();
     } catch (err) {
+      // Revert on failure
+      if (removed) setConnections((prev) => [...prev, removed]);
       toast.error(
         err instanceof Error ? err.message : "Failed to delete connection",
       );
@@ -100,7 +114,7 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
       </div>
 
       {/* Connection cards or empty state */}
-      {initialConnections.length === 0 ? (
+      {connections.length === 0 ? (
         <EmptyState
           icon={Unplug}
           title="No API key connections"
@@ -113,7 +127,7 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
         />
       ) : (
         <div className="grid gap-4">
-          {initialConnections.map((connection) => (
+          {connections.map((connection) => (
             <ConnectionCard
               key={connection.id}
               connection={connection}
@@ -131,7 +145,7 @@ export function ConnectionList({ initialConnections }: ConnectionListProps) {
         onClose={() => setCreateOpen(false)}
         onSuccess={() => {
           setCreateOpen(false);
-          router.refresh();
+          router.refresh(); // Fetch the new connection from server
         }}
       />
     </>

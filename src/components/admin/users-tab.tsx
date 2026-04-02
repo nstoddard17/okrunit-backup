@@ -252,7 +252,7 @@ export function UsersTab({ users, organizations = [] }: UsersTabProps) {
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border">
+        <div className="rounded-xl border bg-white dark:bg-card">
           <Table>
             <TableHeader>
               <TableRow>
@@ -302,7 +302,8 @@ export function UsersTab({ users, organizations = [] }: UsersTabProps) {
                           <Badge
                             key={m.org_id}
                             variant="outline"
-                            className="text-xs"
+                            className="text-xs cursor-pointer hover:bg-accent transition-colors"
+                            onClick={() => router.push(`/admin/organizations?highlight=${m.org_id}`)}
                           >
                             {m.org_name}
                             <span className="ml-1 text-muted-foreground">
@@ -503,7 +504,7 @@ export function UsersTab({ users, organizations = [] }: UsersTabProps) {
             >
               Cancel
             </Button>
-            <Button onClick={handleEdit} disabled={editLoading}>
+            <Button onClick={handleEdit} disabled={editLoading} className="bg-emerald-600 text-white hover:bg-emerald-700">
               {editLoading && <Loader2 className="size-4 animate-spin" />}
               Save Changes
             </Button>

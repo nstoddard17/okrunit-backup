@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Link2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,10 +13,13 @@ interface ConnectedAppsListProps {
   grants: OAuthGrant[];
 }
 
-export function ConnectedAppsList({ grants }: ConnectedAppsListProps) {
-  const router = useRouter();
+export function ConnectedAppsList({ grants: initialGrants }: ConnectedAppsListProps) {
+  const [grants, setGrants] = useState(initialGrants);
 
   async function handleRevoke(clientId: string) {
+    // Optimistic removal
+    const removed = grants.find((g) => g.client_id === clientId);
+    setGrants((prev) => prev.filter((g) => g.client_id !== clientId));
     try {
       const res = await fetch(`/api/v1/oauth/grants/${clientId}`, {
         method: "DELETE",
@@ -28,8 +31,9 @@ export function ConnectedAppsList({ grants }: ConnectedAppsListProps) {
       }
 
       toast.success("App access revoked successfully");
-      router.refresh();
     } catch (err) {
+      // Revert on failure
+      if (removed) setGrants((prev) => [...prev, removed]);
       toast.error(
         err instanceof Error ? err.message : "Failed to revoke access",
       );

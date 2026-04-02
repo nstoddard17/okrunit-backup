@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import {
-  Sparkles,
+  BarChart3,
   CheckCircle,
   Lightbulb,
   TrendingUp,
@@ -107,16 +107,28 @@ export function PatternSuggestions() {
     return (
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
-            Pattern Suggestions
-          </CardTitle>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Lightbulb className="size-4 text-amber-500" />
+                Rule Suggestions
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Based on your approval history over the last 90 days
+              </p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center py-6 text-center">
-            <Lightbulb className="size-6 text-muted-foreground/30 mb-2" />
-            <p className="text-xs text-muted-foreground">
-              No patterns detected yet. Suggestions will appear as your approval history grows.
+          <div className="flex flex-col items-center py-8 text-center">
+            <div className="rounded-full bg-muted p-3 mb-3">
+              <BarChart3 className="size-5 text-muted-foreground/50" />
+            </div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">
+              No patterns detected yet
+            </p>
+            <p className="text-xs text-muted-foreground/70 max-w-xs">
+              OKrunit analyzes your approval history to find sources or action types that are consistently approved. Suggestions appear once you have enough data.
             </p>
           </div>
         </CardContent>
@@ -127,13 +139,20 @@ export function PatternSuggestions() {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Sparkles className="size-4 text-primary" />
-          Pattern Suggestions
-          <Badge variant="secondary" className="text-[10px]">
-            {suggestions.length}
-          </Badge>
-        </CardTitle>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Lightbulb className="size-4 text-amber-500" />
+              Rule Suggestions
+              <Badge variant="secondary" className="text-[10px]">
+                {suggestions.length}
+              </Badge>
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Based on your approval history over the last 90 days
+            </p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">

@@ -194,44 +194,44 @@ export default async function V2OrgOverviewPage() {
 
       {/* Org header — only on overview */}
       <div data-tour="overview-main" className="space-y-8">
-      <div>
-        <p className="text-xs font-medium text-primary mb-0.5">Organization</p>
-        <h1 className="text-xl font-semibold tracking-tight">{org.name}</h1>
-      </div>
+        <div>
+          <p className="text-xs font-medium text-primary mb-0.5">Organization</p>
+          <h1 className="text-xl font-semibold tracking-tight">{org.name}</h1>
+        </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          const inner = (
-            <div className="group relative flex items-center gap-3 rounded-xl border border-border/50 bg-[var(--card)] px-4 py-3.5 transition-colors hover:border-border">
-              <div className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${stat.bg}`}>
-                <Icon className={`size-5 ${stat.color}`} strokeWidth={1.75} />
+        {/* Stats row */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            const inner = (
+              <div className="group relative flex items-center gap-3 rounded-xl border border-border/50 bg-[var(--card)] px-4 py-3.5 transition-colors hover:border-border">
+                <div className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${stat.bg}`}>
+                  <Icon className={`size-5 ${stat.color}`} strokeWidth={1.75} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-2xl font-bold tracking-tight leading-none">{stat.value}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+                </div>
+                {stat.href && (
+                  <ArrowUpRight className="absolute right-3 top-3 size-3.5 text-muted-foreground/30 transition-colors group-hover:text-muted-foreground" />
+                )}
               </div>
-              <div className="min-w-0">
-                <p className="text-2xl font-bold tracking-tight leading-none">{stat.value}</p>
-                <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
-              </div>
-              {stat.href && (
-                <ArrowUpRight className="absolute right-3 top-3 size-3.5 text-muted-foreground/30 transition-colors group-hover:text-muted-foreground" />
-              )}
-            </div>
-          );
-          return stat.href ? (
-            <Link key={stat.label} href={stat.href}>{inner}</Link>
-          ) : (
-            <div key={stat.label}>{inner}</div>
-          );
-        })}
-      </div>
+            );
+            return stat.href ? (
+              <Link key={stat.label} href={stat.href}>{inner}</Link>
+            ) : (
+              <div key={stat.label}>{inner}</div>
+            );
+          })}
+        </div>
 
-      {/* Recent activity — realtime client component */}
-      <RecentActivity
-        initialItems={(recentActivity ?? []) as unknown as ApprovalRequest[]}
-        connectionNameMap={connectionNameMap}
-        creatorNameMap={creatorNameMap}
-        orgId={org.id}
-      />
+        {/* Recent activity — realtime client component */}
+        <RecentActivity
+          initialItems={(recentActivity ?? []) as unknown as ApprovalRequest[]}
+          connectionNameMap={connectionNameMap}
+          creatorNameMap={creatorNameMap}
+          orgId={org.id}
+        />
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { Route } from "lucide-react";
+import { toast } from "sonner";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { FlowCard } from "@/components/routes/flow-card";
@@ -35,12 +37,33 @@ interface RoutesHubProps {
 // ---------------------------------------------------------------------------
 
 export function RoutesHub({
-  flows,
+  flows: initialFlows,
   teams,
   members,
   orgId,
   positionsMap,
 }: RoutesHubProps) {
+  const [flows, setFlows] = useState(initialFlows);
+
+  const handleDelete = useCallback((flowId: string) => {
+    const previous = flows;
+    // Optimistic: remove immediately
+    setFlows((prev) => prev.filter((f) => f.id !== flowId));
+    toast.success("Flow deleted");
+
+    // Background: send delete request
+    fetch(`/api/v1/flows/${flowId}`, { method: "DELETE" }).then((res) => {
+      if (!res.ok) {
+        // Revert on failure
+        setFlows(previous);
+        toast.error("Failed to delete flow");
+      }
+    }).catch(() => {
+      setFlows(previous);
+      toast.error("Failed to delete flow");
+    });
+  }, [flows]);
+
   if (flows.length === 0) {
     return (
       <EmptyState
@@ -72,6 +95,7 @@ export function RoutesHub({
                 members={members}
                 orgId={orgId}
                 positionsMap={positionsMap}
+                onDelete={handleDelete}
               />
             </div>
           ))}

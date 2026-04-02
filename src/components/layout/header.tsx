@@ -142,6 +142,7 @@ export function Header({ emergencyStopActive, user, orgName, pendingCount = 0, c
         <div className="flex items-center gap-1.5">
           {/* Search / Cmd+K hint */}
           <button
+            data-tour="search-bar"
             onClick={() => {
               document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
             }}

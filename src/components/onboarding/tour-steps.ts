@@ -37,16 +37,16 @@ const overviewSteps: TourStepConfig[] = [
     title: "Your Dashboard",
     description:
       "This is your main dashboard. At the top is your organization name, followed by key stat widgets (pending requests, approval rate, connections, and members). Below that is the recent activity feed showing the latest approval requests with their status, priority, and source.",
-    position: "top",
-    highlightMode: "full-width",
+    position: "center",
+    highlightMode: "no-ring",
   },
   {
     id: "overview-search-palette",
-    targetSelector: null,
+    targetSelector: "[data-tour='search-bar']",
     title: "Search Palette",
     description:
       "Press \u2318K (Ctrl+K on Windows) from anywhere to open the search palette. Quickly find requests, navigate between pages, or run common actions without leaving the keyboard.",
-    position: "center",
+    position: "bottom",
   },
 ];
 
@@ -143,19 +143,19 @@ const rulesSteps: TourStepConfig[] = [
 const connectionsSteps: TourStepConfig[] = [
   {
     id: "connections-overview",
-    targetSelector: "[data-tour='connection-section']",
+    targetSelector: null,
     title: "Connections",
     description:
       "Connections are how external tools authenticate with OKRunit. Each connection has an API key for direct API access. You can also connect via OAuth from platforms like Zapier and Make.",
-    position: "bottom",
+    position: "center",
   },
   {
     id: "connections-guides",
-    targetSelector: null,
+    targetSelector: "[data-tour='setup-guides']",
     title: "Integration Guides",
     description:
-      "Click any platform logo at the top for step-by-step setup instructions. For API access, create a connection and use the API key with Bearer token authentication.",
-    position: "center",
+      "Click any platform logo for step-by-step setup instructions. For API access, create a connection and use the API key with Bearer token authentication.",
+    position: "bottom",
   },
 ];
 
@@ -413,6 +413,36 @@ const playgroundSteps: TourStepConfig[] = [
   },
 ];
 
+// ---- Webhook Deliveries Page -----------------------------------------------
+
+const webhookDeliveriesSteps: TourStepConfig[] = [
+  {
+    id: "deliveries-overview",
+    targetSelector: null,
+    title: "Webhook Deliveries",
+    description:
+      "This page shows every outbound webhook that OKRunit fires when an approval decision is made. Each row is a single delivery attempt to your configured webhook URL.",
+    position: "center",
+  },
+  {
+    id: "deliveries-filters",
+    targetSelector: "[data-tour='delivery-filters']",
+    title: "Filter Deliveries",
+    description:
+      "Filter by status (success or failed), connection, and time range to find specific deliveries. The count on the right shows how many match your current filters.",
+    position: "bottom",
+  },
+  {
+    id: "deliveries-table",
+    targetSelector: "[data-tour='delivery-table']",
+    title: "Delivery Details",
+    description:
+      "Click any row to expand it and see the full request and response — headers, body, status code, and duration. Failed deliveries show the error message and can be retried with the Retry button.",
+    position: "bottom",
+    highlightMode: "no-ring",
+  },
+];
+
 // ---- All Page Tours -------------------------------------------------------
 
 export const PAGE_TOURS: PageTourConfig[] = [
@@ -442,10 +472,21 @@ export const PAGE_TOURS: PageTourConfig[] = [
 
   // Dev tools
   { pageId: "playground", pathname: "/playground", pageName: "Playground", docsPath: "/docs/api", steps: playgroundSteps },
+  { pageId: "webhook-deliveries", pathname: "/playground/webhook-deliveries", pageName: "Webhook Deliveries", docsPath: "/docs/webhooks", steps: webhookDeliveriesSteps },
 ];
 
 // Full tour order (for the sequential "Start Tour" flow)
-export const FULL_TOUR_ORDER = ["requests", "routes", "rules", "connections", "messaging", "analytics"];
+// Follows sidebar order: Org pages → Requests pages → Playground → Settings
+export const FULL_TOUR_ORDER = [
+  // Org section
+  "overview", "organizations", "teams", "members", "invites", "roles", "org-settings", "billing",
+  // Requests section
+  "requests", "routes", "rules", "connections", "messaging", "analytics", "sla", "audit-log",
+  // Playground
+  "playground", "webhook-deliveries",
+  // Settings
+  "account", "notifications",
+];
 
 // Legacy export for backward compat
 export const TOUR_STEPS = PAGE_TOURS.flatMap((p) =>

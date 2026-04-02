@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AnalyticsDashboard } from "@/components/analytics/analytics-dashboard";
-import { PatternSuggestions } from "@/components/analytics/pattern-suggestions";
 import type { VolumeDataPoint } from "@/components/analytics/volume-chart";
 import type { ApprovalRateDataPoint } from "@/components/analytics/approval-rate-chart";
 import type { ResponseTimeDataPoint } from "@/components/analytics/response-time-chart";
@@ -134,24 +133,19 @@ export default async function AnalyticsPage() {
   }));
 
   return (
-    <>
-      <AnalyticsDashboard
-        stats={{
-          total: totalNum,
-          pending: pendingNum,
-          approved: approvedNum,
-          rejected: rejectedNum,
-          decided: decidedNum,
-          approvalRate,
-        }}
-        trends={trends}
-        volumeData={volumeData}
-        approvalRateData={approvalRateData}
-        responseTimeData={responseTimeData}
-      />
-      <div className="px-6 lg:px-8 pb-6">
-        <PatternSuggestions />
-      </div>
-    </>
+    <AnalyticsDashboard
+      stats={{
+        total: totalNum,
+        pending: pendingNum,
+        approved: approvedNum,
+        rejected: rejectedNum,
+        decided: decidedNum,
+        approvalRate,
+      }}
+      trends={trends}
+      volumeData={volumeData}
+      approvalRateData={approvalRateData}
+      responseTimeData={responseTimeData}
+    />
   );
 }

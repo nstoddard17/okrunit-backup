@@ -49,7 +49,7 @@ const CATEGORY_CONFIG: Record<
 
 function getNotificationHref(n: InAppNotification): string {
   if (n.resource_type === "approval_request" && n.resource_id) {
-    return `/requests?highlight=${n.resource_id}`;
+    return `/requests?open=${n.resource_id}`;
   }
   if (n.resource_type === "team" && n.resource_id) {
     return `/org/teams/${n.resource_id}`;
@@ -90,10 +90,10 @@ export function NotificationPanel({ userId }: NotificationPanelProps) {
     });
     if (!record.is_read) {
       setUnreadCount((prev) => prev + 1);
-      toast(record.title, {
+      toast(record.category === "approval_awaiting" ? "New request needs your approval" : record.title, {
         description: record.body || undefined,
         action: record.resource_type === "approval_request" && record.resource_id
-          ? { label: "View", onClick: () => { window.location.href = `/requests?highlight=${record.resource_id}`; } }
+          ? { label: "View", onClick: () => { window.location.href = `/requests?open=${record.resource_id}`; } }
           : undefined,
       });
     }
@@ -306,62 +306,115 @@ function NotificationRow({
   const DisplayIcon = isRejected ? XCircle : Icon;
   const iconColor = isRejected ? "text-red-500" : config.color;
 
+  // Parse body for pills — only match the structured format: "Medium priority · from Zapier"
+  const structuredMatch = n.body?.match(/^(\w+)\s+priority(?:\s+·\s+from\s+(\w+))?$/i);
+  const priorityLabel = structuredMatch?.[1];
+  const sourceRaw = structuredMatch?.[2];
+  const sourceName = sourceRaw ? sourceRaw.charAt(0).toUpperCase() + sourceRaw.slice(1) : undefined;
+  const sourceKey = sourceRaw?.toLowerCase();
+
+  const priorityColors: Record<string, string> = {
+    critical: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400",
+    high: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400",
+    medium: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400",
+    low: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
+  };
+
+  // Show a friendlier title for awaiting notifications
+  const displayTitle = n.category === "approval_awaiting"
+    ? n.title.replace(/^New request:\s*/, "")
+    : n.title;
+  const isAwaiting = n.category === "approval_awaiting";
+
   return (
     <Link
       href={getNotificationHref(n)}
       onClick={onNavigate}
-      className="flex items-center gap-3 px-4 py-3 transition-colors bg-white dark:bg-card hover:bg-accent border-b border-border/30 last:border-b-0"
+      className="flex items-start gap-3 px-4 py-3 transition-colors bg-white dark:bg-card hover:bg-accent border-b border-border/30 last:border-b-0"
     >
-      {/* Icon — vertically centered, no circle */}
-      <DisplayIcon className={cn("size-4 shrink-0", iconColor)} />
+      {/* Icon */}
+      <DisplayIcon className={cn("size-4 shrink-0 mt-0.5", iconColor)} />
 
       {/* Content */}
       <div className="min-w-0 flex-1">
+        {isAwaiting && (
+          <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400 mb-0.5">
+            Needs your approval
+          </p>
+        )}
         <p className="text-sm leading-tight font-medium text-foreground">
-          {n.title}
+          {displayTitle}
         </p>
-        {n.body && (() => {
-          // Capitalize and extract source for logo placement next to source name
-          const capitalized = n.body
-            .replace(/^(\w)/, (c: string) => c.toUpperCase())
-            .replace(/· from (\w)/g, (_: string, c: string) => `· from ${c.toUpperCase()}`);
-          const sourceMatch = n.body.match(/from (\w+)/i);
-          const sourceRaw = sourceMatch?.[1];
-          const sourceName = sourceRaw ? sourceRaw.charAt(0).toUpperCase() + sourceRaw.slice(1) : undefined;
-          const sourceKey = sourceRaw?.toLowerCase();
 
-          // Split at "from SourceName" to insert logo before it
-          if (sourceName && sourceKey) {
-            const parts = capitalized.split(new RegExp(`(from ${sourceName})`, "i"));
-            return (
-              <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
-                {parts[0]}
-                {parts[1] && (
-                  <span className="inline-flex items-center gap-1">
-                    from{" "}
+        {/* Pills row */}
+        {(sourceName || priorityLabel) && (
+          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+            {sourceName && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                {sourceKey && (
+                  <img
+                    src={`/logos/platforms/${sourceKey}.png`}
+                    alt=""
+                    className="size-3 rounded"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
+                )}
+                {sourceName}
+              </span>
+            )}
+            {priorityLabel && (
+              <span className={cn(
+                "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                priorityColors[priorityLabel.toLowerCase()] ?? "bg-muted text-muted-foreground"
+              )}>
+                {priorityLabel}
+              </span>
+            )}
+            <span className="text-[11px] text-muted-foreground/60">
+              {timeAgo(n.created_at)}
+            </span>
+          </div>
+        )}
+
+        {/* Fallback: show body text and time if no pills parsed */}
+        {!sourceName && !priorityLabel && (
+          <>
+            {n.body && (() => {
+              // Try to insert a platform logo before "from SourceName"
+              const fromMatch = n.body.match(/from\s+([A-Z]\w+)/);
+              const bodySourceName = fromMatch?.[1];
+              const bodySourceKey = bodySourceName?.toLowerCase();
+
+              if (bodySourceName && bodySourceKey) {
+                const idx = n.body.indexOf(`from ${bodySourceName}`);
+                const before = n.body.slice(0, idx + 5); // "...from "
+                const after = n.body.slice(idx + 5 + bodySourceName.length);
+                const capitalized = before.charAt(0).toUpperCase() + before.slice(1);
+                return (
+                  <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
+                    {capitalized}
                     <img
-                      src={`/logos/platforms/${sourceKey}.png`}
+                      src={`/logos/platforms/${bodySourceKey}.png`}
                       alt=""
-                      className="size-3.5 rounded inline-block align-text-bottom"
+                      className="size-3.5 rounded inline-block align-text-bottom mx-0.5"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                     />
-                    {" "}{sourceName}
-                  </span>
-                )}
-                {parts[2] ?? ""}
-              </p>
-            );
-          }
+                    {bodySourceName}{after}
+                  </p>
+                );
+              }
 
-          return (
-            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
-              {capitalized}
+              return (
+                <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
+                  {n.body.charAt(0).toUpperCase() + n.body.slice(1)}
+                </p>
+              );
+            })()}
+            <p className="mt-1 text-[11px] text-muted-foreground/70">
+              {timeAgo(n.created_at)}
             </p>
-          );
-        })()}
-        <p className="mt-1 text-[11px] text-muted-foreground/70">
-          {timeAgo(n.created_at)}
-        </p>
+          </>
+        )}
       </div>
     </Link>
   );
