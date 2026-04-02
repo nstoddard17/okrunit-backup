@@ -76,7 +76,8 @@ export async function POST(request: Request) {
       url: webhookUrl,
       allowed_updates: ["callback_query", "message"],
     };
-    if (webhookSecret) {
+    // Telegram only allows A-Za-z0-9_- in secret_token (1-256 chars)
+    if (webhookSecret && /^[A-Za-z0-9_-]{1,256}$/.test(webhookSecret)) {
       webhookBody.secret_token = webhookSecret;
     }
 

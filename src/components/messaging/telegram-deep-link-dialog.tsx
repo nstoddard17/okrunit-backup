@@ -98,13 +98,11 @@ export function TelegramDeepLinkDialog({
           setState({ phase: "claimed", chatTitle: data.chat_title ?? "Telegram Chat" });
           toast.success("Telegram connected successfully!");
 
-          // Refresh the page to get the new connection
-          // Small delay so the user sees the success state
+          // Brief pause so the user sees the success state, then close + reload
           setTimeout(() => {
             onOpenChange(false);
-            // Trigger a page refresh to load the new connection
             window.location.reload();
-          }, 1500);
+          }, 2200);
         } else if (data.status === "expired") {
           setState({ phase: "expired" });
         }

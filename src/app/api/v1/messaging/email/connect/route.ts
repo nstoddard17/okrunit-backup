@@ -93,7 +93,7 @@ export async function POST(request: Request) {
       userId,
       action: "messaging_connection.created",
       resourceType: "messaging_connection",
-      resourceId: email,
+      resourceId: connection?.id ?? undefined,
       ipAddress: getClientIp(request),
       details: {
         platform: "email",

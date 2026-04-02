@@ -385,7 +385,7 @@ async function handleStartCommand(
     userId: link.created_by,
     action: "messaging_connection.created",
     resourceType: "messaging_connection",
-    resourceId: String(chatId),
+    resourceId: connection?.id ?? undefined,
     details: {
       platform: "telegram",
       bot_username: botUsername,
@@ -425,10 +425,11 @@ export async function POST(request: Request) {
   }
 
   const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  if (webhookSecret) {
-    const header =
-      request.headers.get("X-Telegram-Bot-Api-Secret-Token") ?? "";
-    if (!verifyTelegramSecret(webhookSecret, header)) {
+  const secretHeader = request.headers.get("X-Telegram-Bot-Api-Secret-Token");
+  // Only verify if both sides have a secret configured — Telegram sends the
+  // header only when secret_token was passed to setWebhook.
+  if (webhookSecret && secretHeader) {
+    if (!verifyTelegramSecret(webhookSecret, secretHeader)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }

@@ -154,7 +154,7 @@ export async function GET(request: Request) {
       Date.now() + tokenData.expires_in * 1000,
     ).toISOString();
 
-    const { error: upsertError } = await admin
+    const { data: teamsConnection, error: upsertError } = await admin
       .from("messaging_connections")
       .upsert(
         {
@@ -173,7 +173,9 @@ export async function GET(request: Request) {
           installed_by: state.userId,
         },
         { onConflict: "org_id,platform,channel_id" },
-      );
+      )
+      .select("id")
+      .single();
 
     if (upsertError) {
       console.error("[Teams Callback] Upsert failed:", upsertError);
@@ -188,7 +190,7 @@ export async function GET(request: Request) {
       userId: state.userId,
       action: "messaging_connection.created",
       resourceType: "messaging_connection",
-      resourceId: teamId || channelId,
+      resourceId: teamsConnection?.id ?? undefined,
       ipAddress: getClientIp(request),
       details: {
         platform: "teams",

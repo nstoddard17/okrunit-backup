@@ -222,7 +222,7 @@ export async function GET(request: Request) {
       userId: state.userId,
       action: "messaging_connection.created",
       resourceType: "messaging_connection",
-      resourceId: guildId,
+      resourceId: connection?.id ?? undefined,
       ipAddress: getClientIp(request),
       details: {
         platform: "discord",
