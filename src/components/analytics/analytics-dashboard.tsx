@@ -10,6 +10,7 @@ import type { ResponseTimeDataPoint } from "./response-time-chart";
 import { VolumeChart } from "./volume-chart";
 import { ApprovalRateChart } from "./approval-rate-chart";
 import { ResponseTimeChart } from "./response-time-chart";
+import { PatternSuggestions } from "./pattern-suggestions";
 
 // ---- Types ----------------------------------------------------------------
 
@@ -151,6 +152,9 @@ export function AnalyticsDashboard({
         <ApprovalRateChart data={approvalRateData} />
         <ResponseTimeChart data={responseTimeData} />
       </div>
+
+      {/* Rule suggestions based on approval history */}
+      <PatternSuggestions />
     </div>
   );
 }

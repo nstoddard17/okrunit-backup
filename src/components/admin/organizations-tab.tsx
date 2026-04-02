@@ -5,9 +5,9 @@
 // Table of all organizations with counts and impersonate action.
 // ---------------------------------------------------------------------------
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { LogIn, Users, FileCheck, Key, Search } from "lucide-react";
 
@@ -51,7 +51,21 @@ const avatarColors = [
 
 export function OrganizationsTab({ organizations }: OrganizationsTabProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
+  const highlightId = searchParams.get("highlight");
+  const [highlightedId, setHighlightedId] = useState<string | null>(highlightId);
+  const highlightRef = useRef<HTMLTableRowElement>(null);
+
+  // Scroll to and flash the highlighted org
+  useEffect(() => {
+    if (highlightedId && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Clear highlight after 3 seconds
+      const timer = setTimeout(() => setHighlightedId(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightedId]);
 
   const filtered = organizations.filter((org) =>
     org.name.toLowerCase().includes(search.toLowerCase()),
@@ -121,7 +135,12 @@ export function OrganizationsTab({ organizations }: OrganizationsTabProps) {
               {filtered.map((org, idx) => (
                 <TableRow
                   key={org.id}
-                  className="transition-colors hover:bg-muted/50"
+                  ref={org.id === highlightedId ? highlightRef : undefined}
+                  className={
+                    org.id === highlightedId
+                      ? "transition-colors bg-emerald-50 dark:bg-emerald-950/30 animate-pulse"
+                      : "transition-colors hover:bg-muted/50"
+                  }
                 >
                   {/* Organization with avatar */}
                   <TableCell>

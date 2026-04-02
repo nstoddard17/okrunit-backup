@@ -670,7 +670,7 @@ export async function POST(request: Request) {
               orgId: auth.orgId,
               category: "flow_assigned",
               title: `New flow needs configuration`,
-              body: `"${validated.title}" arrived from a new source. Configure routing to assign approvers.`,
+              body: `"${validated.title}" arrived${sourceName ? ` from ${sourceName.charAt(0).toUpperCase() + sourceName.slice(1)}` : ""}. Configure routing to assign approvers.`,
               resourceType: "approval_request",
               resourceId: approval.id,
             });

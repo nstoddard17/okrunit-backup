@@ -9,10 +9,13 @@
 import {
   Fragment,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   useTransition,
 } from "react";
+import { useOnboardingTourStore } from "@/stores/onboarding-tour-store";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronRight, Loader2, RefreshCw, Webhook } from "lucide-react";
 import { toast } from "sonner";
@@ -168,6 +171,77 @@ export function DeliveryLogTable({
   // Expanded rows (track by entry id)
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
+  // Tour step 3: inject a sample delivery and auto-expand it
+  const tourActivePageId = useOnboardingTourStore((s) => s.activePageId);
+  const tourStepIndex = useOnboardingTourStore((s) => s.currentStepInPage);
+  const isTourOnTableStep = tourActivePageId === "webhook-deliveries" && tourStepIndex === 2;
+  const mockIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (isTourOnTableStep) {
+      const mockId = "tour-sample-delivery";
+      mockIdRef.current = mockId;
+
+      // Only inject if not already present
+      setEntries((prev) => {
+        if (prev.some((e) => e.id === mockId)) return prev;
+        const sample: WebhookDeliveryLog = {
+          id: mockId,
+          request_id: "00000000-0000-0000-0000-000000000000",
+          connection_id: connections[0]?.id ?? "demo-connection",
+          url: "https://hooks.example.com/webhook/okrunit",
+          method: "POST",
+          request_headers: {
+            "Content-Type": "application/json",
+            "X-OKRunit-Signature": "sha256=a1b2c3d4e5f6...",
+            "X-OKRunit-Event": "approval.approved",
+            "User-Agent": "OKRunit-Webhook/1.0",
+          },
+          request_body: {
+            event: "approval.approved",
+            request_id: "req_abc123",
+            title: "Deploy marketing site update",
+            status: "approved",
+            priority: "medium",
+            decided_by: "user@example.com",
+            decided_at: new Date().toISOString(),
+          },
+          response_status: 200,
+          response_headers: {
+            "Content-Type": "application/json",
+            "X-Request-Id": "req-7f3a2b",
+          },
+          response_body: JSON.stringify({ received: true, processed: true }),
+          duration_ms: 142,
+          attempt_number: 1,
+          success: true,
+          error_message: null,
+          created_at: new Date().toISOString(),
+        };
+        return [sample, ...prev];
+      });
+
+      // Auto-expand the sample row
+      setExpandedRows((prev) => new Set(prev).add(mockId));
+    }
+  }, [isTourOnTableStep, connections]);
+
+  // Clean up mock entry when tour leaves step 3
+  const prevTourOnTableStep = useRef(false);
+  useEffect(() => {
+    if (prevTourOnTableStep.current && !isTourOnTableStep && mockIdRef.current) {
+      const mockId = mockIdRef.current;
+      setEntries((prev) => prev.filter((e) => e.id !== mockId));
+      setExpandedRows((prev) => {
+        const next = new Set(prev);
+        next.delete(mockId);
+        return next;
+      });
+      mockIdRef.current = null;
+    }
+    prevTourOnTableStep.current = isTourOnTableStep;
+  }, [isTourOnTableStep]);
+
   // Retry state
   const [retrying, setRetrying] = useState<Set<string>>(new Set());
 
@@ -296,7 +370,7 @@ export function DeliveryLogTable({
   return (
     <div className="space-y-4">
       {/* ---- Filters ---- */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" data-tour="delivery-filters">
         <DeliveryLogFilters
           connections={connections}
           onFilterChange={handleFilterChange}
@@ -307,7 +381,7 @@ export function DeliveryLogTable({
       </div>
 
       {/* ---- Table ---- */}
-        <div className="rounded-xl border bg-white">
+        <div className="rounded-xl border bg-white" data-tour="delivery-table">
           <Table>
             <TableHeader>
               <TableRow>

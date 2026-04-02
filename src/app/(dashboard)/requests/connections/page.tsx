@@ -92,7 +92,7 @@ export default async function ConnectionsPage() {
   return (
     <div data-tour="connection-section">
       {/* Integration quick links */}
-      <div className="mb-8">
+      <div className="mb-8" data-tour="setup-guides">
         <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
           Setup Guides
         </h2>
