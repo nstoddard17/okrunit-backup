@@ -41,6 +41,7 @@ export default async function V2OrgMembersPage() {
       avatar_url: profile?.avatar_url ?? null,
       role: m.role as "owner" | "admin" | "member",
       can_approve: m.can_approve ?? false,
+      can_connect: m.can_connect ?? false,
       created_at: m.created_at,
       updated_at: m.updated_at,
     };

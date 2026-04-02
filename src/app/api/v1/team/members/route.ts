@@ -16,6 +16,7 @@ const updateRoleSchema = z.object({
   user_id: z.string().uuid("Invalid user ID"),
   role: z.enum(["admin", "approver", "member"]).optional(),
   can_approve: z.boolean().optional(),
+  can_connect: z.boolean().optional(),
 });
 
 const removeMemberSchema = z.object({

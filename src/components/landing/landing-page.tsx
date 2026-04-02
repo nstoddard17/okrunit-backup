@@ -1679,7 +1679,7 @@ export function LandingPage({ user }: LandingPageProps) {
           <div className="flex items-center gap-1.5 sm:gap-2 lg:hidden">
             {user ? (
               <Button size="sm" className="h-8 rounded-lg bg-[#2e7d32] px-3 text-xs text-white hover:bg-[#1b5e20]" asChild>
-                <Link href="/org/overview">Dashboard</Link>
+                <a href="/org/overview">Dashboard</a>
               </Button>
             ) : (
               <>
@@ -1717,7 +1717,7 @@ export function LandingPage({ user }: LandingPageProps) {
                   <div className="flex flex-col gap-2">
                     {user ? (
                       <Button className="w-full bg-[#2e7d32] text-white hover:bg-[#1b5e20]" asChild>
-                        <Link href="/org/overview">Go to Dashboard</Link>
+                        <a href="/org/overview">Go to Dashboard</a>
                       </Button>
                     ) : (
                       <>

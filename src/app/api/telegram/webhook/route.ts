@@ -259,6 +259,161 @@ async function applyDecision(request: Request, params: {
 }
 
 // ---------------------------------------------------------------------------
+// Handle /start <nonce> deep-link command
+// ---------------------------------------------------------------------------
+
+const TELEGRAM_API_BASE = "https://api.telegram.org";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+async function sendBotMessage(
+  botToken: string,
+  chatId: number,
+  text: string,
+): Promise<void> {
+  await fetch(`${TELEGRAM_API_BASE}/bot${botToken}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, text }),
+  }).catch((err) => {
+    console.error("[Telegram Webhook] sendMessage failed:", err);
+  });
+}
+
+async function handleStartCommand(
+  botToken: string,
+  nonce: string,
+  msg: TelegramMessage,
+): Promise<void> {
+  const admin = createAdminClient();
+  const chatId = msg.chat.id;
+  const chatTitle =
+    (msg.chat as { title?: string }).title ??
+    msg.from?.first_name ??
+    msg.from?.username ??
+    String(chatId);
+
+  // Look up the nonce
+  const { data: link, error: lookupError } = await admin
+    .from("telegram_link_nonces")
+    .select("id, org_id, created_by, claimed_at, expires_at")
+    .eq("nonce", nonce)
+    .single();
+
+  if (lookupError || !link) {
+    await sendBotMessage(
+      botToken,
+      chatId,
+      "This link is invalid or has already been used. Please generate a new one from OKrunit.",
+    );
+    return;
+  }
+
+  if (link.claimed_at) {
+    await sendBotMessage(
+      botToken,
+      chatId,
+      "This link has already been used. Your chat is connected!",
+    );
+    return;
+  }
+
+  if (new Date(link.expires_at) < new Date()) {
+    await sendBotMessage(
+      botToken,
+      chatId,
+      "This link has expired. Please generate a new one from OKrunit.",
+    );
+    return;
+  }
+
+  // Get bot info for workspace fields
+  const getMeRes = await fetch(
+    `${TELEGRAM_API_BASE}/bot${botToken}/getMe`,
+  );
+  const getMeData = await getMeRes.json();
+  const botUsername = getMeData.result?.username ?? "OKrunitBot";
+  const botName = getMeData.result?.first_name ?? "OKrunit";
+
+  // Create the messaging connection
+  const { data: connection, error: upsertError } = await admin
+    .from("messaging_connections")
+    .upsert(
+      {
+        org_id: link.org_id,
+        platform: "telegram",
+        access_token: null,
+        refresh_token: null,
+        token_expires_at: null,
+        bot_token: null, // uses env var TELEGRAM_BOT_TOKEN
+        workspace_id: botUsername,
+        workspace_name: botName,
+        channel_id: String(chatId),
+        channel_name: chatTitle,
+        webhook_url: null,
+        is_active: true,
+        installed_by: link.created_by,
+      },
+      { onConflict: "org_id,platform,channel_id" },
+    )
+    .select("id")
+    .single();
+
+  if (upsertError) {
+    console.error("[Telegram Webhook] Connection upsert failed:", upsertError);
+    await sendBotMessage(
+      botToken,
+      chatId,
+      "Something went wrong connecting this chat. Please try again.",
+    );
+    return;
+  }
+
+  // Mark the nonce as claimed
+  await admin
+    .from("telegram_link_nonces")
+    .update({
+      claimed_at: new Date().toISOString(),
+      chat_id: String(chatId),
+      chat_title: chatTitle,
+      connection_id: connection?.id ?? null,
+    })
+    .eq("id", link.id);
+
+  // Audit log
+  logAuditEvent({
+    orgId: link.org_id,
+    userId: link.created_by,
+    action: "messaging_connection.created",
+    resourceType: "messaging_connection",
+    resourceId: String(chatId),
+    details: {
+      platform: "telegram",
+      bot_username: botUsername,
+      chat_id: String(chatId),
+      chat_title: chatTitle,
+      method: "deep_link",
+    },
+  });
+
+  // Ensure webhook is set up for this bot (callback_query + message)
+  const webhookUrl = `${APP_URL}/api/telegram/webhook`;
+  await fetch(`${TELEGRAM_API_BASE}/bot${botToken}/setWebhook`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      url: webhookUrl,
+      allowed_updates: ["callback_query", "message"],
+    }),
+  }).catch(() => {});
+
+  await sendBotMessage(
+    botToken,
+    chatId,
+    `Connected to OKrunit! You'll receive approval notifications in this chat.\n\nYou can manage notification settings at ${APP_URL}/requests/messaging`,
+  );
+}
+
+// ---------------------------------------------------------------------------
 // POST /api/telegram/webhook
 // ---------------------------------------------------------------------------
 
@@ -288,13 +443,26 @@ export async function POST(request: Request) {
   cleanExpired();
 
   // -------------------------------------------------------------------------
-  // Handle text messages (reply with reason — only for required rejections)
+  // Handle text messages
   // -------------------------------------------------------------------------
   if (update.message && !update.callback_query) {
     const msg = update.message;
     const fromUser = msg.from;
     if (!fromUser || !msg.text) return NextResponse.json({ ok: true });
 
+    // -----------------------------------------------------------------------
+    // /start <nonce> — deep-link connection flow
+    // -----------------------------------------------------------------------
+    const startMatch = msg.text.match(/^\/start\s+(.+)$/);
+    if (startMatch) {
+      const nonce = startMatch[1];
+      await handleStartCommand(botToken, nonce, msg);
+      return NextResponse.json({ ok: true });
+    }
+
+    // -----------------------------------------------------------------------
+    // Reply with rejection reason (for required rejections)
+    // -----------------------------------------------------------------------
     const key = pendingKey(msg.chat.id, fromUser.id);
     const pending = pendingReasons.get(key);
     if (!pending) return NextResponse.json({ ok: true });

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { PlatformCard } from "@/components/messaging/platform-card";
 import { ConnectionList } from "@/components/messaging/connection-list";
 import { EmailConnectDialog } from "@/components/messaging/email-connect-dialog";
-import { TelegramConnectDialog } from "@/components/messaging/telegram-connect-dialog";
+import { TelegramDeepLinkDialog } from "@/components/messaging/telegram-deep-link-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SOURCE_CONFIG } from "@/components/approvals/source-icons";
 import type { ApprovalFlow, MessagingConnection, MessagingPlatform, RoutingRules } from "@/lib/types/database";
@@ -308,7 +308,7 @@ export function MessagingConnectionsPage({
       />
 
       {/* Telegram dialog */}
-      <TelegramConnectDialog
+      <TelegramDeepLinkDialog
         open={telegramDialogOpen}
         onOpenChange={setTelegramDialogOpen}
         onSuccess={handleTelegramSuccess}

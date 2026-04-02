@@ -381,7 +381,7 @@ export function DeliveryLogTable({
       </div>
 
       {/* ---- Table ---- */}
-        <div className="rounded-xl border bg-white" data-tour="delivery-table">
+        <div className="rounded-xl border bg-card" data-tour="delivery-table">
           <Table>
             <TableHeader>
               <TableRow>
@@ -611,7 +611,7 @@ export function DeliveryLogTable({
             variant="outline"
             onClick={loadMore}
             disabled={isPending}
-            className="bg-white text-gray-900 hover:bg-gray-50"
+            className="bg-card text-foreground hover:bg-accent"
           >
             {isPending ? (
               <>
