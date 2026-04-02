@@ -41,37 +41,39 @@ export async function GET(request: Request) {
       throw new ApiError(404, "Discord connection not found");
     }
 
-    if (!connection.bot_token || !connection.workspace_id) {
-      throw new ApiError(400, "Missing bot token or guild ID");
+    if (!connection.workspace_id) {
+      throw new ApiError(400, "Missing guild ID");
     }
 
-    // Try the dedicated bot token first, then the OAuth token with both auth types
-    const tokensToTry = [
-      ...(process.env.DISCORD_BOT_TOKEN ? [`Bot ${process.env.DISCORD_BOT_TOKEN}`] : []),
-      `Bot ${connection.bot_token}`,
-      `Bearer ${connection.bot_token}`,
-    ];
+    // Get a valid token (refreshes if needed, prefers DISCORD_BOT_TOKEN env)
+    const { ensureDiscordToken } = await import("@/lib/notifications/token-refresh");
+    const fullConn = await (async () => {
+      const admin2 = createAdminClient();
+      const { data } = await admin2
+        .from("messaging_connections")
+        .select("*")
+        .eq("id", connectionId)
+        .single();
+      return data;
+    })();
 
-    let allChannels: Array<{ id: string; name: string; type: number; position: number }> = [];
-
-    for (const authHeader of tokensToTry) {
-      const response = await fetch(
-        `${DISCORD_API_BASE}/guilds/${connection.workspace_id}/channels`,
-        { headers: { Authorization: authHeader } },
-      );
-
-      if (response.ok) {
-        allChannels = await response.json();
-        break;
-      } else {
-        console.log("[Discord Channels] Failed with", authHeader.split(" ")[0], "auth:", response.status);
-      }
+    const botToken = fullConn ? await ensureDiscordToken(fullConn) : null;
+    if (!botToken) {
+      throw new ApiError(400, "No valid bot token. Set DISCORD_BOT_TOKEN in environment or reconnect Discord.");
     }
 
-    if (allChannels.length === 0) {
-      console.error("[Discord Channels] Could not fetch channels for guild:", connection.workspace_id);
-      throw new ApiError(502, "Failed to fetch Discord channels. Ensure DISCORD_BOT_TOKEN is set or the bot has guild access.");
+    const response = await fetch(
+      `${DISCORD_API_BASE}/guilds/${connection.workspace_id}/channels`,
+      { headers: { Authorization: `Bot ${botToken}` } },
+    );
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error("[Discord Channels] API error:", response.status, body);
+      throw new ApiError(502, "Failed to fetch Discord channels");
     }
+
+    const allChannels: Array<{ id: string; name: string; type: number; position: number }> = await response.json();
 
     // Only return text channels (type 0) sorted by position
     const textChannels = allChannels
