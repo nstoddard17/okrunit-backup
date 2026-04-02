@@ -116,7 +116,7 @@ export const paginationSchema = z.object({
     .max(MAX_PAGE_SIZE)
     .default(DEFAULT_PAGE_SIZE)
     .optional(),
-  status: statusEnum.optional(),
+  status: z.union([statusEnum, z.string().transform((s) => s.split(",").map((v) => v.trim())).pipe(z.array(statusEnum))]).optional(),
   priority: priorityEnum.optional(),
   search: z.string().max(500).optional(),
 });
