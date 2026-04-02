@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, X, Archive } from "lucide-react";
-import { SOURCE_CONFIG } from "@/components/approvals/source-icons";
+import { SOURCE_CONFIG, AVAILABLE_SOURCES } from "@/components/approvals/source-icons";
 import type { Connection } from "@/lib/types/database";
 
 interface ApprovalFiltersProps {
@@ -112,7 +112,9 @@ export function ApprovalFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Sources</SelectItem>
-            {Object.entries(SOURCE_CONFIG).map(([key, config]) => (
+            {Object.entries(SOURCE_CONFIG)
+              .filter(([key]) => AVAILABLE_SOURCES.has(key))
+              .map(([key, config]) => (
               <SelectItem key={key} value={key}>
                 {config.label}
               </SelectItem>

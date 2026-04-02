@@ -8,10 +8,8 @@
 import {
   PROD_URL,
   emailButton,
-  emailButtonRow,
   emailCard,
   emailDivider,
-  emailHero,
   emailHeroBanner,
   emailIllustrationSection,
   emailLayout,
@@ -29,13 +27,23 @@ export function buildConfirmEmailHtml(params: ConfirmEmailParams): string {
   const { fullName, confirmLink } = params;
 
   // --- Hero banner (envelope emoji) ---
-  const heroBanner = emailHeroBanner({ image: "verify-email.svg", imageWidth: 200, imageHeight: 150, alt: "Verify your email" });
+  const heroBanner = emailHeroBanner({ image: "verify-email.svg", imageWidth: 160, imageHeight: 120, alt: "Verify your email", compact: true });
 
-  // --- Hero ---
-  const hero = emailHero({
-    title: "Welcome to OKrunit! Let&rsquo;s get started.",
-    descriptionHtml: `Hi ${escapeHtml(fullName)}! We&rsquo;re thrilled you&rsquo;re here. To activate your account and start routing approval flows, please verify your email address.`,
-  });
+  // --- Hero (compact margins so the CTA is visible without scrolling) ---
+  const hero = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+      <tr>
+        <td align="center">
+          <h1 style="margin:0 0 10px;color:${emailTheme.ink};font-size:28px;font-weight:700;line-height:36px;letter-spacing:-0.5px;text-align:center;">
+            Welcome to OKrunit! Let&rsquo;s get started.
+          </h1>
+          <p style="margin:0;color:${emailTheme.text};font-size:15px;line-height:26px;text-align:center;">
+            Hi ${escapeHtml(fullName)}! We&rsquo;re thrilled you&rsquo;re here. To activate your account and start routing approval flows, please verify your email address.
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
 
   // --- Account info card ---
   const accountCard = emailCard(
@@ -51,13 +59,16 @@ export function buildConfirmEmailHtml(params: ConfirmEmailParams): string {
     { tone: "brand" },
   );
 
-  // --- Verify button ---
-  const verifyButton = emailButtonRow([
-    emailButton({
-      label: "Verify Email Address",
-      href: confirmLink,
-    }),
-  ]);
+  // --- Verify button (reduced top margin to keep it above the fold) ---
+  const verifyButton = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;">
+      <tr>
+        <td align="center">
+          ${emailButton({ label: "Verify Email Address", href: confirmLink })}
+        </td>
+      </tr>
+    </table>
+  `;
 
   // --- "What you unlock" section header ---
   const sectionHeader = `
@@ -107,17 +118,18 @@ export function buildConfirmEmailHtml(params: ConfirmEmailParams): string {
     message: "Welcome aboard!",
     name: "The OKrunit Team",
     title: "Human-in-the-loop, always",
+    align: "center",
   });
 
   // --- Fallback link ---
   const fallbackLink = `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0;">
       <tr>
-        <td>
-          <p style="margin:0;color:${emailTheme.muted};font-size:12px;line-height:20px;">
+        <td align="center">
+          <p style="margin:0;color:${emailTheme.muted};font-size:12px;line-height:20px;text-align:center;">
             Button not working? Copy and paste this link into your browser:
           </p>
-          <p style="margin:8px 0 0;">
+          <p style="margin:8px 0 0;text-align:center;">
             <a href="${confirmLink}" style="color:${emailTheme.brand};font-size:12px;font-weight:600;line-height:20px;word-break:break-all;text-decoration:none;">${confirmLink}</a>
           </p>
         </td>

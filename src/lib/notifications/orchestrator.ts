@@ -341,18 +341,23 @@ function dispatchSlack(
   });
 }
 
-function dispatchDiscord(
+async function dispatchDiscord(
   conn: MessagingConnection,
   event: NotificationEvent,
   isCreateEvent: boolean,
 ): Promise<void> {
   const webhookUrl = conn.webhook_url ?? undefined;
-  const botToken = conn.bot_token ?? undefined;
   const channelId = conn.channel_id ?? undefined;
 
-  // Skip if no valid delivery method, or if channel hasn't been selected yet
-  if (!webhookUrl && !(botToken && channelId)) return Promise.resolve();
-  if (channelId?.startsWith("pending:")) return Promise.resolve();
+  // Skip if channel hasn't been selected yet
+  if (channelId?.startsWith("pending:")) return;
+
+  // Refresh token if needed (uses DISCORD_BOT_TOKEN env if available)
+  const { ensureDiscordToken } = await import("@/lib/notifications/token-refresh");
+  const botToken = await ensureDiscordToken(conn) ?? undefined;
+
+  // Skip if no valid delivery method
+  if (!webhookUrl && !(botToken && channelId)) return;
 
   if (isCreateEvent) {
     return sendDiscordNotification({

@@ -10,7 +10,7 @@ import { ConnectionList } from "@/components/messaging/connection-list";
 import { EmailConnectDialog } from "@/components/messaging/email-connect-dialog";
 import { TelegramDeepLinkDialog } from "@/components/messaging/telegram-deep-link-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SOURCE_CONFIG } from "@/components/approvals/source-icons";
+import { SOURCE_CONFIG, AVAILABLE_SOURCES } from "@/components/approvals/source-icons";
 import type { ApprovalFlow, MessagingConnection, MessagingPlatform, RoutingRules } from "@/lib/types/database";
 
 // ---------------------------------------------------------------------------
@@ -93,12 +93,14 @@ export function MessagingConnectionsPage({
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [telegramDialogOpen, setTelegramDialogOpen] = useState(false);
 
-  // Show all known sources — not just the ones with existing flows
-  const sources = Object.entries(SOURCE_CONFIG).map(([platform, config]) => ({
-    id: platform,
-    platform,
-    name: config.label,
-  }));
+  // Only show sources that are actually available as integrations
+  const sources = Object.entries(SOURCE_CONFIG)
+    .filter(([platform]) => AVAILABLE_SOURCES.has(platform))
+    .map(([platform, config]) => ({
+      id: platform,
+      platform,
+      name: config.label,
+    }));
 
   // Count connections per platform
   function countForPlatform(platform: MessagingPlatform): number {

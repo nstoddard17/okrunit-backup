@@ -384,13 +384,16 @@ export function emailHeroBanner(options: {
   imageWidth?: number;
   imageHeight?: number;
   alt?: string;
+  /** Reduce padding for a more compact layout */
+  compact?: boolean;
 }): string {
-  const { image, imageWidth = 200, imageHeight = 150, alt = "OKrunit" } = options;
+  const { image, imageWidth = 200, imageHeight = 150, alt = "OKrunit", compact = false } = options;
+  const padding = compact ? "24px 32px" : "40px 32px";
 
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${emailTheme.heroBg};border-bottom:1px solid ${emailTheme.heroBorder};">
       <tr>
-        <td align="center" style="padding:40px 32px;">
+        <td align="center" style="padding:${padding};">
           <img
             src="${APP_URL}/email/${image}"
             alt="${escapeHtml(alt)}"
@@ -463,16 +466,19 @@ export function emailSignoff(options: {
   message?: string;
   name: string;
   title: string;
+  align?: "left" | "center";
 }): string {
-  const { message, name, title: role } = options;
+  const { message, name, title: role, align = "left" } = options;
+  const textAlign = align === "center" ? "text-align:center;" : "";
+  const alignAttr = align === "center" ? ' align="center"' : "";
 
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:36px 0 0;border-top:1px solid ${emailTheme.divider};padding-top:28px;">
       <tr>
-        <td>
-          ${message ? `<p style="margin:0 0 20px;color:${emailTheme.text};font-size:15px;line-height:26px;">${message}</p>` : ""}
-          <p style="margin:0;color:${emailTheme.ink};font-size:15px;font-weight:700;line-height:22px;">${escapeHtml(name)}</p>
-          <p style="margin:2px 0 0;color:${emailTheme.muted};font-size:13px;line-height:20px;">${escapeHtml(role)}</p>
+        <td${alignAttr}>
+          ${message ? `<p style="margin:0 0 20px;color:${emailTheme.text};font-size:15px;line-height:26px;${textAlign}">${message}</p>` : ""}
+          <p style="margin:0;color:${emailTheme.ink};font-size:15px;font-weight:700;line-height:22px;${textAlign}">${escapeHtml(name)}</p>
+          <p style="margin:2px 0 0;color:${emailTheme.muted};font-size:13px;line-height:20px;${textAlign}">${escapeHtml(role)}</p>
         </td>
       </tr>
     </table>
@@ -527,7 +533,7 @@ export function emailLayout(options: {
                   src="${LOGO_URL}"
                   alt="OKrunit"
                   width="140"
-                  style="display:block;width:140px;height:auto;border:0;background:#ffffff;border-radius:8px;padding:6px 12px;"
+                  style="display:block;width:140px;height:auto;border:0;"
                 />
               </a>
             </td>

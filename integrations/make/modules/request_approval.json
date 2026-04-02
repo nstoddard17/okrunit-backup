@@ -42,12 +42,13 @@
   ],
   "url": "/api/v1/approvals",
   "method": "POST",
+  "type": "json",
   "body": {
     "title": "{{ifempty(parameters.title, 'Approval request from Make')}}",
-    "description": "{{ifempty(parameters.description, undefined)}}",
-    "callback_url": "{{ifempty(parameters.callback_url, undefined)}}",
-    "metadata": "{{ifempty(parameters.metadata, undefined)}}",
-    "source_url": "{{ifempty(parameters.source_url, undefined)}}",
+    "description": "{{parameters.description}}",
+    "callback_url": "{{parameters.callback_url}}",
+    "metadata": "{{parameters.metadata}}",
+    "source_url": "{{parameters.source_url}}",
     "source": "make",
     "idempotency_key": "make-{{ifempty(parameters.title, 'approval')}}-{{timestamp}}"
   },

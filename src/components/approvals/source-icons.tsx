@@ -47,6 +47,12 @@ export interface SourceDisplayConfig {
   bgColor: string; // Tailwind bg color for the badge/avatar
 }
 
+/** Sources that are actually available as integrations (excludes "coming soon"). */
+export const AVAILABLE_SOURCES = new Set([
+  "zapier", "make", "n8n", "monday", "github-actions",
+  "temporal", "prefect", "dagster", "windmill", "pipedream", "api",
+]);
+
 export const SOURCE_CONFIG: Record<string, SourceDisplayConfig> = {
   zapier: {
     label: "Zapier",
