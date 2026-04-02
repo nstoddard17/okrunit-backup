@@ -124,3 +124,58 @@ export async function DELETE(request: Request) {
     return errorResponse(error);
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    const auth = await authenticateRequest(request);
+
+    if (auth.type !== "session") {
+      throw new ApiError(401, "Session authentication required");
+    }
+    if (!["owner", "admin"].includes(auth.membership.role)) {
+      throw new ApiError(403, "Admin or owner role required");
+    }
+
+    const body = await request.json();
+    if (!body.id) {
+      throw new ApiError(400, "Connection ID is required");
+    }
+
+    const admin = createAdminClient();
+
+    // Verify ownership
+    const { data: existing } = await admin
+      .from("messaging_connections")
+      .select("id")
+      .eq("id", body.id)
+      .eq("org_id", auth.orgId)
+      .single();
+
+    if (!existing) {
+      throw new ApiError(404, "Connection not found");
+    }
+
+    // Build update payload from allowed fields
+    const update: Record<string, unknown> = {};
+    if (body.channel_id !== undefined) update.channel_id = body.channel_id;
+    if (body.channel_name !== undefined) update.channel_name = body.channel_name;
+
+    if (Object.keys(update).length === 0) {
+      throw new ApiError(400, "Nothing to update");
+    }
+
+    const { error } = await admin
+      .from("messaging_connections")
+      .update(update)
+      .eq("id", body.id);
+
+    if (error) {
+      console.error("[Messaging Connections] Update failed:", error);
+      throw new ApiError(500, "Failed to update connection");
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
