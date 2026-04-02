@@ -19,7 +19,7 @@ export default async function V2OrgMembersPage() {
 
   const { data: orgMemberships } = await admin
     .from("org_memberships")
-    .select("id, user_id, org_id, role, can_approve, created_at, updated_at")
+    .select("id, user_id, org_id, role, can_approve, can_connect, created_at, updated_at")
     .eq("org_id", membership.org_id)
     .order("role", { ascending: true })
     .order("created_at", { ascending: true });

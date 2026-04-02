@@ -172,6 +172,7 @@ export async function PATCH(request: Request) {
     const updatePayload: Record<string, unknown> = {};
     if (body.role) updatePayload.role = body.role;
     if (body.can_approve !== undefined) updatePayload.can_approve = body.can_approve;
+    if (body.can_connect !== undefined) updatePayload.can_connect = body.can_connect;
 
     if (Object.keys(updatePayload).length === 0) {
       throw new ApiError(400, "Nothing to update");
@@ -203,6 +204,10 @@ export async function PATCH(request: Request) {
     if (body.can_approve !== undefined) {
       auditDetails.old_can_approve = targetMembership.can_approve;
       auditDetails.new_can_approve = body.can_approve;
+    }
+    if (body.can_connect !== undefined) {
+      auditDetails.old_can_connect = (targetMembership as Record<string, unknown>).can_connect;
+      auditDetails.new_can_connect = body.can_connect;
     }
 
     await logAuditEvent({

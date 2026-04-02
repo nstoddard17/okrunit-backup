@@ -58,9 +58,9 @@ export async function POST(request: Request) {
       throw new ApiError(403, "Only dashboard users can manage connections");
     }
 
-    // Must be owner or admin.
-    if (auth.membership.role !== "owner" && auth.membership.role !== "admin") {
-      throw new ApiError(403, "Insufficient permissions");
+    // Must have connect permission (owner/admin always have it, others need can_connect).
+    if (!auth.membership.can_connect) {
+      throw new ApiError(403, "You don't have permission to create connections. Ask an admin to grant connect access.");
     }
 
     // Billing plan enforcement
