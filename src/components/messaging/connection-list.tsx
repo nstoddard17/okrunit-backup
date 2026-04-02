@@ -548,17 +548,19 @@ export function ConnectionList({
   const [discordChannels, setDiscordChannels] = useState<Record<string, Array<{ id: string; name: string }>>>({});
   const [channelLoading, setChannelLoading] = useState<string | null>(null);
 
-  async function fetchDiscordChannels(connectionId: string) {
-    if (discordChannels[connectionId]) return;
+  async function fetchDiscordChannels(connectionId: string, forceRefresh = false) {
+    if (discordChannels[connectionId] && !forceRefresh) return;
     setChannelLoading(connectionId);
     try {
       const res = await fetch(`/api/v1/messaging/discord/channels?connection_id=${connectionId}`);
       if (res.ok) {
         const data = await res.json();
         setDiscordChannels((prev) => ({ ...prev, [connectionId]: data.channels }));
+      } else {
+        toast.error("Failed to load Discord channels");
       }
     } catch {
-      // Silently fail
+      toast.error("Failed to load Discord channels");
     } finally {
       setChannelLoading(null);
     }
@@ -666,6 +668,10 @@ export function ConnectionList({
                             <Select
                               value={connection.channel_id}
                               onValueChange={(value) => {
+                                if (value === "_refresh") {
+                                  fetchDiscordChannels(connection.id, true);
+                                  return;
+                                }
                                 const ch = discordChannels[connection.id]?.find((c) => c.id === value);
                                 if (ch) handleChannelChange(connection.id, ch.id, ch.name);
                               }}
@@ -678,15 +684,30 @@ export function ConnectionList({
                                 <SelectValue placeholder={channelLoading === connection.id ? "Loading..." : "Select channel"} />
                               </SelectTrigger>
                               <SelectContent>
-                                {(discordChannels[connection.id] ?? []).map((ch) => (
-                                  <SelectItem key={ch.id} value={ch.id}>
-                                    # {ch.name}
-                                  </SelectItem>
-                                ))}
-                                {!discordChannels[connection.id] && (
+                                {channelLoading === connection.id ? (
                                   <SelectItem value="_loading" disabled>
                                     Loading channels...
                                   </SelectItem>
+                                ) : (discordChannels[connection.id] ?? []).length > 0 ? (
+                                  <>
+                                    {discordChannels[connection.id].map((ch) => (
+                                      <SelectItem key={ch.id} value={ch.id}>
+                                        # {ch.name}
+                                      </SelectItem>
+                                    ))}
+                                    <SelectItem value="_refresh" className="text-muted-foreground italic">
+                                      Refresh channels
+                                    </SelectItem>
+                                  </>
+                                ) : (
+                                  <>
+                                    <SelectItem value="_empty" disabled>
+                                      No channels found
+                                    </SelectItem>
+                                    <SelectItem value="_refresh" className="text-muted-foreground italic">
+                                      Refresh channels
+                                    </SelectItem>
+                                  </>
                                 )}
                               </SelectContent>
                             </Select>
