@@ -660,6 +660,38 @@ export function ConnectionList({
                             <span>{connection.workspace_name}</span>
                           </>
                         )}
+                        {connection.platform === "discord" && (
+                          <>
+                            <span aria-hidden="true">&middot;</span>
+                            <Select
+                              value={connection.channel_id}
+                              onValueChange={(value) => {
+                                const ch = discordChannels[connection.id]?.find((c) => c.id === value);
+                                if (ch) handleChannelChange(connection.id, ch.id, ch.name);
+                              }}
+                              onOpenChange={(open) => {
+                                if (open) fetchDiscordChannels(connection.id);
+                              }}
+                            >
+                              <SelectTrigger className="h-5 w-auto gap-1 border-none bg-transparent p-0 text-xs text-muted-foreground shadow-none hover:text-foreground">
+                                <Hash className="size-3" />
+                                <SelectValue placeholder={channelLoading === connection.id ? "Loading..." : "Select channel"} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(discordChannels[connection.id] ?? []).map((ch) => (
+                                  <SelectItem key={ch.id} value={ch.id}>
+                                    # {ch.name}
+                                  </SelectItem>
+                                ))}
+                                {!discordChannels[connection.id] && (
+                                  <SelectItem value="_loading" disabled>
+                                    Loading channels...
+                                  </SelectItem>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </>
+                        )}
                         <span aria-hidden="true">&middot;</span>
                         <span>
                           Added{" "}
@@ -671,39 +703,6 @@ export function ConnectionList({
                       </div>
                     </div>
                   </div>
-
-                  {/* Discord channel selector */}
-                  {connection.platform === "discord" && (
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Select
-                        value={connection.channel_id}
-                        onValueChange={(value) => {
-                          const ch = discordChannels[connection.id]?.find((c) => c.id === value);
-                          if (ch) handleChannelChange(connection.id, ch.id, ch.name);
-                        }}
-                        onOpenChange={(open) => {
-                          if (open) fetchDiscordChannels(connection.id);
-                        }}
-                      >
-                        <SelectTrigger size="sm" className="w-[160px]">
-                          <Hash className="size-3 mr-1 text-muted-foreground" />
-                          <SelectValue placeholder={channelLoading === connection.id ? "Loading..." : "Select channel"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(discordChannels[connection.id] ?? []).map((ch) => (
-                            <SelectItem key={ch.id} value={ch.id}>
-                              # {ch.name}
-                            </SelectItem>
-                          ))}
-                          {!discordChannels[connection.id] && (
-                            <SelectItem value="_loading" disabled>
-                              Loading channels...
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
 
                   {/* Right: priority filter + actions */}
                   <div className="flex items-center gap-2 shrink-0">
