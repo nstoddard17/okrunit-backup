@@ -173,7 +173,18 @@ export async function GET(request: Request) {
       Date.now() + tokenData.expires_in * 1000,
     ).toISOString();
 
-    const { error: upsertError } = await admin
+    console.log("[Discord Callback] Upserting connection:", {
+      org_id: state.orgId,
+      platform: "discord",
+      workspace_id: guildId,
+      workspace_name: guildName,
+      channel_id: defaultChannelId,
+      channel_name: defaultChannelName,
+      has_webhook: !!webhookUrl,
+      has_token: !!tokenData.access_token,
+    });
+
+    const { data: connection, error: upsertError } = await admin
       .from("messaging_connections")
       .upsert(
         {
@@ -192,7 +203,9 @@ export async function GET(request: Request) {
           installed_by: state.userId,
         },
         { onConflict: "org_id,platform,channel_id" },
-      );
+      )
+      .select("id")
+      .single();
 
     if (upsertError) {
       console.error("[Discord Callback] Upsert failed:", upsertError);
@@ -200,6 +213,8 @@ export async function GET(request: Request) {
         `${APP_URL}/requests/messaging?error=save_failed`,
       );
     }
+
+    console.log("[Discord Callback] Connection saved:", connection?.id);
 
     // 6. Audit log
     logAuditEvent({
