@@ -110,8 +110,8 @@ export async function GET(request: Request) {
     }
 
     // 3. Use a placeholder channel_id — user will select the real channel in the UI.
-    //    The bot token is what matters for sending messages; no webhook needed.
-    const defaultChannelId = guildId; // Use guild ID as placeholder channel_id
+    //    Prefix with "pending:" so the orchestrator knows not to send to this.
+    const defaultChannelId = `pending:${guildId}`;
     const defaultChannelName = guildName ?? "Server";
 
     console.log("[Discord Callback] Saving bot connection:", {

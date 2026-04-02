@@ -639,6 +639,7 @@ export function ConnectionList({
   const [savingRoute, setSavingRoute] = useState<string | null>(null);
   const [discordChannels, setDiscordChannels] = useState<Record<string, Array<{ id: string; name: string }>>>({});
   const [channelLoading, setChannelLoading] = useState<string | null>(null);
+  const [channelOverrides, setChannelOverrides] = useState<Record<string, { id: string; name: string }>>({});
 
   async function fetchDiscordChannels(connectionId: string, forceRefresh = false) {
     if (discordChannels[connectionId] && !forceRefresh) return;
@@ -659,16 +660,22 @@ export function ConnectionList({
   }
 
   async function handleChannelChange(connectionId: string, channelId: string, channelName: string) {
+    // Optimistic update
+    setChannelOverrides((prev) => ({ ...prev, [connectionId]: { id: channelId, name: channelName } }));
+    toast.success(`Channel changed to #${channelName}`);
+
     try {
       const res = await fetch(`/api/v1/messaging/connections`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: connectionId, channel_id: channelId, channel_name: channelName }),
       });
-      if (res.ok) {
-        toast.success(`Channel changed to #${channelName}`);
+      if (!res.ok) {
+        setChannelOverrides((prev) => { const next = { ...prev }; delete next[connectionId]; return next; });
+        toast.error("Failed to change channel");
       }
     } catch {
+      setChannelOverrides((prev) => { const next = { ...prev }; delete next[connectionId]; return next; });
       toast.error("Failed to change channel");
     }
   }
@@ -736,7 +743,13 @@ export function ConnectionList({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-medium">
-                          {connection.channel_name ?? connection.channel_id}
+                          {connection.platform === "discord"
+                            ? channelOverrides[connection.id]?.name
+                              ? `# ${channelOverrides[connection.id].name}`
+                              : connection.channel_id?.startsWith("pending:")
+                                ? (connection.workspace_name ?? "Discord Server")
+                                : `# ${connection.channel_name ?? connection.channel_id}`
+                            : (connection.channel_name ?? connection.channel_id)}
                         </span>
                         <Badge
                           variant={
@@ -760,9 +773,10 @@ export function ConnectionList({
                             <DiscordChannelPicker
                               connectionId={connection.id}
                               channelName={
-                                connection.channel_name && connection.channel_name !== connection.workspace_name
+                                channelOverrides[connection.id]?.name
+                                ?? (connection.channel_name && connection.channel_name !== connection.workspace_name
                                   ? connection.channel_name
-                                  : null
+                                  : null)
                               }
                               channels={discordChannels[connection.id] ?? []}
                               loading={channelLoading === connection.id}
