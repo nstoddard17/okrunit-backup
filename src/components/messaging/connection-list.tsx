@@ -529,6 +529,98 @@ function RoutingConfig({
 }
 
 // ---------------------------------------------------------------------------
+// Discord Channel Picker — lightweight inline dropdown
+// ---------------------------------------------------------------------------
+
+function DiscordChannelPicker({
+  connectionId,
+  channelName,
+  channels,
+  loading,
+  onOpen,
+  onRefresh,
+  onSelect,
+}: {
+  connectionId: string;
+  channelName: string | null;
+  channels: Array<{ id: string; name: string }>;
+  loading: boolean;
+  onOpen: () => void;
+  onRefresh: () => void;
+  onSelect: (ch: { id: string; name: string }) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative inline-flex items-center">
+      <button
+        type="button"
+        onClick={() => {
+          if (!open) onOpen();
+          setOpen(!open);
+        }}
+        className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+      >
+        <Hash className="size-3 shrink-0" />
+        <span className="truncate max-w-[120px]">{channelName ?? "Select channel"}</span>
+        <ChevronDown className="size-3 shrink-0 opacity-50" />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 z-50 mt-1 min-w-[180px] max-h-[240px] overflow-y-auto rounded-md border bg-popover p-1 shadow-md animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
+          {loading ? (
+            <div className="px-2 py-1.5 text-xs text-muted-foreground">Loading channels...</div>
+          ) : channels.length > 0 ? (
+            <>
+              {channels.map((ch) => (
+                <button
+                  key={ch.id}
+                  type="button"
+                  onClick={() => { onSelect(ch); setOpen(false); }}
+                  className="flex w-full items-center gap-1.5 rounded-sm px-2 py-1.5 text-xs hover:bg-accent cursor-pointer"
+                >
+                  <Hash className="size-3 text-muted-foreground shrink-0" />
+                  {ch.name}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => onRefresh()}
+                className="flex w-full items-center gap-1.5 rounded-sm px-2 py-1.5 text-xs text-muted-foreground italic hover:bg-accent cursor-pointer"
+              >
+                Refresh channels
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="px-2 py-1.5 text-xs text-muted-foreground">No channels found</div>
+              <button
+                type="button"
+                onClick={() => onRefresh()}
+                className="flex w-full items-center gap-1.5 rounded-sm px-2 py-1.5 text-xs text-muted-foreground italic hover:bg-accent cursor-pointer"
+              >
+                Refresh channels
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Connection List
 // ---------------------------------------------------------------------------
 
@@ -665,56 +757,19 @@ export function ConnectionList({
                         {connection.platform === "discord" && (
                           <>
                             <span aria-hidden="true">&middot;</span>
-                            <Select
-                              value={connection.channel_id}
-                              onValueChange={(value) => {
-                                if (value === "_refresh") {
-                                  fetchDiscordChannels(connection.id, true);
-                                  return;
-                                }
-                                const ch = discordChannels[connection.id]?.find((c) => c.id === value);
-                                if (ch) handleChannelChange(connection.id, ch.id, ch.name);
-                              }}
-                              onOpenChange={(open) => {
-                                if (open) fetchDiscordChannels(connection.id);
-                              }}
-                            >
-                              <SelectTrigger className="inline-flex h-auto w-auto items-center gap-0.5 border-none bg-transparent p-0 text-xs text-muted-foreground shadow-none hover:text-foreground [&>svg:last-child]:size-3 [&>svg:last-child]:opacity-50">
-                                <Hash className="size-3 shrink-0" />
-                                <span className="truncate max-w-[120px]">
-                                  {connection.channel_name && connection.channel_name !== connection.workspace_name
-                                    ? connection.channel_name
-                                    : "Select channel"}
-                                </span>
-                              </SelectTrigger>
-                              <SelectContent>
-                                {channelLoading === connection.id ? (
-                                  <SelectItem value="_loading" disabled>
-                                    Loading channels...
-                                  </SelectItem>
-                                ) : (discordChannels[connection.id] ?? []).length > 0 ? (
-                                  <>
-                                    {discordChannels[connection.id].map((ch) => (
-                                      <SelectItem key={ch.id} value={ch.id}>
-                                        # {ch.name}
-                                      </SelectItem>
-                                    ))}
-                                    <SelectItem value="_refresh" className="text-muted-foreground italic">
-                                      Refresh channels
-                                    </SelectItem>
-                                  </>
-                                ) : (
-                                  <>
-                                    <SelectItem value="_empty" disabled>
-                                      No channels found
-                                    </SelectItem>
-                                    <SelectItem value="_refresh" className="text-muted-foreground italic">
-                                      Refresh channels
-                                    </SelectItem>
-                                  </>
-                                )}
-                              </SelectContent>
-                            </Select>
+                            <DiscordChannelPicker
+                              connectionId={connection.id}
+                              channelName={
+                                connection.channel_name && connection.channel_name !== connection.workspace_name
+                                  ? connection.channel_name
+                                  : null
+                              }
+                              channels={discordChannels[connection.id] ?? []}
+                              loading={channelLoading === connection.id}
+                              onOpen={() => fetchDiscordChannels(connection.id)}
+                              onRefresh={() => fetchDiscordChannels(connection.id, true)}
+                              onSelect={(ch) => handleChannelChange(connection.id, ch.id, ch.name)}
+                            />
                           </>
                         )}
                         <span aria-hidden="true">&middot;</span>
