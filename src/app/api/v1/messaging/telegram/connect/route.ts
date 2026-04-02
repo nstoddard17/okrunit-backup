@@ -140,7 +140,7 @@ export async function POST(request: Request) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url: webhookUrl,
-          allowed_updates: ["callback_query"],
+          allowed_updates: ["callback_query", "message"],
         }),
       },
     );
@@ -159,7 +159,7 @@ export async function POST(request: Request) {
     // 4. Store the connection
     const admin = createAdminClient();
 
-    const { error: upsertError } = await admin
+    const { data: connection, error: upsertError } = await admin
       .from("messaging_connections")
       .upsert(
         {
@@ -178,7 +178,9 @@ export async function POST(request: Request) {
           installed_by: userId,
         },
         { onConflict: "org_id,platform,channel_id" },
-      );
+      )
+      .select("id")
+      .single();
 
     if (upsertError) {
       console.error("[Telegram Connect] Upsert failed:", upsertError);
@@ -194,7 +196,7 @@ export async function POST(request: Request) {
       userId,
       action: "messaging_connection.created",
       resourceType: "messaging_connection",
-      resourceId: chat_id,
+      resourceId: connection?.id ?? undefined,
       ipAddress: getClientIp(request),
       details: {
         platform: "telegram",

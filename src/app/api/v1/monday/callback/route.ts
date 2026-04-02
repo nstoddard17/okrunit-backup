@@ -130,7 +130,7 @@ export async function GET(request: Request) {
     // 3. Store the connection
     const admin = createAdminClient();
 
-    const { error: upsertError } = await admin
+    const { data: mondayConnection, error: upsertError } = await admin
       .from("messaging_connections")
       .upsert(
         {
@@ -149,7 +149,9 @@ export async function GET(request: Request) {
           installed_by: state.userId,
         },
         { onConflict: "org_id,platform,channel_id" },
-      );
+      )
+      .select("id")
+      .single();
 
     if (upsertError) {
       console.error("[monday.com Callback] Upsert failed:", upsertError);
@@ -164,7 +166,7 @@ export async function GET(request: Request) {
       userId: state.userId,
       action: "messaging_connection.created",
       resourceType: "messaging_connection",
-      resourceId: workspaceId,
+      resourceId: mondayConnection?.id ?? undefined,
       ipAddress: getClientIp(request),
       details: {
         platform: "monday",
