@@ -123,7 +123,7 @@ export function buildConfirmEmailHtml(params: ConfirmEmailParams): string {
 
   // --- Fallback link ---
   const fallbackLink = `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0 0;">
       <tr>
         <td align="center">
           <p style="margin:0;color:${emailTheme.muted};font-size:12px;line-height:20px;text-align:center;">

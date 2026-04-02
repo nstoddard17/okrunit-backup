@@ -287,10 +287,18 @@ async function handleRefreshToken(
 ): Promise<NextResponse> {
   const { refresh_token, client_id, client_secret } = body;
 
+  console.log("[OAuth Token] refresh_token grant:", {
+    has_refresh_token: !!refresh_token,
+    refresh_token_length: refresh_token?.length ?? 0,
+    has_client_id: !!client_id,
+    has_client_secret: !!client_secret,
+    body_keys: Object.keys(body),
+  });
+
   if (!refresh_token || !client_id) {
     return oauthError(
       "invalid_request",
-      "Missing required parameters: refresh_token, client_id.",
+      `Missing required parameters: ${[!refresh_token && "refresh_token", !client_id && "client_id"].filter(Boolean).join(", ")}.`,
     );
   }
 

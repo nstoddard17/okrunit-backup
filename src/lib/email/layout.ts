@@ -473,7 +473,7 @@ export function emailSignoff(options: {
   const alignAttr = align === "center" ? ' align="center"' : "";
 
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:36px 0 0;border-top:1px solid ${emailTheme.divider};padding-top:28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0;border-top:1px solid ${emailTheme.divider};padding-top:20px;">
       <tr>
         <td${alignAttr}>
           ${message ? `<p style="margin:0 0 20px;color:${emailTheme.text};font-size:15px;line-height:26px;${textAlign}">${message}</p>` : ""}
@@ -522,7 +522,7 @@ export function emailLayout(options: {
   ${preheaderBlock}
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;background-color:${emailTheme.pageBackground};">
     <tr>
-      <td align="center" style="padding:40px 16px 48px;">
+      <td align="center" style="padding:40px 16px 64px;">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
           <!-- Logo -->
@@ -546,7 +546,7 @@ export function emailLayout(options: {
                 ${heroBanner ?? ""}
                 <!-- Body content -->
                 <tr>
-                  <td style="padding:44px 44px 40px;">
+                  <td style="padding:44px 44px 28px;">
                     ${body}
                   </td>
                 </tr>
@@ -556,7 +556,7 @@ export function emailLayout(options: {
 
           <!-- Footer -->
           <tr>
-            <td align="center" style="padding:32px 20px 0;">
+            <td align="center" style="padding:16px 20px 0;">
               <p style="margin:0 0 10px;color:${emailTheme.muted};font-size:13px;line-height:22px;">
                 ${escapeHtml(footerContent)}
               </p>

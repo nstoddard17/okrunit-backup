@@ -8,10 +8,8 @@
 import {
   PROD_URL,
   emailButton,
-  emailButtonRow,
   emailCard,
   emailDivider,
-  emailHero,
   emailHeroBanner,
   emailIllustrationSection,
   emailLayout,
@@ -27,14 +25,23 @@ export function buildWelcomeEmailHtml(params: WelcomeEmailParams): string {
   const { fullName } = params;
 
   // --- Hero banner (rocket emoji) ---
-  const heroBanner = emailHeroBanner({ image: "welcome-rocket.svg", imageWidth: 200, imageHeight: 170, alt: "Welcome to OKrunit" });
+  const heroBanner = emailHeroBanner({ image: "welcome-rocket.svg", imageWidth: 160, imageHeight: 136, alt: "Welcome to OKrunit", compact: true });
 
-  // --- Hero ---
-  const hero = emailHero({
-    title: `You&rsquo;re all set, ${fullName}!`,
-    descriptionHtml:
-      "Your account is live and ready to go. Here&rsquo;s a quick guide to get your first approval flow up and running.",
-  });
+  // --- Hero (compact margins so CTA is visible without scrolling) ---
+  const hero = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+      <tr>
+        <td align="center">
+          <h1 style="margin:0 0 10px;color:${emailTheme.ink};font-size:28px;font-weight:700;line-height:36px;letter-spacing:-0.5px;text-align:center;">
+            You&rsquo;re all set, ${fullName}!
+          </h1>
+          <p style="margin:0;color:${emailTheme.text};font-size:15px;line-height:26px;text-align:center;">
+            Your account is live and ready to go. Here&rsquo;s a quick guide to get your first approval flow up and running.
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
 
   // --- "Your OKrunit to-do list" section header ---
   const todoHeader = `
@@ -107,25 +114,22 @@ export function buildWelcomeEmailHtml(params: WelcomeEmailParams): string {
     { tone: "brand", marginTop: 20 },
   );
 
-  // --- Two buttons ---
-  const buttons = emailButtonRow([
-    emailButton({
-      label: "Open Dashboard",
-      href: `${PROD_URL}/org/overview`,
-    }),
-    emailButton({
-      label: "Read Docs",
-      href: `${PROD_URL}/docs`,
-      variant: "secondary",
-      block: true,
-    }),
-  ]);
+  // --- Two buttons (reduced top margin) ---
+  const buttons = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;">
+      <tr>
+        <td width="50%" style="padding-right:8px;vertical-align:top;text-align:center;">${emailButton({ label: "Open Dashboard", href: `${PROD_URL}/org/overview` })}</td>
+        <td width="50%" style="padding-left:8px;vertical-align:top;text-align:center;">${emailButton({ label: "Read Docs", href: `${PROD_URL}/docs`, variant: "secondary", block: true })}</td>
+      </tr>
+    </table>
+  `;
 
   // --- Sign-off ---
   const signoff = emailSignoff({
     message: "Here&rsquo;s to your automation success,",
     name: "The OKrunit Team",
     title: "Human-in-the-loop, always",
+    align: "center",
   });
 
   const body = [

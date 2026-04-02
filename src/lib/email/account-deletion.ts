@@ -3,11 +3,8 @@
 // ---------------------------------------------------------------------------
 
 import {
-  PROD_URL,
   emailButton,
-  emailButtonRow,
   emailCard,
-  emailHero,
   emailHeroBanner,
   emailIconCircle,
   emailLayout,
@@ -33,12 +30,21 @@ export function buildAccountDeletionEmailHtml(
   } = params;
 
   const body = [
-    // -- Centered hero --
-    emailHero({
-      title: "Confirm account deletion",
-      descriptionHtml:
-        "We received a request to permanently delete your OKrunit account. This action requires one final confirmation before it takes effect.",
-    }),
+    // -- Centered hero (compact) --
+    `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+        <tr>
+          <td align="center">
+            <h1 style="margin:0 0 10px;color:${emailTheme.ink};font-size:28px;font-weight:700;line-height:36px;letter-spacing:-0.5px;text-align:center;">
+              Confirm account deletion
+            </h1>
+            <p style="margin:0;color:${emailTheme.text};font-size:15px;line-height:26px;text-align:center;">
+              We received a request to permanently delete your OKrunit account. This action requires one final confirmation before it takes effect.
+            </p>
+          </td>
+        </tr>
+      </table>
+    `,
 
     // -- Danger pill --
     `
@@ -72,14 +78,16 @@ export function buildAccountDeletionEmailHtml(
       { tone: "danger" },
     ),
 
-    // -- Confirm button (danger) --
-    emailButtonRow([
-      emailButton({
-        label: "Confirm Deletion",
-        href: confirmLink,
-        variant: "danger",
-      }),
-    ]),
+    // -- Confirm button (danger, reduced margin) --
+    `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;">
+        <tr>
+          <td align="center">
+            ${emailButton({ label: "Confirm Deletion", href: confirmLink, variant: "danger" })}
+          </td>
+        </tr>
+      </table>
+    `,
 
     // -- Reassurance card --
     emailCard(
@@ -107,11 +115,12 @@ export function buildAccountDeletionEmailHtml(
     emailSignoff({
       name: "The OKrunit Team",
       title: "Account Security",
+      align: "center",
     }),
   ].join("");
 
   return emailLayout({
-    heroBanner: emailHeroBanner({ image: "delete-warning.svg", imageWidth: 180, imageHeight: 170, alt: "Account deletion" }),
+    heroBanner: emailHeroBanner({ image: "delete-warning.svg", imageWidth: 144, imageHeight: 136, alt: "Account deletion", compact: true }),
     body,
     preheader: "Confirm your account deletion request",
     footerText:

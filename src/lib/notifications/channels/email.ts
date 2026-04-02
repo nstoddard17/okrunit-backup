@@ -7,9 +7,7 @@ import {
   type EmailTone,
   PROD_URL,
   emailButton,
-  emailButtonRow,
   emailCard,
-  emailHero,
   emailHeroBanner,
   emailLayout,
   emailMetadataRows,
@@ -107,11 +105,23 @@ export function buildApprovalEmailHtml(params: EmailNotificationParams): string 
     ? `<p style="margin:12px 0 0;color:${emailTheme.text};font-size:14px;line-height:23px;">${escapeHtml(params.description)}</p>`
     : "";
 
+  const hero = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+      <tr>
+        <td align="center">
+          <h1 style="margin:0 0 10px;color:${emailTheme.ink};font-size:28px;font-weight:700;line-height:36px;letter-spacing:-0.5px;text-align:center;">
+            Approval required
+          </h1>
+          <p style="margin:0;color:${emailTheme.text};font-size:15px;line-height:26px;text-align:center;">
+            A new request is waiting for your review.
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
+
   const body = [
-    emailHero({
-      title: "Approval required",
-      descriptionHtml: "A new request is waiting for your review.",
-    }),
+    hero,
     emailCard(
       `
         <p style="margin:0 0 4px;color:${emailTheme.subtle};font-size:11px;font-weight:700;line-height:16px;letter-spacing:1.4px;text-transform:uppercase;">
@@ -140,19 +150,14 @@ export function buildApprovalEmailHtml(params: EmailNotificationParams): string 
       `,
       { tone: "neutral" },
     ),
-    emailButtonRow([
-      emailButton({
-        label: "Approve",
-        href: approveUrl,
-        block: true,
-      }),
-      emailButton({
-        label: "Reject",
-        href: rejectUrl,
-        variant: "danger-secondary",
-        block: true,
-      }),
-    ]),
+    `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;">
+        <tr>
+          <td width="50%" style="padding-right:8px;vertical-align:top;text-align:center;">${emailButton({ label: "Approve", href: approveUrl, block: true })}</td>
+          <td width="50%" style="padding-left:8px;vertical-align:top;text-align:center;">${emailButton({ label: "Reject", href: rejectUrl, variant: "danger-secondary", block: true })}</td>
+        </tr>
+      </table>
+    `,
     emailCard(
       `
         ${emailMetadataRows([
@@ -172,7 +177,7 @@ export function buildApprovalEmailHtml(params: EmailNotificationParams): string 
   ].join("");
 
   return emailLayout({
-    heroBanner: emailHeroBanner({ image: "approval-bell.svg", imageWidth: 200, imageHeight: 170, alt: "Approval required" }),
+    heroBanner: emailHeroBanner({ image: "approval-bell.svg", imageWidth: 160, imageHeight: 136, alt: "Approval required", compact: true }),
     body,
     preheader: `New approval request: ${params.title}`,
     footerText: "Action links expire in 72 hours. If you did not expect this email, you can safely ignore it.",
@@ -214,11 +219,23 @@ export function buildDecisionEmailHtml(params: DecisionEmailParams): string {
       : []),
   ];
 
+  const decisionHero = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+      <tr>
+        <td align="center">
+          <h1 style="margin:0 0 10px;color:${emailTheme.ink};font-size:28px;font-weight:700;line-height:36px;letter-spacing:-0.5px;text-align:center;">
+            Request ${statusLabel}
+          </h1>
+          <p style="margin:0;color:${emailTheme.text};font-size:15px;line-height:26px;text-align:center;">
+            A decision has been made on your approval request.
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
+
   const body = [
-    emailHero({
-      title: `Request ${statusLabel}`,
-      descriptionHtml: "A decision has been made on your approval request.",
-    }),
+    decisionHero,
     emailCard(
       emailMetadataRows(rows),
       { tone: "neutral" },
@@ -236,17 +253,19 @@ export function buildDecisionEmailHtml(params: DecisionEmailParams): string {
           { tone: statusTone, marginTop: 20 },
         )
       : "",
-    emailButtonRow([
-      emailButton({
-        label: "View in Dashboard",
-        href: dashboardUrl,
-        variant: "dark",
-      }),
-    ]),
+    `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;">
+        <tr>
+          <td align="center">
+            ${emailButton({ label: "View in Dashboard", href: dashboardUrl, variant: "dark" })}
+          </td>
+        </tr>
+      </table>
+    `,
   ].join("");
 
   return emailLayout({
-    heroBanner: emailHeroBanner({ image: heroImage, imageWidth: 200, imageHeight: 170, alt: heroAlt }),
+    heroBanner: emailHeroBanner({ image: heroImage, imageWidth: 160, imageHeight: 136, alt: heroAlt, compact: true }),
     body,
     preheader: `${params.requestTitle} has been ${params.decision}`,
     footerText: "You received this email because you are a member of this OKrunit organization.",
