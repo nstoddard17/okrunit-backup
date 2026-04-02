@@ -350,7 +350,9 @@ function dispatchDiscord(
   const botToken = conn.bot_token ?? undefined;
   const channelId = conn.channel_id ?? undefined;
 
+  // Skip if no valid delivery method, or if channel hasn't been selected yet
   if (!webhookUrl && !(botToken && channelId)) return Promise.resolve();
+  if (channelId?.startsWith("pending:")) return Promise.resolve();
 
   if (isCreateEvent) {
     return sendDiscordNotification({

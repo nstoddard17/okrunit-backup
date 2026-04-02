@@ -744,7 +744,11 @@ export function ConnectionList({
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-medium">
                           {connection.platform === "discord"
-                            ? `# ${channelOverrides[connection.id]?.name ?? connection.channel_name ?? connection.channel_id}`
+                            ? channelOverrides[connection.id]?.name
+                              ? `# ${channelOverrides[connection.id].name}`
+                              : connection.channel_id?.startsWith("pending:")
+                                ? (connection.workspace_name ?? "Discord Server")
+                                : `# ${connection.channel_name ?? connection.channel_id}`
                             : (connection.channel_name ?? connection.channel_id)}
                         </span>
                         <Badge

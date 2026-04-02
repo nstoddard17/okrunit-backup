@@ -164,17 +164,20 @@ export async function PATCH(request: Request) {
       throw new ApiError(400, "Nothing to update");
     }
 
-    const { error } = await admin
+    const { data: updated, error } = await admin
       .from("messaging_connections")
       .update(update)
-      .eq("id", body.id);
+      .eq("id", body.id)
+      .eq("org_id", auth.orgId)
+      .select("id, channel_id, channel_name")
+      .single();
 
     if (error) {
       console.error("[Messaging Connections] Update failed:", error);
       throw new ApiError(500, "Failed to update connection");
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, connection: updated });
   } catch (error) {
     return errorResponse(error);
   }
