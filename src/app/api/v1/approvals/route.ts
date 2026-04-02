@@ -880,7 +880,11 @@ export async function GET(request: Request) {
 
     // 4. Apply filters
     if (params.status) {
-      query = query.eq("status", params.status);
+      if (Array.isArray(params.status)) {
+        query = query.in("status", params.status);
+      } else {
+        query = query.eq("status", params.status);
+      }
     }
 
     if (params.priority) {
@@ -912,7 +916,11 @@ export async function GET(request: Request) {
       .eq("org_id", auth.orgId);
 
     if (params.status) {
-      countQuery = countQuery.eq("status", params.status);
+      if (Array.isArray(params.status)) {
+        countQuery = countQuery.in("status", params.status);
+      } else {
+        countQuery = countQuery.eq("status", params.status);
+      }
     }
 
     if (params.priority) {
