@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getOrgContext } from "@/lib/org-context";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { MessagingConnectionsPage } from "@/components/messaging/messaging-connections-page";
 import type { ApprovalFlow, MessagingConnection } from "@/lib/types/database";
@@ -19,11 +18,10 @@ export default async function MessagingPage() {
   if (membership.role !== "owner" && membership.role !== "admin")
     redirect("/requests");
 
-  const supabase = await createClient();
   const admin = createAdminClient();
 
   const [{ data: connections }, { data: flows }] = await Promise.all([
-    supabase
+    admin
       .from("messaging_connections")
       .select(
         "id, org_id, platform, workspace_id, workspace_name, channel_id, channel_name, webhook_url, is_active, notify_on_create, notify_on_decide, priority_filter, routing_rules, installed_by, created_at, updated_at",
