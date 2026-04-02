@@ -528,9 +528,9 @@ export function Hero({ user }: HeroProps) {
 
           <div className="flex items-center gap-2">
             {user ? (
-              <Link href="/org/overview" className="hidden rounded-lg px-4 py-2 text-sm font-semibold transition hover:opacity-90 md:inline-flex" style={{ backgroundColor: "var(--tess-text)", color: "var(--tess-bg)" }}>
+              <a href="/org/overview" className="hidden rounded-lg px-4 py-2 text-sm font-semibold transition hover:opacity-90 md:inline-flex" style={{ backgroundColor: "var(--tess-text)", color: "var(--tess-bg)" }}>
                 Dashboard
-              </Link>
+              </a>
             ) : (
               <>
                 <Link href="/login" className="hidden text-sm transition hover:text-white md:inline-flex" style={{ color: "var(--tess-text-secondary)" }}>Log in</Link>
@@ -552,9 +552,15 @@ export function Hero({ user }: HeroProps) {
               <a href="#pricing" className="text-sm" style={{ color: "var(--tess-text-secondary)" }} onClick={() => setMobileMenuOpen(false)}>Pricing</a>
               <a href="#testimonials" className="text-sm" style={{ color: "var(--tess-text-secondary)" }} onClick={() => setMobileMenuOpen(false)}>Testimonials</a>
               {!user && <Link href="/login" className="text-sm" style={{ color: "var(--tess-text-secondary)" }} onClick={() => setMobileMenuOpen(false)}>Log in</Link>}
-              <Link href={user ? "/org/overview" : "/signup"} className="mt-1 rounded-lg px-4 py-2 text-center text-sm font-semibold" style={{ backgroundColor: "var(--tess-text)", color: "var(--tess-bg)" }}>
-                {user ? "Dashboard" : "Start for free"}
-              </Link>
+              {user ? (
+                <a href="/org/overview" className="mt-1 rounded-lg px-4 py-2 text-center text-sm font-semibold" style={{ backgroundColor: "var(--tess-text)", color: "var(--tess-bg)" }}>
+                  Dashboard
+                </a>
+              ) : (
+                <Link href="/signup" className="mt-1 rounded-lg px-4 py-2 text-center text-sm font-semibold" style={{ backgroundColor: "var(--tess-text)", color: "var(--tess-bg)" }}>
+                  Start for free
+                </Link>
+              )}
             </div>
           </div>
         )}

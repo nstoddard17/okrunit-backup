@@ -103,7 +103,7 @@ export function TourTooltip({
 
   // Raise the target element above the overlay so it's visible and interactive
   useEffect(() => {
-    if (!targetSelector || !ready || highlightMode === "full-width") return;
+    if (!targetSelector || !ready || highlightMode === "full-width" || highlightMode === "no-ring") return;
     const el = document.querySelector(targetSelector) as HTMLElement | null;
     if (!el) return;
 
@@ -120,7 +120,8 @@ export function TourTooltip({
       el.style.position = "relative";
     }
     el.style.zIndex = "10000";
-    el.style.backgroundColor = "white";
+    // Use the themed background color (works in both light and dark mode)
+    el.style.backgroundColor = "var(--card)";
     el.style.borderRadius = "0.5rem";
 
     // Also raise parent portal containers (for Radix portals)

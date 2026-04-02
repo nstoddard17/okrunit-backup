@@ -90,15 +90,14 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
     );
   }
 
-  // Get user's org membership.
-  const { data: membership } = await admin
+  // Get all user org memberships so they can choose which org to connect.
+  const { data: allMemberships } = await admin
     .from("org_memberships")
-    .select("org_id, role")
+    .select("org_id, role, is_default")
     .eq("user_id", user.id)
-    .eq("is_default", true)
-    .single();
+    .order("is_default", { ascending: false });
 
-  if (!membership) {
+  if (!allMemberships || allMemberships.length === 0) {
     return (
       <ErrorDisplay
         error="no_membership"
@@ -107,12 +106,22 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
     );
   }
 
-  // Get org name.
-  const { data: org } = await admin
+  // Default to the user's default org
+  const membership = allMemberships.find((m) => m.is_default) ?? allMemberships[0];
+
+  // Fetch all org names
+  const orgIds = allMemberships.map((m) => m.org_id);
+  const { data: orgs } = await admin
     .from("organizations")
-    .select("name")
-    .eq("id", membership.org_id)
-    .single();
+    .select("id, name")
+    .in("id", orgIds);
+
+  const orgMap = new Map((orgs ?? []).map((o) => [o.id, o.name]));
+  const orgOptions = allMemberships.map((m) => ({
+    id: m.org_id,
+    name: orgMap.get(m.org_id) ?? "Unknown",
+    role: m.role,
+  }));
 
   // Parse and validate requested scopes.
   // Handle space-separated, +-separated, and comma-separated scopes.
@@ -134,7 +143,7 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
     <ConsentForm
       clientName={client.name}
       clientLogoUrl={client.logo_url || null}
-      orgName={org?.name || "Your Organization"}
+      orgName={orgMap.get(membership.org_id) || "Your Organization"}
       scopes={grantedScopes}
       clientId={params.client_id}
       redirectUri={params.redirect_uri}
@@ -146,6 +155,7 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
       userEmail={profile?.email || user.email || ""}
       userFullName={profile?.full_name || null}
       userAvatarUrl={profile?.avatar_url || null}
+      orgOptions={orgOptions.length > 1 ? orgOptions : undefined}
     />
   );
 }

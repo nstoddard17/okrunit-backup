@@ -16,6 +16,8 @@ import {
   MoreHorizontal,
   ShieldCheck,
   ShieldOff,
+  Plug,
+  Unplug,
   UserCog,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -57,6 +59,7 @@ interface TeamMember {
   avatar_url: string | null;
   role: UserRole;
   can_approve: boolean;
+  can_connect: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -101,6 +104,7 @@ export function V2MemberList({
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [optimisticApprove, setOptimisticApprove] = useState<Record<string, boolean>>({});
+  const [optimisticConnect, setOptimisticConnect] = useState<Record<string, boolean>>({});
 
   const isOwner = currentUserRole === "owner";
   const canRemove = currentUserRole === "owner" || currentUserRole === "admin";
@@ -161,6 +165,27 @@ export function V2MemberList({
     } catch (err) {
       // Revert on failure
       setOptimisticApprove((prev) => ({ ...prev, [userId]: !canApprove }));
+      toast.error(err instanceof Error ? err.message : "Failed to update");
+    }
+  }
+
+  async function handleCanConnectChange(userId: string, canConnect: boolean) {
+    setOptimisticConnect((prev) => ({ ...prev, [userId]: canConnect }));
+    toast.success(canConnect ? "Connect permission granted" : "Connect permission revoked");
+
+    try {
+      const res = await fetch("/api/v1/team/members", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, can_connect: canConnect }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to update");
+      }
+      router.refresh();
+    } catch (err) {
+      setOptimisticConnect((prev) => ({ ...prev, [userId]: !canConnect }));
       toast.error(err instanceof Error ? err.message : "Failed to update");
     }
   }
@@ -385,6 +410,39 @@ export function V2MemberList({
                           : canApproveValue
                           ? "This member can approve or reject requests. Toggle off to revoke."
                           : "This member cannot approve requests. Toggle on to grant permission."}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })()}
+
+                {/* Can connect toggle */}
+                {(() => {
+                  const canConnectValue = optimisticConnect[member.id] ?? member.can_connect;
+                  const isAdminOrOwner = member.role === "owner" || member.role === "admin";
+                  return (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="hidden sm:flex items-center gap-2 shrink-0 cursor-default">
+                          <span>
+                            {canConnectValue ? (
+                              <Plug className="size-3.5 text-blue-500" />
+                            ) : (
+                              <Unplug className="size-3.5 text-muted-foreground/40" />
+                            )}
+                          </span>
+                          <Switch
+                            checked={canConnectValue}
+                            onCheckedChange={(checked) => handleCanConnectChange(member.id, checked)}
+                            disabled={isSelf || isAdminOrOwner}
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        {isAdminOrOwner
+                          ? "Admins and owners always have connect permission."
+                          : canConnectValue
+                          ? "This member can create connections and OAuth apps. Toggle off to revoke."
+                          : "This member cannot create connections. Toggle on to grant permission."}
                       </TooltipContent>
                     </Tooltip>
                   );

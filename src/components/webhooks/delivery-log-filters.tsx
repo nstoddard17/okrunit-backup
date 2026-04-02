@@ -135,7 +135,7 @@ export function DeliveryLogFilters({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
       {/* Status filter */}
       <Select value={status} onValueChange={handleStatusChange}>
-        <SelectTrigger className="w-full sm:w-[180px] bg-white text-gray-900">
+        <SelectTrigger className="w-full sm:w-[180px] bg-card text-foreground">
           <SelectValue placeholder="All statuses" />
         </SelectTrigger>
         <SelectContent>
@@ -147,7 +147,7 @@ export function DeliveryLogFilters({
 
       {/* Connection filter */}
       <Select value={connectionId} onValueChange={handleConnectionChange}>
-        <SelectTrigger className="w-full sm:w-[220px] bg-white text-gray-900">
+        <SelectTrigger className="w-full sm:w-[220px] bg-card text-foreground">
           <SelectValue placeholder="All connections" />
         </SelectTrigger>
         <SelectContent>
@@ -162,7 +162,7 @@ export function DeliveryLogFilters({
 
       {/* Date range filter */}
       <Select value={dateRange} onValueChange={handleDateRangeChange}>
-        <SelectTrigger className="w-full sm:w-[180px] bg-white text-gray-900">
+        <SelectTrigger className="w-full sm:w-[180px] bg-card text-foreground">
           <SelectValue placeholder="All time" />
         </SelectTrigger>
         <SelectContent>
@@ -183,7 +183,7 @@ export function DeliveryLogFilters({
             type="date"
             value={customFrom}
             onChange={(e) => handleCustomFromChange(e.target.value)}
-            className="h-9 w-[150px] bg-white text-gray-900"
+            className="h-9 w-[150px] bg-card text-foreground"
             max={customTo || undefined}
           />
           <span className="text-sm text-muted-foreground">to</span>
@@ -191,7 +191,7 @@ export function DeliveryLogFilters({
             type="date"
             value={customTo}
             onChange={(e) => handleCustomToChange(e.target.value)}
-            className="h-9 w-[150px] bg-white text-gray-900"
+            className="h-9 w-[150px] bg-card text-foreground"
             min={customFrom || undefined}
           />
         </div>

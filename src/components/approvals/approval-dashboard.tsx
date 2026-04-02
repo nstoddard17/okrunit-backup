@@ -892,7 +892,7 @@ export function ApprovalDashboard({
         </div>
       )}
 
-      {/* Live indicator + refresh */}
+      {/* Live indicator + refresh + export */}
       <div className="flex items-center justify-end gap-2">
         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <span className="relative flex size-2">
@@ -911,22 +911,11 @@ export function ApprovalDashboard({
           <RefreshCw className={cn("size-3.5", isFetching && "animate-spin")} />
           Refresh
         </Button>
-      </div>
-
-      {/* Filters + Export */}
-      <div className="flex items-center gap-2">
-        <div className="flex-1">
-          <ApprovalFilters
-            onFilterChange={handleFilterChange}
-            connections={connections}
-            currentFilters={{ status, priority, search, source, showArchived }}
-          />
-        </div>
         {approvals.length > 0 && (
           <Button
             variant="outline"
             size="sm"
-            className="h-8 gap-1.5 text-xs shrink-0 bg-white dark:bg-card"
+            className="h-7 gap-1.5 text-xs shrink-0"
             onClick={() => {
               const headers = ["ID", "Title", "Status", "Priority", "Action Type", "Source", "Created", "Decided"];
               const rows = approvals.map((a) => [
@@ -955,6 +944,13 @@ export function ApprovalDashboard({
           </Button>
         )}
       </div>
+
+      {/* Filters */}
+      <ApprovalFilters
+        onFilterChange={handleFilterChange}
+        connections={connections}
+        currentFilters={{ status, priority, search, source, showArchived }}
+      />
 
       {/* Select all bar */}
       {approvals.length > 0 && (

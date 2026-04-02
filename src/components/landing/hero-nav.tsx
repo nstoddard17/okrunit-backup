@@ -49,7 +49,7 @@ export function HeroNav({ user }: HeroNavProps) {
     return (
       <div className="flex items-center gap-3">
         <Button asChild>
-          <Link href="/org/overview">Go to Dashboard</Link>
+          <a href="/org/overview">Go to Dashboard</a>
         </Button>
       </div>
     );
@@ -58,7 +58,7 @@ export function HeroNav({ user }: HeroNavProps) {
   return (
     <div className="flex items-center gap-3">
       <Button asChild>
-        <Link href="/org/overview">Go to Dashboard</Link>
+        <a href="/org/overview">Go to Dashboard</a>
       </Button>
 
       <DropdownMenu>
@@ -78,10 +78,10 @@ export function HeroNav({ user }: HeroNavProps) {
             </>
           )}
           <DropdownMenuItem asChild>
-            <Link href="/org/overview">
+            <a href="/org/overview">
               <LayoutDashboard className="mr-2 size-4" />
               Dashboard
-            </Link>
+            </a>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/settings">

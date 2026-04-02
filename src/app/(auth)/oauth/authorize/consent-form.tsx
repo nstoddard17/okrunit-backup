@@ -46,6 +46,12 @@ const SCOPE_LABELS: Record<string, { label: string; description: string }> = {
   },
 };
 
+interface OrgOption {
+  id: string;
+  name: string;
+  role: string;
+}
+
 interface ConsentFormProps {
   clientName: string;
   clientLogoUrl: string | null;
@@ -61,6 +67,7 @@ interface ConsentFormProps {
   userEmail: string;
   userFullName: string | null;
   userAvatarUrl: string | null;
+  orgOptions?: OrgOption[];
 }
 
 export function ConsentForm({
@@ -74,12 +81,15 @@ export function ConsentForm({
   codeChallenge,
   codeChallengeMethod,
   userId,
-  orgId,
+  orgId: defaultOrgId,
   userEmail,
   userFullName,
   userAvatarUrl,
+  orgOptions,
 }: ConsentFormProps) {
   const [loading, setLoading] = useState(false);
+  const [selectedOrgId, setSelectedOrgId] = useState(defaultOrgId);
+  const selectedOrgName = orgOptions?.find((o) => o.id === selectedOrgId)?.name ?? orgName;
 
   async function handleAuthorize() {
     setLoading(true);
@@ -96,7 +106,7 @@ export function ConsentForm({
           code_challenge: codeChallenge || undefined,
           code_challenge_method: codeChallengeMethod || undefined,
           user_id: userId,
-          org_id: orgId,
+          org_id: selectedOrgId,
         }),
       });
 
@@ -157,11 +167,30 @@ export function ConsentForm({
         </CardTitle>
         <CardDescription className="text-xs">
           <strong>{clientName}</strong> is requesting access to{" "}
-          <strong>{orgName}</strong> on OKrunit.
+          <strong>{selectedOrgName}</strong> on OKrunit.
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-3 px-5">
+        {/* Org selector — only shown when user belongs to multiple orgs */}
+        {orgOptions && orgOptions.length > 1 && (
+          <div className="rounded-lg border bg-muted/30 p-3">
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+              Connect to organization
+            </label>
+            <select
+              value={selectedOrgId}
+              onChange={(e) => setSelectedOrgId(e.target.value)}
+              className="w-full rounded-md border bg-white dark:bg-card px-3 py-2 text-sm"
+            >
+              {orgOptions.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.name} ({org.role})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <p className="text-sm font-medium">
           This will allow <strong>{clientName}</strong> to:
         </p>

@@ -148,6 +148,7 @@ export interface OrgMembership {
   org_id: string;
   role: UserRole;
   can_approve: boolean;
+  can_connect: boolean;
   is_default: boolean;
   auto_approvals_paused: boolean;
   custom_role_id: string | null;
@@ -163,6 +164,7 @@ export interface CustomRole {
   base_role: "member" | "approver" | "admin";
   color: string;
   can_approve: boolean;
+  can_connect: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;
