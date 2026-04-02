@@ -109,52 +109,73 @@ export async function GET(request: Request) {
       );
     }
 
-    // 3. Fetch text channels from the guild using the bot token
+    // 3. Extract webhook from token response (provided by webhook.incoming scope)
     let defaultChannelId = tokenData.webhook?.channel_id ?? "";
     let defaultChannelName = "general";
+    let webhookUrl = tokenData.webhook?.url ?? null;
 
-    if (tokenData.access_token) {
-      const channelsResponse = await fetch(
-        `${DISCORD_API_BASE}/guilds/${guildId}/channels`,
-        {
-          headers: { Authorization: `Bot ${tokenData.access_token}` },
-        },
-      );
+    console.log("[Discord Callback] Token response webhook:", {
+      has_webhook: !!tokenData.webhook,
+      webhook_channel_id: tokenData.webhook?.channel_id,
+      webhook_url: webhookUrl ? "present" : "missing",
+    });
 
-      if (channelsResponse.ok) {
-        const channels: DiscordGuildChannel[] = await channelsResponse.json();
-        // Find the first text channel if no webhook channel was provided
-        if (!defaultChannelId) {
+    // 4. If no webhook channel, try fetching guild channels with the bot token
+    if (!defaultChannelId) {
+      // Try both Bot and Bearer auth — Discord's OAuth bot flow may use either
+      const botToken = process.env.DISCORD_BOT_TOKEN || tokenData.access_token;
+      for (const authHeader of [
+        `Bot ${botToken}`,
+        `Bearer ${tokenData.access_token}`,
+      ]) {
+        const channelsResponse = await fetch(
+          `${DISCORD_API_BASE}/guilds/${guildId}/channels`,
+          { headers: { Authorization: authHeader } },
+        );
+
+        if (channelsResponse.ok) {
+          const channels: DiscordGuildChannel[] = await channelsResponse.json();
           const textChannel = channels.find((c) => c.type === 0);
           if (textChannel) {
             defaultChannelId = textChannel.id;
             defaultChannelName = textChannel.name;
+            console.log("[Discord Callback] Found channel via API:", defaultChannelName);
+            break;
           }
         } else {
-          const matched = channels.find((c) => c.id === defaultChannelId);
-          if (matched) {
-            defaultChannelName = matched.name;
-          }
+          console.log("[Discord Callback] Channel fetch failed with", authHeader.split(" ")[0], ":", channelsResponse.status);
         }
+      }
+    } else {
+      // We have a channel from webhook — try to get its name
+      const botToken = process.env.DISCORD_BOT_TOKEN || tokenData.access_token;
+      const channelsResponse = await fetch(
+        `${DISCORD_API_BASE}/guilds/${guildId}/channels`,
+        { headers: { Authorization: `Bot ${botToken}` } },
+      );
+      if (channelsResponse.ok) {
+        const channels: DiscordGuildChannel[] = await channelsResponse.json();
+        const matched = channels.find((c) => c.id === defaultChannelId);
+        if (matched) defaultChannelName = matched.name;
       }
     }
 
     if (!defaultChannelId) {
+      console.error("[Discord Callback] No channels found for guild:", guildId);
       return NextResponse.redirect(
         `${APP_URL}/requests/messaging?error=no_channels_found`,
       );
     }
 
-    // 4. Create a webhook in the default channel for sending messages
-    let webhookUrl = tokenData.webhook?.url ?? null;
-
-    if (!webhookUrl && tokenData.access_token) {
+    // 5. Create a webhook if we don't have one from the OAuth response
+    if (!webhookUrl) {
+      const botToken = process.env.DISCORD_BOT_TOKEN || tokenData.access_token;
       const webhookResponse = await fetch(
         `${DISCORD_API_BASE}/channels/${defaultChannelId}/webhooks`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bot ${tokenData.access_token}`,
+            Authorization: `Bot ${botToken}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ name: "OKrunit" }),
@@ -164,10 +185,13 @@ export async function GET(request: Request) {
       if (webhookResponse.ok) {
         const webhook: { url: string } = await webhookResponse.json();
         webhookUrl = webhook.url;
+        console.log("[Discord Callback] Created webhook for channel:", defaultChannelId);
+      } else {
+        console.log("[Discord Callback] Webhook creation failed:", webhookResponse.status);
       }
     }
 
-    // 5. Store the connection in the database
+    // 6. Store the connection in the database
     const admin = createAdminClient();
     const tokenExpiresAt = new Date(
       Date.now() + tokenData.expires_in * 1000,
@@ -216,7 +240,7 @@ export async function GET(request: Request) {
 
     console.log("[Discord Callback] Connection saved:", connection?.id);
 
-    // 6. Audit log
+    // 7. Audit log
     logAuditEvent({
       orgId: state.orgId,
       userId: state.userId,
