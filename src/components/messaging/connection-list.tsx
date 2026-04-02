@@ -679,9 +679,13 @@ export function ConnectionList({
                                 if (open) fetchDiscordChannels(connection.id);
                               }}
                             >
-                              <SelectTrigger className="h-5 w-auto gap-1 border-none bg-transparent p-0 text-xs text-muted-foreground shadow-none hover:text-foreground">
-                                <Hash className="size-3" />
-                                <SelectValue placeholder={channelLoading === connection.id ? "Loading..." : "Select channel"} />
+                              <SelectTrigger className="inline-flex h-auto w-auto items-center gap-0.5 border-none bg-transparent p-0 text-xs text-muted-foreground shadow-none hover:text-foreground [&>svg:last-child]:size-3 [&>svg:last-child]:opacity-50">
+                                <Hash className="size-3 shrink-0" />
+                                <span className="truncate max-w-[120px]">
+                                  {connection.channel_name && connection.channel_name !== connection.workspace_name
+                                    ? connection.channel_name
+                                    : "Select channel"}
+                                </span>
                               </SelectTrigger>
                               <SelectContent>
                                 {channelLoading === connection.id ? (
