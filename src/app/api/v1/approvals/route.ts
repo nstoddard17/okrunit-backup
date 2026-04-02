@@ -124,8 +124,40 @@ export async function POST(request: Request) {
       if (!rl.allowed) return rlResponse(rl);
     }
 
-    // 5. Validate request body
-    const body = await request.json();
+    // 5. Validate request body (support both JSON and form-urlencoded)
+    let body: unknown;
+    const contentType = request.headers.get("content-type") || "";
+    if (contentType.includes("application/x-www-form-urlencoded")) {
+      const formData = await request.formData();
+      const raw = Object.fromEntries(formData.entries()) as Record<string, string>;
+      // Parse stringified JSON values that Make.com may send as form fields
+      body = Object.fromEntries(
+        Object.entries(raw).map(([k, v]) => {
+          try { return [k, JSON.parse(v)]; } catch { return [k, v]; }
+        }),
+      );
+    } else {
+      body = await request.json();
+    }
+
+    // Strip empty strings, "undefined", and null values so optional Zod fields
+    // pass validation. Integration platforms (Make, Zapier) often send empty
+    // strings for unfilled optional fields, which breaks z.url() etc.
+    if (body && typeof body === "object" && !Array.isArray(body)) {
+      const cleaned = body as Record<string, unknown>;
+      for (const key of Object.keys(cleaned)) {
+        if (cleaned[key] === "" || cleaned[key] === null || cleaned[key] === "undefined") {
+          delete cleaned[key];
+        }
+      }
+      // Parse metadata if it arrives as a JSON string
+      if (typeof cleaned.metadata === "string") {
+        try { cleaned.metadata = JSON.parse(cleaned.metadata); } catch { delete cleaned.metadata; }
+      }
+    }
+
+    console.log("[Approvals POST] auth_type:", auth.type, "body_keys:", Object.keys(body as Record<string, unknown>));
+
     const validated = createApprovalSchema.parse(body);
 
     // 5b. Auto-detect source from OAuth client name when not explicitly provided
@@ -792,8 +824,16 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.log("[Approvals POST] Validation failed:", JSON.stringify(error.issues));
       return NextResponse.json(
         { error: "Validation failed", issues: error.issues },
+        { status: 400 },
+      );
+    }
+    if (error instanceof SyntaxError) {
+      console.log("[Approvals POST] JSON parse error:", error.message);
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
         { status: 400 },
       );
     }
