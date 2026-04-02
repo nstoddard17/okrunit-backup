@@ -54,7 +54,7 @@ export async function GET(request: Request) {
       client_id: DISCORD_CLIENT_ID,
       redirect_uri: redirectUri,
       response_type: "code",
-      scope: "bot applications.commands webhook.incoming",
+      scope: "bot applications.commands",
       permissions: BOT_PERMISSIONS,
       state,
     });

@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 import {
   Check,
   ChevronDown,
   Filter,
+  Hash,
   Plus,
   Power,
   PowerOff,
@@ -543,6 +545,39 @@ export function ConnectionList({
     useState<MessagingConnection | null>(null);
   const [loading, setLoading] = useState(false);
   const [savingRoute, setSavingRoute] = useState<string | null>(null);
+  const [discordChannels, setDiscordChannels] = useState<Record<string, Array<{ id: string; name: string }>>>({});
+  const [channelLoading, setChannelLoading] = useState<string | null>(null);
+
+  async function fetchDiscordChannels(connectionId: string) {
+    if (discordChannels[connectionId]) return;
+    setChannelLoading(connectionId);
+    try {
+      const res = await fetch(`/api/v1/messaging/discord/channels?connection_id=${connectionId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setDiscordChannels((prev) => ({ ...prev, [connectionId]: data.channels }));
+      }
+    } catch {
+      // Silently fail
+    } finally {
+      setChannelLoading(null);
+    }
+  }
+
+  async function handleChannelChange(connectionId: string, channelId: string, channelName: string) {
+    try {
+      const res = await fetch(`/api/v1/messaging/connections`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: connectionId, channel_id: channelId, channel_name: channelName }),
+      });
+      if (res.ok) {
+        toast.success(`Channel changed to #${channelName}`);
+      }
+    } catch {
+      toast.error("Failed to change channel");
+    }
+  }
 
   async function handleDisconnect() {
     if (!disconnectTarget) return;
@@ -636,6 +671,39 @@ export function ConnectionList({
                       </div>
                     </div>
                   </div>
+
+                  {/* Discord channel selector */}
+                  {connection.platform === "discord" && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Select
+                        value={connection.channel_id}
+                        onValueChange={(value) => {
+                          const ch = discordChannels[connection.id]?.find((c) => c.id === value);
+                          if (ch) handleChannelChange(connection.id, ch.id, ch.name);
+                        }}
+                        onOpenChange={(open) => {
+                          if (open) fetchDiscordChannels(connection.id);
+                        }}
+                      >
+                        <SelectTrigger size="sm" className="w-[160px]">
+                          <Hash className="size-3 mr-1 text-muted-foreground" />
+                          <SelectValue placeholder={channelLoading === connection.id ? "Loading..." : "Select channel"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(discordChannels[connection.id] ?? []).map((ch) => (
+                            <SelectItem key={ch.id} value={ch.id}>
+                              # {ch.name}
+                            </SelectItem>
+                          ))}
+                          {!discordChannels[connection.id] && (
+                            <SelectItem value="_loading" disabled>
+                              Loading channels...
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   {/* Right: priority filter + actions */}
                   <div className="flex items-center gap-2 shrink-0">
