@@ -46,6 +46,7 @@ function getRoleHierarchy(minRole: string): string[] {
 // ---- POST /api/v1/approvals -----------------------------------------------
 
 export async function POST(request: Request) {
+  console.log("[Approvals POST] incoming request from:", request.headers.get("user-agent"), "content-type:", request.headers.get("content-type"));
   try {
     // 1. Authenticate -- API key or OAuth (for integrations like Zapier)
     const auth = await authenticateRequest(request);
@@ -845,6 +846,8 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    console.log("[Approvals GET] incoming request, url:", request.url);
+
     // 1. Authenticate (both API key and session supported)
     const auth = await authenticateRequest(request);
 

@@ -8,7 +8,7 @@
       "response_type": "code"
     },
     "temp": {
-      "code_verifier": "{{uuid}}"
+      "code_verifier": "{{uuid}}{{uuid}}"
     },
     "response": {
       "temp": {

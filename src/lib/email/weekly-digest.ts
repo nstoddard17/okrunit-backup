@@ -5,10 +5,8 @@
 import {
   PROD_URL,
   emailButton,
-  emailButtonRow,
   emailCard,
   emailDivider,
-  emailHero,
   emailHeroBanner,
   emailLayout,
   emailPill,
@@ -53,14 +51,24 @@ export function buildWeeklyDigestEmailHtml(
         : `${stats.avgResponseTimeHours.toFixed(1)} hrs`;
 
   // --- Hero banner ---
-  const heroBanner = emailHeroBanner({ image: "weekly-digest.svg", imageWidth: 200, imageHeight: 150, alt: "Weekly digest" });
+  const heroBanner = emailHeroBanner({ image: "weekly-digest.svg", imageWidth: 160, imageHeight: 120, alt: "Weekly digest", compact: true });
 
-  // --- Hero ---
-  const hero = emailHero({
-    title: `Your week at ${escapeHtml(orgName)}`,
-    descriptionHtml: `Hi ${escapeHtml(fullName)}, here\u2019s your activity summary for <strong style="color:${emailTheme.ink};">${escapeHtml(orgName)}</strong>.`,
-    supportingHtml: `${escapeHtml(periodStart)} &ndash; ${escapeHtml(periodEnd)}`,
-  });
+  // --- Hero (compact) ---
+  const hero = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+      <tr>
+        <td align="center">
+          <h1 style="margin:0 0 10px;color:${emailTheme.ink};font-size:28px;font-weight:700;line-height:36px;letter-spacing:-0.5px;text-align:center;">
+            Your week at ${escapeHtml(orgName)}
+          </h1>
+          <p style="margin:0;color:${emailTheme.text};font-size:15px;line-height:26px;text-align:center;">
+            Hi ${escapeHtml(fullName)}, here\u2019s your activity summary for <strong style="color:${emailTheme.ink};">${escapeHtml(orgName)}</strong>.
+          </p>
+          <div style="margin:8px 0 0;color:${emailTheme.muted};font-size:14px;line-height:22px;text-align:center;">${escapeHtml(periodStart)} &ndash; ${escapeHtml(periodEnd)}</div>
+        </td>
+      </tr>
+    </table>
+  `;
 
   // --- 2x2 Stat Grid ---
   const statGrid = `
@@ -167,19 +175,22 @@ export function buildWeeklyDigestEmailHtml(
     { tone: "neutral", marginTop: 20 },
   );
 
-  // --- CTA ---
-  const cta = emailButtonRow([
-    emailButton({
-      label: "View Dashboard",
-      href: `${PROD_URL}/org/overview`,
-      variant: "dark",
-    }),
-  ]);
+  // --- CTA (reduced margin) ---
+  const cta = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;">
+      <tr>
+        <td align="center">
+          ${emailButton({ label: "View Dashboard", href: `${PROD_URL}/org/overview`, variant: "dark" })}
+        </td>
+      </tr>
+    </table>
+  `;
 
   // --- Sign-off ---
   const signoff = emailSignoff({
     name: "The OKrunit Team",
     title: "Weekly Insights",
+    align: "center",
   });
 
   const body = [hero, statGrid, performanceCard, sourcesCard, cta, signoff].join("");

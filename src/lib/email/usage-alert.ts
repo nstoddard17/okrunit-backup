@@ -5,9 +5,7 @@
 import {
   PROD_URL,
   emailButton,
-  emailButtonRow,
   emailCard,
-  emailHero,
   emailHeroBanner,
   emailLayout,
   emailMetadataRows,
@@ -43,13 +41,23 @@ export function buildUsageAlertEmailHtml(
   const { orgName, alerts, plan } = params;
 
   // --- Hero banner ---
-  const heroBanner = emailHeroBanner({ image: "usage-chart.svg", imageWidth: 200, imageHeight: 150, alt: "Usage alert" });
+  const heroBanner = emailHeroBanner({ image: "usage-chart.svg", imageWidth: 160, imageHeight: 120, alt: "Usage alert", compact: true });
 
-  // --- Hero ---
-  const hero = emailHero({
-    title: "Usage Alert",
-    descriptionHtml: `<strong style="color:${emailTheme.ink};">${escapeHtml(orgName)}</strong> is nearing the capacity of your <strong style="color:${emailTheme.ink};">${escapeHtml(plan)}</strong> plan. Review your usage below.`,
-  });
+  // --- Hero (compact) ---
+  const hero = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+      <tr>
+        <td align="center">
+          <h1 style="margin:0 0 10px;color:${emailTheme.ink};font-size:28px;font-weight:700;line-height:36px;letter-spacing:-0.5px;text-align:center;">
+            Usage Alert
+          </h1>
+          <p style="margin:0;color:${emailTheme.text};font-size:15px;line-height:26px;text-align:center;">
+            <strong style="color:${emailTheme.ink};">${escapeHtml(orgName)}</strong> is nearing the capacity of your <strong style="color:${emailTheme.ink};">${escapeHtml(plan)}</strong> plan. Review your usage below.
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
 
   // --- Metadata card ---
   const metadata = emailCard(
@@ -133,19 +141,22 @@ export function buildUsageAlertEmailHtml(
     { tone: "neutral", marginTop: 20 },
   );
 
-  // --- CTA ---
-  const cta = emailButtonRow([
-    emailButton({
-      label: "Review Billing",
-      href: `${PROD_URL}/org/billing`,
-      variant: "primary",
-    }),
-  ]);
+  // --- CTA (reduced margin) ---
+  const cta = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;">
+      <tr>
+        <td align="center">
+          ${emailButton({ label: "Review Billing", href: `${PROD_URL}/org/billing`, variant: "primary" })}
+        </td>
+      </tr>
+    </table>
+  `;
 
   // --- Sign-off ---
   const signoff = emailSignoff({
     name: "The OKrunit Team",
     title: "Billing & Usage",
+    align: "center",
   });
 
   const body = [hero, metadata, capacityCard, cta, signoff].join("");
